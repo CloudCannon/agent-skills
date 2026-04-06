@@ -97,11 +97,26 @@ No MDX integration or auto-import setup is needed. Raw snippets match the HTML p
 
 ### When to create an HTML snippet
 
-During the audit, scan content files for HTML blocks and ask: can this be expressed in standard markdown? If not, it's a snippet candidate. Simple inline elements like `<sup>`, `<br>`, `<mark>` are fine as raw HTML -- they're small and editors rarely need to modify them. Block-level HTML with multiple attributes or nested elements should become snippets.
+During the audit, scan content files for HTML blocks and ask: can this be expressed in **standard markdown** or as a **first-class CloudCannon rich-text construct** (below)? If not, it's a snippet candidate. Block-level HTML with multiple attributes or nested elements should usually become snippets.
+
+**First-class elements.** CloudCannon maps these to supported editor semantics. The saved file can show HTML tags or Markdown syntax depending on `markdown.options` (and the toolbar on `_editables.content` where those features have buttons — same idea as [Markdown tables in configuration-gotchas](astro/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)):
+
+- **Block:** `p`, `h1`–`h6`, `blockquote`, `hr`, `ul`, `ol`, `li`, `table`, fenced code blocks / `pre` with `code`
+- **Inline:** `strong`, `em`, `code`, `a`, `img`, `u`, `s` (strikethrough), `sub`, `sup`
+
+**Strikethrough:** When parsing, CloudCannon treats `<s>`, `<strike>`, and `<del>` as strikethrough. On save, output is normalized toward a single canonical HTML form (expected to converge on `<s>`). Legacy `<strike>` in source does not require a snippet. Set **`markdown.options.strikethrough`** to match the SSG: if `true`, strikethrough can round-trip as Markdown `~~text~~`; if `false`, it stays as HTML.
+
+**Examples (align options with what you see in content):**
+
+- **`<sup>`** — Default **`superscript: false`** keeps literal `<sup>` in the file. Use **`superscript: true`** only if the SSG understands caret superscript (`^text^`) and the site should save that way.
+- **Line breaks / `<br>`** — Use **`markdown.options.breaks`** with **`markdown.options.xhtml`** so hard breaks match the SSG and existing files. Per CloudCannon, `breaks: true` preserves newlines as `\n` in the saved file; with `breaks: false`, `xhtml: false` vs `true` affects whether hard breaks serialize as `<br>` vs `<br />`. See [options.breaks](https://cloudcannon.com/documentation/developer-articles/configure-your-markdown-engine/#options.breaks).
+- **`<mark>`** — Treat like the other first-class inline cases: no snippet for highlight markup alone. A dedicated `markdown.options` flag is not in product yet but is planned; re-check docs when it ships.
+
+Full option list and behavior: [Configure your Markdown engine](https://cloudcannon.com/documentation/developer-articles/configure-your-markdown-engine/).
 
 ### Workflow
 
-1. **Inventory** (audit phase) -- grep content directories for HTML tags. Document each pattern, its attributes, and which values vary between instances.
+1. **Inventory** (audit phase) -- grep content directories for HTML tags. For each pattern, note attributes and varying values. If the tag is **first-class** (list above), verify `markdown.options` (and `_editables.content` where relevant) match how the repo authors that markup instead of assuming a snippet.
 2. **Normalize** (content phase) -- standardize all instances of each pattern to a consistent format. Remove class attributes that belong in CSS, collapse unnecessary whitespace, ensure all instances use the same attribute order. This is essential -- the snippet pattern must match every instance.
 3. **Configure** (configuration phase) -- write raw snippet configs. Identify which parts are fixed structure (literal text in the `snippet` string) vs editable values (`[[placeholder]]` markers with parsers).
 

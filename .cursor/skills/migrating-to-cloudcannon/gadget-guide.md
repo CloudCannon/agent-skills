@@ -84,6 +84,7 @@ gadget generate --auto --json
 
 Gadget generates a baseline configuration. After generation, you may want to customize:
 
+- **`collections_config`** — Declares each **collection** CloudCannon should expose (paths, schemas, URLs) and scopes **collection-level** settings to that collection.
 - **`_inputs`** — Configure how fields appear in the CloudCannon editor (dropdowns, date pickers, image uploaders, etc.)
 - **`_structures`** — Define reusable component structures for array-based content
 - **`collection_groups`** — Organize collections into sidebar groups
@@ -107,8 +108,7 @@ When editing generated files, preserve these schema references. Use the schema U
 
 ## File Placement
 
-- `cloudcannon.config.yml` goes at the project root (or relative to the source folder if `source` is set)
-- `.cloudcannon/initial-site-settings.json` goes at the project root
+- **`cloudcannon.config.yml`** and **`.cloudcannon/initial-site-settings.json`** live at the **repository root**, not under `src/` or another app subdirectory.
 
 ## Example Skill File Workflow
 

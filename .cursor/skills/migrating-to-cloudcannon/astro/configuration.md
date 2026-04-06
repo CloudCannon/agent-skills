@@ -14,10 +14,10 @@ gadget generate --auto --init-settings --ssg astro
 
 After generation, read `cloudcannon.config.yml` and check:
 
-- **`source`** -- should not be added by the agent. It's deployment-specific (used in monorepo setups) and should be left for the user to configure based on their hosting. For most Astro sites, `source` should be empty or omitted (the project root is the source). Gadget may generate an incorrect `source` path — always remove it if present.
+- **`source`** -- Do not add this during migration. It is **deployment-specific** (monorepos, non-standard layouts) and belongs with the user's hosting setup. For typical Astro sites, **omit `source`** so CloudCannon's root is the **repository root**; that way config can reference paths outside `src` when needed. If Gadget writes a `source` value, **remove it** unless the project truly requires it.
 - **`collections_config`** -- are all content collections present? Do paths match the `base` directories from `content.config.ts`?
-- **`paths`** -- `static` should be `public`. For `uploads`, check where the site actually stores images: if there's a dedicated subdirectory (e.g. `public/images/`), use that; if images are flat in the `public/` root, use `public`; if no images exist yet, default to `public/images`
-- **Build settings** (in `.cloudcannon/initial-site-settings.json`) -- `ssg` should be `"astro"`, `build_command` should be `"astro build"` (or the full pipeline if pre-build scripts exist), `output_path` should be `"dist"`
+- **`paths`** -- Set `static` to `public` (Astro's default asset folder) unless the project uses a different public directory. Set `uploads` to match where uploaded images should land: use `public/images` when the site keeps images in a subfolder, `public` when assets live at the root of public, and default to **`public/images`** when there is no precedent yet.
+- **Build settings** (`.cloudcannon/initial-site-settings.json`) -- Align with the repo: `ssg`: `"astro"`; `install_command`: from the detected package manager (omit if there is none); `build_command`: the script from `package.json` if present, otherwise `"astro build"`; `output_path`: `"dist"`. Prefer **`.cloudcannon/prebuild`** for extra setup steps so `build_command` stays a straight build, not a shell chain.
 
 ## Customize the config
 

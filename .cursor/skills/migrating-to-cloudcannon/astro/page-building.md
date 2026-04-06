@@ -11,6 +11,7 @@ Many templates have **no content-backed pages** -- all page data is hardcoded di
 - Static `.astro` pages with structured data (arrays of cards, timeline entries, hero sections with multiple fields) that editors need CRUD control over
 - Source editables aren't sufficient because editors need to add, remove, or reorder items -- not just edit text in place
 - The template has multiple static pages that should be editable, making a `pages` collection worthwhile
+- **Default toward content-backed pages** unless you have a concrete reason not to. Moving copy and structure into the collection keeps templates thin, gives editors real CRUD, and scales better as the site grows. **Source editables** are fine for small, page-specific hardcoded bits—use them as the exception, not the default pattern.
 
 ### Steps
 
@@ -73,7 +74,7 @@ The catch-all checks for `content_blocks` to switch between page builder renderi
 
 ### Identifying reusable page types
 
-Review the audit's component inventory for components used on **multiple pages**. If the same component pattern appears on 3+ pages, it's a strong candidate for a creatable schema. Editors can then create new pages of that type without developer help.
+Review the audit's component inventory for components used on **multiple pages**. If the same component pattern appears on more than one page, it's a strong candidate for a creatable schema. Editors can then create new pages of that type without developer help.
 
 For each reusable page type:
 
@@ -118,7 +119,7 @@ Only creatable page types appear in `add_options`. One-off pages with dedicated 
 
 A schema with a `content_blocks` array lets editors assemble pages from reusable blocks in any order.
 
-**When to use it**: When the site has 3+ reusable block components (banners, features, CTAs, testimonials, rich text). Fewer than 3 blocks doesn't justify the added complexity.
+**When to use it**: When the site has 3+ reusable block components (heroes, banners, features, CTAs, testimonials, rich text). Fewer than 3 blocks doesn't justify the added complexity.
 
 For the full structures reference (inline vs split, field completeness, previews, deriving from components), see [../structures.md](../structures.md). Structures must be defined during the configuration phase because the content phase uses them as the blueprint for field completeness.
 
@@ -173,7 +174,7 @@ _inputs:
 
 ### Reference blocks vs inline blocks
 
-Blocks like CTA and Testimonial that pull from global JSON data files are "reference" blocks -- they have no inline data, just a `_type` marker. The rendering code imports the global data and passes it to the component. This keeps the data DRY (edited once in the Data section) while letting editors place these sections anywhere on the page. Visual editing still works via `@data[key]` editable regions.
+**Reference blocks** (e.g. CTA, Testimonial) point at **global JSON** in the Data section: the block in the page array is usually just a `_type` marker, and the Astro page imports that shared data and passes it into the component. Editors still get visual editing where those values are bound with `@data[key]` regions. You can **combine** shared data with per-instance props—for example, body copy from a JSON file reused everywhere, plus `background` and `textColor` on each block instance in the page builder.
 
 ### BlockRenderer
 
