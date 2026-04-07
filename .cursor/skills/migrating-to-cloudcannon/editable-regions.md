@@ -28,10 +28,10 @@ Inline rich text editor (ProseMirror-based). Supports `data-type` of `"span"` (i
 Image editing via CloudCannon's data panel. The region **host** is either (1) an `<img>` with `data-editable="image"` and path attributes on that same element, or (2) a non-`img` host (`<editable-image>`, `<div data-editable="image">`, layout wrapper, etc.) that contains a descendant `<img>`. The resolved `<img>` is what gets live `src` / `alt` / `title` updates — each facet can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields).
 
 ### EditableComponent
-Re-renders a component when its data changes so the rendered slice updates holistically from that data. Requires a registered renderer function (e.g. via `registerAstroComponent`). Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
+Re-renders a component when its data changes so the rendered slice updates holistically from that data. Requires a renderer registered through your SSG’s `@cloudcannon/editable-regions` integration (Astro: `registerAstroComponent`). Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
 
 ### EditableArray & EditableArrayItem
-On the page, manages ordered lists with full CRUD (add, remove, reorder) and drag-and-drop. Array items on their own don't re-render contents — adding `data-component` to an array item element enables component re-rendering alongside the CRUD controls. For complex arrays, the array wrapper needs `data-component-key` and optionally `data-id-key` to declare which data fields identify items. Use `<editable-array-item>` when no suitable HTML container exists.
+On the page, manages ordered lists with full CRUD (add, remove, reorder) and drag-and-drop. Array items on their own don't re-render contents — adding `data-component` to an array item element enables component re-rendering alongside the CRUD controls. For complex arrays, the array wrapper needs `data-component-key` and optionally `data-id-key` to declare which data fields identify each item’s type and stable identity (see [Complex array attributes](#complex-array-attributes-wrapper-vs-item)). Use `<editable-array-item>` when no suitable HTML container exists.
 
 ### EditableSource
 Edits raw HTML source files rather than frontmatter. Uses `data-path` (file path) and `data-key` (unique identifier) instead of `data-prop`. Reads/writes the full source file via the CloudCannon file API.
@@ -71,6 +71,19 @@ Primitive editables (text, image, array, source) handle their own DOM updates bu
 | `data-cloudcannon-ignore` | *(presence)* | Exclude element from scanning |
 
 Use `data-prop-*` when the main `data-prop` value would be the wrong shape (e.g. string path for `src` while `alt` lives in another field) or when only one facet of a composite value should be wired to data. Prefer a single `data-prop` when the stored value is already one object the editor understands.
+
+### Complex array attributes (wrapper vs item)
+
+These attributes wire **complex** arrays (e.g. page builders) so the Visual Editor can add, reorder, and re-render rows. They are SSG-agnostic; only the registration API differs by stack.
+
+- **`data-component-key`** (on the **array wrapper**): Name of the field **in each array item’s data object** whose value selects **which client-rendered component** handles that row (e.g. `_type` → `hero`). The editor uses it when the array is empty or when inserting a new row.
+- **`data-id-key`** (on the **array wrapper**): Name of the field used as a **stable identity** for matching DOM nodes to data items across reorder/add/remove. Often the same field as `data-component-key`; when omitted, it defaults to the same value as `data-component-key` (Dec 2025).
+- **`data-component`** (on each **array item**): The **resolved** component key for that row. It must match the string registered for that renderer in your SSG’s editable-regions setup (Astro example: `registerAstroComponent('hero', Hero)` → `data-component="hero"`).
+- **`data-id`** (on each **array item**): The **resolved** stable id for that row, taken from the field named by `data-id-key`. When omitted, it defaults to the same value as `data-component` (Dec 2025).
+
+CloudCannon uses **`data-id` / `data-id-key`**, not a separate `data-component-id` attribute.
+
+For when to add HTML `<template>` children on the array wrapper versus relying on component registration, see the visual-editing guide for your SSG (e.g. [astro/visual-editing.md](astro/visual-editing.md) § Array editing).
 
 ### Custom Element Equivalents
 

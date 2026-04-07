@@ -251,9 +251,13 @@ When conditional elements, style bindings, or computed content need live updates
 </ul>
 ```
 
-**Add `<template>` blueprints for array items.** CloudCannon uses `<template>` children inside an array container to know what HTML to produce when the editor adds a new item. Without a template, new items show "array item cannot be rendered" errors. Even with component registration, templates provide the initial DOM structure before a component re-renders.
+**When HTML `<template>` blueprints are needed.** The client ([`@cloudcannon/editable-regions`](https://github.com/CloudCannon/editable-regions)) can materialize a new array row from, in order: partial DOM from an in-flight update, `<template>` children on the array wrapper, or—when the wrapper has `data-component-key` and each item has `data-component` matching a **registered** Astro component—an `editable-array-item` host that runs the component pipeline. So **page builder / `content_blocks` arrays** with `data-component-key`, per-item `data-component` + `data-id`, and `registerAstroComponent` for every `_type` **do not need** `<template>` siblings. That matches the [CloudCannon complex array / page building guide](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/) (their layout example uses no `<template>`). Duplicating every block shape inside `<template>` is optional at best when registration is complete.
 
-**Simple arrays** (uniform items) use a single `<template>`:
+**Primitive-only arrays** (no `data-component` on each item and no `data-component` on the array wrapper) need either a **`<template>`** blueprint or an existing row the runtime can **clone** when the editor adds an item. If the array can be **empty** at build time, prefer a `<template>` so "Add item" always has structure. If the list is never empty, cloning the first item may suffice without a template.
+
+**Heterogeneous rows without per-item registration** (unusual today) can still use multiple `<template>` elements with `data-id` matching each variant, paired with matching CloudCannon structures—that is separate from the registered page-builder pattern in [Page builder blocks](#page-builder-blocks).
+
+**Simple arrays** (uniform primitive rows) usually include a single `<template>`:
 
 ```astro
 <div data-editable="array" data-prop="items">
@@ -278,32 +282,7 @@ When conditional elements, style bindings, or computed content need live updates
 </div>
 ```
 
-**Complex arrays** (different item types, e.g. page builders) use multiple `<template>` elements with `data-id` attributes matching each item type. Each template defines the DOM structure for that specific block type. Pair each template with a matching CC structure definition so the correct props are passed when that item type is selected — different item types accept different props and need different structures.
-
-```astro
-<div
-  data-editable="array"
-  data-prop="content_blocks"
-  data-component-key="_type"
->
-  {content_blocks.map((block) => (
-    <BlockRenderer block={block} />
-  ))}
-  <template data-id="hero">
-    <section data-editable="array-item" data-component="hero">
-      <h1 data-editable="text" data-prop="title"></h1>
-      <p data-editable="text" data-prop="subtitle"></p>
-    </section>
-  </template>
-  <template data-id="features">
-    <section data-editable="array-item" data-component="features">
-      <h2 data-editable="text" data-prop="heading"></h2>
-    </section>
-  </template>
-</div>
-```
-
-Templates should mirror the rendered item's HTML structure with editable attributes but empty content. Include **all** editable region types — text, image, and nested arrays. For **image** regions, include an `<img>` CloudCannon can target: either `<img data-editable="image" … src="" alt="">` as the host, or a wrapper (`<editable-image>` or `<div data-editable="image">`) around `<img src="" alt="">` — match whichever shape the live item uses. For nested arrays (e.g. sections containing items), include nested `<template>` elements.
+When you author a `<template>`, mirror the live item's HTML: same editable attributes, empty content. Include **all** region types used in the row—text, image, nested arrays. For **image** regions, include an `<img>` the editor can target: either `<img data-editable="image" … src="" alt="">` as the host, or a wrapper (`<editable-image>` or `<div data-editable="image">`) around `<img src="" alt="">` — match the live item. Nested arrays inside a template row can include nested `<template>` elements.
 
 **Conditional editable prop for cross-collection content.** When a shared component (like a card) is used both for frontmatter-backed array items AND programmatic content from another collection (e.g. blog posts fetched via `getCollection`), the editable attributes break on the programmatic items because there's no valid data scope. Add an `editable` prop (default `true`) to the component and conditionally apply editable attributes:
 
@@ -885,7 +864,7 @@ After adding editable regions, work through these checks before moving to the bu
 - [ ] **Registration keys match `_type`**: Every key in `componentMap` (or direct `registerAstroComponent` call) uses the exact `_type` string from the content files (e.g., `call_to_action` not `call-to-action`)
 - [ ] **All block types registered**: Every `_type` value that appears in content files has a corresponding entry in `componentMap` — missing entries mean no edit button and no live re-rendering for that block type
 - [ ] **Conditional guards**: Every `data-editable` element whose field can be undefined/null is wrapped in a conditional — object fields check an inner key (`{image?.src && ...}`, `{callToAction?.text && ...}`), scalar fields check the value directly (`{title && ...}`)
-- [ ] **`<template>` blueprints**: Every `data-editable="array"` container has `<template>` children mirroring the rendered item's HTML structure with editable attributes but empty content — complex arrays use multiple templates with `data-id` per item type, paired with matching CC structures
+- [ ] **`<template>` blueprints**: Primitive-only arrays (no per-item `data-component` + registration) have `<template>` children where needed—especially when the list can be empty at build—or another reliable way to clone the first item; page-builder arrays with `data-component-key` and every `_type` registered do **not** require `<template>` on the wrapper
 - [ ] **Cross-collection editable guard**: Shared components used for both frontmatter-backed items and programmatic cross-collection content (e.g. blog posts) have an `editable` prop to conditionally strip editable attributes
 - [ ] **Rebuild comments (Astro 4)**: Sidebar-only fields that affect page appearance (badge, tags, variant, etc.) have `comment` in `_inputs` noting they require a save and rebuild to preview
 - [ ] Build output contains `data-component-key`, `data-id-key`, `data-component=`, `data-id=`, and `data-editable="array-item"` attributes (grep `dist/` to verify)
