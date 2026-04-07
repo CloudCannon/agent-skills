@@ -7,7 +7,7 @@ Guidance for creating and configuring `cloudcannon.config.yml` and `.cloudcannon
 Use the Gadget CLI to generate a baseline configuration. Run subcommands individually to cross-reference against the Phase 1 audit. See [../gadget-guide.md](../gadget-guide.md) for the full CLI reference and all available commands.
 
 ```bash
-gadget generate --auto --init-settings --ssg astro
+npx @cloudcannon/gadget generate --auto --init-settings --ssg astro
 ```
 
 ## Review the generated config
@@ -93,7 +93,7 @@ _inputs:
     hidden: true
 ```
 
-The full set of configuration keys is defined in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). Generated files include a schema reference that provides IDE autocomplete and validation -- preserve these references when editing.
+The full set of configuration keys is defined in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). For IDE autocomplete and validation, use JSON Schema Store with the setup in [gadget-guide.md § JSON Schemas](../gadget-guide.md#json-schemas) (recommended extensions, no `# yaml-language-server: $schema=...` line in YAML).
 
 ## Consolidating single-file collections
 

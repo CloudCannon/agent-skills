@@ -693,16 +693,16 @@ When a component renders HTML with specific classes or structure — e.g. a cent
 Before (single rich text field):
 ```json
 {
-  "content": "<span class='text-center block'>♥️ Loving Astroplate? <a class='underline' href='...'>Please ⭐️ on Github</a></span>"
+  "content": "<span class='text-center block'>Enjoying our project? <a class='underline' href='...'>Star on GitHub</a></span>"
 }
 ```
 
 After (explicit props):
 ```json
 {
-  "text": "♥️ Loving Astroplate?",
-  "link_text": "Please ⭐️ on Github",
-  "link_url": "https://github.com/zeon-studio/astroplate"
+  "text": "Enjoying our project?",
+  "link_text": "Star on GitHub",
+  "link_url": "https://github.com/example/project"
 }
 ```
 

@@ -6,7 +6,7 @@ Analyze the site before making any changes. Start by running the audit script to
 bash .cursor/skills/migrating-to-cloudcannon/scripts/audit-astro.sh .
 ```
 
-This runs Gadget detection and collects project metadata. Use its output as a starting point, then fill in the sections below with findings that require judgment. Output lives in the template's `migration/audit.md`.
+This runs Gadget detection and collects project metadata. Use its output as a starting point, then fill in the sections below with findings that require judgment. Output lives in the project's `migration/audit.md`.
 
 ## 1. Astro version and dependencies
 

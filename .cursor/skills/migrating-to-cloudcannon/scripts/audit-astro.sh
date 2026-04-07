@@ -17,21 +17,21 @@ echo ""
 # --- Gadget: SSG detection ---
 echo "## Gadget: SSG Detection"
 echo '```json'
-gadget detect-ssg 2>/dev/null || echo '{ "error": "gadget detect-ssg failed" }'
+npx @cloudcannon/gadget detect-ssg 2>/dev/null || echo '{ "error": "npx @cloudcannon/gadget detect-ssg failed" }'
 echo '```'
 echo ""
 
 # --- Gadget: Collections ---
 echo "## Gadget: Collections"
 echo '```json'
-gadget collections --ssg astro 2>/dev/null || echo '{ "error": "gadget collections failed" }'
+npx @cloudcannon/gadget collections --ssg astro 2>/dev/null || echo '{ "error": "npx @cloudcannon/gadget collections failed" }'
 echo '```'
 echo ""
 
 # --- Gadget: Build suggestions ---
 echo "## Gadget: Build Suggestions"
 echo '```json'
-gadget build --ssg astro 2>/dev/null || echo '{ "error": "gadget build failed" }'
+npx @cloudcannon/gadget build --ssg astro 2>/dev/null || echo '{ "error": "npx @cloudcannon/gadget build failed" }'
 echo '```'
 echo ""
 

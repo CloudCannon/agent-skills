@@ -41,11 +41,11 @@ See [visual-editing.md](visual-editing.md). Also reference the core [editable re
 
 ### Phase 5: Build and test
 
-Validate the migration works end-to-end and prompt the user to test in Fog Machine.
+Validate the migration works end-to-end (local build and SSG-specific checks in [build.md](build.md)), then hand off using [SKILL.md § Handoff and verification](../SKILL.md#handoff-and-verification) so the user can verify in CloudCannon.
 
 See [build.md](build.md).
 
 ## Notes
 
 - Not every site needs all phases. Small sites may skip Phase 3 if content is already well-structured.
-- Visual editing (Phase 4) is optional but high-value -- prioritize it for sites where the customer wants a visual editing experience.
+- Visual editing (Phase 4) is optional but high-value -- prioritize it for sites where the site owner wants a visual editing experience.

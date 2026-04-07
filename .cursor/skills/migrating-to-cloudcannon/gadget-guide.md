@@ -12,7 +12,7 @@ This guide is for AI agents and skill file authors who want to automate CloudCan
 For fully automated setup, run from the project root:
 
 ```bash
-gadget generate --auto --init-settings
+npx @cloudcannon/gadget generate --auto --init-settings
 ```
 
 This generates:
@@ -26,7 +26,7 @@ For more control, run each detection step independently. All subcommands output 
 ### 1. Detect the Static Site Generator
 
 ```bash
-gadget detect-ssg
+npx @cloudcannon/gadget detect-ssg
 ```
 
 Returns the detected SSG and confidence scores:
@@ -42,7 +42,7 @@ Use the detected SSG key in subsequent commands via `--ssg`.
 ### 2. Detect the Source Folder
 
 ```bash
-gadget detect-source --ssg astro
+npx @cloudcannon/gadget detect-source --ssg astro
 ```
 
 Returns:
@@ -55,7 +55,7 @@ For monorepos or projects with a non-standard structure, the source folder tells
 ### 3. Inspect Available Collections
 
 ```bash
-gadget collections --ssg astro
+npx @cloudcannon/gadget collections --ssg astro
 ```
 
 Returns a tree of detected collections. Each collection has a `suggested: true/false` flag indicating whether gadget recommends including it. Collections represent groups of files for editing in CloudCannon (e.g., blog posts, pages, data files).
@@ -63,7 +63,7 @@ Returns a tree of detected collections. Each collection has a `suggested: true/f
 ### 4. Inspect Build Suggestions
 
 ```bash
-gadget build --ssg astro
+npx @cloudcannon/gadget build --ssg astro
 ```
 
 Returns build command suggestions with attributions explaining why each was suggested (e.g., "because of your package.json file", "most common for Astro sites").
@@ -71,13 +71,13 @@ Returns build command suggestions with attributions explaining why each was sugg
 ### 5. Generate Everything
 
 ```bash
-gadget generate --auto --init-settings --ssg astro
+npx @cloudcannon/gadget generate --auto --init-settings --ssg astro
 ```
 
 Or get raw JSON for programmatic processing:
 
 ```bash
-gadget generate --auto --json
+npx @cloudcannon/gadget generate --auto --json
 ```
 
 ## Customizing After Generation
@@ -94,17 +94,28 @@ Gadget generates a baseline configuration. After generation, you may want to cus
 - **`_select_data`** — Define shared dropdown options
 - **`file_config`** — Per-file configuration overrides
 
-The full list of available configuration keys is defined in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). Generated files include a schema reference, so IDEs with JSON/YAML schema support will provide autocomplete and validation.
+The full list of available configuration keys is defined in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). For autocomplete and validation in the editor, use JSON Schema Store and the extensions below—not ad-hoc schema comments in YAML.
 
 ## JSON Schemas
 
-Generated files include schema references:
+CloudCannon’s config schemas are published on the [JSON Schema Store](https://www.schemastore.org/). Editors that use Schema Store map filenames such as `cloudcannon.config.yml`, `cloudcannon.config.json`, and `.cloudcannon/initial-site-settings.json` to the right schema automatically.
 
-- **YAML config**: First line is `# yaml-language-server: $schema=https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json`
-- **JSON config**: Has `"$schema"` property pointing to the same URL
-- **initial-site-settings.json**: Has `"$schema"` pointing to `https://raw.githubusercontent.com/CloudCannon/configuration-types/main/dist/cloudcannon-initial-site-settings.schema.json`
+**Do not** add or keep a first-line `# yaml-language-server: $schema=...` comment in `cloudcannon.config.yml`. That directive overrides the Schema Store association and forces a specific URL instead of the catalogued schema.
 
-When editing generated files, preserve these schema references. Use the schema URLs as context to understand the full set of available configuration keys.
+**VS Code / Cursor:** Recommend extensions via `.vscode/extensions.json` so YAML and JSON pick up Schema Store. A minimal set used in CloudCannon’s Astro templates includes [`redhat.vscode-yaml`](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) plus Astro/Tailwind helpers—for example the same recommendations as [sendit-astro-template’s `.vscode/extensions.json`](https://github.com/CloudCannon/sendit-astro-template/blob/main/.vscode/extensions.json):
+
+```json
+{
+  "recommendations": [
+    "astro-build.astro-vscode",
+    "redhat.vscode-yaml",
+    "bradlc.vscode-tailwindcss"
+  ],
+  "unwantedRecommendations": []
+}
+```
+
+Use the schema URLs above (and CloudCannon’s docs) when you need the raw key reference outside the IDE.
 
 ## File Placement
 
@@ -113,9 +124,9 @@ When editing generated files, preserve these schema references. Use the schema U
 ## Example Skill File Workflow
 
 ```
-1. Run `gadget detect-ssg` to identify the SSG
+1. Run `npx @cloudcannon/gadget detect-ssg` to identify the SSG
 2. Parse the JSON output to get the SSG key
-3. Run `gadget generate --auto --init-settings --ssg <key>`
+3. Run `npx @cloudcannon/gadget generate --auto --init-settings --ssg <key>`
 4. Read the generated cloudcannon.config.yml
 5. Add any project-specific customizations (_inputs, _structures, etc.)
 6. Write the updated config back to disk
@@ -130,4 +141,4 @@ When editing generated files, preserve these schema references. Use the schema U
 - [Gadget on GitHub](https://github.com/CloudCannon/gadget)
 - [Gadget on npm](https://www.npmjs.com/package/@cloudcannon/gadget)
 
-> **Note:** Commands in this guide use `gadget` directly. If the package isn't installed globally, use `npx @cloudcannon/gadget` instead.
+> **Note:** Examples use `npx @cloudcannon/gadget`. If you install the CLI globally, you can run `gadget` instead.

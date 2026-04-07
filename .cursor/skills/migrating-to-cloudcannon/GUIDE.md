@@ -5,40 +5,38 @@ How to navigate this skill — for humans reviewing agent behaviour or learning 
 ## File Map
 
 ```
-SKILL.md                         (61)   ENTRY POINT — phases, SSG table, naming conventions
+SKILL.md                                ENTRY POINT — phases, SSG table, handoff, naming conventions
 GUIDE.md                                THIS FILE — orientation for humans
 
 ── Core reference (cross-SSG) ──────────────────────────────────
-editable-regions.md              (71)   Region types, attribute reference, decision tree
-editable-regions-internals.md    (219)  ON DEMAND — lifecycle trace, JS API, quirks
-gadget-guide.md                  (133)  Gadget CLI commands and options
-collection-urls.md               (91)   URL patterns — placeholders, trailing slash, troubleshooting
-structures.md                    (250)  Structures — inline vs split, previews, field completeness
-snippets.md                      (251)  Snippet concepts — when to use, config patterns
+editable-regions.md                     Region types, attribute reference, decision tree
+editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, quirks
+gadget-guide.md                         Gadget CLI commands and options
+collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
+structures.md                           Structures — inline vs split, previews, field completeness
+snippets.md                             Snippet concepts — when to use, config patterns
 
 ── Snippets sub-docs ───────────────────────────────────────────
-snippets/built-in-templates.md   (97)   MDX templates vs import bundle, parser internals
-snippets/raw.md                  (350)  Raw snippet syntax, all parser types
-snippets/template-based.md       (119)  Template-based snippet workflow
-snippets/gotchas.md              (138)  Snippet pitfalls and debugging
+snippets/built-in-templates.md          MDX templates vs import bundle, parser internals
+snippets/raw.md                         Raw snippet syntax, all parser types
+snippets/template-based.md              Template-based snippet workflow
+snippets/gotchas.md                     Snippet pitfalls and debugging
 
 ── Astro SSG ───────────────────────────────────────────────────
-astro/overview.md                (52)   ENTRY POINT for Astro — phase links
-astro/audit.md                   (103)  Phase 1: site analysis
-astro/configuration.md           (321)  Phase 2: CC config, schemas, inputs, add options
-astro/configuration-gotchas.md   (246)  Phase 2 gotchas: icon fields, numeric values, etc.
-astro/page-building.md           (202)  Phase 2/4: pages collection, page builder, BlockRenderer
-astro/content.md                 (106)  Phase 3: content restructuring
-astro/snippets.md                (269)  Phase 2: Astro-specific snippet configuration
-astro/visual-editing.md          (742)  Phase 4: editable regions, component registration
-astro/build.md                   (47)   Phase 5: build verification
+astro/overview.md                       ENTRY POINT for Astro — phase links
+astro/audit.md                          Phase 1: site analysis
+astro/configuration.md                  Phase 2: CC config, schemas, inputs, add options
+astro/configuration-gotchas.md          Phase 2 gotchas: icon fields, numeric values, etc.
+astro/page-building.md                  Phase 2/4: pages collection, page builder, BlockRenderer
+astro/content.md                        Phase 3: content restructuring
+astro/snippets.md                       Phase 2: Astro-specific snippet configuration
+astro/visual-editing.md                 Phase 4: editable regions, component registration
+astro/build.md                          Phase 5: build verification
 
 ── Scripts ─────────────────────────────────────────────────────
-scripts/README.md                (44)   Script inventory
+scripts/README.md                       Script inventory
 scripts/*.sh                            Automation scripts (audit, rename, setup)
 ```
-
-Numbers in parentheses are approximate line counts.
 
 ## Reading Order Per Phase
 
@@ -115,3 +113,9 @@ SKILL.md
         │     └─→ astro/page-building.md
         └─→ astro/build.md
 ```
+
+## Maintainers: extending this skill
+
+**New shell scripts** — Add a script when a migration step is deterministic and repeats across many sites. Place it in `scripts/`, document it in `scripts/README.md`, and reference it from the relevant phase doc.
+
+**New SSG** — Add a directory (e.g. `hugo/`) mirroring `astro/` (same phase files and structure) and add a row to the supported SSGs table in `SKILL.md`.

@@ -21,7 +21,7 @@ This skill walks through migrating an existing SSG site so it works well with Cl
 Before starting, identify the SSG. Run from the project root:
 
 ```bash
-gadget detect-ssg
+npx @cloudcannon/gadget detect-ssg
 ```
 
 This returns the detected SSG and confidence scores. Use the result to select the correct SSG guide above.
@@ -42,11 +42,49 @@ Not every site needs all phases. Small sites may skip Phase 3 if content is alre
 
 ## Scripts
 
-Deterministic migration steps are automated as scripts in [scripts/](scripts/). Run these before or during the relevant phase to save time and tokens. New scripts should be added as repetitive patterns emerge.
+Deterministic migration steps are automated as scripts in [scripts/](scripts/). Run these before or during the relevant phase to save time and repetition.
 
 ## Migration notes
 
 Store per-phase migration notes alongside the project (e.g. in a `migration/` directory), with one file per phase (`audit.md`, `content.md`, `configuration.md`, `visual-editing.md`, `build.md`). Phase docs in SSG-specific directories contain only generic guidance -- project-specific findings go in the project's migration notes.
+
+## Handoff and verification
+
+### Testing boundaries (agents vs humans)
+
+- **CloudCannon and the visual editor** -- Fidelity checks inside the real product (preview, inline edit, save-to-git) are **human** tasks. Do not assume you can fully replicate CloudCannon in the local environment.
+- **After a substantive pass** -- Prefer asking the user to run verification (build, CloudCannon) rather than starting a long-lived dev server or heavy end-to-end testing in the agent session.
+- **Light automation** -- Builds, greps, small scripts, and checks described in SSG phase docs (e.g. inspecting `dist/`) are appropriate; keep them proportional.
+- **Deeper agent testing** -- When the task truly requires it, more advanced automated checks are fine; keep them proportional to the task.
+
+### When to close with the user
+
+Do this after a **meaningful chunk** of work, not after every tiny edit. At minimum: when **Build and test** is done for a first full migration pass. If the user stops earlier (e.g. after configuration only), hand off at that milestone instead.
+
+### What to say
+
+Be direct and brief: a short summary of what changed, then a **checklist** the user can run, then **one clear ask** for feedback. Skip empty phrases ("let me know if you need anything"). Thanking them once for checking is fine.
+
+### What to ask the user to verify
+
+1. **Local build** -- The project's real build entrypoint (usually `npm run build` or whatever `package.json` defines), not a partial command. If it failed, they should paste the **full** error output (or at least the command, exit code, and the last ~30 lines of stderr).
+2. **Checks you already ran** -- If you ran SSG-specific checks from the build doc (e.g. grep `dist/` for editable attributes), say so in one line so they do not duplicate work.
+3. **CloudCannon (human)** -- They should confirm in the hosted environment:
+   - Inline text regions can be edited in the preview on representative pages
+   - Image regions open the image picker
+   - Array regions show add/remove/reorder controls where arrays were wired
+   - Cross-file editables (`@file`, shared partials, etc.) update the intended source file—not always the page being viewed
+   - Saved changes land in the expected files in git
+
+SSG-specific build and `dist/` checks stay in each SSG's build phase doc.
+
+### What to ask the user to send back
+
+So the next turn is actionable, ask for **concrete** signals: the exact command they ran, CloudCannon build log snippets if the remote build failed, the page URL and what they clicked if the editor misbehaved, or a short description of what differs from what they expected.
+
+### Iteration
+
+End with one line that invites the next pass on their reply—for example: when they have run those checks, they should reply with any failures or odd behavior so you can adjust in a follow-up.
 
 ## Naming conventions
 
@@ -55,7 +93,3 @@ Follow the project's existing conventions when present. Otherwise:
 - `kebab-case` for files
 - `camelCase` for JavaScript and JSON
 - `snake_case` for Markdown frontmatter and YAML
-
-## Adding a new SSG
-
-Create a new directory (e.g. `hugo/`) with the same file structure as `astro/` and add it to the supported SSGs table above.

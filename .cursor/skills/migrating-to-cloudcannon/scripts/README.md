@@ -1,6 +1,6 @@
 # Migration Scripts
 
-Deterministic migration steps automated as shell scripts. Run these before or during the relevant phase to save tokens and improve consistency.
+Deterministic migration steps automated as shell scripts. Run these before or during the relevant phase to save time and improve consistency.
 
 All scripts accept an optional `[project-dir]` argument (defaults to the current directory).
 

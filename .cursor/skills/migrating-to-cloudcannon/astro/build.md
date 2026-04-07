@@ -10,12 +10,7 @@ Guidance for validating an Astro migration works end-to-end.
 
 3. **Verify the registerComponents script is bundled** -- check that the built JS assets in `dist/` contain the editable-regions code from `src/cloudcannon/registerComponents.ts`. In Astro, this ends up in a hashed JS file (e.g. `Base.astro_astro_type_script_*`).
 
-4. **Prompt user to test in CloudCannon** -- agents should not attempt this. Provide the user with what to verify:
-   - Inline text regions can be edited in the preview on representative pages
-   - Image regions open the image picker
-   - Array regions show add/remove/reorder controls where arrays were wired
-   - Cross-file editables (`@file`, shared partials, etc.) update the intended source file—not always the page being viewed
-   - Saved changes land in the expected files in git
+4. **Prompt user to test in CloudCannon** -- agents should not attempt this. Use the checklist and handoff guidance in [SKILL.md § Handoff and verification](../SKILL.md#handoff-and-verification) (including what to ask them to verify and what to send back).
 
 ## CloudCannon build command
 
