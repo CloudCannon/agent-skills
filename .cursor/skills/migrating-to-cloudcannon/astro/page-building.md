@@ -199,6 +199,6 @@ const Component = componentMap[_type as string];
 
 Each array item combines two behaviours: `data-editable="array-item"` provides CRUD controls (add, remove, reorder) and `data-component` enables component re-rendering of the block's contents. When no suitable HTML element exists, use `<editable-array-item>` instead. See [visual-editing.md § Page builder blocks](visual-editing.md#page-builder-blocks) for the full visual editing setup.
 
-Every widget component inside also needs nested `data-editable` attributes (text, image). Every `_type` value used in content files must have a matching `registerAstroComponent(_type, Component)` call in `registerComponents.ts`.
+Every widget component inside also needs nested text/image regions on editable fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` when the host is wrapper-only). See [visual-editing.md § Text editing](visual-editing.md#text-editing) and [§ Image editing](visual-editing.md#image-editing). Every `_type` value used in content files must have a matching `registerAstroComponent(_type, Component)` call in `registerComponents.ts`.
 
 For the full visual editing setup (three-layer pattern, nested editables, sub-arrays, component registration), see [visual-editing.md](visual-editing.md).

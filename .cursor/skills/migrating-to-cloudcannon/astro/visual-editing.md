@@ -120,7 +120,11 @@ This applies to text, image, and any other editable type. When a shared sub-comp
 
 ### Text editing
 
-Add `data-editable="text"` and `data-prop="<path>"` to any element whose text content should be inline-editable:
+**Where to put text regions:**
+
+- **Semantic or layout element** — when an existing element is the natural host (`<h1>`, `<p>`, `<li>`, etc.), add `data-editable="text"` and `data-prop="<path>"` to it directly.
+- **Wrapper-only** — when extra markup exists only to host editable text (e.g. inside a link, slot content, or a conditional branch), prefer `<editable-text>` over `<span data-editable="text">`: same behaviour, clearer intent, and fewer clashes with generic `span` rules. See [editable-regions.md § Custom Element Equivalents](../editable-regions.md#custom-element-equivalents).
+- **Stay primitive when needed** — keep `<span data-editable="text">` when CSS or legacy markup already targets `span`, or when a specific integration is clearer with the explicit primitive.
 
 ```astro
 <h1
@@ -141,28 +145,50 @@ For block-level rich text (paragraphs, headings, lists), add `data-type="block"`
 
 The `@content` path targets the file's markdown body (not frontmatter).
 
-**Editables inside slot content:** `<Fragment>` elements can't carry HTML attributes. When passing editable text into a slot, use a concrete element (e.g. `<span>`) instead:
+**Editables inside slot content:** Editable text passed into a slot must sit under a **single concrete DOM element** so `data-editable` / `data-prop` (or the equivalent custom element) has a host. `<Fragment>` has no DOM node and cannot carry those attributes.
+
+The same applies if you abstract slot content into an Astro `.astro` component: a **Fragment root** or **multiple roots** leaves no single element to attach the region to—use one wrapper element (native or custom) as the component output.
 
 ```astro
 <!-- Won't work: Fragment can't carry data-editable -->
 <Fragment slot="title">{title}</Fragment>
 
-<!-- Works: span carries the editable attribute into the slot -->
+<!-- Works: prefer custom element -->
+<editable-text slot="title" data-prop="title">{title}</editable-text>
+
+<!-- Works: equivalent primitive form -->
 <span slot="title" data-editable="text" data-prop="title">{title}</span>
 ```
 
 ### Image editing
 
-Wrap an image with `data-editable="image"` and a data path attribute. The editable region looks for a child `<img>` element. There are two binding modes depending on the shape of the data:
+Put path attributes (`data-prop`, `data-prop-src`, etc.) on the **image region host**. The library resolves the target like this: if the host is an `<img>`, it edits that element; otherwise it uses the first descendant `<img>` inside the host. So you can use **either** a wrapper (`<editable-image>`, `<div data-editable="image">`, or a layout element that already wraps the picture) **or** `data-editable="image"` directly on a plain `<img>`.
+
+When the host exists **only** for editing, prefer `<editable-image>` over `<div data-editable="image">` (equivalent behaviour; see [editable-regions.md § Custom Element Equivalents](../editable-regions.md#custom-element-equivalents)). Keep `data-editable="image"` on a real layout `<div>` when that element already carries structure or styling.
+
+**Astro:** Output from `<Image />` (`astro:assets`) is often not a straightforward primitive `<img>` you annotate like static HTML, so the **wrapper + child** pattern below stays the usual choice for Astro image components.
+
+There are two binding modes depending on the shape of the data:
 
 **String image path** (most common -- the frontmatter field is a plain string like `"/images/hero.jpg"`):
 
 Use `data-prop-src` to bind the image `src`. Optionally add `data-prop-alt` or `data-prop-title` if alt/title are stored in separate fields:
 
 ```astro
-<div data-editable="image" data-prop-src="image">
+<editable-image data-prop-src="image">
   <ImageMod src={image} width={1200} height={600} alt={title} format="webp" />
-</div>
+</editable-image>
+```
+
+**Plain `<img>` host** (same bindings on the image element itself — useful for hand-authored HTML):
+
+```astro
+<img
+  data-editable="image"
+  data-prop-src="image"
+  src={image}
+  alt={title}
+/>
 ```
 
 **Object image field** (the frontmatter field is an object with `src`, `alt`, and `title` properties):
@@ -170,9 +196,9 @@ Use `data-prop-src` to bind the image `src`. Optionally add `data-prop-alt` or `
 Use `data-prop` to bind the entire object at once:
 
 ```astro
-<div data-editable="image" data-prop="hero_image">
+<editable-image data-prop="hero_image">
   <img src={hero_image.src} alt={hero_image.alt} />
-</div>
+</editable-image>
 ```
 
 Most Astro templates store images as simple string paths, so `data-prop-src` is the correct choice in the majority of cases. Using `data-prop` on a string field will not work -- it expects an object.
@@ -181,13 +207,13 @@ When the user clicks the image in the visual editor, CloudCannon opens the image
 
 ### Button/link text
 
-For text inside links or buttons, wrap the text content in a `<span>`:
+For text inside links or buttons, wrap the label in `<editable-text>` (or use `<span data-editable="text">` when CSS or existing markup already targets `span`):
 
 ```astro
 <a class="btn btn-primary" href={button.link}>
-  <span data-editable="text" data-prop="banner.button.label">
+  <editable-text data-prop="banner.button.label">
     {button.label}
-  </span>
+  </editable-text>
 </a>
 ```
 
@@ -200,25 +226,27 @@ Wrap the container with `data-editable="array"` and each item with `data-editabl
   {features.map((feature) => (
     <section data-editable="array-item">
       <h2 data-editable="text" data-prop="title">{feature.title}</h2>
-      <div data-editable="image" data-prop-src="image">
+      <editable-image data-prop-src="image">
         <ImageMod src={feature.image} ... />
-      </div>
+      </editable-image>
       <p data-editable="text" data-prop="content">{feature.content}</p>
     </section>
   ))}
 </div>
 ```
 
-Array items get CRUD controls (reorder, add, delete) automatically. Without a registered component renderer, items won't visually re-render after data changes -- the user saves and refreshes. Text/image editable regions within items still work in real-time. If the array contains conditional elements, style bindings, or computed content, wrap the parent section as a component -- see [When to use a component editable region](#when-to-use-a-component-editable-region) below.
+Array items get CRUD controls (reorder, add, delete) automatically. Without a registered component renderer, items won't visually re-render after data changes -- the user saves and refreshes. Text/image editable regions within items still work in real-time.
 
-**Always nest text and image editables inside array items.** Without nested `data-editable="text"` / `data-editable="image"` on their key fields, array items only get CRUD controls (add/remove/reorder) — no inline text editing or live image picking. This applies universally, not just when component re-rendering is unavailable. Text and image editables handle their own DOM updates independently of the component system, so they work even on Astro 4 where `editableRegions()` integration isn't available. Every array item should have nested editables on its title, description, and image fields at minimum.
+When conditional elements, style bindings, or computed content need live updates, you need a registered Astro component **somewhere**. **Default for a uniform list:** wrap the **parent** that owns the whole array in `<editable-component>` (one `registerAstroComponent` for the section) — see [When to use a component editable region](#when-to-use-a-component-editable-region). **Alternative:** put `data-component` on **each** `array-item` and register each item type separately — the pattern used for [page builder blocks](#page-builder-blocks). **You can combine** parent and per-item boundaries when the layout needs it (for example, a wrapper component for shared chrome plus different `data-component` types per row). Start with the parent wrap when it fits; reach for per-item (or a mix) when item types differ or you want each row to own its own re-render scope.
+
+**Always nest text and image editables inside array items.** Without nested text/image regions on their key fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>`), array items only get CRUD controls (add/remove/reorder) — no inline text editing or live image picking. This applies universally, not just when component re-rendering is unavailable. Text and image editables handle their own DOM updates independently of the component system, so they work even on Astro 4 where `editableRegions()` integration isn't available. Every array item should have nested editables on its title, description, and image fields at minimum.
 
 **Use `data-prop=""` for plain string array items.** When array items are plain strings (not objects), use `data-prop=""` (empty string) to pass the current scope as the editable value. Without it, CloudCannon errors with "Text editable regions require a 'data-prop' HTML attribute but none was provided."
 
 ```astro
 <ul data-editable="array" data-prop="skills">
   {skills.map((skill) => (
-    <li data-editable="array-item"><span data-editable="text" data-prop="">{skill}</span></li>
+    <li data-editable="array-item"><editable-text data-prop="">{skill}</editable-text></li>
   ))}
 </ul>
 ```
@@ -231,18 +259,18 @@ Array items get CRUD controls (reorder, add, delete) automatically. Without a re
 <div data-editable="array" data-prop="items">
   {items.map((item) => (
     <div data-editable="array-item">
-      <div data-editable="image" data-prop-src="img">
+      <editable-image data-prop-src="img">
         <img src={item.img} alt={item.title} />
-      </div>
+      </editable-image>
       <h2 data-editable="text" data-prop="title">{item.title}</h2>
       <p data-editable="text" data-prop="desc">{item.desc}</p>
     </div>
   ))}
   <template>
     <div data-editable="array-item">
-      <div data-editable="image" data-prop-src="img">
+      <editable-image data-prop-src="img">
         <img src="" alt="" />
-      </div>
+      </editable-image>
       <h2 data-editable="text" data-prop="title"></h2>
       <p data-editable="text" data-prop="desc"></p>
     </div>
@@ -275,7 +303,7 @@ Array items get CRUD controls (reorder, add, delete) automatically. Without a re
 </div>
 ```
 
-Templates should mirror the rendered item's HTML structure with editable attributes but empty content. Include **all** editable region types — text, image, and nested arrays. Image editables need a wrapper `<div>` with a child `<img src="" alt="">` so CloudCannon can update the src live when the editor picks an image. For nested arrays (e.g. sections containing items), include nested `<template>` elements.
+Templates should mirror the rendered item's HTML structure with editable attributes but empty content. Include **all** editable region types — text, image, and nested arrays. For **image** regions, include an `<img>` CloudCannon can target: either `<img data-editable="image" … src="" alt="">` as the host, or a wrapper (`<editable-image>` or `<div data-editable="image">`) around `<img src="" alt="">` — match whichever shape the live item uses. For nested arrays (e.g. sections containing items), include nested `<template>` elements.
 
 **Conditional editable prop for cross-collection content.** When a shared component (like a card) is used both for frontmatter-backed array items AND programmatic content from another collection (e.g. blog posts fetched via `getCollection`), the editable attributes break on the programmatic items because there's no valid data scope. Add an `editable` prop (default `true`) to the component and conditionally apply editable attributes:
 
@@ -284,7 +312,7 @@ Templates should mirror the rendered item's HTML structure with editable attribu
 const { title, desc, editable = true } = Astro.props;
 ---
 <h1>
-  {editable ? <span data-editable="text" data-prop="title">{title}</span> : title}
+  {editable ? <editable-text data-prop="title">{title}</editable-text> : title}
 </h1>
 ```
 
@@ -327,16 +355,16 @@ When no suitable element exists, use the `<editable-array-item>` web component:
 
 Since December 2025, `data-id-key` and `data-id` **default** to the `data-component-key` and `data-component` values when not provided. When the identity key and component key are the same field (the common case), you can omit `data-id-key` and `data-id` entirely.
 
-**Nested editables** inside widget components — add `data-editable="text"` / `data-editable="image"` to the elements that render editable fields:
+**Nested editables** inside widget components — add text/image regions on the elements that render editable fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` on wrapper-only hosts):
 
 ```astro
 <!-- Inside Hero.astro -->
 {title && <h1 set:html={title} data-editable="text" data-prop="title" />}
 {subtitle && <p set:html={subtitle} data-editable="text" data-prop="subtitle" />}
 {image && (
-  <div data-editable="image" data-prop="image">
+  <editable-image data-prop="image">
     <Image {...image} />
-  </div>
+  </editable-image>
 )}
 ```
 
@@ -352,7 +380,7 @@ Widget components often contain their own arrays — an `items` list in a Featur
 
 Sub-array items **don't need `data-component`** — the parent widget component already handles re-rendering of its entire subtree. The `data-editable="array-item"` attributes only need to layer on CRUD controls.
 
-**On the array container**, add `data-editable="array"` and `data-prop` pointing to the array field name. **On each item**, add `data-editable="array-item"`. **Inside each item**, add primitive editables (`data-editable="text"`, `data-editable="image"`) on the editable fields.
+**On the array container**, add `data-editable="array"` and `data-prop` pointing to the array field name. **On each item**, add `data-editable="array-item"`. **Inside each item**, add primitive text/image regions (`data-editable="text"`, `data-editable="image"`, or `<editable-text>` / `<editable-image>` when the host is wrapper-only) on the editable fields.
 
 ```astro
 <!-- Shared UI component: ItemGrid.astro -->
@@ -466,9 +494,9 @@ When a page template fetches and renders items from a different collection (e.g.
 ```astro
 {teamMembers.map((member) => (
   <div>
-    <div data-editable="image" data-prop={`@file[/src/content/team/${member.id}].avatar`}>
+    <editable-image data-prop={`@file[/src/content/team/${member.id}].avatar`}>
       <img src={member.data.avatar.src} alt={member.data.avatar.alt} />
-    </div>
+    </editable-image>
     <h3 data-editable="text" data-prop={`@file[/src/content/team/${member.id}].name`}>
       {member.data.name}
     </h3>
@@ -532,9 +560,11 @@ The client-side renderer passes the array directly as props. Astro's template sy
 const plans = Object.values(Astro.props);
 ```
 
-**Array items inside a component don't take over the re-rendering boundary.** The component renderer produces the full HTML for the section, including all array items. The array editables provide CRUD controls, but visual output comes from the component renderer. This is more useful than array items re-rendering independently, since cross-item concerns (alternating layouts, index-based styles) are handled correctly.
+**Parent-wrapped array:** With `<editable-component data-prop="features">` (or whatever field holds the array) around the whole list, the registered component's renderer outputs every row. Inner `data-editable="array"` / `array-item` still provide CRUD and nested text/image; they do not become separate component re-render roots. One place owns cross-item concerns (alternating layouts, index-based classes).
 
-**When in doubt, make it a component.** The cost is one `registerAstroComponent()` call and a wrapper element. The benefit is that every data-driven change live-updates.
+**Per-item `data-component`:** Each `array-item` can carry its own `data-component` and registration instead (or as well) — see [Page builder blocks](#page-builder-blocks). That fits heterogeneous blocks and independent per-row re-rendering. Mix parent and per-item boundaries when the template genuinely needs both.
+
+**When in doubt, add a component boundary** — parent wrap is often the smallest step for a uniform section; per-item scales when types differ.
 
 ## Source editables for hardcoded content
 
@@ -789,7 +819,7 @@ Component editable regions need a wrapper element with `data-component` and `dat
 </editable-component>
 ```
 
-The `<editable-component>` custom element self-hydrates via `connectedCallback`/`disconnectedCallback` -- no `data-editable="component"` attribute is needed since the tag itself identifies the region type. The same principle applies to other region types: prefer `<editable-text>`, `<editable-image>`, etc. over wrapper `<div>`s with `data-editable` when no suitable container exists.
+The `<editable-component>` custom element self-hydrates via `connectedCallback`/`disconnectedCallback` -- no `data-editable="component"` attribute is needed since the tag itself identifies the region type. The same idea applies to **text and image** primitives: when you would add a wrapper only for `data-editable`, use `<editable-text>` / `<editable-image>` instead of a generic `<span>` / `<div>` (see [Text editing](#text-editing) and [Image editing](#image-editing)). For **component** regions specifically, prefer `<editable-component>` over an extra wrapper `<div data-editable="component">` when no suitable container exists.
 
 If a suitable container already exists in the markup (e.g. a `<section>` wrapping the component output), add `data-editable="component"` directly to that element instead.
 
@@ -842,15 +872,15 @@ After adding editable regions, work through these checks before moving to the bu
 - [ ] `src/cloudcannon/registerComponents.ts` exists and is imported from the base layout
 - [ ] Registered components accept spread props matching the shape of their `data-prop` value -- not a named wrapper prop (see [Component prop contract](#component-prop-contract))
 - [ ] Pages that render items from other collections have `@file` editables on those items. Remember `entry.id` includes the file extension — don't double it.
-- [ ] Slot content that should be editable uses concrete elements (e.g. `<span>`) instead of `<Fragment>`
+- [ ] Slot content that should be editable uses a concrete DOM host (e.g. `<editable-text>` or `<span data-editable="text">`) instead of `<Fragment>`
 - [ ] Key page templates contain `data-editable` attributes -- spot-check the homepage, a content page, and any shared partials (CTA, testimonials, etc.)
 - [ ] **Source editables**: Hardcoded text in page templates (hero headings, descriptions, CTA copy) has `data-editable="source"` with `data-path` and `data-key` attributes -- don't skip content just because it's not in a content collection
 - [ ] **Page builder array wrapper** has `data-component-key="_type"` alongside `data-editable="array"` and `data-prop="content_blocks"` — `data-id-key` can be omitted when it matches `data-component-key` (Dec 2025 default)
 - [ ] **Page builder blocks** have both `data-editable="array-item"` and `data-component={_type}` on each block element — either a plain HTML element (`<section>`) or `<editable-array-item>` when no suitable element exists
-- [ ] **Page builder blocks**: Widget components rendered inside blocks have nested `data-editable="text"` / `data-editable="image"` attributes on their key text and image elements
+- [ ] **Page builder blocks**: Widget components rendered inside blocks have nested text/image regions on their key fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` for wrapper-only hosts)
 - [ ] **Sub-arrays within widgets**: Widget components that render internal arrays (`items`, `actions`, `steps`, etc.) have `data-editable="array"` + `data-prop` on the container and `data-editable="array-item"` on each item — check both shared UI components and widgets that render arrays inline
 - [ ] **All UI component variants**: Numbered variants of shared components (e.g. `ItemGrid.astro` / `ItemGrid2.astro`) all have editable attributes — don't assume wiring one covers the rest
-- [ ] **Sub-array item editables**: Array items within widget sub-arrays have nested `data-editable="text"` / `data-editable="image"` on their editable fields (title, description, image, etc.)
+- [ ] **Sub-array item editables**: Array items within widget sub-arrays have nested text/image regions on their editable fields (title, description, image, etc.) — `data-editable="text"` / `data-editable="image"` or `<editable-text>` / `<editable-image>` where appropriate
 - [ ] **Shared component map**: Page builder sites have a `src/cloudcannon/componentMap.ts` that both `BlockRenderer.astro` and `registerComponents.ts` import from — no duplicated mapping
 - [ ] **Registration keys match `_type`**: Every key in `componentMap` (or direct `registerAstroComponent` call) uses the exact `_type` string from the content files (e.g., `call_to_action` not `call-to-action`)
 - [ ] **All block types registered**: Every `_type` value that appears in content files has a corresponding entry in `componentMap` — missing entries mean no edit button and no live re-rendering for that block type

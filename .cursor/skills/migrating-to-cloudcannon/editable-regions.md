@@ -17,13 +17,15 @@ For deep internals, lifecycle traces, and the JavaScript API reference, see [edi
 
 **Component** regions (and **snippet**, which extends component) re-render from structured data so the whole template slice can stay in sync—text, images, arrays, styles, and derived markup. That broad catch-all is not a substitute for primitives in the markup: nest **text**, **array**, **image**, and so on inside a component when you want **inline on-canvas** editing (e.g. rich text on the page, array CRUD on the page). Authors can still change the same fields from the **data panel or modal**; matching region types are what add direct on-page controls. Nesting primitives inside components is normal—the component handles data-driven re-renders while nested regions supply the inline editors.
 
+**Precedence:** A primitive that binds a `data-prop` (or equivalent) to a subtree usually **wins** for that subtree’s live value: updates follow frontmatter through the region and can override what a component-level transform would show on the same node. With **no** primitive on that markup, the component re-render owns how the value is derived. A typical split is an **array** region for list CRUD plus nested **text** (or other primitives) on the fields you want on the canvas; rows can still rely on the component template for anything without its own primitive.
+
 For when to wrap a section in a component at all, see [When to Use a Component Editable Region](#when-to-use-a-component-editable-region).
 
 ### EditableText
 Inline rich text editor (ProseMirror-based). Supports `data-type` of `"span"` (inline), `"text"` (plain text), or `"block"` (block-level rich text).
 
 ### EditableImage
-Image editing via CloudCannon's data panel. Expects a child `<img>` element. Manages `src`, `alt`, and `title` — each can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields).
+Image editing via CloudCannon's data panel. The region **host** is either (1) an `<img>` with `data-editable="image"` and path attributes on that same element, or (2) a non-`img` host (`<editable-image>`, `<div data-editable="image">`, layout wrapper, etc.) that contains a descendant `<img>`. The resolved `<img>` is what gets live `src` / `alt` / `title` updates — each facet can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields).
 
 ### EditableComponent
 Re-renders a component when its data changes so the rendered slice updates holistically from that data. Requires a registered renderer function (e.g. via `registerAstroComponent`). Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
@@ -57,7 +59,7 @@ Primitive editables (text, image, array, source) handle their own DOM updates bu
 |---|---|---|
 | `data-editable` | `text`, `image`, `array`, `array-item`, `component`, `source` | Declares the region type |
 | `data-prop` | Path string | Data path for the editable value |
-| `data-prop-src` / `data-prop-alt` / `data-prop-title` | Path string | Per-attribute image bindings |
+| `data-prop-*` | Path string | Per-attribute binding: the suffix after `data-prop-` names the attribute or logical field being edited; path-string rules match `data-prop`. On **image** regions the usual cases are `data-prop-src`, `data-prop-alt`, and `data-prop-title`. The same pattern applies elsewhere where the visual editor supports binding that attribute for the region type — it is not limited to images, but not every attribute is available on every region. |
 | `data-type` | `span`, `text`, `block` | Text editor mode |
 | `data-component` | Component key | Component identifier for re-rendering lookup |
 | `data-id-key` | Key name | On the **array wrapper**: which data field uniquely identifies each item. Defaults to `data-component-key` value when omitted (Dec 2025) |
@@ -67,6 +69,8 @@ Primitive editables (text, image, array, source) handle their own DOM updates bu
 | `data-key` | Unique key | Identifier within a source file |
 | `data-defer-mount` | *(presence)* | Lazy initialization — editor mounts on first click |
 | `data-cloudcannon-ignore` | *(presence)* | Exclude element from scanning |
+
+Use `data-prop-*` when the main `data-prop` value would be the wrong shape (e.g. string path for `src` while `alt` lives in another field) or when only one facet of a composite value should be wired to data. Prefer a single `data-prop` when the stored value is already one object the editor understands.
 
 ### Custom Element Equivalents
 
@@ -79,3 +83,5 @@ Primitive editables (text, image, array, source) handle their own DOM updates bu
 | `<editable-source>` | `<div data-editable="source">` |
 
 Both forms produce identical behaviour. Custom elements self-hydrate via `connectedCallback`.
+
+**Authoring preference:** For **wrapper-only** hosts (markup whose only job is to carry the region), prefer the custom elements in this table over a bare `<span data-editable="text">` or `<div data-editable="image">` — same behaviour, and the tag is less likely to collide with layout CSS. When a **semantic or layout element** is already the right host (`<h1>`, `<p>`, `<section>`, etc.), keep `data-editable` on that element instead. Use explicit `span`/`div` primitives when a stylesheet or third-party component already targets those tags, or when a one-off constraint makes that clearer. Astro-specific patterns (slots, links, templates) are worked through in [astro/visual-editing.md](astro/visual-editing.md).
