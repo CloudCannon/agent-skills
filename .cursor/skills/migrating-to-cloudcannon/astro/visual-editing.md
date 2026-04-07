@@ -10,7 +10,7 @@ Run the setup script to handle steps 1-3 automatically:
 bash .cursor/skills/migrating-to-cloudcannon/scripts/setup-editable-regions.sh .
 ```
 
-This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then import the registerComponents script from the base layout:
+This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a side-effect import in the base layout so `registerComponents` runs on every page that uses that layout:
 
 ```astro
 <script>
@@ -485,8 +485,6 @@ When a page template fetches and renders items from a different collection (e.g.
 
 Note: `entry.id` in Astro content collections already includes the file extension (e.g. `janette-lynch.md`), so don't append `.md` again.
 
-This only works when the target collection has no `url` pattern in its config. If it does, CloudCannon resolves the URL and navigates away from the current page.
-
 ## When to use a component editable region
 
 Primitive editables (text, image, array, source) handle their own DOM updates but can't trigger re-rendering of the surrounding template. This matters when a section contains data-driven behaviour beyond simple content — see [editable-regions.md > When to use component editable regions](../editable-regions.md#when-to-use-component-editable-regions) for the general principle.
@@ -644,7 +642,11 @@ For collections without detail pages (data-like `.md` files rendered only on lis
 
 **Path syntax:** `@file` paths must have a leading `/` and are relative to the repository root. `entry.id` in Astro content collections includes the file extension (e.g. `apple.md`).
 
-**When to prefer `@data` over `@file`:** If the data is a site-wide singleton (CTA, testimonials) that doesn't need to live in a content collection, `@data[key].field` is simpler — no collection or schema overhead, and the data appears under "Data" in the sidebar.
+**`@data` vs `@file` for listing-only content:** When `.md` (or similar) entries never build to their own pages and only feed a listing, you can keep the `@file[/path]` pattern above, or consolidate into one structured data file if that stays manageable.
+
+If you consolidate: register the file in CloudCannon `data_config` and expose it under Data in the sidebar (configure inputs/collections as needed). `@data[...]` in `data-prop` uses logical keys instead of building repo paths from `entry.id`. Paths still resolve through `data_config`, but you avoid scattering filesystem layout across many attributes.
+
+Keep separate files and `@file` when one file would be unwieldy, you need rich per-entry markdown/MDX bodies, or per-file workflows matter more than the simplification.
 
 **Enabling visual editing for listing pages:** Add `visual` to the collection's `_enabled_editors` and include the listing page in the `pages` collection glob so editors can open it in the visual editor.
 
@@ -659,6 +661,8 @@ Not everything benefits from visual editing. Guidelines:
 - Content body (`@content`)
 - CTA copy
 - Hardcoded text in page templates
+
+**MDX bodies and CloudCannon snippets:** Snippets in MDX do not render as their live-site output in the content editor or in the visual editor — editing page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon’s snippet UI (often a clickable box). Treat that as a preview limitation, not a reason to avoid visual editing for MDX.
 
 **Better for sidebar/data editor:**
 - Navigation menus (complex nested structures)
@@ -675,7 +679,6 @@ Not everything benefits from visual editing. Guidelines:
 - Components using server-only APIs (`import.meta.glob`, `getImage` from `astro:assets`, data fetching) -- guard with `import.meta.env.ENV_CLIENT` to provide a simplified client-side path that skips optimization and renders plain HTML. For example, an `Image` component that uses `findImage()` and `getImagesOptimized()` should render a plain `<img>` with the raw `src` prop when `ENV_CLIENT` is true.
 
 **Skip visual editing entirely:**
-- MDX content with shortcodes -- shortcodes won't render in the visual editor
 - Header/footer (too many moving parts, better in data editor)
 
 ## Structured props over rich text
@@ -808,7 +811,8 @@ If a suitable container already exists in the markup (e.g. a `<section>` wrappin
 - Astro components that use `astro:content` or `astro:assets` imports need the integration's Vite plugin (which shims these modules for client-side rendering)
 - React components inside registered Astro components (e.g. `react-icons`) need the React framework renderer. Add `import "@cloudcannon/editable-regions/astro-react-renderer"` to `registerComponents.ts` -- this is a side-effect import that registers a catch-all React renderer for the editable-regions client-side re-rendering pipeline (it mirrors Astro's SSR renderer interface but runs entirely within the editor). Without it, any React component encountered during re-rendering will fail with "NoMatchingRenderer". Because its `check` function unconditionally returns `true`, it acts as a fallback for all unmatched components -- import it after any other framework renderers
 - The React framework renderer only covers React -- there are no equivalent renderers for Vue, Svelte, or Solid. These frameworks will always error in editable regions and must be converted or given editing fallbacks
-- Components must be self-contained -- external data fetching won't work client-side
+- **Prop-driven re-renders:** Registered components run in the browser with the props CloudCannon passes—they do not re-run parent Astro server logic (`getCollection`, top-level `fetch` in `.astro` frontmatter, etc.). Put what the preview needs in props, or use `ENV_CLIENT` fallbacks for server-only APIs ([What to make editable vs. what to leave for the sidebar](#what-to-make-editable-vs-what-to-leave-for-the-sidebar)).
+- **Runtime `fetch()` in islands:** Not blocked by editable-regions, but preview iframes often differ from production (CORS, auth cookies, relative URLs). Test in the visual editor if the UI depends on it.
 
 Text/image editable regions provide the most value with the least complexity. Component registration is the next step for templates where full live preview is a priority.
 
@@ -847,8 +851,8 @@ The wrapper is stored in `window.cc_components[key]` where `EditableComponent` c
 After adding editable regions, work through these checks before moving to the build phase:
 
 - [ ] `@cloudcannon/editable-regions` is in `package.json` dependencies
-- [ ] The Astro integration is registered in `astro.config.mjs`
-- [ ] `src/cloudcannon/registerComponents.ts` exists and is imported from the base layout
+- [ ] The editable regions Astro integration (`editableRegions()` from `@cloudcannon/editable-regions/astro-integration`) is in the `integrations` array in `astro.config.mjs`
+- [ ] `src/cloudcannon/registerComponents.ts` exists and the base layout imports it (side-effect import so component registrations run in the Visual Editor)
 - [ ] Registered components accept spread props matching the shape of their `data-prop` value -- not a named wrapper prop (see [Component prop contract](#component-prop-contract))
 - [ ] Pages that render items from other collections have `@file` editables on those items. Remember `entry.id` includes the file extension — don't double it.
 - [ ] Slot content that should be editable uses a concrete DOM host (e.g. `<editable-text>` or `<span data-editable="text">`) instead of `<Fragment>`

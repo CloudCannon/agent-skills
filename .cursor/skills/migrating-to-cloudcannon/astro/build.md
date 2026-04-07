@@ -10,19 +10,21 @@ Guidance for validating an Astro migration works end-to-end.
 
 3. **Verify the registerComponents script is bundled** -- check that the built JS assets in `dist/` contain the editable-regions code from `src/cloudcannon/registerComponents.ts`. In Astro, this ends up in a hashed JS file (e.g. `Base.astro_astro_type_script_*`).
 
-4. **Prompt user to test in Fog Machine** -- agents should not attempt this. Provide the user with what to verify:
-   - Inline text editing works on the homepage banner
-   - Image editing opens the image picker
-   - Array item controls appear on feature sections
-   - Cross-file editable regions (CTA, testimonial) bind to the correct file
-   - Changes save correctly to the source files
+4. **Prompt user to test in CloudCannon** -- agents should not attempt this. Provide the user with what to verify:
+   - Inline text regions can be edited in the preview on representative pages
+   - Image regions open the image picker
+   - Array regions show add/remove/reorder controls where arrays were wired
+   - Cross-file editables (`@file`, shared partials, etc.) update the intended source file—not always the page being viewed
+   - Saved changes land in the expected files in git
 
 ## CloudCannon build command
 
-The build command CloudCannon runs must match the full pipeline. For Astro sites with pre-build scripts:
+The build command CloudCannon runs must match the full pipeline—usually the same sequence as the `build` script in `package.json`. For sites that run generators or other steps before Astro, chain them with `&&` before `astro build`.
 
-```
-node scripts/themeGenerator.js && node scripts/jsonGenerator.js && astro build
+**Example only** (replace with your real scripts; many sites need only `astro build` or `npm run build`):
+
+```bash
+node scripts/your-prebuild-step.js && node scripts/another-step.js && astro build
 ```
 
 This goes in `.cloudcannon/initial-site-settings.json` as the `build_command`, or in `.cloudcannon/prebuild` if using the prebuild script approach (see [configuration.md](configuration.md)).
