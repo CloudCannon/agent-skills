@@ -4,9 +4,9 @@ Common pitfalls when configuring CloudCannon snippets.
 
 ---
 
-### `root_value_delimiter` has no default
+### Raw `key_values`: set `root_value_delimiter` and `string_boundary`
 
-When using raw snippets with the `key_values` parser, `root_value_delimiter` must be set explicitly in `format:`. There is no default. Without it, CloudCannon cannot parse `key="value"` pairs. Template-based snippets handle this internally, so it only affects raw snippets.
+For typical `key="value"` attribute syntax, both belong in `format:`. The schema treats `format` and these fields as optional, but the parser’s defaults do not give you MDX/HTML-style parsing: without `root_value_delimiter` you get **Expected delimiter** (unless everything is implied via `allow_implied_values`). Without `string_boundary` including your quote character, quoted values are not parsed as strings. Template-based snippets set format internally; this applies to raw snippets.
 
 ```yaml
 # Works
@@ -44,7 +44,7 @@ models:
 
 ### `_snippets_imports` can match unintended content
 
-Don't use `_snippets_imports` during migrations. It auto-imports pre-built snippet instances that can incorrectly match fenced code blocks, CSS/JS blocks, and other markup as snippets. Custom `_snippets` entries give full control over what gets matched. Built-in templates like `mdx_component` resolve without any imports.
+Don't use `_snippets_imports` during migrations. It auto-imports pre-built snippet instances that can incorrectly match fenced code blocks, CSS/JS blocks, and other markup as snippets. Custom `_snippets` entries give full control over what gets matched. Built-in templates like `mdx_component` resolve without any imports. Hidden `_cc_mdx_*` catchalls are separate: they only appear when that imported default bundle is loaded, not when you use `template: mdx_component` alone.
 
 ---
 
@@ -135,4 +135,4 @@ params:
 
 ### `_cc_` snippets are deprioritized in matching
 
-Snippet types starting with `_cc_` are sorted after all user-defined snippets in the matching loop. This means your custom `_snippets` entries always get first chance to match. You don't need to worry about hidden catchall patterns (`_cc_*_unknown`) stealing matches from your explicit snippet configs.
+Snippet types starting with `_cc_` are sorted after all user-defined snippets in the matching loop. This means your custom `_snippets` entries always get first chance to match. You don't need to worry about hidden catchall patterns (`_cc_*_unknown`) stealing matches from your explicit snippet configs — whenever those `_cc_*` snippets exist in config, they still lose to your explicit entries first (migrations without `_snippets_imports` typically never load those catchalls).

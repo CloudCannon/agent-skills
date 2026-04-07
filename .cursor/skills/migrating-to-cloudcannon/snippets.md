@@ -17,7 +17,7 @@ Agents must handle both layers during a migration, but keep them conceptually se
 |---|---|
 | [Template-based snippets](snippets/template-based.md) | Component syntax matches a built-in template (most common). Covers MDX templates, snippet model reference, example lifecycle. |
 | [Raw snippets](snippets/raw.md) | Component needs custom syntax (e.g. `client:load`). Covers parser types, snippet format reference, custom templates. |
-| [Built-in templates](snippets/built-in-templates.md) | Reference for built-in MDX templates, their patterns, required definitions, internal format configs, and parser internals. |
+| [Built-in templates](snippets/built-in-templates.md) | Built-in MDX templates vs MDX default import bundle; patterns, definitions, `mdx_format`, parser internals. |
 | [Gotchas](snippets/gotchas.md) | Debugging or reviewing. Common pitfalls and workarounds. |
 
 ---
@@ -34,7 +34,7 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-> **Note:** `_snippets_imports` exists but should not be used during migrations. It auto-imports pre-built snippet instances for an SSG which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control and work without any imports — built-in templates like `mdx_component` resolve automatically. Users can add `_snippets_imports` later if they want the pre-built defaults.
+> **Note:** `_snippets_imports` exists but should not be used during migrations. It auto-imports pre-built snippet instances for an SSG which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control and work without any imports — built-in templates like `mdx_component` resolve automatically. Users can add `_snippets_imports` later if they want the pre-built defaults. For built-in **templates** vs the **import bundle** (catchalls like `_cc_mdx_unknown`), see [built-in-templates.md](snippets/built-in-templates.md).
 
 ---
 
@@ -44,6 +44,8 @@ Most migrations only need `_snippets`.
 - **Raw** → extra syntax needs to appear literally, or non-standard attribute format, or fine-grained parsing control needed. See [raw.md](snippets/raw.md).
 
 Most migrations use template-based for simple components and raw for anything with SSG-specific directives.
+
+For **Astro**, [astro/snippets.md](astro/snippets.md) connects this choice to the SSG layer: when to adopt the MDX stack (including refactoring from Markdown-only) versus staying on `.md` with more raw parsing work.
 
 ---
 
@@ -94,6 +96,8 @@ If a rich text field contains structured HTML with a fixed layout and only a few
 Snippets aren't just for MDX components. Plain `.md` content files often contain HTML blocks that have no markdown equivalent -- `<figure>` with `<figcaption>`, `<video>`, `<details>`/`<summary>`, `<iframe>`, etc. Without a snippet config, editors see raw HTML in the content editor. With a snippet, they get a structured panel with named fields.
 
 No MDX integration or auto-import setup is needed. Raw snippets match the HTML pattern directly in the source text.
+
+For `parser: key_values` on attribute lists, `format` is optional in schema but **you almost always need** `root_value_delimiter` and `string_boundary` so `key="value"` parses and round-trips. See [raw.md — `key_values`](snippets/raw.md#key_values--keyvalue-pairs) and [Snippet Format](snippets/raw.md#snippet-format).
 
 ### When to create an HTML snippet
 

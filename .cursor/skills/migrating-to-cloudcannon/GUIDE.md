@@ -17,7 +17,7 @@ structures.md                    (250)  Structures — inline vs split, previews
 snippets.md                      (251)  Snippet concepts — when to use, config patterns
 
 ── Snippets sub-docs ───────────────────────────────────────────
-snippets/built-in-templates.md   (93)   MDX template reference, parser internals
+snippets/built-in-templates.md   (97)   MDX templates vs import bundle, parser internals
 snippets/raw.md                  (350)  Raw snippet syntax, all parser types
 snippets/template-based.md       (119)  Template-based snippet workflow
 snippets/gotchas.md              (138)  Snippet pitfalls and debugging

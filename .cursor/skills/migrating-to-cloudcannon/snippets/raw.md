@@ -41,7 +41,7 @@ The most common parser for component attributes. Handles `key="value"` or `key={
 
 Options:
 - `models` (array, required) — snippet model configs for each attribute (see [template-based.md](template-based.md) for the model reference)
-- `format` (object) — parsing format (see Snippet Format below)
+- `format` (object) — Parsing format (see Snippet Format below). Optional for the validator, but for typical attribute lists (`key="value"` or `key={expression}`) treat it as **required**: set at least `root_value_delimiter` and `string_boundary`. Without them, quoted values and `=` pairs do not parse as intended. Omit only when you rely solely on implied keys (`allow_implied_values: true`) and unquoted values.
 - `style` (object) — output formatting (inline/block whitespace)
 
 ```yaml
@@ -91,7 +91,7 @@ Parses a single value, optionally delimited by characters. Best for shortcode-st
 
 Options:
 - `model` (object) — snippet model config for the value
-- `format` (object) — parsing format
+- `format` (object) — Parsing format (see Snippet Format below). Same practical rule as `key_values`: for quoted or delimited values, set the `format` fields the parser needs; empty defaults rarely match real syntax.
 
 ### `argument_list` — multiple distinct positional arguments
 
@@ -217,7 +217,7 @@ params:
 
 ## Snippet Format
 
-Controls how values are parsed and serialized. Applied via the `format` key in parser options. None of these fields have defaults in raw snippets — you must set every field you need. Template-based snippets set format internally; raw snippets do not inherit any format defaults.
+Controls how values are parsed and serialized. Applied via the `format` key in parser options. The parser still applies internal defaults when `format` is omitted or partial (often empty arrays or unset delimiters), but **those defaults do not reproduce MDX/JSX or HTML attribute syntax**. Raw snippets do not inherit template-based format presets — you must supply the fields your syntax needs. Template-based snippets set format internally.
 
 ### Core fields (used in most raw snippets)
 

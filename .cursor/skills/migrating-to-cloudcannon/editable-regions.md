@@ -11,17 +11,25 @@ For deep internals, lifecycle traces, and the JavaScript API reference, see [edi
 
 ## Region Types
 
+### Primitive vs component regions
+
+**Primitive** region types (`text`, `image`, `array`, `array-item`, `source`) each target a specific kind of value or control. They update their own slice of the live DOM directly and do not need a registered component renderer.
+
+**Component** regions (and **snippet**, which extends component) re-render from structured data so the whole template slice can stay in sync—text, images, arrays, styles, and derived markup. That broad catch-all is not a substitute for primitives in the markup: nest **text**, **array**, **image**, and so on inside a component when you want **inline on-canvas** editing (e.g. rich text on the page, array CRUD on the page). Authors can still change the same fields from the **data panel or modal**; matching region types are what add direct on-page controls. Nesting primitives inside components is normal—the component handles data-driven re-renders while nested regions supply the inline editors.
+
+For when to wrap a section in a component at all, see [When to Use a Component Editable Region](#when-to-use-a-component-editable-region).
+
 ### EditableText
-Inline rich text editor (ProseMirror-based). Supports `data-type` of `"span"` (inline), `"text"` (plain text), or `"block"` (block-level rich text). Handles its own DOM updates — no component registration needed.
+Inline rich text editor (ProseMirror-based). Supports `data-type` of `"span"` (inline), `"text"` (plain text), or `"block"` (block-level rich text).
 
 ### EditableImage
 Image editing via CloudCannon's data panel. Expects a child `<img>` element. Manages `src`, `alt`, and `title` — each can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields).
 
 ### EditableComponent
-Re-renders a component when its data changes. Requires a registered renderer function (e.g. via `registerAstroComponent`). Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
+Re-renders a component when its data changes so the rendered slice updates holistically from that data. Requires a registered renderer function (e.g. via `registerAstroComponent`). Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
 
 ### EditableArray & EditableArrayItem
-Manages ordered lists with full CRUD (add, remove, reorder) and drag-and-drop. Array items on their own don't re-render contents — adding `data-component` to an array item element enables component re-rendering alongside the CRUD controls. For complex arrays, the array wrapper needs `data-component-key` and optionally `data-id-key` to declare which data fields identify items. Use `<editable-array-item>` when no suitable HTML container exists.
+On the page, manages ordered lists with full CRUD (add, remove, reorder) and drag-and-drop. Array items on their own don't re-render contents — adding `data-component` to an array item element enables component re-rendering alongside the CRUD controls. For complex arrays, the array wrapper needs `data-component-key` and optionally `data-id-key` to declare which data fields identify items. Use `<editable-array-item>` when no suitable HTML container exists.
 
 ### EditableSource
 Edits raw HTML source files rather than frontmatter. Uses `data-path` (file path) and `data-key` (unique identifier) instead of `data-prop`. Reads/writes the full source file via the CloudCannon file API.

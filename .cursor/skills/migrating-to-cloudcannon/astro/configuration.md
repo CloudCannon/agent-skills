@@ -351,7 +351,7 @@ After generating and customizing the config, work through these checks before mo
 - [ ] All arrays with structures are explicitly linked via `type: array` + `options.structures`
 - [ ] Structures use both `picker_preview` and `preview` (see [../structures.md](../structures.md))
 - [ ] Sites with 5+ block types use the split co-located approach (`values_from_glob`)
-- [ ] Every MDX component in content has a `_snippets` entry OR the file is restricted to `_enabled_editors: [source, data]` — unconfigured snippets always show as broken elements
+- [ ] Every MDX component in content has a `_snippets` entry, or `_enabled_editors: [source, data]` only as a last resort after snippet/refactor attempts — unconfigured components break the content editor; document rationale in migration notes
 - [ ] `markdown.options.table` is `true` if any content files contain Markdown-syntax tables
 - [ ] `add_options` restricts the Add button to only creatable schemas
 - [ ] Collections where editors should not create new files use `disable_add: true`
