@@ -90,6 +90,8 @@ _inputs:
 
 The rest of the input config (`allow_create`, `value_key`, `preview`) stays the same as the inline approach.
 
+**Common mistake:** Do NOT use `values: data.icons[*].id` — this extracts only the raw ID strings (e.g. `tabler:rocket`), losing the `name` field entirely. Editors see cryptic Iconify IDs in the dropdown instead of friendly names like "Rocket". Use `values: data.icons` (the full objects) with `value_key: id` so the stored value is the ID but the dropdown displays the name via `preview.text`.
+
 A single global `icon` input definition covers all fields that accept icon names.
 
 ## Quote numeric values that map to text inputs
@@ -158,6 +160,10 @@ _editables:
 ```
 
 `markdown.options.table` controls serialization (Markdown vs HTML); `_editables.content.table` controls the toolbar button.
+
+## `_enabled_editors` order is the default editor
+
+The first item in `_enabled_editors` is the editor that opens by default when a user clicks a file. `[data, visual]` opens the data editor; `[visual, data]` opens the visual editor. Page builder collections should almost always have `visual` first. See [configuration.md § _enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).
 
 ## `collection_groups` requires matching `collections_config` entries
 

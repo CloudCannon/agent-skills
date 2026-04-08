@@ -2,6 +2,10 @@
 
 How to navigate this skill — for humans reviewing agent behaviour or learning the doc structure.
 
+## Before you start
+
+**Use a high-reasoning model.** This skill involves multi-file architectural decisions across five phases. Fast/lightweight models will miss context and make poor judgment calls. Select a capable reasoning model before starting the migration.
+
 ## File Map
 
 ```

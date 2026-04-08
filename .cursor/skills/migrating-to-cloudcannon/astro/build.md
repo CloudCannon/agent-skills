@@ -4,13 +4,15 @@ Guidance for validating an Astro migration works end-to-end.
 
 ## Build verification checklist
 
-1. **Run the full build pipeline** -- use whatever `package.json` defines as the `build` script, not just `astro build`. Pre-build scripts (theme generation, search index, JSON data generation) must be included.
+1. **Clean the cache first** -- run `rm -rf .astro dist` before building. Astro's `.astro/` directory caches content collection data, and after major restructuring (adding/removing content files, renaming collections) the cache can serve stale entries that mask real errors or generate ghost routes from deleted files.
 
-2. **Verify editable attributes in output HTML** -- spot-check key pages in `dist/` to confirm `data-editable` attributes survived the build. Count occurrences on the homepage (should be the highest) and a content page.
+2. **Run the full build pipeline** -- use whatever `package.json` defines as the `build` script, not just `astro build`. Pre-build scripts (theme generation, search index, JSON data generation) must be included.
 
-3. **Verify the registerComponents script is bundled** -- check that the built JS assets in `dist/` contain the editable-regions code from `src/cloudcannon/registerComponents.ts`. In Astro, this ends up in a hashed JS file (e.g. `Base.astro_astro_type_script_*`).
+3. **Verify editable attributes in output HTML** -- spot-check key pages in `dist/` to confirm `data-editable` attributes survived the build. Count occurrences on the homepage (should be the highest) and a content page.
 
-4. **Prompt user to test in CloudCannon** -- agents should not attempt this. Use the checklist and handoff guidance in [SKILL.md § Handoff and verification](../SKILL.md#handoff-and-verification) (including what to ask them to verify and what to send back).
+4. **Verify the registerComponents script is bundled** -- check that the built JS assets in `dist/` contain the editable-regions code from `src/cloudcannon/registerComponents.ts`. In Astro, this ends up in a hashed JS file (e.g. `Base.astro_astro_type_script_*`).
+
+5. **Prompt user to test in CloudCannon** -- agents should not attempt this. Use the checklist and handoff guidance in [SKILL.md § Handoff and verification](../SKILL.md#handoff-and-verification) (including what to ask them to verify and what to send back).
 
 ## CloudCannon build command
 

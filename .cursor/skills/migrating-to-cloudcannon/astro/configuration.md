@@ -35,6 +35,7 @@ Gadget produces a structural baseline. The following customizations are almost a
 - **`_structures`** -- define reusable component structures used for knowing what to add to arrays, or object inputs in CloudCannon. Particularly needed for array-based page building, but should be defined for all array or object inputs on the site. Derive these from the component inventory in the audit.
 - **`collection_groups`** -- organize collections into sidebar groups for a clean editing experience.
 - **`_editables`** -- configure rich text editor toolbars per collection or globally.
+- **Editor styles** -- when the audit flagged styled HTML in content fields (inline spans with CSS classes for accent colors, emphasis, etc.), create `.cloudcannon/styles/editor.css` with semantic class definitions and reference it from `type: html` inputs via `options.styles`. This lets editors apply custom styling (e.g. brand-colored highlight text) through the rich text toolbar without Tailwind utility classes in the content. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter) and the [Jetstream template](https://github.com/CloudCannon/jetstream-astro-template) for the reference pattern.
 - **`markdown`** -- if content files contain Markdown-syntax tables (`| col | col |`), set `markdown.options.table: true`. See [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 - **`_snippets`** -- configure snippets for non-standard markdown amongst markdown content. In Astro this is often MDX components used in rich text content. Built-in templates like `mdx_component` resolve automatically — no `_snippets_imports` needed. See [snippets.md](snippets.md).
 - **`_select_data`** -- define shared dropdown options for fields used across collections.
@@ -283,9 +284,22 @@ When `add_options` is defined, **only** the listed options appear. Schemas not l
 - **One-off pages with dedicated routes**: Homepage, contact -- where the Astro route is hardcoded to load a specific entry.
 - **Page builder pages**: When offering multiple schema types for new pages, `add_options` curates the list editors see.
 
+### `_enabled_editors` order determines the default
+
+The first editor in the `_enabled_editors` list is the default when opening a file. Order matters. Recommended orderings:
+
+- **Page builder collections**: `[visual, data]` — visual editor shows the live page; data editor for bulk field editing
+- **Blog posts** (with visual editing support): `[visual, content, data]` — visual is default for existing posts. Use `editor: content` on `add_options` to open *new* posts in the content editor (which doesn't need a built page)
+- **Data-only collections** (no page output): `[data]`
+- **`.astro` page collections** (source editables): `[visual]`
+
+A common mistake is putting `data` first on page collections — this makes every page open in the data editor instead of the visual editor.
+
 ### Using `editor: content` on add options
 
 Set `editor: content` on the add option to open new files in the content editor instead of the visual editor. The content editor doesn't need a preview URL, so it works immediately. This is the preferred approach for collections where the primary editing workflow is writing markdown (blog posts, docs, articles), and for collections with a `draft` field — draft pages aren't built, so the visual editor has no page to preview. The content editor doesn't require a built page, making it the only reliable editing experience for drafts. For page-builder collections, use `new_preview_url` on the schema instead.
+
+Note that `editor: content` on add options only controls the editor for *new* files. Existing files use the `_enabled_editors` order. Blog posts should still have `visual` first in `_enabled_editors` so existing posts open in the visual editor by default.
 
 ## Page building patterns
 
@@ -347,11 +361,14 @@ After generating and customizing the config, work through these checks before mo
 - [ ] `paths.uploads` matches where the site stores images
 - [ ] `.cloudcannon/prebuild` exists if pre-build steps are needed
 - [ ] `file_config` entries exist for files with inputs not covered by global or collection-level config
-- [ ] Object inputs have `type: object` with `preview.icon`
+- [ ] Every object input (both global `_inputs` and inside structures/sub-structures) has `type: object` with `options.preview.icon`. Check inline `_structures` entries too — nested objects like `callToAction` and `image` inside `prices`, `testimonials`, etc. are easy to miss
 - [ ] All arrays with structures are explicitly linked via `type: array` + `options.structures`
-- [ ] Structures use both `picker_preview` and `preview` (see [../structures.md](../structures.md))
+- [ ] ALL structure values have a `preview` block with a meaningful `text` key lookup — this includes co-located widget files AND inline sub-structures in `_structures` (actions, items, stats, images, etc.). Without `preview`, sidebar array items show only the generic label instead of pulling the item's title or name
+- [ ] Every input has some explicit config: objects have `type: object` + preview icon, selects have `type: select`, images have `type: image`, booleans have `type: switch`, text areas have `type: textarea` or `type: html`. No input should be left unconfigured if CloudCannon can't infer the right type from the field name alone
 - [ ] Sites with 5+ block types use the split co-located approach (`values_from_glob`)
 - [ ] Every MDX component in content has a `_snippets` entry, or `_enabled_editors: [source, data]` only as a last resort after snippet/refactor attempts — unconfigured components break the content editor; document rationale in migration notes
+- [ ] MDX files with explicit `import` statements: set up `astro-auto-import` (or equivalent) so imports are injected at build time and removed from source files — bare `import` lines show as raw text in the content editor. See [snippets.md § Auto-import](snippets.md#auto-import-keeping-import-statements-out-of-content)
+- [ ] `_enabled_editors` order has the preferred default editor first (`visual` for page collections, `visual` then `content` for blog posts)
 - [ ] `markdown.options.table` is `true` if any content files contain Markdown-syntax tables
 - [ ] `add_options` restricts the Add button to only creatable schemas
 - [ ] Collections where editors should not create new files use `disable_add: true`

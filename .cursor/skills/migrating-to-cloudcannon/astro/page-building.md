@@ -33,7 +33,7 @@ const { sections } = page.data;
 
 ```astro
 ---
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BlockRenderer from "../components/BlockRenderer.astro";
 
@@ -46,7 +46,7 @@ export async function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const { Content } = await page.render();
+const { Content } = await render(page);
 const data = page.data;
 ---
 
@@ -56,7 +56,6 @@ const data = page.data;
       data-editable="array"
       data-prop="content_blocks"
       data-component-key="_type"
-      data-id-key="_type"
     >
       {data.content_blocks.map((block) => (
         <BlockRenderer block={block} />
@@ -71,6 +70,15 @@ const data = page.data;
 ```
 
 The catch-all checks for `content_blocks` to switch between page builder rendering and plain body rendering. Each creatable schema needs a corresponding rendering branch.
+
+**Multiple layouts.** When the template has multiple layouts (e.g. `PageLayout`, `LandingLayout`), add a `layout` field to the content schema and switch dynamically:
+
+```astro
+const layouts: Record<string, any> = { PageLayout, LandingLayout };
+const LayoutComponent = layouts[data.layout || ""] || PageLayout;
+```
+
+Only use layouts that accept a generic props interface (e.g. `metadata`). Specialized layouts like `MarkdownLayout` often expect a different prop shape (e.g. `frontmatter`) and will crash in the catch-all. For markdown pages, use the generic layout and render the prose wrapper directly in the catch-all template.
 
 ### Identifying reusable page types
 

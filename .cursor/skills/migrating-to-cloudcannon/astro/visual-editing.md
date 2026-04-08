@@ -118,6 +118,8 @@ This applies to text, image, and any other editable type. When a shared sub-comp
 
 **Object fields**: Guard on a meaningful inner field, not the object itself. Empty objects from content files (e.g. `image: { src: null, alt: null }`) are truthy. Use `image?.src &&` instead of `image &&`, and `callToAction?.text &&` instead of `callToAction &&`. See [../structures.md](../structures.md#guarding-empty-objects-in-components).
 
+**Dual slot/prop components**: Many Astro widgets accept both slot content (rendered as strings) and structured objects (from content collections). They commonly use `typeof image === 'string'` to branch between the two. When fixing image guards for these components, preserve the string branch: `(typeof image === 'string' ? image : image?.src) &&`.
+
 ### Text editing
 
 **Where to put text regions:**
@@ -681,14 +683,53 @@ Not everything benefits from visual editing. Guidelines:
 **Skip visual editing entirely:**
 - Header/footer (too many moving parts, better in data editor)
 
-## Structured props over rich text
+## Content vs presentation in frontmatter fields
 
-When a component renders HTML with specific classes or structure — e.g. a centered `<span>`, a link with an `underline` class — it's tempting to store the entire block as a single rich text `content` field. This causes problems:
+Frontmatter fields that contain inline HTML with CSS classes, `<br>` tags, or HTML entities (`&nbsp;`) are uneditable in the visual editor — custom HTML renders with red outlines. This applies to ALL fields (title, subtitle, description, content), not just rich text `content` fields. The principle: **frontmatter stores content, components own presentation.**
 
-- CloudCannon's rich text editor can't safely interact with non-standard HTML (custom classes, nested elements with styling) — these render with a red outline and are not editable inline.
-- Defining the HTML as a snippet is overkill when the structure is fixed and only a few values change.
+### Option 1: Editor styles (preferred for inline styling)
 
-**Instead, decompose the structured HTML into explicit props and let the component own the markup.**
+When the styled HTML is inline emphasis or branding (e.g. highlighted/accented text), use `type: html` input with an **editor styles CSS** file. This lets editors apply semantic styling through the rich text toolbar. Pattern from [Jetstream](https://github.com/CloudCannon/jetstream-astro-template):
+
+1. Create `.cloudcannon/styles/editor.css` with semantic classes:
+
+```css
+span.highlight-text {
+  color: var(--color-brand);
+}
+```
+
+2. Configure the input as `type: html` referencing the stylesheet:
+
+```yaml
+_inputs:
+  title:
+    type: html
+    options:
+      styles: .cloudcannon/styles/editor.css
+```
+
+3. The component renders with `set:html` and has matching CSS:
+
+```astro
+<h1 set:html={title} data-editable="text" data-prop="title" />
+
+<style is:global>
+  .highlight-text { color: var(--color-accent); }
+</style>
+```
+
+4. Content uses the semantic class instead of Tailwind utilities:
+
+```yaml
+title: "Free template for <span class=\"highlight-text\">Astro 5.0</span> + Tailwind CSS"
+```
+
+Editors see the accent color in the toolbar and can toggle it on text selections. This is the preferred approach for any styling expressible as a CSS class. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter) for the full decision tree.
+
+### Option 2: Decompose into explicit props (for structured data)
+
+When a field packs multiple semantic values into one string with HTML structure — e.g. a `content` field mixing plain text, a link with classes, and a CTA — decompose into explicit props and let the component own the markup.
 
 Before (single rich text field):
 ```json
@@ -706,14 +747,18 @@ After (explicit props):
 }
 ```
 
-The component templates the values into the correct HTML structure with the right classes:
-```tsx
-<p className="text-center">
-  {text} <a className="underline" href={link_url} target="_blank" rel="noopener">{link_text}</a>
+The component templates the values into the correct HTML:
+```astro
+<p class="text-center">
+  {text} <a class="underline" href={link_url} target="_blank" rel="noopener">{link_text}</a>
 </p>
 ```
 
-Editors get clean labeled inputs (text, text, url) in the sidebar instead of a broken rich text region. This pattern applies whenever a "rich text" field is really just a few values templated into fixed HTML — pull them out as props.
+Use this when each piece of the HTML has distinct semantic meaning (text vs link vs URL) and the structure is fixed. Also use this for multi-part text like job titles (`job_title`, `company`, `date_range`) where each segment needs different formatting.
+
+### Option 3: Strip layout HTML
+
+Responsive layout HTML (`<br class="block sm:hidden" />`, `&nbsp;` for spacing, `<span class="sm:whitespace-nowrap">`) are layout concerns that don't belong in content. Store plain text and handle responsiveness in the component or CSS.
 
 ## Component re-rendering
 

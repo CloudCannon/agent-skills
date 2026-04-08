@@ -34,7 +34,7 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-> **Note:** `_snippets_imports` exists but should not be used during migrations. It auto-imports pre-built snippet instances for an SSG which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control and work without any imports — built-in templates like `mdx_component` resolve automatically. Users can add `_snippets_imports` later if they want the pre-built defaults. For built-in **templates** vs the **import bundle** (catchalls like `_cc_mdx_unknown`), see [built-in-templates.md](snippets/built-in-templates.md).
+> **Note:** `_snippets_imports` exists but should not be used during migrations. It loads pre-built catchall snippet instances (including one that hides `import` statements) which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control without `_snippets_imports`. Built-in **templates** like `mdx_component` are always available by name — "resolve automatically" means CC knows the template pattern without needing `_snippets_imports`, not that `mdx_component` handles import statements. Import handling is an SSG concern: use `astro-auto-import` (or equivalent) to inject imports at build time so `import` lines don't appear in source files. See [astro/snippets.md § Auto-import](astro/snippets.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle** (catchalls like `_cc_mdx_unknown`), see [built-in-templates.md](snippets/built-in-templates.md).
 
 ---
 

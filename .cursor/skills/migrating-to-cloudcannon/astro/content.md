@@ -73,6 +73,26 @@ Check for:
 - **Empty content bodies.** Index files and section data often have no body content (all data lives in frontmatter). This is normal and CloudCannon handles it fine.
 - **Remark/rehype plugin output.** If custom remark or rehype plugins transform markdown in ways that affect the content structure (e.g. adding IDs to headings, wrapping images), note them but don't change the content. The plugins run at build time.
 
+### Handling styled HTML in frontmatter
+
+When extracting hardcoded page content into frontmatter, inline HTML with CSS classes, entities, and responsive markup must not be preserved verbatim. CloudCannon's visual editor can't interact with custom HTML classes — they render with red outlines and are uneditable. The principle: **frontmatter stores content, components own presentation.**
+
+Resolve each case using this decision tree (ordered by preference):
+
+1. **Inline text styling** (highlighted/accented text, brand-colored emphasis): Use `type: html` input with **editor styles CSS**. This is the preferred approach for styling expressible as a CSS class. The pattern (from [Jetstream](https://github.com/CloudCannon/jetstream-astro-template)):
+   - Configure the input as `type: html` with `options.styles: .cloudcannon/styles/editor.css`
+   - Create `.cloudcannon/styles/editor.css` defining semantic classes (e.g. `span.highlight-text { color: var(--color-brand); }`)
+   - The component renders with `set:html` and has matching CSS in its own styles
+   - Editors see the styling in the rich text toolbar and can toggle it like bold/italic
+   - Strip Tailwind utility classes from content and replace with semantic class names that map to the editor stylesheet
+   - Example: `<span class="text-accent dark:text-white">Astro 5.0</span>` becomes `<span class="highlight-text">Astro 5.0</span>`
+
+2. **Fixed-structure multi-part text** (job title + company + dates): Decompose into structured sub-fields and template in the component. E.g. a step `title` packing `Graphic Designer <br /> <span class="font-normal">ABC Studio</span> <br /> <span class="text-sm">2021 - Present</span>` becomes `job_title`, `company`, `date_range`. Use this when each segment has distinct semantic meaning.
+
+3. **Line-separated list items** (`<br />` between entries): Convert to an array, or use a rich text input (`type: html`). A plain text input can't control `<br>` tags — the editor sees raw HTML.
+
+4. **Responsive layout HTML** (`<br class="block sm:hidden" />`, `&nbsp;`): Strip the HTML, store plain text, handle responsiveness in CSS/component logic. These are layout concerns that don't belong in content.
+
 ### Page-builder content migration
 
 When converting hardcoded pages to markdown with `content_blocks`, the agent must reference the structure definition for each block type and include ALL fields — even empty ones. The structure `value` is the canonical list of fields.
@@ -86,6 +106,12 @@ When converting hardcoded pages to markdown with `content_blocks`, the agent mus
 5. Leave remaining fields at their default/empty values (strings empty, booleans `false`, arrays `[]`, objects with empty nested fields)
 
 **Why this matters:** The visual editor throws `undefined` errors when editable regions reference fields missing from frontmatter. Getting field completeness right during the initial content migration avoids a backfill step later. See [../structures.md](../structures.md) for the full field completeness rule.
+
+**Scaling warning:** Extracting 10+ pages of widget data into YAML is one of the most error-prone steps in a migration. Common pitfalls:
+
+- **YAML quoting** — strings containing HTML (`<span class="...">`, `<br />`) or special characters (`:`, `#`, `{`) must be quoted. Use `>-` for multiline strings or wrap in double quotes with escaped inner quotes.
+- **Field completeness at scale** — with 15+ block types, it's easy to forget fields on one or two blocks. Cross-reference each block against its structure definition systematically rather than working from memory.
+- **Build early, build often** — don't extract all pages before running a build. Extract a few representative pages first, build, fix errors, then extract the rest. This catches schema mismatches and guard issues before they multiply.
 
 **Null values in YAML:** Bare keys with no value (`tagline:`) parse as `null`. The Zod schema must use `.nullish()` instead of `.optional()` on optional fields, otherwise `null` values fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data. See [../structures.md](../structures.md#handling-null-values-from-empty-yaml-fields) for details on aligning the Zod schema and CloudCannon config.
 

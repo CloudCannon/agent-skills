@@ -103,7 +103,12 @@ _structures:
   actions:
     values:
       - label: Action
-        icon: ads_click
+        preview:
+          text:
+            - key: text
+            - Action
+          icon:
+            - ads_click
         value:
           text:
           href:
@@ -113,12 +118,19 @@ _structures:
   items:
     values:
       - label: Item
-        icon: list
+        preview:
+          text:
+            - key: title
+            - Item
+          icon:
+            - list
         value:
           title:
           description:
           icon:
 ```
+
+Shared sub-structures need `preview` blocks just like co-located widget structures. Without a `preview`, array items in the sidebar show only the generic label ("Item", "Action") instead of pulling a meaningful value like the item's title. Don't omit `preview` because the structure is inline.
 
 ## Previews
 
@@ -189,6 +201,11 @@ _inputs:
     type: html
     options:
       allow_custom_markup: true
+  image:
+    type: object
+    options:
+      preview:
+        icon: image
   isReversed:
     type: switch
   isAfterContent:
@@ -213,6 +230,24 @@ Every structure value must include a discriminator key so CloudCannon can match 
 ### Scoped `_inputs`
 
 Field type configuration inside a structure-value file is scoped to that component. This keeps input config co-located with the component rather than polluting the main config. Only include fields that need non-default types — strings, arrays, and objects work fine without explicit configuration.
+
+**Nested object inputs need preview icons too.** Object fields within a structure (e.g. `callToAction`, `image`) show a generic icon in the data editor without explicit `type: object` + `options.preview.icon`. This applies to **both** co-located structure-value files **and** inline `_structures` entries in `cloudcannon.config.yml` (e.g. `prices`, `testimonials`, `items`). Add these in the structure's `_inputs` alongside other field configs:
+
+```yaml
+_inputs:
+  callToAction:
+    type: object
+    options:
+      preview:
+        icon: ads_click
+  image:
+    type: object
+    options:
+      preview:
+        icon: image
+```
+
+This applies to all nested objects editors will see — not just top-level fields. See [configuration.md § Object inputs need preview icons](astro/configuration.md#object-inputs-need-preview-icons).
 
 ## Deriving structures from components
 

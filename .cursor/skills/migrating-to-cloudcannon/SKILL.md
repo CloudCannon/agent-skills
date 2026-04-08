@@ -10,6 +10,8 @@ description: >-
 
 This skill walks through migrating an existing SSG site so it works well with CloudCannon. The migration follows five phases, with SSG-specific guidance for each.
 
+> **Model recommendation:** This migration involves multi-file architectural decisions across five phases. Use a high-reasoning model (not a fast/lightweight one) for best results.
+
 ## Supported SSGs
 
 | SSG | Guide |
