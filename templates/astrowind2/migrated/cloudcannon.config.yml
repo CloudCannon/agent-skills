@@ -161,12 +161,12 @@ _inputs:
   title:
     type: html
     options:
-      styles: .cloudcannon/styles/editor.css
+      styles: templates/astrowind2/migrated/.cloudcannon/styles/editor.css
       allow_custom_markup: true
   subtitle:
     type: html
     options:
-      styles: .cloudcannon/styles/editor.css
+      styles: templates/astrowind2/migrated/.cloudcannon/styles/editor.css
       allow_custom_markup: true
   tagline:
     type: text
