@@ -1,0 +1,35 @@
+label: Testimonials
+icon: format_quote
+picker_preview:
+  text:
+    - Testimonials
+  icon:
+    - format_quote
+preview:
+  text:
+    - key: title
+    - Testimonials
+  icon:
+    - format_quote
+value:
+  _type: testimonials
+  title:
+  subtitle:
+  tagline:
+  testimonials: []
+  callToAction:
+    text:
+    href:
+    variant:
+    icon:
+    target:
+_inputs:
+  testimonials:
+    type: array
+    options:
+      structures: _structures.testimonials
+  callToAction:
+    type: object
+    options:
+      preview:
+        icon: ads_click

@@ -6,12 +6,14 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
+import AutoImport from 'astro-auto-import';
 import partytown from '@astrojs/partytown';
 import icon from 'astro-icon';
 import compress from 'astro-compress';
 import type { AstroIntegration } from 'astro';
 
 import astrowind from './vendor/integration';
+import editableRegions from '@cloudcannon/editable-regions/astro-integration';
 
 import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
 
@@ -29,6 +31,12 @@ export default defineConfig({
       applyBaseStyles: false,
     }),
     sitemap(),
+    AutoImport({
+      imports: [
+        '~/components/Logo.astro',
+        { 'astro-embed': ['YouTube', 'Tweet', 'Vimeo'] },
+      ],
+    }),
     mdx(),
     icon({
       include: {
@@ -69,6 +77,8 @@ export default defineConfig({
     astrowind({
       config: './src/config.yaml',
     }),
+
+    editableRegions(),
   ],
 
   image: {

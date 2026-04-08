@@ -1,0 +1,24 @@
+label: Pricing
+icon: payments
+picker_preview:
+  text:
+    - Pricing
+  icon:
+    - payments
+preview:
+  text:
+    - key: title
+    - Pricing
+  icon:
+    - payments
+value:
+  _type: pricing
+  title:
+  subtitle:
+  tagline:
+  prices: []
+_inputs:
+  prices:
+    type: array
+    options:
+      structures: _structures.prices

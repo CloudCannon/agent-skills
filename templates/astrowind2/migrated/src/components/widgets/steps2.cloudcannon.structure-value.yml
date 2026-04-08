@@ -1,0 +1,38 @@
+label: Steps 2
+icon: format_list_numbered
+picker_preview:
+  text:
+    - Steps 2
+  icon:
+    - format_list_numbered
+preview:
+  text:
+    - key: title
+    - Steps 2
+  icon:
+    - format_list_numbered
+value:
+  _type: steps2
+  title:
+  subtitle:
+  tagline:
+  callToAction:
+    text:
+    href:
+    variant:
+    icon:
+    target:
+  items: []
+  isReversed: false
+_inputs:
+  callToAction:
+    type: object
+    options:
+      preview:
+        icon: ads_click
+  items:
+    type: array
+    options:
+      structures: _structures.items
+  isReversed:
+    type: switch

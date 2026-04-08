@@ -1,0 +1,581 @@
+source: templates/astrowind2/migrated
+
+paths:
+  static: public
+  uploads: public/images
+
+collections_config:
+  pages:
+    path: src/content/pages
+    url: "/[slug]/"
+    glob:
+      - "!homes/**"
+      - "!landing/**"
+    _enabled_editors:
+      - visual
+      - data
+    add_options:
+      - name: Add Page
+        schema: page_builder
+        icon: add
+      - name: Add Markdown Page
+        schema: markdown_page
+        icon: add
+    schemas:
+      page_builder:
+        path: templates/astrowind2/migrated/.cloudcannon/schemas/page-builder.md
+        new_preview_url: "/"
+      markdown_page:
+        path: templates/astrowind2/migrated/.cloudcannon/schemas/markdown-page.md
+        new_preview_url: "/"
+    _inputs:
+      content_blocks:
+        type: array
+        options:
+          structures:
+            values_from_glob:
+              - /templates/astrowind2/migrated/src/components/widgets/*.cloudcannon.structure-value.yml
+
+  homes:
+    path: src/content/pages/homes
+    url: "/homes/[slug]/"
+    _enabled_editors:
+      - visual
+      - data
+    add_options:
+      - name: Add Home Page
+        schema: page_builder
+        icon: add
+    schemas:
+      page_builder:
+        path: templates/astrowind2/migrated/.cloudcannon/schemas/page-builder.md
+        new_preview_url: "/homes/{slug}/"
+    _inputs:
+      content_blocks:
+        type: array
+        options:
+          structures:
+            values_from_glob:
+              - /templates/astrowind2/migrated/src/components/widgets/*.cloudcannon.structure-value.yml
+
+  landing:
+    path: src/content/pages/landing
+    url: "/landing/[slug]/"
+    _enabled_editors:
+      - visual
+      - data
+    add_options:
+      - name: Add Landing Page
+        schema: page_builder
+        icon: add
+    schemas:
+      page_builder:
+        path: templates/astrowind2/migrated/.cloudcannon/schemas/page-builder.md
+        new_preview_url: "/landing/{slug}/"
+    _inputs:
+      content_blocks:
+        type: array
+        options:
+          structures:
+            values_from_glob:
+              - /templates/astrowind2/migrated/src/components/widgets/*.cloudcannon.structure-value.yml
+
+  post:
+    path: src/data/post
+    url: "/[slug]/"
+    _enabled_editors:
+      - visual
+      - content
+      - data
+    add_options:
+      - name: Add Blog Post
+        editor: content
+        icon: add
+    _inputs:
+      publishDate:
+        type: datetime
+      updateDate:
+        type: datetime
+      draft:
+        type: switch
+      image:
+        type: image
+      category:
+        type: select
+        options:
+          allow_create: true
+          values: _select_data.categories
+      tags:
+        type: multiselect
+        options:
+          allow_create: true
+          values: _select_data.tags
+
+  data:
+    path: src
+    glob:
+      - config.yaml
+    disable_add: true
+    disable_url: true
+    _enabled_editors:
+      - data
+
+data_config:
+  icons:
+    path: src/data/icons.json
+
+collection_groups:
+  - heading: Pages
+    collections:
+      - pages
+      - homes
+      - landing
+  - heading: Blogging
+    collections:
+      - post
+  - heading: Data
+    collections:
+      - data
+
+_select_data:
+  categories:
+    - Design
+    - Tutorials
+    - Astro
+  tags:
+    - astro
+    - tailwind-css
+    - front-end
+
+_inputs:
+  layout:
+    hidden: true
+  _schema:
+    hidden: true
+  _type:
+    hidden: true
+  draft:
+    type: switch
+  image:
+    type: image
+  title:
+    type: html
+    options:
+      styles: .cloudcannon/styles/editor.css
+      allow_custom_markup: true
+  subtitle:
+    type: html
+    options:
+      styles: .cloudcannon/styles/editor.css
+      allow_custom_markup: true
+  tagline:
+    type: text
+  description:
+    type: textarea
+  content:
+    type: html
+    options:
+      allow_custom_markup: true
+  information:
+    type: textarea
+  icon:
+    type: select
+    options:
+      allow_create: true
+      value_key: id
+      preview:
+        text:
+          - key: name
+      values: data.icons
+  variant:
+    type: select
+    options:
+      allow_empty: true
+      values:
+        - primary
+        - secondary
+        - tertiary
+        - link
+  isReversed:
+    type: switch
+  isAfterContent:
+    type: switch
+  isBeforeContent:
+    type: switch
+  hasRibbon:
+    type: switch
+
+_editables:
+  content:
+    blockquote: true
+    bold: true
+    bulletedlist: true
+    code: true
+    copyformatting: true
+    format: p h2 h3 h4
+    horizontalrule: true
+    image: true
+    indent: true
+    italic: true
+    link: true
+    numberedlist: true
+    outdent: true
+    redo: true
+    removeformat: true
+    snippet: true
+    strike: true
+    subscript: true
+    superscript: true
+    table: true
+    underline: true
+    undo: true
+
+markdown:
+  options:
+    table: true
+
+_structures:
+  actions:
+    values:
+      - label: Action
+        icon: ads_click
+        preview:
+          text:
+            - key: text
+            - Action
+          icon:
+            - ads_click
+        value:
+          text:
+          href:
+          variant:
+          icon:
+          target:
+        _inputs:
+          variant:
+            type: select
+            options:
+              allow_empty: true
+              values:
+                - primary
+                - secondary
+                - tertiary
+                - link
+          icon:
+            type: select
+            options:
+              allow_create: true
+              value_key: id
+              preview:
+                text:
+                  - key: name
+              values: data.icons
+
+  items:
+    values:
+      - label: Item
+        icon: list
+        preview:
+          text:
+            - key: title
+            - Item
+          icon:
+            - list
+        value:
+          title:
+          description:
+          icon:
+          job_title:
+          company:
+          date_range:
+          callToAction:
+            text:
+            href:
+            variant:
+            icon:
+            target:
+          image:
+            src:
+            alt:
+        _inputs:
+          description:
+            type: html
+            options:
+              allow_custom_markup: true
+          job_title:
+            comment: "Optional: used in work experience steps instead of title"
+          company:
+            comment: "Optional: displayed below job title"
+          date_range:
+            comment: "Optional: e.g. 2021 - Present"
+          icon:
+            type: select
+            options:
+              allow_create: true
+              value_key: id
+              preview:
+                text:
+                  - key: name
+              values: data.icons
+          callToAction:
+            type: object
+            options:
+              preview:
+                icon: ads_click
+          image:
+            type: object
+            options:
+              preview:
+                icon: image
+
+  stats:
+    values:
+      - label: Stat
+        icon: bar_chart
+        preview:
+          text:
+            - key: title
+            - Stat
+          icon:
+            - bar_chart
+        value:
+          title:
+          amount:
+          icon:
+        _inputs:
+          icon:
+            type: select
+            options:
+              allow_create: true
+              value_key: id
+              preview:
+                text:
+                  - key: name
+              values: data.icons
+
+  prices:
+    values:
+      - label: Price
+        icon: payments
+        preview:
+          text:
+            - key: title
+            - Price
+        value:
+          title:
+          subtitle:
+          price:
+          period:
+          items: []
+          callToAction:
+            text:
+            href:
+            variant:
+            icon:
+            target:
+          hasRibbon: false
+          ribbonTitle:
+        _inputs:
+          hasRibbon:
+            type: switch
+          items:
+            type: array
+            options:
+              structures: _structures.items
+          callToAction:
+            type: object
+            options:
+              preview:
+                icon: ads_click
+
+  testimonials:
+    values:
+      - label: Testimonial
+        icon: format_quote
+        preview:
+          text:
+            - key: name
+            - Testimonial
+        value:
+          title:
+          testimonial:
+          name:
+          job:
+          image:
+            src:
+            alt:
+        _inputs:
+          testimonial:
+            type: textarea
+          image:
+            type: object
+            options:
+              preview:
+                icon: image
+
+  images:
+    values:
+      - label: Image
+        icon: image
+        preview:
+          text:
+            - key: alt
+            - Image
+          icon:
+            - image
+          image:
+            - key: src
+        value:
+          src:
+          alt:
+        _inputs:
+          src:
+            type: image
+
+  inputs_form:
+    values:
+      - label: Form Input
+        icon: input
+        preview:
+          text:
+            - key: label
+            - Form Input
+          icon:
+            - input
+        value:
+          type: text
+          name:
+          label:
+          autocomplete:
+          placeholder:
+        _inputs:
+          type:
+            type: select
+            options:
+              values:
+                - text
+                - email
+                - tel
+                - number
+                - url
+                - password
+
+_snippets:
+  youtube:
+    template: mdx_component
+    inline: false
+    preview:
+      text: YouTube Video
+      icon: smart_display
+    definitions:
+      component_name: YouTube
+      named_args:
+        - editor_key: id
+          type: string
+    _inputs:
+      id:
+        type: text
+        label: YouTube Video ID
+
+  tweet:
+    template: mdx_component
+    inline: false
+    preview:
+      text: Tweet
+      icon: chat
+    definitions:
+      component_name: Tweet
+      named_args:
+        - editor_key: id
+          type: string
+    _inputs:
+      id:
+        type: text
+        label: Tweet ID
+
+  vimeo:
+    template: mdx_component
+    inline: false
+    preview:
+      text: Vimeo Video
+      icon: smart_display
+    definitions:
+      component_name: Vimeo
+      named_args:
+        - editor_key: id
+          type: string
+    _inputs:
+      id:
+        type: text
+        label: Vimeo Video ID
+
+  logo:
+    template: mdx_component
+    inline: true
+    preview:
+      text: Logo
+      icon: image
+    definitions:
+      component_name: Logo
+      named_args: []
+
+file_config:
+  - glob: src/config.yaml
+    _inputs:
+      site.name:
+        type: text
+      site.site:
+        type: url
+      site.base:
+        hidden: true
+      site.trailingSlash:
+        hidden: true
+      metadata.title.default:
+        type: text
+      metadata.title.template:
+        hidden: true
+      metadata.description:
+        type: textarea
+      metadata.robots.index:
+        type: switch
+      metadata.robots.follow:
+        type: switch
+      i18n.language:
+        type: text
+      i18n.textDirection:
+        type: select
+        options:
+          values:
+            - ltr
+            - rtl
+      apps.blog.isEnabled:
+        type: switch
+      apps.blog.postsPerPage:
+        type: number
+      apps.blog.post.isEnabled:
+        type: switch
+      apps.blog.post.permalink:
+        hidden: true
+      apps.blog.list.isEnabled:
+        type: switch
+      apps.blog.list.pathname:
+        hidden: true
+      apps.blog.category.isEnabled:
+        type: switch
+      apps.blog.category.pathname:
+        hidden: true
+      apps.blog.tag.isEnabled:
+        type: switch
+      apps.blog.tag.pathname:
+        hidden: true
+      ui.theme:
+        type: select
+        options:
+          values:
+            - system
+            - light
+            - dark
+            - light:only
+            - dark:only
+      analytics.vendors.googleAnalytics.id:
+        type: text

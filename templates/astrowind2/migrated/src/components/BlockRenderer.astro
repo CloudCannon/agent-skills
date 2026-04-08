@@ -1,0 +1,57 @@
+---
+import Hero from '~/components/widgets/Hero.astro';
+import Hero2 from '~/components/widgets/Hero2.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import Note from '~/components/widgets/Note.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import ContentWidget from '~/components/widgets/Content.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Steps2 from '~/components/widgets/Steps2.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import Pricing from '~/components/widgets/Pricing.astro';
+import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
+import BlogHighlightedPosts from '~/components/widgets/BlogHighlightedPosts.astro';
+import Brands from '~/components/widgets/Brands.astro';
+import Contact from '~/components/widgets/Contact.astro';
+
+const componentMap: Record<string, any> = {
+  hero: Hero,
+  hero2: Hero2,
+  hero_text: HeroText,
+  note: Note,
+  features: Features,
+  features2: Features2,
+  features3: Features3,
+  content: ContentWidget,
+  steps: Steps,
+  steps2: Steps2,
+  faqs: FAQs,
+  stats: Stats,
+  call_to_action: CallToAction,
+  testimonials: Testimonials,
+  pricing: Pricing,
+  blog_latest_posts: BlogLatestPosts,
+  blog_highlighted_posts: BlogHighlightedPosts,
+  brands: Brands,
+  contact: Contact,
+};
+
+export interface Props {
+  block: Record<string, any>;
+}
+
+const { block } = Astro.props;
+const { _type, ...props } = block;
+const Component = componentMap[_type];
+---
+
+{Component && (
+  <editable-array-item data-component={_type} data-id={_type}>
+    <Component {...props} />
+  </editable-array-item>
+)}

@@ -136,6 +136,9 @@ export interface Item {
   title?: string;
   description?: string;
   icon?: string;
+  job_title?: string;
+  company?: string;
+  date_range?: string;
   classes?: Record<string, string>;
   callToAction?: CallToAction;
   image?: Image;

@@ -1,6 +1,7 @@
 ---
-title: 'Privacy Policy'
-layout: '~/layouts/MarkdownLayout.astro'
+_schema: markdown_page
+title: Privacy Policy
+layout: PageLayout
 ---
 
 _Last updated_: January 06, 2023

@@ -1,0 +1,46 @@
+label: Hero Text
+icon: title
+picker_preview:
+  text:
+    - Hero Text
+  icon:
+    - title
+preview:
+  text:
+    - key: title
+    - Hero Text
+  icon:
+    - title
+value:
+  _type: hero_text
+  title:
+  subtitle:
+  tagline:
+  content:
+  callToAction:
+    text:
+    href:
+    variant:
+    icon:
+    target:
+  callToAction2:
+    text:
+    href:
+    variant:
+    icon:
+    target:
+_inputs:
+  content:
+    type: html
+    options:
+      allow_custom_markup: true
+  callToAction:
+    type: object
+    options:
+      preview:
+        icon: ads_click
+  callToAction2:
+    type: object
+    options:
+      preview:
+        icon: ads_click

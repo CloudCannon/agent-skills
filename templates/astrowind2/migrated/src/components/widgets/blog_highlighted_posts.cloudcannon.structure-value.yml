@@ -1,0 +1,23 @@
+label: Blog Highlighted Posts
+icon: star
+picker_preview:
+  text:
+    - Blog Highlighted Posts
+  icon:
+    - star
+preview:
+  text:
+    - key: title
+    - Blog Highlighted Posts
+  icon:
+    - star
+value:
+  _type: blog_highlighted_posts
+  title:
+  linkText: View all posts
+  linkUrl:
+  information:
+  postIds: []
+_inputs:
+  information:
+    type: textarea

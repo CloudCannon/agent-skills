@@ -32,6 +32,8 @@ const {
           tagline && (
             <p
               class="text-base text-secondary dark:text-blue-200 font-bold tracking-wide uppercase intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
+              data-editable="text"
+              data-prop="tagline"
               set:html={tagline}
             />
           )
@@ -40,6 +42,8 @@ const {
           title && (
             <h1
               class="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
+              data-editable="text"
+              data-prop="title"
               set:html={title}
             />
           )
@@ -49,13 +53,15 @@ const {
             subtitle && (
               <p
                 class="text-xl text-muted mb-6 dark:text-slate-300 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
+                data-editable="text"
+                data-prop="subtitle"
                 set:html={subtitle}
               />
             )
           }
           {
             actions && (
-              <div class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
+              <div class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center sm:items-center gap-4 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
                 {Array.isArray(actions) ? (
                   actions.map((action) => (
                     <div class="flex w-full sm:w-auto">
@@ -75,8 +81,8 @@ const {
         class="intersect-once intersect-no-queue intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
       >
         {
-          image && (
-            <div class="relative m-auto max-w-5xl">
+          (typeof image === 'string' ? image : image?.src) && (
+            <div class="relative m-auto max-w-5xl" data-editable="image" data-prop="image">
               {typeof image === 'string' ? (
                 <Fragment set:html={image} />
               ) : (
@@ -97,3 +103,9 @@ const {
     </div>
   </div>
 </section>
+
+<style is:global>
+  .highlight-text {
+    color: rgb(var(--aw-color-accent, 79 70 229));
+  }
+</style>

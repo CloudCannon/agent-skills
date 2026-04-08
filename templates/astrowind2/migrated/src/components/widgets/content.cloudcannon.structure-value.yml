@@ -1,0 +1,57 @@
+label: Content
+icon: article
+picker_preview:
+  text:
+    - Content
+  icon:
+    - article
+preview:
+  text:
+    - key: title
+    - Content
+  icon:
+    - article
+  image:
+    - key: image.src
+value:
+  _type: content
+  title:
+  subtitle:
+  tagline:
+  content:
+  callToAction:
+    text:
+    href:
+    variant:
+    icon:
+    target:
+  items: []
+  columns:
+  image:
+    src:
+    alt:
+  isReversed: false
+  isAfterContent: false
+_inputs:
+  content:
+    type: html
+    options:
+      allow_custom_markup: true
+  callToAction:
+    type: object
+    options:
+      preview:
+        icon: ads_click
+  items:
+    type: array
+    options:
+      structures: _structures.items
+  image:
+    type: object
+    options:
+      preview:
+        icon: image
+  isReversed:
+    type: switch
+  isAfterContent:
+    type: switch

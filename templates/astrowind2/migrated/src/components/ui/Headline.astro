@@ -20,16 +20,24 @@ const {
   (title || subtitle || tagline) && (
     <div class={twMerge('mb-8 md:mx-auto md:mb-12 text-center', containerClass)}>
       {tagline && (
-        <p class="text-base text-secondary dark:text-blue-200 font-bold tracking-wide uppercase" set:html={tagline} />
+        <p class="text-base text-secondary dark:text-blue-200 font-bold tracking-wide uppercase" data-editable="text" data-prop="tagline" set:html={tagline} />
       )}
       {title && (
         <h2
           class={twMerge('font-bold leading-tighter tracking-tighter font-heading text-heading text-3xl', titleClass)}
+          data-editable="text"
+          data-prop="title"
           set:html={title}
         />
       )}
 
-      {subtitle && <p class={twMerge('mt-4 text-muted', subtitleClass)} set:html={subtitle} />}
+      {subtitle && <p class={twMerge('mt-4 text-muted', subtitleClass)} data-editable="text" data-prop="subtitle" set:html={subtitle} />}
     </div>
   )
 }
+
+<style is:global>
+  .highlight-text {
+    color: rgb(var(--aw-color-accent, 79 70 229));
+  }
+</style>

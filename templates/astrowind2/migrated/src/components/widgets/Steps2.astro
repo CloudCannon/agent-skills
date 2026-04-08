@@ -48,19 +48,19 @@ const {
       </div>
     </div>
     <div class="w-full lg:w-1/2 px-0">
-      <ul class="space-y-10">
+      <ul class="space-y-10" data-editable="array" data-prop="items">
         {
           items && items.length
             ? items.map(({ title: title2, description, icon }, index) => (
-                <li class="flex md:-mx-4">
+                <li class="flex md:-mx-4" data-editable="array-item">
                   <div class="pr-4 sm:pl-4 rtl:pr-0 rtl:pl-4 rtl:sm:pl-0 rtl:sm:pr-4">
                     <span class="flex w-16 h-16 mx-auto items-center justify-center text-2xl font-bold rounded-full bg-blue-100 text-primary">
                       {icon ? <Icon name={icon} class="w-6 h-6 icon-bold" /> : index + 1}
                     </span>
                   </div>
                   <div class="pl-4 rtl:pl-0 rtl:pr-4">
-                    <h3 class="mb-4 text-xl font-semibold font-heading" set:html={title2} />
-                    <p class="text-muted dark:text-gray-400" set:html={description} />
+                    <h3 class="mb-4 text-xl font-semibold font-heading" data-editable="text" data-prop="title" set:html={title2} />
+                    <p class="text-muted dark:text-gray-400" data-editable="text" data-prop="description" set:html={description} />
                   </div>
                 </li>
               ))

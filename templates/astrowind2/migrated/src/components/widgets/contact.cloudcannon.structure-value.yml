@@ -1,0 +1,45 @@
+label: Contact
+icon: contact_mail
+picker_preview:
+  text:
+    - Contact
+  icon:
+    - contact_mail
+preview:
+  text:
+    - key: title
+    - Contact
+  icon:
+    - contact_mail
+value:
+  _type: contact
+  title:
+  subtitle:
+  tagline:
+  inputs: []
+  textarea:
+    label:
+    name:
+    placeholder:
+    rows:
+  disclaimer:
+    label:
+  button: Contact us
+  description:
+_inputs:
+  inputs:
+    type: array
+    options:
+      structures: _structures.inputs_form
+  description:
+    type: textarea
+  disclaimer:
+    type: object
+    options:
+      preview:
+        icon: gavel
+  textarea:
+    type: object
+    options:
+      preview:
+        icon: notes

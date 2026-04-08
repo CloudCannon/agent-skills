@@ -1,0 +1,51 @@
+---
+import { getCollection, render } from 'astro:content';
+import PageLayout from '~/layouts/PageLayout.astro';
+import LandingLayout from '~/layouts/LandingLayout.astro';
+import MarkdownLayout from '~/layouts/MarkdownLayout.astro';
+import BlockRenderer from '~/components/BlockRenderer.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages
+    .filter((page) => page.id !== 'index')
+    .map((page) => ({
+      params: { slug: page.id },
+      props: { page },
+    }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+const data = page.data;
+
+const layouts: Record<string, any> = {
+  LandingLayout,
+  MarkdownLayout,
+  PageLayout,
+};
+const LayoutComponent = layouts[data.layout || ''] || PageLayout;
+const metadata = {
+  title: data.title,
+  ...data.metadata,
+};
+---
+
+{data._schema === 'page_builder' ? (
+  <LayoutComponent metadata={metadata}>
+    <div data-editable="array" data-prop="content_blocks" data-component-key="_type">
+      {data.content_blocks?.map((block) => (
+        <BlockRenderer block={block} />
+      ))}
+    </div>
+  </LayoutComponent>
+) : (
+  <LayoutComponent metadata={metadata}>
+    <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 lg:py-20 max-w-4xl">
+      <h1 class="font-bold font-heading text-4xl md:text-5xl leading-tighter tracking-tighter" data-editable="text" data-prop="title">{data.title}</h1>
+      <div class="mx-auto prose prose-lg max-w-4xl dark:prose-invert dark:prose-headings:text-slate-300 prose-md prose-headings:font-heading prose-headings:leading-tighter prose-headings:tracking-tighter prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-img:rounded-md prose-img:shadow-lg mt-8" data-editable="text" data-type="block" data-prop="@content">
+        <Content />
+      </div>
+    </section>
+  </LayoutComponent>
+)}

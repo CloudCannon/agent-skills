@@ -1,0 +1,25 @@
+label: Blog Latest Posts
+icon: article
+picker_preview:
+  text:
+    - Blog Latest Posts
+  icon:
+    - article
+preview:
+  text:
+    - key: title
+    - Blog Latest Posts
+  icon:
+    - article
+value:
+  _type: blog_latest_posts
+  title:
+  linkText: View all posts
+  linkUrl:
+  information:
+  count: 4
+_inputs:
+  information:
+    type: textarea
+  count:
+    type: number

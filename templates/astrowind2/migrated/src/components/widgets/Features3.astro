@@ -35,8 +35,8 @@ const {
 
   <div aria-hidden="true" class="aspect-w-16 aspect-h-7">
     {
-      image && (
-        <div class="w-full h-80 object-cover rounded-xl mx-auto bg-gray-500 shadow-lg">
+      image?.src && (
+        <div class="w-full h-80 object-cover rounded-xl mx-auto bg-gray-500 shadow-lg" data-editable="image" data-prop="image">
           {typeof image === 'string' ? (
             <Fragment set:html={image} />
           ) : (

@@ -40,6 +40,7 @@ const posts = APP_BLOG.isEnabled ? await findPostsByIds(postIds) : [];
           <div class="md:max-w-sm">
             <h2
               class="text-3xl font-bold tracking-tight sm:text-4xl sm:leading-none group font-heading mb-2"
+              data-editable="text" data-prop="title"
               set:html={title}
             />
             {APP_BLOG.list.isEnabled && linkText && linkUrl && (
@@ -53,7 +54,7 @@ const posts = APP_BLOG.isEnabled ? await findPostsByIds(postIds) : [];
           </div>
         )}
 
-        {information && <p class="text-muted dark:text-slate-400 lg:text-sm lg:max-w-md" set:html={information} />}
+        {information && <p class="text-muted dark:text-slate-400 lg:text-sm lg:max-w-md" data-editable="text" data-prop="information" set:html={information} />}
       </div>
 
       <Grid posts={posts} />

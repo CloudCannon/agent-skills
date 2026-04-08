@@ -1,0 +1,25 @@
+label: Features 2
+icon: auto_awesome
+picker_preview:
+  text:
+    - Features 2
+  icon:
+    - auto_awesome
+preview:
+  text:
+    - key: title
+    - Features 2
+  icon:
+    - auto_awesome
+value:
+  _type: features2
+  title:
+  subtitle:
+  tagline:
+  items: []
+  columns: 3
+_inputs:
+  items:
+    type: array
+    options:
+      structures: _structures.items

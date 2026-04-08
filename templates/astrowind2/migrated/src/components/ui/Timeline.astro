@@ -22,14 +22,15 @@ const {
 
 {
   items && items.length > 0 && (
-    <div class={containerClass}>
-      {items.map(({ title, description, icon, classes: itemClasses = {} }, index = 0) => (
+    <div class={containerClass} data-editable="array" data-prop="items">
+      {items.map(({ title, description, icon, job_title, company, date_range, classes: itemClasses = {} }, index = 0) => (
         <div
           class={twMerge(
             'flex intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade',
             panelClass,
             itemClasses?.panel
           )}
+          data-editable="array-item"
         >
           <div class="flex flex-col items-center mr-4 rtl:mr-0 rtl:ml-4">
             <div>
@@ -45,10 +46,18 @@ const {
             {index !== items.length - 1 && <div class="w-px h-full bg-black/10 dark:bg-slate-400/50" />}
           </div>
           <div class={`pt-1 ${index !== items.length - 1 ? 'pb-8' : ''}`}>
-            {title && <p class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)} set:html={title} />}
+            {job_title ? (
+              <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)}>
+                <p data-editable="text" data-prop="job_title">{job_title}</p>
+                {company && <p class="font-normal" data-editable="text" data-prop="company">{company}</p>}
+                {date_range && <p class="text-sm font-normal" data-editable="text" data-prop="date_range">{date_range}</p>}
+              </div>
+            ) : title && <p class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)} data-editable="text" data-prop="title" set:html={title} />}
             {description && (
               <p
                 class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)}
+                data-editable="text"
+                data-prop="description"
                 set:html={description}
               />
             )}

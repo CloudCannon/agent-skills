@@ -1,0 +1,42 @@
+label: Features 3
+icon: auto_awesome
+picker_preview:
+  text:
+    - Features 3
+  icon:
+    - auto_awesome
+preview:
+  text:
+    - key: title
+    - Features 3
+  icon:
+    - auto_awesome
+  image:
+    - key: image.src
+value:
+  _type: features3
+  title:
+  subtitle:
+  tagline:
+  items: []
+  columns:
+  image:
+    src:
+    alt:
+  isBeforeContent: false
+  isAfterContent: false
+  defaultIcon:
+_inputs:
+  items:
+    type: array
+    options:
+      structures: _structures.items
+  image:
+    type: object
+    options:
+      preview:
+        icon: image
+  isBeforeContent:
+    type: switch
+  isAfterContent:
+    type: switch

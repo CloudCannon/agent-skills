@@ -1,0 +1,18 @@
+label: Note
+icon: sticky_note_2
+picker_preview:
+  text:
+    - Note
+  icon:
+    - sticky_note_2
+preview:
+  text:
+    - key: title
+    - Note
+  icon:
+    - sticky_note_2
+value:
+  _type: note
+  icon: tabler:info-square
+  title:
+  description:

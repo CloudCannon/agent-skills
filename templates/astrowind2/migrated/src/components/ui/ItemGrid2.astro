@@ -31,6 +31,8 @@ const {
         }`,
         containerClass
       )}
+      data-editable="array"
+      data-prop="items"
     >
       {items.map(({ title, description, icon, callToAction, classes: itemClasses = {} }) => (
         <div
@@ -39,13 +41,14 @@ const {
             panelClass,
             itemClasses?.panel
           )}
+          data-editable="array-item"
         >
           {(icon || defaultIcon) && (
             <Icon name={icon || defaultIcon} class={twMerge('mb-2 w-10 h-10', defaultIconClass, itemClasses?.icon)} />
           )}
-          <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)}>{title}</div>
+          <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)} data-editable="text" data-prop="title">{title}</div>
           {description && (
-            <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} set:html={description} />
+            <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} data-editable="text" data-prop="description" set:html={description} />
           )}
           {callToAction && (
             <div class="mt-2">
