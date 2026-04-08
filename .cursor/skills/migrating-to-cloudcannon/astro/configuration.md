@@ -15,9 +15,9 @@ npx @cloudcannon/gadget generate --auto --init-settings --ssg astro
 After generation, read `cloudcannon.config.yml` and check:
 
 - **`source`** -- Do not add this during migration. It is **deployment-specific** (monorepos, non-standard layouts) and belongs with the user's hosting setup. For typical Astro sites, **omit `source`** so CloudCannon's root is the **repository root**; that way config can reference paths outside `src` when needed. If Gadget writes a `source` value, **remove it** unless the project truly requires it.
-- **`collections_config`** -- are all content collections present? Do paths match the `base` directories from `content.config.ts`?
+- **`collections_config`** -- are all content collections present? Do paths match the `base` directories from `content.config.ts`? **Remove `output: true`** if present on any collection — this key is defunct in unified config. Collections are automatically output when they have a `url` pattern. The only related key still in use is `disable_url: true` (to prevent a collection from being output).
 - **`paths`** -- Set `static` to `public` (Astro's default asset folder) unless the project uses a different public directory. Set `uploads` to match where uploaded images should land: use `public/images` when the site keeps images in a subfolder, `public` when assets live at the root of public, and default to **`public/images`** when there is no precedent yet.
-- **Build settings** (`.cloudcannon/initial-site-settings.json`) -- Align with the repo: `ssg`: `"astro"`; `install_command`: from the detected package manager (omit if there is none); `build_command`: the script from `package.json` if present, otherwise `"astro build"`; `output_path`: `"dist"`. Prefer **`.cloudcannon/prebuild`** for extra setup steps so `build_command` stays a straight build, not a shell chain.
+- **Build settings** (`.cloudcannon/initial-site-settings.json`) -- Build settings must be nested under a `build` key (the old flat format with `build_command`/`output_path` at the root is defunct). Structure: `ssg` at the root, then `build.install_command`, `build.build_command`, `build.output_path`. Align values with the repo: `ssg`: `"astro"`; `install_command`: from the detected package manager (omit if there is none); `build_command`: the script from `package.json` if present, otherwise `"astro build"`; `output_path`: `"dist"`. Prefer **`.cloudcannon/prebuild`** for extra setup steps so `build_command` stays a straight build, not a shell chain.
 
 ## Customize the config
 
@@ -41,7 +41,7 @@ Gadget produces a structural baseline. The following customizations are almost a
 - **`_select_data`** -- define shared dropdown options for fields used across collections.
 - **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit.
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
-- **`file_config`** -- a root-level key that targets specific files via glob and scopes `_inputs` to them. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. Example:
+- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. Example:
 
 ```yaml
 file_config:
@@ -346,8 +346,9 @@ Write in plain language. Avoid technical terms like YAML, frontmatter, Zod, sche
 After generating and customizing the config, work through these checks before moving to the next phase:
 
 - [ ] `cloudcannon.config.yml` exists and is valid YAML
-- [ ] `.cloudcannon/initial-site-settings.json` exists with `"ssg": "astro"` and correct `build_command` and `output_path`
+- [ ] `.cloudcannon/initial-site-settings.json` exists with `"ssg": "astro"` and build settings nested under `"build"` (`build_command`, `output_path`, `install_command`)
 - [ ] `collections_config` has entries for every collection from the audit
+- [ ] No defunct pre-unified keys remain: `output: true` on collections (remove — `url` implies output), `singular_key`, `parser`, `collections_config_override`
 - [ ] No non-content directories leaked into `collections_config` (e.g. `lib`, `source`, `migration`)
 - [ ] No collections contain only a single file -- consolidate or group as needed
 - [ ] `collection_groups` organise collections into logical sidebar groups
@@ -360,7 +361,7 @@ After generating and customizing the config, work through these checks before mo
 - [ ] Collections with `index.md` files have separate schemas for the index page and regular items
 - [ ] `paths.uploads` matches where the site stores images
 - [ ] `.cloudcannon/prebuild` exists if pre-build steps are needed
-- [ ] `file_config` entries exist for files with inputs not covered by global or collection-level config
+- [ ] `file_config` entries exist for files with inputs not covered by global or collection-level config — must be array format (`- glob: ...`), not the old map-keyed format
 - [ ] Every object input (both global `_inputs` and inside structures/sub-structures) has `type: object` with `options.preview.icon`. Check inline `_structures` entries too — nested objects like `callToAction` and `image` inside `prices`, `testimonials`, etc. are easy to miss
 - [ ] **CRITICAL:** All arrays with structures are explicitly linked via `type: array` + `options.structures` — this includes arrays INSIDE co-located structure-value files (e.g. `items`, `actions`, `stats` inside widget structures) AND nested arrays inside shared sub-structures (e.g. `items` inside `prices`). Do not rely on naming-convention heuristic
 - [ ] ALL structure values have a `preview` block with a meaningful `text` key lookup — this includes co-located widget files AND inline sub-structures in `_structures` (actions, items, stats, images, etc.). Without `preview`, sidebar array items show only the generic label instead of pulling the item's title or name
@@ -369,7 +370,7 @@ After generating and customizing the config, work through these checks before mo
 - [ ] Every MDX component in content has a `_snippets` entry, or `_enabled_editors: [source, data]` only as a last resort after snippet/refactor attempts — unconfigured components break the content editor; document rationale in migration notes
 - [ ] MDX files with explicit `import` statements: set up `astro-auto-import` (or equivalent) so imports are injected at build time and removed from source files — bare `import` lines show as raw text in the content editor. See [snippets.md § Auto-import](snippets.md#auto-import-keeping-import-statements-out-of-content)
 - [ ] `_enabled_editors` order has the preferred default editor first (`visual` for page collections, `visual` then `content` for blog posts)
-- [ ] No `<br />` tags remain in frontmatter strings — these must be converted to HTML lists (`<ul><li>`) in `type: html` fields, or split into arrays. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter)
+- [ ] `<br />` tags in plain text frontmatter fields that simulate lists are converted to HTML lists (`<ul><li>`) in `type: html` fields, or split into arrays. `<br />` in rich text fields is fine. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter)
 - [ ] `markdown.options.table` is `true` if any content files contain Markdown-syntax tables
 - [ ] `add_options` restricts the Add button to only creatable schemas
 - [ ] Collections where editors should not create new files use `disable_add: true`
