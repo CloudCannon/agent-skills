@@ -22,7 +22,6 @@ The skills and rules are **living documents** -- agents are expected to update t
   rules/                              # Cross-cutting agent rules
     project-context.mdc               # Repo purpose and working philosophy (alwaysApply)
     tone.mdc                          # Agent tone and coding conventions (alwaysApply)
-    gadget.mdc                        # Gadget CLI is read-only (alwaysApply)
     testing.mdc                       # What agents vs. humans should test (alwaysApply)
     casing.mdc                        # Naming conventions (applyIntelligently)
     migration-transcripts.mdc         # Post-migration transcript archiving (applyIntelligently)
@@ -52,9 +51,13 @@ The skills and rules are **living documents** -- agents are expected to update t
         visual-editing.md             #   Phase 4: Visual editor setup
         build.md                      #   Phase 5: Build and validate
       scripts/                        # Deterministic migration scripts
+        README.md                     #   Script descriptions and future ideas
         audit-astro.sh                #   Phase 1: Gather audit data
         rename-dash-index.sh          #   Phase 3: Rename -index.md to index.md
         setup-editable-regions.sh     #   Phase 4: Install + configure editable regions
+
+add-test-site.mjs                    # Clone a template repo into pristine/ + migrated/
+run-test-site.mjs                    # Install, build, and launch Fog Machine for a template
 
 templates/
   <name>/
@@ -90,10 +93,12 @@ The short version: `SKILL.md` detects the SSG and routes to `astro/overview.md`,
 
 ### Working on a template
 
-1. Add the untouched template to `templates/<name>/pristine/`
-2. Copy `pristine/` to `migrated/` (this is where the agent works)
-3. Open the repo in Cursor and ask the agent to migrate `migrated/` -- it will pick up the `migrating-to-cloudcannon` skill automatically
-4. As the agent works, review its changes and prompt it to update skills/rules if it discovers something new
+1. Add a new template: `npm run add-template -- <name> <repo-url>`
+   - Clones the repo into `templates/<name>/pristine/`, removes `.git`, and copies to `migrated/`
+2. Open the repo in Cursor and ask the agent to migrate `migrated/` -- it will pick up the `migrating-to-cloudcannon` skill automatically
+3. As the agent works, review its changes and prompt it to update skills/rules if it discovers something new
+4. Test the result: `npm run fog-template -- <name>`
+   - Installs dependencies, builds, and launches Fog Machine on the output
 5. To start fresh, delete `migrated/` and copy `pristine/` again
 
 ### Updating the tooling directly
@@ -106,8 +111,10 @@ The files in `.cursor/rules/` and `.cursor/skills/` are the primary output of th
 |----------|-----|--------|
 | [accessible-astro-starter](templates/accessible-astro-starter/) | Astro | Migrated |
 | [astro-cactus](templates/astro-cactus/) | Astro | Migrated |
+| [astro-nano](templates/astro-nano/) | Astro | Migrated |
 | [astro-paper](templates/astro-paper/) | Astro | Migrated |
 | [astrofy](templates/astrofy/) | Astro | Migrated |
 | [astroplate](templates/astroplate/) | Astro | Migrated |
 | [astroship](templates/astroship/) | Astro | Migrated |
 | [astrowind](templates/astrowind/) | Astro | Migrated |
+| [astrowind2](templates/astrowind2/) | Astro | Migrated |

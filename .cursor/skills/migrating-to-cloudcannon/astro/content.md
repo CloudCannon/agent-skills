@@ -89,13 +89,13 @@ Resolve each case using this decision tree (ordered by preference):
 
 2. **Fixed-structure multi-part text** (job title + company + dates): Decompose into structured sub-fields and template in the component. E.g. a step `title` packing `Graphic Designer <br /> <span class="font-normal">ABC Studio</span> <br /> <span class="text-sm">2021 - Present</span>` becomes `job_title`, `company`, `date_range`. Use this when each segment has distinct semantic meaning.
 
-3. **Line-separated list items** (`<br />` between entries): Convert to an array, or use a rich text input (`type: html`). A plain text input can't control `<br>` tags — the editor sees raw HTML.
+3. **Line-separated list items** (`<br />` between entries): When `<br />` tags are used to simulate a list in a plain text field, convert to either an HTML list (`<ul><li>...</li></ul>`) in a `type: html` field, or an array of strings — a plain text input can't control `<br>` tags. If the field is already rich text, `<br />` tags are fine as regular line breaks; only convert to a proper list when the content is semantically a list. When converting to HTML lists, the field must be `type: html` with `allow_custom_markup: true` so the list renders correctly in the editor.
 
 4. **Responsive layout HTML** (`<br class="block sm:hidden" />`, `&nbsp;`): Strip the HTML, store plain text, handle responsiveness in CSS/component logic. These are layout concerns that don't belong in content.
 
 ### Page-builder content migration
 
-When converting hardcoded pages to markdown with `content_blocks`, the agent must reference the structure definition for each block type and include ALL fields — even empty ones. The structure `value` is the canonical list of fields.
+> **MANDATORY — Do not skip or shortcut this step.** When converting hardcoded pages to markdown with `content_blocks`, the agent MUST reference the structure definition for each block type and include ALL fields — even empty ones. The structure `value` is the canonical list of fields. Missing fields (even seemingly optional ones like `tagline` or `content`) cause ugly `undefined` errors in CloudCannon's editor. This is the single most common migration mistake.
 
 **Pattern for each block:**
 
@@ -151,8 +151,10 @@ Data collections should have `disable_url: true` in the CC collections config si
 
 ## Review checklist addendum
 
-In addition to the checks above, verify:
+> **MANDATORY — Run this checklist on every content file before considering the content phase complete.**
 
-- [ ] Every block in `content_blocks` includes all fields from its structure definition (see [../structures.md](../structures.md))
+- [ ] **CRITICAL:** Every block in `content_blocks` includes ALL fields from its structure definition — open the structure file and cross-reference field-by-field (see [../structures.md](../structures.md)). Common misses: `tagline`, `content`, `subtitle`, and nested object sub-keys like `callToAction.variant`
 - [ ] Empty/default values are used for fields not present in the original page (strings empty, booleans `false`, arrays `[]`)
+- [ ] No block-level HTML (e.g. `<br />`, `<p>`, `<ul>`) in frontmatter strings unless the corresponding input is configured with block-level editing (e.g. a rich-text or markdown input with appropriate `options`)
+- [ ] Every array field in every structure-value file has an explicit `_inputs` entry linking it to its `_structures` definition
 

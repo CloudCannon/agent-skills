@@ -9,9 +9,13 @@ Without structures, CloudCannon can't populate new array items or empty objects,
 
 ## Field completeness rule
 
-Every field in a structure `value` must be present in the content frontmatter, even if empty. Missing fields cause `undefined` errors in the visual editor when an editable region references them.
+> **MANDATORY — This is not optional and must not be skipped.** Every field in a structure `value` MUST be present in the content frontmatter, even if empty. Missing fields cause ugly `undefined` errors in CloudCannon's visual editor and break the editing experience. This is one of the most common migration mistakes — do not let it happen.
+
+For each content block in a page's `content_blocks` array, open the corresponding structure definition and verify that **every single key** appears in the content. Common fields that get forgotten: `tagline`, `content`, `subtitle`, and nested object fields like `callToAction.variant`, `callToAction.icon`, `callToAction.target`. If a callToAction object exists with only `text` and `href`, you MUST also include `variant`, `icon`, and `target` as empty keys.
 
 **This is not a backfill step.** Structures must be defined during the configuration phase and then used as the blueprint when the agent creates content files during the content phase. For each block type, the structure value is the canonical list of fields — the agent copies the full field list and populates only the ones that have content from the original page, leaving the rest as empty/default values.
+
+**Verification step (required):** After creating or editing content files, the agent MUST cross-reference every block in every content file against its structure definition to confirm field completeness. Do not skip this — it catches the single most common source of CloudCannon editor errors.
 
 ### Handling null values from empty YAML fields
 
@@ -55,6 +59,8 @@ _inputs:
 ```
 
 Link the array to the structure explicitly via `_inputs.content_blocks.options.structures` — don't rely on the naming-convention heuristic.
+
+> **MANDATORY — Every array and object input MUST have explicit structure linkage.** Do not rely on CloudCannon's naming-convention heuristic — it is unreliable. Every array field (`items`, `actions`, `stats`, `prices`, `testimonials`, `images`, `inputs`, etc.) MUST have an `_inputs` entry with `type: array` and `options.structures` pointing to the correct structure. This applies in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Without explicit linkage, editors cannot add items to arrays — the "Add" button won't appear or won't offer the correct structure. This is a blocking UX issue that must be caught before handoff.
 
 ## Split co-located approach (5+ block types)
 
@@ -131,6 +137,18 @@ _structures:
 ```
 
 Shared sub-structures need `preview` blocks just like co-located widget structures. Without a `preview`, array items in the sidebar show only the generic label ("Item", "Action") instead of pulling a meaningful value like the item's title. Don't omit `preview` because the structure is inline.
+
+**Linking sub-structures from co-located files:** Every co-located structure-value file that contains an array field (e.g. `items: []`, `actions: []`, `stats: []`) MUST include an `_inputs` entry linking that array to the shared sub-structure. For example, a `features3.cloudcannon.structure-value.yml` with `items: []` in its `value` needs:
+
+```yaml
+_inputs:
+  items:
+    type: array
+    options:
+      structures: _structures.items
+```
+
+The same applies to nested arrays inside shared sub-structures. For example, if `prices` contains `items: []`, the prices structure definition must include `_inputs.items` linking to `_structures.items`.
 
 ## Previews
 

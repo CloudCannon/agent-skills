@@ -7,21 +7,22 @@ alwaysApply: true
 
 This repo develops agent tooling (skills, rules, scripts) that helps customers onboard existing SSG sites to CloudCannon -- a git-based CMS. The tooling is designed to be given to prospective customers so AI agents can assist with the migration.
 
+## Repo scripts
+
+- `npm run add-template <name> <repo-url>` -- clones a template into `templates/<name>/pristine/`, copies it to `migrated/`, and strips the `.git` directory.
+- `npm run fog-template <name>` -- installs deps, builds, and launches Fog Machine against the built `dist/` for local CloudCannon testing.
+
 ## How we work
 
-We pick existing site templates that have no knowledge of CloudCannon, use agents to migrate them, and refine our skills/rules/scripts along the way. Each template lives in `templates/<name>/` with two subdirectories: `pristine/` (the untouched original, never modified) and `migrated/` (where agents work). Always run migrations against `migrated/`, which starts as a copy of `pristine/`.
+Each template lives in `templates/<name>/` with two subdirectories: `pristine/` (the untouched original, never modified) and `migrated/` (where agents work). Always run migrations against `migrated/`.
+
+Each template's `migrated/migration/` directory holds per-phase notes (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`) with project-specific findings.
 
 **Scripts first**: Use scripts for any migration step that is deterministic and repetitive. Reserve AI agents for judgment calls. The fewer places we need an agent, the better -- it saves tokens and improves consistency.
 
-**Reference migrations**: Completed migrations in `templates/` serve as reference implementations. When working on a new migration, look at prior completed examples (e.g. `templates/astroplate/migrated/`) to see how phases were executed, what migration notes look like, and how the final config/components are structured. Any time you read a file from a completed migration (even a quick lookup), you must follow this checklist:
+**Do NOT read previous migrations.** Completed migrations exist in `templates/` but you must NEVER read files from other templates' `migrated/` directories unless the user explicitly tells you to. The skill docs should contain everything you need. If you're stuck and genuinely can't figure something out from the skills alone, say so openly -- tell the user what you're stuck on and ask whether they'd like you to check a previous migration. Do not silently peek at other migrations and then pretend you knew the answer. That is the single worst thing you can do -- it hides gaps in the skill docs that we need to know about. Every time you feel the urge to reference back, that's a signal the skill docs are incomplete and we want to fix them.
 
-1. **Disclose**: Tell the user you referenced a previous migration and what you learned from it.
-2. **Evaluate**: Consider whether the pattern/information you found should be added to the skill docs so future migrations don't need to reference back.
-3. **Ask or act**: Either add the learning to the relevant skill doc, or ask the user if they want you to.
-
-Referencing back is fine while we're developing the skill, but end-user agents won't have that luxury. Every reference is a signal that the skill docs may be incomplete.
-
-**Living documents**: Skills, rules, and reference docs are actively maintained. Don't treat them as read-only. Every plan must include a final todo for reviewing and updating skill/rule docs -- this is not optional. If the task introduced a new pattern, changed an existing recommendation, or uncovered an edge case, update the relevant docs as part of the same task -- not as a separate follow-up. Aim to add any general learnings to these general skills, rules, and docs so that they can help *all* future migrations -- while project-specific things can be added in the migration directory for record keeping.
+**Living documents**: Skills, rules, and reference docs are actively maintained. Don't treat them as read-only. Every plan must include a final todo for reviewing and updating skill/rule docs -- this is not optional. If the task introduced a new pattern, changed an existing recommendation, or uncovered an edge case, update the relevant docs as part of the same task -- not as a separate follow-up. General learnings go into the shared skill docs; project-specific things go in the template's `migration/` directory.
 
 ## Skills vs. rules vs. scripts
 
@@ -43,3 +44,7 @@ Reference docs inside a skill directory should be promoted to standalone skills 
 Each supported SSG has its own directory under the migration skill (e.g. `astro/`). SSG directories contain phase docs (audit, configuration, content, visual-editing, build) tailored to that SSG. Core CloudCannon reference docs (editable regions, Gadget CLI) stay at the skill root since they apply across all SSGs.
 
 When adding a new SSG, create a new directory with the same file structure as `astro/` and add it to the supported SSGs table in `SKILL.md`.
+
+## Pre-publish checklist
+
+`before-publishing.md` tracks things to resolve before shipping this tooling externally.
