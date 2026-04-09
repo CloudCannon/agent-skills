@@ -104,6 +104,8 @@ Both import structure definitions from files, but they work at different levels:
 
 Structures used by multiple block types — like `actions` (button arrays), `items` (feature/step lists), `stats`, `prices`, `testimonials` — stay in the main `cloudcannon.config.yml` under `_structures`. They're referenced by name from within the structure-value files and from the config.
 
+**Only share when all consumers render the same fields.** If one component renders fields the others don't, create a separate structure for it instead of a union. For example, if a Timeline component renders `job_title`, `company`, and `date_range` but an ItemGrid component only renders `title`, `description`, and `icon`, don't put the Timeline-only fields in the shared `items` structure — create a `timeline_items` structure and reference it from the Timeline's widget. A union structure clutters the editor with inputs that do nothing; editors fill them in expecting results on the page and get confused when nothing appears.
+
 ```yaml
 _structures:
   actions:

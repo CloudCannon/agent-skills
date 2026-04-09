@@ -19,6 +19,8 @@ This generates:
 - `cloudcannon.config.yml` — CloudCannon configuration with detected SSG settings, collections, and paths
 - `.cloudcannon/initial-site-settings.json` — Build settings (install command, build command, output path) so the site builds on first upload
 
+> **One-time only:** `initial-site-settings.json` is read when CloudCannon provisions the site for the first time. After that, these settings live in the CloudCannon UI and the file is ignored. If a user asks to change build commands, Node version, or other build settings for an existing site, the agent cannot make that change via code — recommend the user check **Site Settings > Builds > Configuration** in the CloudCannon dashboard instead.
+
 ## Step-by-Step Setup (More Control)
 
 For more control, run each detection step independently. All subcommands output JSON to stdout.
