@@ -312,6 +312,55 @@ _structures:
           title:
           description:
           icon:
+          callToAction:
+            text:
+            href:
+            variant:
+            icon:
+            target:
+          image:
+            src:
+            alt:
+        _inputs:
+          description:
+            type: html
+            options:
+              allow_custom_markup: true
+          icon:
+            type: select
+            options:
+              allow_create: true
+              value_key: id
+              preview:
+                text:
+                  - key: name
+              values: data.icons
+          callToAction:
+            type: object
+            options:
+              preview:
+                icon: ads_click
+          image:
+            type: object
+            options:
+              preview:
+                icon: image
+
+  timeline_items:
+    values:
+      - label: Timeline Item
+        icon: list
+        preview:
+          text:
+            - key: job_title
+            - key: title
+            - Timeline Item
+          icon:
+            - list
+        value:
+          title:
+          description:
+          icon:
           job_title:
           company:
           date_range:
@@ -330,11 +379,11 @@ _structures:
             options:
               allow_custom_markup: true
           job_title:
-            comment: "Optional: used in work experience steps instead of title"
+            comment: "Used in work experience steps instead of title"
           company:
-            comment: "Optional: displayed below job title"
+            comment: "Displayed below job title"
           date_range:
-            comment: "Optional: e.g. 2021 - Present"
+            comment: "e.g. 2021 - Present"
           icon:
             type: select
             options:

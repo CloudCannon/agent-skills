@@ -27,7 +27,7 @@ _inputs:
   items:
     type: array
     options:
-      structures: _structures.items
+      structures: _structures.timeline_items
   image:
     type: object
     options:
