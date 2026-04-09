@@ -1,0 +1,26 @@
+label: Service List
+icon: build
+picker_preview:
+  text:
+    - Service List
+  icon:
+    - build
+preview:
+  text:
+    - key: title
+    - Service List
+  icon:
+    - build
+value:
+  _type: service_list
+  title:
+  subtitle:
+  tagline:
+  services: []
+_inputs:
+  subtitle:
+    type: textarea
+  services:
+    type: array
+    options:
+      structures: _structures.services

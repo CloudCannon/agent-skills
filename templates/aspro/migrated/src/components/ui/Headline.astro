@@ -7,7 +7,8 @@ const {
   tagline,
   classes = {},
   titleAs = "h2",
-} = Astro.props as HeadlineProps;
+  subtitleProp = "subtitle",
+} = Astro.props as HeadlineProps & { subtitleProp?: string };
 
 const {
   container = "max-w-xl",
@@ -25,6 +26,8 @@ const Title = titleAs as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
       {tagline && (
         <div
           class={`inline-flex items-center gap-2 px-3 py-1 text-primary text-lg font-semibold ${taglineClass}`}
+          data-editable="text"
+          data-prop="tagline"
         >
           {tagline}
         </div>
@@ -33,12 +36,16 @@ const Title = titleAs as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
         <Title
           class={`font-bold tracking-tight text-foreground mb-4 ${titleClass}`}
           set:html={title}
+          data-editable="text"
+          data-prop="title"
         />
       )}
       {subtitle && (
         <p
           class={`text-muted-foreground ${subtitleClass}`}
           set:html={subtitle}
+          data-editable="text"
+          data-prop={subtitleProp}
         />
       )}
     </div>

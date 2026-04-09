@@ -1,0 +1,46 @@
+label: Content 2
+icon: view_column
+picker_preview:
+  text:
+    - Content 2
+  icon:
+    - view_column
+preview:
+  text:
+    - key: title
+    - Content 2
+  icon:
+    - view_column
+value:
+  _type: content2
+  title:
+  subtitle:
+  tagline:
+  content:
+  items: []
+  image:
+  imageAlt:
+  actions: []
+  isReversed: false
+  isAfterContent: false
+_inputs:
+  content:
+    type: html
+    options:
+      allow_custom_markup: true
+  subtitle:
+    type: textarea
+  image:
+    type: image
+    options:
+      paths:
+        uploads: /src/assets/images
+        static: ''
+  items:
+    type: array
+    options:
+      structures: _structures.items
+  actions:
+    type: array
+    options:
+      structures: _structures.actions

@@ -109,6 +109,9 @@ const finalIgnoreTitleTemplate = metadata?.ignoreTitleTemplate || false;
     <SpeedInsights />
     <Analytics />
     <script>
+      import "../cloudcannon/registerComponents";
+    </script>
+    <script>
       // Keep a global reference to prevent duplicate observers during View Transitions
       let scrollObserver: IntersectionObserver | null = null;
 

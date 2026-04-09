@@ -1,11 +1,17 @@
 ---
-import { getEntry, render } from "astro:content";
+import { getCollection, render } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import BlockRenderer from "@/components/BlockRenderer.astro";
 
-const page = await getEntry("pages", "services");
-if (!page) throw new Error("Missing pages/services.md");
+export async function getStaticPaths() {
+  const pages = await getCollection("pages");
+  return pages.map((page) => ({
+    params: { slug: page.id === "index" ? undefined : page.id },
+    props: { page },
+  }));
+}
 
+const { page } = Astro.props;
 const { Content } = await render(page);
 const data = page.data;
 
@@ -15,7 +21,7 @@ const metadata = {
 };
 ---
 
-<BaseLayout {metadata}>
+<BaseLayout metadata={metadata}>
   {"content_blocks" in data && data.content_blocks ? (
     <div
       data-editable="array"
@@ -27,7 +33,7 @@ const metadata = {
       ))}
     </div>
   ) : (
-    <article class="prose prose-lg dark:prose-invert mx-auto max-w-3xl px-4 py-12">
+    <article class="reveal prose prose-lg dark:prose-invert mx-auto max-w-3xl px-4 py-12">
       <Content />
     </article>
   )}

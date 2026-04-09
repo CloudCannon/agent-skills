@@ -22,7 +22,7 @@ const wrapperClasses = {
     "relative not-prose scroll-mt-[72px]",
     bg,
     { dark: isDark },
-    { reveal: animate },
+    { reveal: animate && !import.meta.env.ENV_CLIENT },
   ]}
 >
   <div

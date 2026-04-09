@@ -1,4 +1,6 @@
 import ogImage from "@/assets/og-image.png";
+import navLinks from "@/data/nav.json";
+import socialLinks from "@/data/social.json";
 
 export const siteConfig = {
   name: "Astro Starter Pro",
@@ -10,17 +12,6 @@ export const siteConfig = {
   author: "Devgelo",
   twitter: "@Devgelo",
   ogImage: ogImage,
-  socialLinks: {
-    twitter: "https://twitter.com",
-    github: "https://github.com/devgelo-labs/astro-starter-pro",
-    discord: "https://discord.com",
-  },
-  navLinks: [
-    { text: "Home", href: "/" },
-    { text: "About", href: "/about" },
-    { text: "Services", href: "/services" },
-    { text: "Blog", href: "/blog" },
-    { text: "Contact", href: "/contact" },
-    { text: "Widgets", href: "/widgets" },
-  ],
+  socialLinks,
+  navLinks,
 };

@@ -1,0 +1,13 @@
+---
+import { componentMap } from "../cloudcannon/componentMap";
+
+const { block } = Astro.props;
+const { _type, ...props } = block;
+const Component = componentMap[_type as string];
+---
+
+{Component && (
+  <section data-editable="array-item" data-component={_type} data-id={_type}>
+    <Component {...props} />
+  </section>
+)}

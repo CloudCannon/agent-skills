@@ -1,0 +1,26 @@
+label: Features
+icon: star
+picker_preview:
+  text:
+    - Features
+  icon:
+    - star
+preview:
+  text:
+    - key: title
+    - Features
+  icon:
+    - star
+value:
+  _type: features
+  title:
+  subtitle:
+  tagline:
+  features: []
+_inputs:
+  subtitle:
+    type: textarea
+  features:
+    type: array
+    options:
+      structures: _structures.items

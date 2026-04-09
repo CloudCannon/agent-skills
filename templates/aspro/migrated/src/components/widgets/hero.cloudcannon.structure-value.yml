@@ -1,0 +1,26 @@
+label: Hero
+icon: flag
+picker_preview:
+  text:
+    - Hero
+  icon:
+    - flag
+preview:
+  text:
+    - key: title
+    - Hero
+  icon:
+    - flag
+value:
+  _type: hero
+  title:
+  tagline:
+  description:
+  actions: []
+_inputs:
+  description:
+    type: textarea
+  actions:
+    type: array
+    options:
+      structures: _structures.actions
