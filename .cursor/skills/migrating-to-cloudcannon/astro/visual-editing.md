@@ -193,6 +193,19 @@ For block-level rich text (paragraphs, headings, lists), add `data-type="block"`
 
 The `@content` path targets the file's markdown body (not frontmatter).
 
+**Choosing `data-type` for HTML-rendered frontmatter fields:**
+
+This applies to any frontmatter field rendered as HTML — whether via `set:html` directly, or through a markdown parser like `markdownify()` or `marked()` (which produces HTML that then goes through `set:html`).
+
+Keep the original element and don't add `data-type` unless there's a reason to. The two signals that `data-type="block"` is needed:
+
+1. **The field's input config allows block-level content.** The CloudCannon input configuration (`_inputs` in `cloudcannon.config.yml` or schema files) is the source of truth for what a field accepts. If the input config permits block-level options (lists, headings, etc.), the on-page text editable needs `data-type="block"` to match — otherwise a user adds a list via the sidebar, and the on-page editable can't handle it.
+2. **The existing content already contains block-level HTML.** Even without explicit input config, if a `set:html` field already contains `<ul>`, `<ol>`, `<h*>`, or similar, add `data-type="block"`.
+
+When `data-type="block"` is needed, the host element must support block content. `<p>` cannot nest block elements — browsers auto-close the `<p>` before any `<ul>`/`<ol>`/`<h*>`, breaking the DOM and the editable region. Change to an element that can hold block content (e.g. `<div>`).
+
+Also watch for content working around element limitations — e.g. `<br>` tags inside a `<p>` to fake a list, or repeated inline markup to mimic separate blocks. That's a signal the element is semantically wrong. Refactor the element to match what the content actually represents (e.g. a `<p>` with `<br>`-separated items should become a proper `<ul>` or a `<div>` with `data-type="block"`).
+
 **Editables inside slot content:** Editable text passed into a slot must sit under a **single concrete DOM element** so `data-editable` / `data-prop` (or the equivalent custom element) has a host. `<Fragment>` has no DOM node and cannot carry those attributes.
 
 The same applies if you abstract slot content into an Astro `.astro` component: a **Fragment root** or **multiple roots** leaves no single element to attach the region to—use one wrapper element (native or custom) as the component output.
@@ -972,5 +985,6 @@ After adding editable regions, work through these checks before moving to the bu
 - [ ] **`<template>` blueprints**: Primitive-only arrays (no per-item `data-component` + registration) have `<template>` children where needed—especially when the list can be empty at build—or another reliable way to clone the first item; page-builder arrays with `data-component-key` and every `_type` registered do **not** require `<template>` on the wrapper
 - [ ] **Cross-collection editable guard**: Shared components used for both frontmatter-backed items and programmatic cross-collection content (e.g. blog posts) have an `editable` prop to conditionally strip editable attributes
 - [ ] **Rebuild comments (Astro 4)**: Sidebar-only fields that affect page appearance (badge, tags, variant, etc.) have `comment` in `_inputs` noting they require a save and rebuild to preview
+- [ ] **Inline vs block text editables**: On-page `data-type` matches the field's input config — if the input allows block-level options (lists, headings), the editable uses `data-type="block"` and the host element supports block content (e.g. `<div>`, not `<p>`). Also check existing content for block-level HTML or workarounds (e.g. `<br>` faking a list) that signal the same need
 - [ ] Build output contains `data-component-key`, `data-id-key`, `data-component=`, `data-id=`, and `data-editable="array-item"` attributes (grep `dist/` to verify)
 
