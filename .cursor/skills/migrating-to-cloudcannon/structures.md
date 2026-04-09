@@ -277,14 +277,23 @@ Read the component's Props interface (or destructuring) to determine all fields:
 4. **Arrays** — `[]`
 5. **Objects** — nested shape with empty fields (e.g. `image:\n  src:\n  alt:`). This gives CloudCannon the field structure for the object input.
 
-### Guarding empty objects in components
+### Guarding empty objects and arrays in components
 
-In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truthy object. Component conditionals must check a meaningful inner field, not just the outer object:
+In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truthy object. Similarly, `actions: []` creates an empty array — also truthy. Component conditionals must check for meaningful content, not just the outer value:
 
+**Objects** — check a meaningful inner field:
 - `image?.src &&` instead of `image &&`
-- `callToAction?.text &&` instead of `callToAction &&`
+- `(callToAction?.text || callToAction?.icon) &&` instead of `callToAction &&`
+- `link?.href &&` instead of `link &&`
 
-This ensures empty objects (where all inner fields are null) are treated as absent. Check and update these guards during the visual-editing phase when wiring up editable regions.
+This applies to any content-sourced object, not just these specific prop names. The key question is: "what inner field indicates this object has real content?"
+
+**Arrays** — check `.length`:
+- `actions?.length > 0 &&` instead of `actions &&`
+
+When iterating, filter out items that have nothing visible to render — check the fields responsible for visible output, not every field: `actions.filter((a) => a?.text || a?.icon).map(...)`.
+
+Check and update these guards during the visual-editing phase when wiring up editable regions. See [astro/visual-editing.md § Content-sourced objects and arrays are never falsy](astro/visual-editing.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
 
 ### Fields to include
 

@@ -58,7 +58,7 @@ Primitive editables (text, image, array, source) handle their own DOM updates bu
 | Attribute | Values | Purpose |
 |---|---|---|
 | `data-editable` | `text`, `image`, `array`, `array-item`, `component`, `source` | Declares the region type |
-| `data-prop` | Path string | Data path for the editable value |
+| `data-prop` | Path string | Data path for the editable value. Use `@content` to target the file's markdown body (not frontmatter) — this is the only valid path for body content |
 | `data-prop-*` | Path string | Per-attribute binding: the suffix after `data-prop-` names the attribute or logical field being edited; path-string rules match `data-prop`. On **image** regions the usual cases are `data-prop-src`, `data-prop-alt`, and `data-prop-title`. The same pattern applies elsewhere where the visual editor supports binding that attribute for the region type — it is not limited to images, but not every attribute is available on every region. |
 | `data-type` | `span`, `text`, `block` | Text editor mode |
 | `data-component` | Component key | Component identifier for re-rendering lookup |

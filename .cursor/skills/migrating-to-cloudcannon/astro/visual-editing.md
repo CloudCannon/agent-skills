@@ -100,6 +100,8 @@ for (const [key, component] of Object.entries(componentMap)) {
 
 ## Adding editable regions
 
+> **Markdown body content uses `@content`.** To make a markdown file's body (not frontmatter) editable in the visual editor, use `data-prop="@content"` on the wrapper element. This is the only valid path — not `content`, not `body`, not `markdown_content`. Applies wherever body content is rendered: `<Content />` from `entry.render()`, `<slot />` in layouts receiving markdown, etc. See [Content body editing](#content-body-editing) for the full pattern.
+
 ### Guard optional fields
 
 The primary defence against `undefined` errors is ensuring all fields exist in the content frontmatter via structure definitions (see [../structures.md](../structures.md) — field completeness rule). Conditional guards are the safety net for cases where a field is legitimately optional even when the structure defines it.
@@ -116,9 +118,53 @@ Every element with a `data-editable` attribute must be conditionally rendered if
 
 This applies to text, image, and any other editable type. When a shared sub-component like `Headline.astro` renders the editable elements, the guards belong in that sub-component.
 
-**Object fields**: Guard on a meaningful inner field, not the object itself. Empty objects from content files (e.g. `image: { src: null, alt: null }`) are truthy. Use `image?.src &&` instead of `image &&`, and `callToAction?.text &&` instead of `callToAction &&`. See [../structures.md](../structures.md#guarding-empty-objects-in-components).
+### Content-sourced objects and arrays are never falsy
 
-**Dual slot/prop components**: Many Astro widgets accept both slot content (rendered as strings) and structured objects (from content collections). They commonly use `typeof image === 'string'` to branch between the two. When fixing image guards for these components, preserve the string branch: `(typeof image === 'string' ? image : image?.src) &&`.
+This is one of the most common bugs in CloudCannon migrations. When content YAML defines an object with all-null inner fields (`callToAction:\n  text:\n  href:`) or an empty array (`actions: []`), JavaScript treats both as truthy. A guard like `obj &&` or `array &&` will always pass, rendering empty buttons, blank links, or wrapper divs with no content.
+
+**Objects:** Guard on a meaningful inner field, not the object itself. Choose the field(s) that indicate the object has real content:
+
+```astro
+<!-- Bad: always truthy for { text: null, href: null } -->
+{callToAction && <Button {...callToAction} />}
+
+<!-- Good: only renders when there's something to display -->
+{(callToAction?.text || callToAction?.icon) && <Button {...callToAction} />}
+```
+
+This applies to ANY content-sourced object — not just CTAs. Common examples:
+
+- `image?.src &&` instead of `image &&`
+- `(callToAction?.text || callToAction?.icon) &&` instead of `callToAction &&`
+- `link?.href &&` instead of `link &&`
+- `(social?.url || social?.icon) &&` instead of `social &&`
+
+See [../structures.md](../structures.md#guarding-empty-objects-and-arrays-in-components) for the underlying YAML behavior.
+
+**Arrays:** Empty arrays `[]` are truthy. Use `.length` to check:
+
+```astro
+<!-- Bad: always truthy for [] -->
+{actions && <div>...</div>}
+
+<!-- Good: checks actual content -->
+{Array.isArray(actions) && actions.length > 0 && <div>...</div>}
+```
+
+When iterating arrays of objects, filter out items that have nothing visible to render. The check should target the fields responsible for visible output (e.g. `text`, `icon`), not every field -- a button with only `href` set but no text or icon is still visually empty:
+
+```astro
+{actions.filter((a) => a?.text || a?.icon).map((action) => (
+  <Button {...action} />
+))}
+```
+
+**Dual slot/prop components**: Many Astro widgets accept both slot content (rendered as strings) and structured objects (from content collections). They commonly use `typeof value === 'string'` to branch between the two. When fixing guards for these components, preserve the string branch:
+
+```astro
+{(typeof callToAction === 'string' ? callToAction : (callToAction?.text || callToAction?.icon)) && ...}
+{(Array.isArray(actions) ? actions.length > 0 : actions) && ...}
+```
 
 ### Text editing
 
@@ -699,7 +745,7 @@ span.highlight-text {
 }
 ```
 
-2. Configure the input as `type: html` referencing the stylesheet:
+2. Configure the input as `type: html` referencing the stylesheet. **Important:** adding `styles` (or any toolbar option) causes CC to treat omitted toolbar keys as `false`, so you must re-declare the inline formatting defaults you want to keep (see [configuration-gotchas.md § Rich text input toolbar options](configuration-gotchas.md#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables)):
 
 ```yaml
 _inputs:
@@ -707,6 +753,15 @@ _inputs:
     type: html
     options:
       styles: .cloudcannon/styles/editor.css
+      allow_custom_markup: true
+      bold: true
+      italic: true
+      underline: true
+      strike: true
+      link: true
+      removeformat: true
+      undo: true
+      redo: true
 ```
 
 3. The component renders with `set:html` and has matching CSS:
@@ -901,6 +956,7 @@ After adding editable regions, work through these checks before moving to the bu
 - [ ] Registered components accept spread props matching the shape of their `data-prop` value -- not a named wrapper prop (see [Component prop contract](#component-prop-contract))
 - [ ] Pages that render items from other collections have `@file` editables on those items. Remember `entry.id` includes the file extension — don't double it.
 - [ ] Slot content that should be editable uses a concrete DOM host (e.g. `<editable-text>` or `<span data-editable="text">`) instead of `<Fragment>`
+- [ ] **Markdown body content**: Pages rendering markdown body (via `<Content />`, `entry.render()`, or `<slot />` in layouts) have `data-editable="text" data-type="block" data-prop="@content"` on the wrapper element — `@content` is the only valid path for body content
 - [ ] Key page templates contain `data-editable` attributes -- spot-check the homepage, a content page, and any shared partials (CTA, testimonials, etc.)
 - [ ] **Source editables**: Hardcoded text in page templates (hero headings, descriptions, CTA copy) has `data-editable="source"` with `data-path` and `data-key` attributes -- don't skip content just because it's not in a content collection
 - [ ] **Page builder array wrapper** has `data-component-key="_type"` alongside `data-editable="array"` and `data-prop="content_blocks"` — `data-id-key` can be omitted when it matches `data-component-key` (Dec 2025 default)

@@ -161,6 +161,33 @@ _editables:
 
 `markdown.options.table` controls serialization (Markdown vs HTML); `_editables.content.table` controls the toolbar button.
 
+## Rich text input toolbar options follow the same "omitted = false" rule as `_editables`
+
+The "define one key, all omitted keys become false" behavior applies not just to `_editables.content` but also to individual `_inputs.*.options` on `type: html` and `type: markdown` inputs. This means adding `styles` (or any other toolbar option) to an input strips the default inline formatting toolbar unless you re-declare the options you want.
+
+When configuring `type: html` inputs with `options.styles` for editor CSS, always include the inline formatting defaults alongside it:
+
+```yaml
+_inputs:
+  title:
+    type: html
+    options:
+      styles: .cloudcannon/styles/editor.css
+      allow_custom_markup: true
+      bold: true
+      italic: true
+      underline: true
+      strike: true
+      subscript: true
+      superscript: true
+      link: true
+      removeformat: true
+      undo: true
+      redo: true
+```
+
+For heading-level fields (title, subtitle), intentionally omit block-level options (lists, blockquote, format, image) — only inline formatting is appropriate. For body-level fields, include the full set as you would with `_editables.content`.
+
 ## `_enabled_editors` order is the default editor
 
 The first item in `_enabled_editors` is the editor that opens by default when a user clicks a file. `[data, visual]` opens the data editor; `[visual, data]` opens the visual editor. Page builder collections should almost always have `visual` first. See [configuration.md § _enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).

@@ -29,7 +29,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
 - **Schema fields** with Zod types, defaults (`z.default()`), and optionality (`z.optional()`)
 - **File naming conventions** (e.g. `-index.md` for listing page metadata -- these get renamed to `index.md` in the content phase)
 - **How it's consumed**: `getCollection()`, `getEntry()`, or helper functions wrapping these
-- **Body content usage**: Is the markdown file rendered as page, or is the file used only for its data on other pages? Flag data-only `.md` collections (e.g. team members, testimonials, authors). If a md file only uses its frontmatter for controlling data these pages need `_enabled_editors: [data]` in the configuration phase. If the md file uses its frontmatter and body content elsewhere (but doesn't build anywhere), these pages need `_enabled_editors: [content, data]`.
+- **Body content usage**: Is the markdown file rendered as page, or is the file used only for its data on other pages? Flag data-only `.md` collections (e.g. team members, testimonials, authors). If a md file only uses its frontmatter for controlling data these pages need `_enabled_editors: [data]` in the configuration phase. If the md file uses its frontmatter and body content elsewhere (but doesn't build anywhere), these pages need `_enabled_editors: [content, data]`. Note how body content is rendered in templates — `<Content />` from `entry.render()`, `<slot />` in layouts, etc. — these are candidates for `@content` visual editing in Phase 4.
 
 Also check for data files outside collections (JSON, YAML in `src/config/` or similar) that contain editable site configuration.
 
