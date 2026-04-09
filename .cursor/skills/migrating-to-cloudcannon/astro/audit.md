@@ -90,7 +90,17 @@ Check `package.json` scripts and `astro.config.mjs`:
 
 CloudCannon's build must reproduce the full pipeline, including pre-build scripts.
 
-## 6. Flags and special patterns
+## 6. Visual diff baseline
+
+After confirming the site builds, capture baseline screenshots for visual regression detection. This must happen before any code changes:
+
+```bash
+node visual-diff.mjs capture <site-dir>
+```
+
+This builds the site, screenshots one representative page per route pattern at desktop and mobile viewports, and saves them to `<site-dir>/.visual-diff/baseline/`. The compare step runs after the build phase -- see [build.md](build.md).
+
+## 7. Flags and special patterns
 
 Note anything that needs special handling in later phases:
 

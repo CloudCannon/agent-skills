@@ -4,7 +4,8 @@
   "description": "AI agent tooling for migrating existing SSG sites to [CloudCannon](https://cloudcannon.com) -- a git-based CMS.",
   "scripts": {
     "fog-template": "node run-test-site.mjs",
-    "add-template": "node add-test-site.mjs"
+    "add-template": "node add-test-site.mjs",
+    "visual-diff": "node visual-diff.mjs"
   },
   "repository": {
     "type": "git",
@@ -13,5 +14,10 @@
   "keywords": [],
   "author": "Tom Richardson",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.59.1",
+    "pngjs": "^7.0.0"
+  }
 }
