@@ -62,7 +62,7 @@ const {
             class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
           >
             {
-              callToAction && (
+              (typeof callToAction === 'string' ? callToAction : (callToAction?.text || callToAction?.icon)) && (
                 <div class="flex w-full sm:w-auto">
                   {typeof callToAction === 'string' ? (
                     <Fragment set:html={callToAction} />
@@ -73,7 +73,7 @@ const {
               )
             }
             {
-              callToAction2 && (
+              (typeof callToAction2 === 'string' ? callToAction2 : (callToAction2?.text || callToAction2?.icon)) && (
                 <div class="flex w-full sm:w-auto">
                   {typeof callToAction2 === 'string' ? (
                     <Fragment set:html={callToAction2} />

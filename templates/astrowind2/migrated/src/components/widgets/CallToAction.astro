@@ -40,12 +40,12 @@ const {
       }}
     />
     {
-      actions && (
+      (Array.isArray(actions) ? actions.length > 0 : actions) && (
         <div class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4 mt-6">
           {Array.isArray(actions) ? (
-            actions.map((action) => (
+            actions.filter((a) => a?.text || a?.icon).map((action) => (
               <div class="flex w-full sm:w-auto">
-                <Button {...(action || {})} class="w-full sm:mb-0" />
+                <Button {...action} class="w-full sm:mb-0" />
               </div>
             ))
           ) : (

@@ -55,7 +55,7 @@ const {
                   set:html={description}
                 />
               )}
-              {callToAction && (
+              {(callToAction?.text || callToAction?.icon) && (
                 <div class={twMerge(`${title || description ? 'mt-3' : ''}`, actionClass, itemClasses?.actionClass)}>
                   <Button variant="link" {...callToAction} />
                 </div>

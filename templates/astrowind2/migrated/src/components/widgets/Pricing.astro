@@ -63,13 +63,12 @@ const {
                       </ul>
                     )}
                   </div>
-                  {callToAction && (
+                  {(typeof callToAction === 'string' ? callToAction : callToAction?.href) && (
                     <div class={`flex justify-center`}>
                       {typeof callToAction === 'string' ? (
                         <Fragment set:html={callToAction} />
                       ) : (
-                        callToAction &&
-                        callToAction.href && <Button {...(hasRibbon ? { variant: 'primary' } : {})} {...callToAction} />
+                        <Button {...(hasRibbon ? { variant: 'primary' } : {})} {...callToAction} />
                       )}
                     </div>
                   )}

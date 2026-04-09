@@ -47,7 +47,7 @@ const {
         {content && <div class="mb-12 text-lg dark:text-slate-400" data-editable="text" data-type="block" data-prop="content" set:html={content} />}
 
         {
-          callToAction && (
+          (callToAction?.text || callToAction?.icon) && (
             <div class="mt-[-40px] mb-8 text-primary">
               <Button variant="link" {...callToAction} />
             </div>

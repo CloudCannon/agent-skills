@@ -50,7 +50,7 @@ const {
           {description && (
             <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} data-editable="text" data-prop="description" set:html={description} />
           )}
-          {callToAction && (
+          {(callToAction?.text || callToAction?.icon) && (
             <div class="mt-2">
               <Button {...callToAction} />
             </div>
