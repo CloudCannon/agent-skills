@@ -26,6 +26,15 @@
 - BlockRenderer wraps each block with data-editable="array-item" + data-component={_type}
 - Page templates wrap content_blocks with data-editable="array" + data-component-key="_type"
 
+## Post-migration fixes
+- WidgetWrapper: gated `reveal` class with `!import.meta.env.ENV_CLIENT` to prevent scroll-reveal animations hiding content in the visual editor
+- FormBlock: same reveal fix on inner form container
+- Headline: added `subtitleProp` prop (defaults to "subtitle") so parent widgets can specify the correct data-prop. Hero passes `subtitleProp="description"` since its data model uses `description`, not `subtitle`
+- Content: removed `subtitle` field (used `description` only), passes `subtitleProp="description"` to Headline
+- Content2: removed `description` field (uses `subtitle` only)
+- Icon select: converted `_select_data.icons` from flat strings to objects with `name`/`id`, added `value_key`/`preview` to icon input
+- Images: reverted from `public/images/` back to `src/assets/images/` for optimization, added `import.meta.glob` resolution in Content.astro and Content2.astro, added per-input `paths.uploads` for optimized images
+
 ## Decisions
 - Headline editables are shared across all widgets -- scoped correctly via page builder blocks
 - Used editable-text custom element for button labels inside anchors

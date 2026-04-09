@@ -56,6 +56,8 @@ Document the component hierarchy:
 
 Flag components that are good candidates for visual editing (hero banners, feature sections, CTAs) vs. those better suited to the data panel (navigation, social links, theme settings).
 
+Also flag **image handling patterns** for each component: does it use `<Image>` or `<Picture>` from `astro:assets` (optimized, images in `src/assets/`) or plain `<img>` (static, images in `public/`)? This classification determines upload path configuration in Phase 2. Images in `src/assets/` must stay there — do not move them to `public/`.
+
 Also flag **presentational wrapper components** (e.g. a `<Link>` that just renders a styled `<a>`) that appear inside editable content. These can't survive source editing and need either inlining as plain HTML + CSS or a snippet config. See [visual-editing.md § Astro components in source editables](visual-editing.md#astro-components-in-source-editables).
 
 Also flag **hardcoded text in page templates** as source editable candidates. Common locations: homepage hero sections, CTA copy, section headings on listing pages. These don't need a content collection or data file -- they use `EditableSource` to edit the raw `.astro` file directly. See [visual-editing.md § Source editables](visual-editing.md#source-editables-for-hardcoded-content).
@@ -90,15 +92,21 @@ Check `package.json` scripts and `astro.config.mjs`:
 
 CloudCannon's build must reproduce the full pipeline, including pre-build scripts.
 
-## 6. Visual diff baseline
+## 6. Visual diff baseline (optional)
 
-After confirming the site builds, capture baseline screenshots for visual regression detection. This must happen before any code changes:
+Visual diff captures baseline screenshots for automated regression detection after migration. It requires Playwright (~250MB Chromium download) and full sandbox permissions. Ask the user during planning whether they want visual diff — if they decline, rely on manual spot-checks after the build phase.
+
+If the user opts in, capture the baseline after confirming the site builds but before any code changes:
 
 ```bash
 node visual-diff.mjs capture <site-dir>
 ```
 
+This requires full sandbox permissions (`required_permissions: ["all"]`) because Playwright launches Chromium. Set `PLAYWRIGHT_BROWSERS_PATH=0` to use locally installed browsers.
+
 This builds the site, screenshots one representative page per route pattern at desktop and mobile viewports, and saves them to `<site-dir>/.visual-diff/baseline/`. The compare step runs after the build phase -- see [build.md](build.md).
+
+If skipped, note in `migration/build.md` that no visual baseline was captured and regression detection is manual.
 
 ## 7. Flags and special patterns
 

@@ -16,7 +16,7 @@ After generation, read `cloudcannon.config.yml` and check:
 
 - **`source`** -- Do not add this during migration. It is **deployment-specific** (monorepos, non-standard layouts) and belongs with the user's hosting setup. For typical Astro sites, **omit `source`** so CloudCannon's root is the **repository root**; that way config can reference paths outside `src` when needed. If Gadget writes a `source` value, **remove it** unless the project truly requires it.
 - **`collections_config`** -- are all content collections present? Do paths match the `base` directories from `content.config.ts`? **Remove `output: true`** if present on any collection — this key is defunct in unified config. Collections are automatically output when they have a `url` pattern. The only related key still in use is `disable_url: true` (to prevent a collection from being output).
-- **`paths`** -- Set `static` to `public` (Astro's default asset folder) unless the project uses a different public directory. Set `uploads` to match where uploaded images should land: use `public/images` when the site keeps images in a subfolder, `public` when assets live at the root of public, and default to **`public/images`** when there is no precedent yet.
+- **`paths`** -- Set `static` to `public` (Astro's default asset folder) unless the project uses a different public directory. Set `uploads` to match where uploaded images should land: use `public/images` when the site keeps images in a subfolder, `public` when assets live at the root of public, and default to **`public/images`** when there is no precedent yet. See [Image path configuration](#image-path-configuration) below for handling optimized vs static images.
 - **Build settings** (`.cloudcannon/initial-site-settings.json`) -- Build settings must be nested under a `build` key (the old flat format with `build_command`/`output_path` at the root is defunct). Structure: `ssg` at the root, then `build.install_command`, `build.build_command`, `build.output_path`, and `build.node_version`. Align values with the repo: `ssg`: `"astro"`; `install_command`: from the detected package manager (omit if there is none); `build_command`: the script from `package.json` if present, otherwise `"astro build"`; `output_path`: `"dist"`; `node_version`: if `.nvmrc` or `.node-version` exists in the project root, set `"file"` (CC reads the version from that file automatically); otherwise if `package.json` has `engines.node`, extract the major version (e.g. `">=18"` → `"18"`); otherwise omit (CC uses its default). Prefer **`.cloudcannon/prebuild`** for extra setup steps so `build_command` stays a straight build, not a shell chain. **Note:** This file only takes effect on first site creation. For existing CloudCannon sites, build settings must be changed in the CloudCannon UI (**Site Settings > Builds > Configuration**). See [gadget-guide.md](../gadget-guide.md) for details.
 
 ## Customize the config
@@ -40,7 +40,27 @@ Gadget produces a structural baseline. The following customizations are almost a
 - **Editor styles** -- when the audit flagged styled HTML in content fields (inline spans with CSS classes for accent colors, emphasis, etc.), create `.cloudcannon/styles/editor.css` with semantic class definitions and reference it from `type: html` inputs via `options.styles`. This lets editors apply custom styling (e.g. brand-colored highlight text) through the rich text toolbar without Tailwind utility classes in the content. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter) and the [Jetstream template](https://github.com/CloudCannon/jetstream-astro-template) for the reference pattern.
 - **`markdown`** -- if content files contain Markdown-syntax tables (`| col | col |`), set `markdown.options.table: true`. See [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 - **`_snippets`** -- configure snippets for non-standard markdown amongst markdown content. In Astro this is often MDX components used in rich text content. Built-in templates like `mdx_component` resolve automatically — no `_snippets_imports` needed. See [snippets.md](snippets.md).
-- **`_select_data`** -- define shared dropdown options for fields used across collections.
+- **`_select_data`** -- define shared dropdown options for fields used across collections. When values need friendly display names (e.g. icon identifiers), use objects with `name`/`id` instead of flat strings, paired with `value_key: id` on the input:
+
+```yaml
+_select_data:
+  icons:
+    - name: GitHub
+      id: lucide:github
+    - name: Arrow Right
+      id: lucide:arrow-right
+
+_inputs:
+  icon:
+    type: select
+    options:
+      allow_create: true
+      value_key: id
+      preview:
+        text:
+          - key: name
+      values: _select_data.icons
+```
 - **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit.
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
 - **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. Example:
@@ -208,6 +228,41 @@ For visual editing, use `@data[key].path` syntax in editable regions:
 
 Data files appear in the sidebar under their own collection group (typically "Data"). Configure `_inputs` and `_structures` globally since data files don't have collection-scoped config.
 
+## Image path configuration
+
+Astro sites typically have two kinds of images:
+
+- **Static** (`public/`): served as-is via plain `<img>`. Paths in frontmatter are relative to the public root (e.g. `images/photo.jpg` or `/images/photo.jpg`) — they do NOT include `public/`.
+- **Optimized** (`src/assets/`): processed by Astro's build pipeline via `<Image>`, `<Picture>`, or other `astro:assets` components for format conversion, resizing, etc. If images are in `src/assets/`, assume the developer intended them for optimization. **Do not move them to `public/`.**
+
+### Global vs per-input paths
+
+Set the global paths for the common case (usually static/non-optimized), and use per-input overrides for optimized image fields:
+
+```yaml
+# Global: blog images, inline markdown images, general uploads
+paths:
+  static: public
+  uploads: public/images
+
+# Per-input: optimized image fields in page builder blocks, structured components
+_inputs:
+  image:
+    type: image
+    options:
+      paths:
+        uploads: /src/assets/images
+        static: ''
+```
+
+The per-input `static: ''` (empty string) is critical — it tells CloudCannon not to strip any prefix, so frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.jpg`) that `import.meta.glob` needs to resolve the image at build time.
+
+Place the per-input override on image inputs that feed into `<Image>` or `<Picture>`. When all component images are optimized and only rich text / blog images are static, the global path handles the static case and per-input handles the optimized case.
+
+### Rich text / toolbar images
+
+Blog post inline images inserted via markdown or the rich text toolbar use the global `paths.uploads` (`public/images`) — markdown `![](...)` produces plain `<img>`, which Astro does not optimize. If editors should not insert raw `<img>` (because all images should be optimized), disable the image toolbar button in `_editables` and offer optimized images only through structured inputs or snippets.
+
 ## Collection URLs
 
 See [../collection-urls.md](../collection-urls.md) for the full reference on URL patterns (fixed/data placeholders, glob loader slug override, subdirectories, trailing slash, troubleshooting).
@@ -362,7 +417,7 @@ After generating and customizing the config, work through these checks before mo
 - [ ] Collections that produce pages have a `url` pattern with correct trailing slash. See [../collection-urls.md](../collection-urls.md)
 - [ ] Collections with content in subdirectories: check `dist/` output for nested files against the URL template
 - [ ] Collections with `index.md` files have separate schemas for the index page and regular items
-- [ ] `paths.uploads` matches where the site stores images
+- [ ] `paths.uploads` matches where the site stores images. If the site has both optimized (`src/assets/`) and static (`public/`) images, global paths target static and per-input overrides target optimized (see [Image path configuration](#image-path-configuration))
 - [ ] `.cloudcannon/prebuild` exists if pre-build steps are needed
 - [ ] `file_config` entries exist for files with inputs not covered by global or collection-level config — must be array format (`- glob: ...`), not the old map-keyed format
 - [ ] Every object input (both global `_inputs` and inside structures/sub-structures) has `type: object` with `options.preview.icon`. Check inline `_structures` entries too — nested objects like `callToAction` and `image` inside `prices`, `testimonials`, etc. are easy to miss

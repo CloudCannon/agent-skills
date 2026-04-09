@@ -118,6 +118,12 @@ Every element with a `data-editable` attribute must be conditionally rendered if
 
 This applies to text, image, and any other editable type. When a shared sub-component like `Headline.astro` renders the editable elements, the guards belong in that sub-component.
 
+### Shared sub-component editables inside page builders
+
+When a shared component like `Headline.astro` renders title/subtitle/tagline for many widgets, adding `data-editable` attributes there is correct — inside a page builder block, editables are scoped to the parent registered component. So `data-prop="title"` on Headline resolves to `content_blocks[n].title`.
+
+**Prop alignment pitfall:** If the parent widget passes data through the shared component with a fallback (e.g. `subtitle={subtitle || description}`), the editable targets the prop name (`subtitle`), not the fallback source (`description`). Content files must populate the field the editable targets — otherwise the editable binds to null while the visible text comes from the fallback field.
+
 ### Content-sourced objects and arrays are never falsy
 
 This is one of the most common bugs in CloudCannon migrations. When content YAML defines an object with all-null inner fields (`callToAction:\n  text:\n  href:`) or an empty array (`actions: []`), JavaScript treats both as truthy. A guard like `obj &&` or `array &&` will always pass, rendering empty buttons, blank links, or wrapper divs with no content.
@@ -414,6 +420,16 @@ Paths are relative to the component's data scope (the array item), so `data-prop
 
 **Shared sub-components (e.g. Headline):** When a shared component like `Headline.astro` renders title/subtitle for many widgets, adding `data-editable` attributes to it is acceptable — inside a page builder block, the editables are scoped to the parent component, so `data-prop="title"` resolves correctly to the block's title.
 
+**Data-prop mismatch when parent renames fields:** A shared component has `data-prop="subtitle"` on its subtitle element. Widget A passes `description` as the `subtitle` prop: `<Headline subtitle={description} />`. CloudCannon resolves `data-prop="subtitle"` against the block's data, looking for `content_blocks[n].subtitle` — but the block has `description`, not `subtitle`. Result: "received a value of type 'undefined'" error.
+
+Fix options (pick one per widget):
+
+1. **Make the shared component's data-prop configurable** — add a prop so each parent can specify the actual data key. E.g. Headline accepts `subtitleProp` and renders `data-prop={subtitleProp || "subtitle"}`. Hero passes `subtitleProp="description"`. This is cleanest when different widgets map different fields to the same visual slot.
+2. **Standardize the field name** — rename the widget's field to match the shared component's prop. Only works when the field name is genuinely interchangeable.
+3. **Move the editable to the parent** — put `data-editable` + `data-prop` on the parent widget's own markup instead of the shared component. Means duplicating the annotation in each widget.
+
+Prefer option 1 when the shared component is used by 3+ widgets with different field mappings. Prefer option 2 when there's no semantic distinction between the field names.
+
 ### Sub-arrays within widget components
 
 Widget components often contain their own arrays — an `items` list in a Features or Content widget, an `actions` list of buttons in a Hero, a `steps` timeline, etc. These sub-arrays need `data-editable="array"` / `data-editable="array-item"` attributes just like the top-level page builder array. Without them, the user can only edit sub-array items via the sidebar modal — there are no inline CRUD controls (add, remove, reorder, drag-and-drop).
@@ -548,7 +564,7 @@ Note: `entry.id` in Astro content collections already includes the file extensio
 
 ## When to use a component editable region
 
-Primitive editables (text, image, array, source) handle their own DOM updates but can't trigger re-rendering of the surrounding template. This matters when a section contains data-driven behaviour beyond simple content — see [editable-regions.md > When to use component editable regions](../editable-regions.md#when-to-use-component-editable-regions) for the general principle.
+Primitive editables (text, image, array, source) handle their own DOM updates but can't trigger re-rendering of the surrounding template. This matters when a section contains data-driven behaviour beyond simple content — see [editable-regions.md > When to use component editable regions](../editable-regions.md#when-to-use-a-component-editable-region) for the general principle.
 
 **Use a component when the section has any of:**
 
@@ -958,6 +974,33 @@ Without this, Astro components that import from `astro:content` or `astro:assets
 6. Returns the clean HTML element
 
 The wrapper is stored in `window.cc_components[key]` where `EditableComponent` can find it.
+
+## Scroll-reveal and entrance animations
+
+Many templates start elements hidden (`opacity: 0`, `transform: translateY(...)`, `visibility: hidden`) and reveal them with JS (IntersectionObserver, scroll listeners) or CSS animation classes. Common class names: `reveal`, `animate-on-scroll`, `aos-*`, `fade-in`, `scroll-fade`.
+
+**Why this breaks in the visual editor:** CloudCannon replaces DOM nodes when re-rendering registered components. New nodes get the hidden CSS but not the JS-applied "active" class that makes them visible. The reveal JS typically only runs on page-load events (`astro:page-load`, `DOMContentLoaded`), not on editor re-renders. Symptoms:
+
+- Blocks fade away on initial visual editor load
+- All content disappears after editing a field that triggers component re-render
+- Multiple blocks vanish when editing one block
+
+**Fix:** Disable reveal animations in the visual editor using `import.meta.env.ENV_CLIENT`. The simplest approach is to skip the hidden class entirely:
+
+```astro
+<!-- WidgetWrapper.astro or equivalent -->
+<div class:list={[{ reveal: animate && !import.meta.env.ENV_CLIENT }]}>
+  <slot />
+</div>
+```
+
+If the reveal class is applied in multiple places (e.g. a form wrapper has its own `reveal` class), apply the same guard everywhere.
+
+Alternative approaches (all equivalent):
+- In the animation JS, skip setup when `ENV_CLIENT` is true
+- In global CSS, add `.cc-editor .reveal { opacity: 1; transform: none; transition: none; }` and add a `cc-editor` class to `<body>` when in the editor
+
+**Audit flag:** During the audit phase, flag any scroll-reveal or entrance animation patterns. Search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and common class names like `reveal`, `aos`, `animate-on-scroll`. Note the file(s) responsible so they can be patched in the visual editing phase.
 
 ## Verification checklist
 

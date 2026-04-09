@@ -22,7 +22,7 @@ For each content collection, compare the files against the Zod schema in `conten
 - **Optional fields with defaults.** When a field has `z.default()`, Astro fills in the default at runtime. CloudCannon editors see what's in the file, not the runtime default. If a field is commonly used and should be visible in the editor, add it explicitly to content files even if the schema doesn't require it.
 - **`draft` field.** If the site filters on `draft`, ensure it's present where needed. When the filter uses `!data.draft`, omitting the field is equivalent to `draft: false` (since `!undefined === true`), so missing `draft` fields are safe. But for CloudCannon's UI, an explicit `draft: false` is better -- it gives editors a visible toggle. Collections with a `draft` field should default to the content editor (`editor: content` on add options or `_enabled_editors` starting with `content`). Draft pages aren't built, so the visual editor has no page to preview — the content editor doesn't require a built page.
 - **Date formats.** Use ISO 8601 (`2022-04-04T05:00:00Z`). Astro's `z.coerce.date()` handles both Date objects and ISO strings, but CloudCannon expects consistent date formatting.
-- **Image paths.** Prefer absolute paths from the site root (`/images/banner.png`) for consistency. Relative paths work but are harder to manage across collections.
+- **Image paths.** For static images (`public/`), use paths relative to the public root (e.g. `/images/banner.png`). For optimized images (`src/assets/`), use the full repo-relative path (e.g. `/src/assets/images/hero.jpg`) so `import.meta.glob` can resolve them at build time. Do not move optimized images to `public/` — see [configuration.md § Image path configuration](configuration.md#image-path-configuration) for the full upload path setup.
 
 ### Field naming
 
@@ -114,6 +114,59 @@ Resolve each case using this decision tree (ordered by preference):
 - **Build early, build often** — don't extract all pages before running a build. Extract a few representative pages first, build, fix errors, then extract the rest. This catches schema mismatches and guard issues before they multiply.
 
 **Null values in YAML:** Bare keys with no value (`tagline:`) parse as `null`. The Zod schema must use `.nullish()` instead of `.optional()` on optional fields, otherwise `null` values fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data. See [../structures.md](../structures.md#handling-null-values-from-empty-yaml-fields) for details on aligning the Zod schema and CloudCannon config.
+
+### Astro slot content → frontmatter field
+
+When an Astro component receives rich content via a `<slot />` (e.g. `<Content2>` receiving a `<Fragment>` with headings and paragraphs), this content must become a frontmatter field for CMS editing. The pattern:
+
+1. **Add a `content` prop** to the component alongside the slot. Render it with `set:html` when populated, falling back to the slot for backward compatibility:
+   ```astro
+   const slotContent = Astro.props.content || await Astro.slots.render("default");
+   // ...
+   {slotContent && <div set:html={slotContent} />}
+   ```
+2. **Add the field to the structure** with `type: html` and `allow_custom_markup: true`.
+3. **In content files**, put the HTML string in the `content` YAML field using `>-` for multiline.
+
+**One field per visual slot:** When a component shows `propA || propB` (e.g. `subtitle || description`), two fields feed the same visual slot. In the CMS structure, keep only one field for that slot. Pick one name and use it everywhere — the structure, the Zod schema, the content files, and the component.
+
+Decide which to keep:
+- If the two fields have no semantic distinction (description is just an alias for subtitle), remove one. Use the name that best describes what the editor sees.
+- If the fallback serves a genuinely different purpose (e.g. `description` is also used for page meta/SEO), keep both but rename to make the distinction obvious: `subtitle` for the visual slot, `meta_description` for SEO. Add a `comment` on the SEO input explaining its purpose.
+
+The goal: every field in the data panel corresponds to exactly one thing on the page, and every inline editable's `data-prop` points to a field that exists in the structure. See [visual-editing.md § Data-prop mismatch](visual-editing.md#page-builder-blocks) for the related visual editing guidance when a shared component renames the prop.
+
+### Resolving optimized image paths from frontmatter
+
+When components receive image paths as strings from frontmatter (e.g. `/src/assets/images/hero.jpg`) but need `ImageMetadata` for `<Image>` or `<Picture>`, use `import.meta.glob` to resolve them at build time. Reference: [CloudCannon astro-minimal-starter `left-right.astro`](https://github.com/CloudCannon/astro-minimal-starter/blob/main/src/components/left-right/left-right.astro).
+
+```astro
+---
+import type { ImageMetadata } from "astro";
+import { Picture } from "astro:assets";
+
+const { image, imageAlt } = Astro.props;
+
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/**/*.{jpeg,jpg,png,gif,svg,webp,avif}",
+  { eager: true },
+);
+const imageSrc = typeof image === "string"
+  ? (images[image]?.default ?? image)
+  : image;
+---
+
+{imageSrc && <Picture src={imageSrc} alt={imageAlt} widths={[400, 800]} />}
+```
+
+Key points:
+- `{ eager: true }` resolves at build time (no async)
+- The `typeof` check handles components whose prop type allows both `ImageMetadata` and `string` (common in templates with dual static/optimized support)
+- The `?? image` fallback handles external URLs or `public/` paths gracefully
+- Works with `<Image>`, `<Picture>`, or any `astro:assets` component
+- Frontmatter stores the full repo-relative path (`/src/assets/images/...`) — this matches the `import.meta.glob` pattern
+
+When migrating a component that originally used `import` statements for images (e.g. `import heroImg from "@/assets/images/hero.jpg"`), replace the import with this glob pattern so the image path can come from CMS-editable frontmatter instead of hardcoded imports.
 
 ### Flattening folder-per-post content
 
