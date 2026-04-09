@@ -48,9 +48,10 @@ const {
             <div class="mt-0.5">
               {title && <h3 class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)} data-editable="text" data-prop="title">{title}</h3>}
               {description && (
-                <p
+                <div
                   class={twMerge(`${title ? 'mt-3' : ''} text-muted`, descriptionClass, itemClasses?.description)}
                   data-editable="text"
+                  data-type="block"
                   data-prop="description"
                   set:html={description}
                 />

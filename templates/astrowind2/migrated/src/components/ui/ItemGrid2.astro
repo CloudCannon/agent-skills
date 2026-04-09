@@ -48,7 +48,7 @@ const {
           )}
           <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)} data-editable="text" data-prop="title">{title}</div>
           {description && (
-            <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} data-editable="text" data-prop="description" set:html={description} />
+            <div class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} data-editable="text" data-type="block" data-prop="description" set:html={description} />
           )}
           {(callToAction?.text || callToAction?.icon) && (
             <div class="mt-2">
