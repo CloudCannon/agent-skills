@@ -1,0 +1,32 @@
+name: Save Repo Traffic
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Fetch and Save Data
+        env:
+          GRAPH_TOKEN: ${{ secrets.GRAPH_TOKEN }}
+        run: node .github/save_traffic.js
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/data/clones.json
+          git commit -m "data: update traffic clones" || exit 0
+          git push
