@@ -69,6 +69,16 @@ Editables form a DOM-mirroring tree. Children register as listeners on their nea
 
 ## CloudCannon JavaScript API
 
+### Detecting the Visual Editor
+
+CloudCannon provides three mechanisms for detecting the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
+
+| Mechanism | Context | Use for |
+|---|---|---|
+| `.cms-editor-active` on `<body>` | CSS | Overriding styles (animations, visibility). Most reliable for initial page load |
+| `window.inEditorMode` | Runtime JS | Inline `<script>` logic, conditional imports |
+| `import.meta.env.ENV_CLIENT` | Build-time (Vite) | Astro component template expressions (only in editable-regions client bundle, not the production build) |
+
 ### Connecting
 
 CloudCannon sets `window.inEditorMode = true` inside the Visual Editor iframe.

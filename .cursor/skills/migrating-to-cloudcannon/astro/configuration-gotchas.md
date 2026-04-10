@@ -94,6 +94,34 @@ The rest of the input config (`allow_create`, `value_key`, `preview`) stays the 
 
 A single global `icon` input definition covers all fields that accept icon names.
 
+## Configure CSS class fields as select inputs
+
+When a frontmatter field stores Tailwind/CSS classes that control visual appearance (icon colors, badge variants, card themes), configure it as a `select` with friendly labels. Editors shouldn't need to know CSS class names.
+
+The pattern follows the same approach as icon selects: use `value_key: id` so the stored value is the raw class string, `preview.text` to show the friendly name, and `allow_empty: true` when the field has a component-level fallback default.
+
+```yaml
+_inputs:
+  iconClass:
+    type: select
+    comment: Color theme for the icon background
+    options:
+      allow_empty: true
+      value_key: id
+      preview:
+        text:
+          - key: name
+      values:
+        - name: Blue
+          id: bg-blue-500/10 text-blue-400
+        - name: Purple
+          id: bg-purple-500/10 text-purple-400
+        - name: Pink
+          id: bg-pink-500/10 text-pink-400
+```
+
+Common candidates: `iconClass`, `badgeClass`, `variant`, `colorScheme`, `theme` — any field where the template uses CSS classes to control visual styling. Grep content files for the field to collect the distinct values, then create friendly labels.
+
 ## Quote numeric values that map to text inputs
 
 YAML parses bare numbers (`price: 29`) as integers, not strings. If the corresponding CloudCannon input is `type: text` (or defaults to text), CC throws "This text input is misconfigured. This input must have a text value." This affects both structure default values and content file frontmatter.
@@ -304,3 +332,11 @@ Use `disable_add: true` to hide the Add button. Do not use `add_options: []` for
 **Refactor to `.md`:** When a page has a handful of distinct sections that editors should control, extract the content into a `.md` file with structured frontmatter.
 
 **Decision rule:** If the page has a few pieces of hardcoded text in a fixed layout, use source editables. If the page has structured data that editors need CRUD control over, the content collection approach is usually better -- see [page-building.md](page-building.md).
+
+## `z.union` silently matches the wrong schema when fields have defaults
+
+When combining multiple page schemas with `z.union`, schemas with many `.default()` and `.nullish()` fields validate successfully against data intended for a different variant. For example, a contact page with `_schema: contact` and `show_form: true` might be parsed by `pageBuilderSchema` (which doesn't have `show_form`) because `pageBuilderSchema` validates first — all its fields have defaults and `show_form` is simply ignored.
+
+Symptoms: fields from the correct schema are silently absent at runtime (`data.show_form === undefined`), conditional rendering breaks, and blocks of the page disappear.
+
+**Fix:** Use `z.discriminatedUnion("_schema", [...])` with a literal `_schema` field in each schema. This forces Zod to match on the `_schema` value rather than validating fields. Requires every content file to declare `_schema` explicitly. See [configuration.md § Fallback](configuration.md#fallback-merge-unique-pages-into-pages-with-a-zunion).

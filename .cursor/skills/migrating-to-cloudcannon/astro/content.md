@@ -26,7 +26,7 @@ For each content collection, compare the files against the Zod schema in `conten
 
 ### Field naming
 
-- Use `snake_case` consistently for frontmatter keys (`meta_title`, not `metaTitle`).
+- Match the existing component prop names. If components use `imageAlt`, use `imageAlt` in frontmatter — not `image_alt`. This avoids translation layers in components. When creating new fields with no existing convention, prefer `snake_case`.
 - Avoid name collisions with CloudCannon reserved keys (e.g. `_inputs`, `_structures`, `_schema`).
 - Keep field names descriptive and consistent across collections (e.g. always `image`, not sometimes `image` and sometimes `thumbnail`).
 

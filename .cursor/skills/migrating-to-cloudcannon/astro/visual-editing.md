@@ -10,13 +10,19 @@ Run the setup script to handle steps 1-3 automatically:
 bash .cursor/skills/migrating-to-cloudcannon/scripts/setup-editable-regions.sh .
 ```
 
-This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a side-effect import in the base layout so `registerComponents` runs on every page that uses that layout:
+This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a conditional import in the base layout so `registerComponents` only loads inside CloudCannon's Visual Editor:
 
 ```astro
 <script>
-  import "../cloudcannon/registerComponents";
+  if (window.inEditorMode) {
+    import("../cloudcannon/registerComponents").catch((error) => {
+      console.warn("Failed to load CloudCannon component registration:", error);
+    });
+  }
 </script>
 ```
+
+`window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration code out of the production bundle entirely — it only loads when the page is being edited. Reference: [astro-minimal-starter Layout.astro](https://github.com/CloudCannon/astro-minimal-starter/blob/main/src/layouts/Layout.astro).
 
 Use a relative path for the import. Many Astro projects use `@*` as a path alias for `src/`, which means `@cloudcannon/registerComponents` would resolve correctly to the local file — but it looks like an npm scoped package reference and can confuse readers and tooling. A relative path avoids this ambiguity.
 
@@ -620,6 +626,37 @@ const plans = Object.values(Astro.props);
 
 **When in doubt, add a component boundary** — parent wrap is often the smallest step for a uniform section; per-item scales when types differ.
 
+### Blog post detail pages
+
+Blog post detail pages typically have a hero section (title, date, author, image) driven by top-level frontmatter, plus a markdown body. Use inline primitive editables for the fields that support them, and leave the rest to the sidebar.
+
+```astro
+<p>
+  {formattedDate} •
+  <editable-text data-prop="author">{author}</editable-text>
+  {readingTime && ` • ${readingTime}`}
+</p>
+<h1 data-editable="text" data-prop="title">{title}</h1>
+<img data-editable="image" data-prop-src="image" src={image} alt={title} />
+
+<div data-editable="text" data-type="block" data-prop="@content">
+  <Content />
+</div>
+```
+
+**Dates must NOT be text editables.** `<editable-text data-prop="pubDate">` sets a raw string, which conflicts with `z.coerce.date()` schemas. Use the sidebar datetime picker instead, and add a `comment` on the input so editors know changes appear after save:
+
+```yaml
+_inputs:
+  pub_date:
+    type: datetime
+    comment: Changes to the publish date appear on the page after saving and rebuilding
+```
+
+**Computed server-only values** like reading time (from `remarkPluginFrontmatter`) can stay in the page template as static text — they aren't editable and don't need special handling.
+
+**Why not wrap in `<editable-component>`?** When the hero fields live at the top level of the frontmatter (not nested under a single key), there's no `data-prop` path to point to. `data-prop=""` resolves the data correctly but the component controls UI treats empty string as falsy and doesn't render the edit button. `data-prop-*` attributes work but **lowercase all keys** internally (`propName.substring(4).toLowerCase()`), breaking camelCase prop names like `pubDate`. Nesting the hero fields under a `hero:` key in frontmatter would fix this but requires restructuring every content file. For most blog post heroes, inline primitive editables (title, author, image) plus sidebar-only fields (date, tags, category) give a good editing experience without the complexity.
+
 ## Source editables for hardcoded content
 
 Not all editable content lives in frontmatter or data files. Many templates have hardcoded text in `.astro` page templates -- hero headings, taglines, descriptions, CTA copy. These should still be visually editable using `EditableSource`.
@@ -738,6 +775,7 @@ Not everything benefits from visual editing. Guidelines:
 - Content body (`@content`)
 - CTA copy
 - Hardcoded text in page templates
+- Blog metadata visible on the page (author name, publish date)
 
 **MDX bodies and CloudCannon snippets:** Snippets in MDX do not render as their live-site output in the content editor or in the visual editor — editing page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon’s snippet UI (often a clickable box). Treat that as a preview limitation, not a reason to avoid visual editing for MDX.
 
@@ -953,7 +991,7 @@ Understanding the integration internals helps when debugging unexpected behavior
 
 An Astro integration that registers a Vite plugin for the client build. The plugin:
 
-1. Sets `ENV_CLIENT = true` for tree-shaking server-only code
+1. Sets `ENV_CLIENT = true` for tree-shaking server-only code. **Important:** this only applies to the editable-regions client bundle, not the normal production build. Code guarded with `import.meta.env.ENV_CLIENT` in `.astro` template expressions still runs normally (with `ENV_CLIENT` undefined/false) in the production SSR output. For initial-render concerns (like hiding animation classes), use `.cms-editor-active` CSS overrides instead
 2. Patches Astro's `astro:build` Vite plugin to force SSR transforms on client code -- this is what makes `renderToString()` work in the browser
 3. Adds `vite-plugin-editable-regions` which intercepts `astro:*` virtual module imports and resolves them to local shims:
    - `astro:content` -> client-side shim
@@ -985,7 +1023,20 @@ Many templates start elements hidden (`opacity: 0`, `transform: translateY(...)`
 - All content disappears after editing a field that triggers component re-render
 - Multiple blocks vanish when editing one block
 
-**Fix:** Disable reveal animations in the visual editor using `import.meta.env.ENV_CLIENT`. The simplest approach is to skip the hidden class entirely:
+**Fix (primary): CSS override using `.cms-editor-active`.** CloudCannon automatically adds the `.cms-editor-active` class to `<body>` when a page loads inside the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)). Override the hidden state in global CSS:
+
+```css
+/* Force reveal elements visible in the CloudCannon editor */
+.cms-editor-active .reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: none;
+}
+```
+
+This is the most reliable approach: pure CSS, no timing issues, works on initial page load and after component re-renders. Adapt the selector to match whatever class the template uses (`.reveal`, `.aos-animate`, `.animate-on-scroll`, etc.).
+
+**Fix (supplementary): `ENV_CLIENT` guard in component code.** For the editable-regions client bundle (component re-renders), you can also skip the hidden class at render time:
 
 ```astro
 <!-- WidgetWrapper.astro or equivalent -->
@@ -994,11 +1045,24 @@ Many templates start elements hidden (`opacity: 0`, `transform: translateY(...)`
 </div>
 ```
 
-If the reveal class is applied in multiple places (e.g. a form wrapper has its own `reveal` class), apply the same guard everywhere.
+`ENV_CLIENT` is only `true` in the editable-regions client bundle — it does NOT affect the initial production HTML. The CSS override above handles the initial render; this guard prevents the class from appearing in re-rendered component output.
 
-Alternative approaches (all equivalent):
-- In the animation JS, skip setup when `ENV_CLIENT` is true
-- In global CSS, add `.cc-editor .reveal { opacity: 1; transform: none; transition: none; }` and add a `cc-editor` class to `<body>` when in the editor
+**Inline `<script>` runtime checks.** For animation JS in inline `<script>` tags (e.g. `IntersectionObserver` setup), use `window.inEditorMode`:
+
+```javascript
+if (window.inEditorMode) {
+  document.querySelectorAll(".reveal").forEach((el) => el.classList.add("active"));
+  return;
+}
+```
+
+**Summary of detection mechanisms** ([CC docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
+
+| Mechanism | Context | Use for |
+|---|---|---|
+| `.cms-editor-active` on `<body>` | CSS | Overriding animation/visibility styles (primary fix) |
+| `window.inEditorMode` | Runtime JS | Inline `<script>` logic, conditional imports |
+| `import.meta.env.ENV_CLIENT` | Build-time (Vite) | Astro component template expressions, module scripts (only in editable-regions client bundle) |
 
 **Audit flag:** During the audit phase, flag any scroll-reveal or entrance animation patterns. Search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and common class names like `reveal`, `aos`, `animate-on-scroll`. Note the file(s) responsible so they can be patched in the visual editing phase.
 

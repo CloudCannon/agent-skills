@@ -100,4 +100,4 @@ Follow the project's existing conventions when present. Otherwise:
 
 - `kebab-case` for files
 - `camelCase` for JavaScript and JSON
-- `snake_case` for Markdown frontmatter and YAML
+- Markdown frontmatter and YAML: match the existing component prop names so frontmatter keys pass through without translation. When creating new fields with no existing convention, prefer `snake_case`.

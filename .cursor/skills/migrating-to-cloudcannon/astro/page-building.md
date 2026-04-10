@@ -209,4 +209,10 @@ Each array item combines two behaviours: `data-editable="array-item"` provides C
 
 Every widget component inside also needs nested text/image regions on editable fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` when the host is wrapper-only). See [visual-editing.md § Text editing](visual-editing.md#text-editing) and [§ Image editing](visual-editing.md#image-editing). Every `_type` value used in content files must have a matching `registerAstroComponent(_type, Component)` call in `registerComponents.ts`.
 
+### CSS class overrides between blocks
+
+Original templates often pass CSS class overrides to visually join adjacent blocks (e.g. `classes={{ container: "pt-0 md:pt-0" }}` to remove padding between a header block and the content below). These are layout concerns that can't be cleanly replicated through frontmatter — adding `classes` as a CMS field exposes implementation details to editors.
+
+Accept minor visual diffs (~3-5%) for adjacent block spacing rather than leaking CSS into content. If spacing is critical, handle it in the component with a prop like `compact: true` (boolean, editor-friendly) instead of raw class strings.
+
 For the full visual editing setup (three-layer pattern, nested editables, sub-arrays, component registration), see [visual-editing.md](visual-editing.md).

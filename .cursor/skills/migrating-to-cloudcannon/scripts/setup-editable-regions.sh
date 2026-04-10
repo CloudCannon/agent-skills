@@ -111,10 +111,14 @@ echo ""
 
 # --- Reminder ---
 echo "=== Next steps ==="
-echo "1. Import the registerComponents script from your base layout:"
+echo "1. Conditionally import registerComponents in your base layout:"
 echo ""
 echo '   <script>'
-echo '     import "@/cloudcannon/registerComponents";'
+echo '     if (window.inEditorMode) {'
+echo '       import("../cloudcannon/registerComponents").catch((error) => {'
+echo '         console.warn("Failed to load CloudCannon component registration:", error);'
+echo '       });'
+echo '     }'
 echo '   </script>'
 echo ""
 echo "2. Uncomment and add component registrations in $REGISTER_FILE"

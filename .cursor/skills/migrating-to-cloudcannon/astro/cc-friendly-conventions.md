@@ -20,7 +20,7 @@ Use Astro 5+. The CloudCannon editable regions integration (`@cloudcannon/editab
 
 ## Frontmatter
 
-- Use `snake_case` for all field names.
+- Match the casing the components already use. When building from scratch with no existing convention, prefer `snake_case`.
 - Include all fields explicitly in every file, even optional ones with defaults — CloudCannon editors see what's in the file, not Astro's runtime defaults.
 - Use consistent types per field across a collection (don't mix strings and objects for the same key).
 - Use ISO 8601 for dates (`2024-04-04T05:00:00Z`).
