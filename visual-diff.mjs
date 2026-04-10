@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { join, relative, extname } from 'node:path';
+import { existsSync, mkdirSync, rmSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { join, relative, resolve, extname } from 'node:path';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 
@@ -102,6 +102,8 @@ async function compare() {
 		process.exit(1);
 	}
 
+	rmSync(compareDir, { recursive: true, force: true });
+	rmSync(diffsDir, { recursive: true, force: true });
 	mkdirSync(compareDir, { recursive: true });
 	mkdirSync(diffsDir, { recursive: true });
 
@@ -202,16 +204,23 @@ function discoverRoutes(distDir) {
 
 function routePattern(route) {
 	const segs = route.split('/').filter(Boolean);
-	if (segs.length <= 1) return route;
-	return '/' + segs[0] + '/*';
+	if (segs.length <= 2) return route;
+	return '/' + segs.slice(0, 2).join('/') + '/*';
 }
 
 // --- Static file server ---
 
 async function serve(dir) {
+	const absDir = resolve(dir);
 	const server = createServer(async (req, res) => {
-		let urlPath = new URL(req.url, 'http://localhost').pathname;
-		let filePath = join(dir, urlPath);
+		const urlPath = new URL(req.url, 'http://localhost').pathname;
+		let filePath = resolve(dir, '.' + urlPath);
+
+		if (!filePath.startsWith(absDir)) {
+			res.writeHead(403);
+			res.end();
+			return;
+		}
 
 		if (!extname(filePath)) {
 			if (existsSync(join(filePath, 'index.html'))) {
@@ -255,8 +264,8 @@ async function screenshotAll(routes, baseUrl, outDir) {
 		});
 
 		for (const route of routes) {
-			await page.goto(baseUrl + route, { waitUntil: 'networkidle' });
-			await page.waitForTimeout(1000);
+			await page.goto(baseUrl + route, { waitUntil: 'networkidle', timeout: 10000 });
+			await page.waitForTimeout(500);
 
 			const name = toFilename(route, vpName);
 			await page.screenshot({ path: join(outDir, name), fullPage: true });
@@ -274,7 +283,7 @@ async function screenshotAll(routes, baseUrl, outDir) {
 function padToSize(img, targetW, targetH) {
 	if (img.width === targetW && img.height === targetH) return img;
 
-	const data = Buffer.alloc(targetW * targetH * 4, 255);
+	const data = Buffer.alloc(targetW * targetH * 4, 0);
 	for (let y = 0; y < img.height; y++) {
 		const srcOff = y * img.width * 4;
 		const dstOff = y * targetW * 4;
