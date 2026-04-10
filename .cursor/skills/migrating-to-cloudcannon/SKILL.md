@@ -18,6 +18,12 @@ This skill walks through migrating an existing SSG site so it works well with Cl
 |---|---|
 | Astro | [astro/overview.md](astro/overview.md) |
 
+## Chaining with upstream skills
+
+If the Astro site is being **generated** as part of this task (e.g. converting from WordPress or another platform), read [astro/cc-friendly-conventions.md](astro/cc-friendly-conventions.md) before scaffolding. It summarizes the structural choices that make the CloudCannon migration smooth — output mode, content collection layout, image handling, component framework, and page structure. Following those conventions upfront avoids refactoring work in the migration phases.
+
+Once the site is scaffolded, return here and run the migration phases as normal.
+
 ## Step 1: Detect the SSG
 
 Before starting, identify the SSG. Run from the project root:
