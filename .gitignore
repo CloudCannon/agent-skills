@@ -2,5 +2,4 @@ node_modules
 DS_Store
 .env
 .pnpm-store
-templates/astroplate2
 .visual-diff
