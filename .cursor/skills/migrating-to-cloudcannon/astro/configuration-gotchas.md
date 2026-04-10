@@ -220,6 +220,18 @@ For heading-level fields (title, subtitle), intentionally omit block-level optio
 
 The first item in `_enabled_editors` is the editor that opens by default when a user clicks a file. `[data, visual]` opens the data editor; `[visual, data]` opens the visual editor. Page builder collections should almost always have `visual` first. See [configuration.md § _enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).
 
+## Data references require three connected pieces
+
+Exposing a data file (icons, site settings, etc.) to editors requires three things, and missing any one silently breaks:
+
+1. **The file** — e.g. `src/data/icons.json`
+2. **`data_config` entry** — registers it as a data set CC can read: `icons: { path: src/data/icons.json }`
+3. **Consumer** — either an `_inputs` reference (`values: data.icons`) or a `collections_config` entry so editors can browse/edit it
+
+If the data file should appear in the sidebar, it also needs a `collections_config` entry for its parent directory AND a matching `collection_groups` reference. That's potentially four pieces that must all agree.
+
+**Common miss pattern:** Creating the file and the input reference but forgetting the `data_config` entry. Or defining `data_config` and `collection_groups` but no `collections_config` entry.
+
 ## `collection_groups` requires matching `collections_config` entries
 
 `collection_groups` only organizes collections that are already defined in `collections_config` -- it does not create them. If you reference a collection name in `collection_groups` that has no `collections_config` entry, it silently does nothing. A common case: data files handled via `data_config` still need to belong to a collection configured in `collections_config` if you want them to appear as a browsable group in the sidebar. Group related data files into the same collection where it makes sense.
@@ -288,6 +300,8 @@ Options, in order of preference:
 1. **Leave as-is** — document as developer-only. Best for small blogs where the config rarely changes.
 2. **Convert to JSON** — extract the config into a `.json` file, import it in TypeScript, configure as `data_config` in CC.
 3. **Hybrid** — move frequently-edited fields to JSON while keeping developer-only settings in TypeScript.
+
+**Imported assets in TypeScript config:** When the config imports images (e.g. `import ogImage from "@/assets/og-image.png"`), these can't be expressed in JSON. Copy the image to `public/` and reference it as a static path string (e.g. `"/og-image.png"`). Components that consume the value (like `Seo.astro`) typically already handle both `ImageMetadata` objects and string paths via `typeof image === "string"` branching. Keep the TypeScript file as a thin re-export wrapper: `import data from "@/data/site-settings.json"; export const siteConfig = data;` — this preserves all existing import paths while making the data CC-editable.
 
 ## Pages collection: including `.astro` pages
 

@@ -1,5 +1,7 @@
 # Configuration (Astro)
 
+> **Checklist discipline:** This doc ends with a [Verification checklist](#verification-checklist). Read it now so you know what to aim for, then work through every item before marking this phase complete.
+
 Guidance for creating and configuring `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json` for an Astro site.
 
 ## Baseline generation with Gadget
@@ -9,6 +11,8 @@ Use the Gadget CLI to generate a baseline configuration. Run subcommands individ
 ```bash
 npx @cloudcannon/gadget generate --auto --init-settings --ssg astro
 ```
+
+**When Gadget is unavailable** (sandbox network restrictions, version incompatibility, etc.), write the config manually using the audit findings. Follow the same review and customization checklists below — Gadget is a time-saver, not a prerequisite.
 
 ## Review the generated config
 

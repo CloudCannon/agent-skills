@@ -46,6 +46,8 @@ Each SSG guide walks through these phases in order with SSG-specific instruction
 
 Not every site needs all phases. Small sites may skip Phase 3 if content is already well-structured. Visual editing (Phase 4) is optional but high-value.
 
+**Read the phase checklist BEFORE and AFTER each phase.** Every phase doc ends with a verification checklist. Read it before starting the phase so you know what to aim for, then work through every item before marking the phase complete. This is the single most important discipline in the migration — the checklists catch things you will otherwise miss. Common misses that checklists prevent: data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page builder blocks, arrays not linked to structures.
+
 **Phases are sequential, not siloed.** When a later-phase concern (e.g. a missing frontmatter field) blocks the current phase from producing the right result, make the targeted fix now rather than settling for a worse outcome. A human migrating a site wouldn't leave a broken URL pattern just because "content changes belong in Phase 3." Small, mechanical fixes (adding a missing field, normalizing a value) are fine in any phase. Structural changes (moving files, reorganizing collections, altering rendering) should still wait for their proper phase. Agents should feel free to modify files outside their current phase when needed — e.g. updating CC config during the visual-editing phase, or fixing content during configuration. The phases exist to organize the work, not to restrict when changes can be made.
 
 ## Scripts

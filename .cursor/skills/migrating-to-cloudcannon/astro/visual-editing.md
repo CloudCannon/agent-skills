@@ -1,5 +1,7 @@
 # Visual Editing (Astro)
 
+> **Checklist discipline:** This doc ends with a [Verification checklist](#verification-checklist). Read it now so you know what to aim for, then work through every item before marking this phase complete. Common misses: blog/detail page editables skipped while focusing on page builder blocks, sub-arrays inside widgets missing editable attributes.
+
 Guidance for adding CloudCannon Visual Editor support to an Astro site using `@cloudcannon/editable-regions`. For the full editable regions reference (region types, path syntax, API actions), see [../editable-regions.md](../editable-regions.md).
 
 ## Setup steps

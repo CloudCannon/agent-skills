@@ -1,5 +1,7 @@
 # Content (Astro)
 
+> **Checklist discipline:** This doc ends with a [Review checklist addendum](#review-checklist-addendum). Work through the review checklist items as you go, then verify the addendum before marking this phase complete.
+
 Guidance for reviewing and restructuring content files to be CMS-friendly in an Astro site. Run this phase after the audit and before (or alongside) configuration.
 
 ## When to skip this phase
