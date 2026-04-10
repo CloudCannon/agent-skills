@@ -407,7 +407,7 @@ After generating and customizing the config, work through these checks before mo
 - [ ] `node_version` is set in initial-site-settings.json: `"file"` when `.nvmrc` or `.node-version` exists, or the major version from `package.json` `engines.node` if present
 - [ ] `collections_config` has entries for every collection from the audit
 - [ ] No defunct pre-unified keys remain: `output: true` on collections (remove — `url` implies output), `singular_key`, `parser`, `collections_config_override`
-- [ ] No non-content directories leaked into `collections_config` (e.g. `lib`, `source`, `migration`)
+- [ ] No non-content directories leaked into `collections_config` (e.g. `lib`, `source`)
 - [ ] No collections contain only a single file -- consolidate or group as needed
 - [ ] `collection_groups` organise collections into logical sidebar groups
 - [ ] `_inputs` is configured for common field types (images, dates, dropdowns, hidden fields)

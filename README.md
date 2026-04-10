@@ -77,7 +77,6 @@ The short version: `SKILL.md` detects the SSG and routes to `astro/overview.md`,
 ### Prerequisites
 
 - [Cursor](https://cursor.com) IDE with agent mode
-- [Fog Machine](https://github.com/CloudCannon/fog-machine) for testing CloudCannon locally (human-operated, not for agents)
 
 ### Working on a template
 

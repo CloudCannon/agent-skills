@@ -48,7 +48,7 @@ Deterministic migration steps are automated as scripts in [scripts/](scripts/). 
 
 ## Migration notes
 
-Store per-phase migration notes alongside the project (e.g. in a `migration/` directory), with one file per phase (`audit.md`, `content.md`, `configuration.md`, `visual-editing.md`, `build.md`). Phase docs in SSG-specific directories contain only generic guidance -- project-specific findings go in the project's migration notes.
+Create a `migration/` directory at the project root with one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`). Use these to document decisions, findings, and anything the user should review. The agent writes to them as work progresses; the user can read them to understand what changed and why.
 
 ## Handoff and verification
 

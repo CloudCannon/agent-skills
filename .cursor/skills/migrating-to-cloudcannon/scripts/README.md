@@ -35,10 +35,3 @@ bash setup-editable-regions.sh /path/to/project
 ```
 
 Tries a normal `npm install` first; falls back to `--legacy-peer-deps` only if peer dependency conflicts occur. After running, the agent still needs to import the registerComponents script from the base layout and add editable region attributes to templates.
-
-## Future candidates
-
-Scripts to consider building as patterns stabilize across more migrations:
-
-- **MDX component inventory** — extend `audit-astro.sh` (or create a standalone script) to find `.mdx` content files, extract component tag names (`<[A-Z]` patterns), check the auto-import config in `astro.config.mjs`, locate source files, and extract TypeScript prop interfaces. This would feed directly into snippet configuration (see `astro/snippets.md`). Detailed prop analysis is currently better handled by the agent since TypeScript interfaces vary widely.
-- **Snippet config generator** — given a component inventory (name, props, self-closing vs paired, `client:load`), generate baseline `_snippets` YAML. Premature until we've done enough migrations to stabilize the patterns (template-based vs raw, format options, input types).
