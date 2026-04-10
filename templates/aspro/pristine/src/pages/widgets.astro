@@ -1,0 +1,231 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Hero from "@/components/widgets/Hero.astro";
+import Features from "@/components/widgets/Features.astro";
+import Content from "@/components/widgets/Content.astro";
+import Content2 from "@/components/widgets/Content2.astro";
+import ServiceList from "@/components/widgets/ServiceList.astro";
+import Values from "@/components/widgets/Values.astro";
+import aboutImage from "@/assets/images/about-office.webp";
+
+const heroProps = {
+  title: "Lorem Ipsum Dolor Sit Amet",
+  tagline: "Hero",
+  description:
+    "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+  actions: [
+    {
+      text: "Get Started",
+      href: "https://github.com/devgelo-labs/astro-starter-pro",
+      variant: "primary",
+      icon: "lucide:github",
+    },
+    {
+      text: "View Details",
+      href: "#",
+      variant: "secondary",
+      icon: "lucide:arrow-right",
+    },
+  ],
+};
+
+const featuresProps = {
+  title: "Quis Nostrud Exercitation",
+  subtitle: "Ullamco laboris nisi ut aliquip ex ea commodo",
+  tagline: "Features",
+  features: [
+    {
+      title: "Lorem Ipsum",
+      description: "Dolor sit amet, consectetur adipiscing elit.",
+      icon: "lucide:box",
+    },
+    {
+      title: "Sed Do Eiusmod",
+      description: "Tempor incididunt ut labore et dolore magna aliqua.",
+      icon: "lucide:check",
+    },
+    {
+      title: "Ut Enim Ad",
+      description: "Minim veniam, quis nostrud exercitation ullamco.",
+      icon: "lucide:eye",
+    },
+  ],
+};
+
+const contentProps = {
+  title: "Duis Aute Irure Dolor",
+  description: [
+    "In reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
+  ],
+  tagline: "Content",
+  image: aboutImage,
+  imageAlt: "Placeholder image",
+  isReversed: false,
+  actions: [
+    {
+      text: "Call to Action",
+      href: "#",
+      variant: "primary",
+      icon: "lucide:github",
+    },
+    {
+      text: "View details",
+      href: "#",
+      variant: "secondary",
+      icon: "lucide:arrow-right",
+    },
+  ],
+};
+
+const content2Props = {
+  title: "Duis Aute Irure Dolor",
+  description: [
+    "In reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
+  ],
+  tagline: "Content2",
+  image: aboutImage,
+  imageAlt: "Placeholder image",
+  isReversed: false,
+  actions: [
+    {
+      text: "Call to Action",
+      href: "#",
+      variant: "primary",
+      icon: "lucide:github",
+    },
+    {
+      text: "View details",
+      href: "#",
+      variant: "secondary",
+      icon: "lucide:arrow-right",
+    },
+  ],
+};
+
+const content2InvertedProps = {
+  items: [
+    {
+      title: "Open Source",
+      description:
+        "Developed under the MIT license, free for personal and commercial use.",
+      icon: "lucide:github",
+      iconClass: "bg-indigo-500/10 text-indigo-400",
+    },
+    {
+      title: "Community Driven",
+      description:
+        "Built with the feedback and contributions of the developer community.",
+      icon: "lucide:users",
+      iconClass: "bg-orange-500/10 text-orange-400",
+    },
+    {
+      title: "Regular Updates",
+      description:
+        "Continuously improved with the latest technologies and best practices.",
+      icon: "lucide:refresh-cw",
+      iconClass: "bg-teal-500/10 text-teal-400",
+    },
+  ],
+  image: aboutImage,
+  imageAlt: "Community and Open Source",
+  isReversed: true,
+  actions: [
+    {
+      text: "Call to Action",
+      href: "#",
+      variant: "primary",
+      icon: "lucide:github",
+    },
+    {
+      text: "View details",
+      href: "#",
+      variant: "secondary",
+      icon: "lucide:arrow-right",
+    },
+  ],
+  title: "Open Source",
+  subtitle:
+    "Built with the feedback and contributions of the developer community.",
+  tagline: "Content2",
+};
+
+const serviceListProps = {
+  services: [
+    {
+      title: "Voluptatem Accusantium",
+      description: "Doloremque laudantium, totam rem aperiam.",
+      icon: "lucide:rocket",
+    },
+    {
+      title: "Ipsa Quae Ab",
+      description: "Illo inventore veritatis et quasi architecto.",
+      icon: "lucide:lightbulb",
+    },
+    {
+      title: "Beatae Vitae Dicta",
+      description: "Sunt explicabo. Nemo enim ipsam voluptatem.",
+      icon: "lucide:wrench",
+    },
+  ],
+  title: "Services that will help you achieve your goals",
+  subtitle: "What we offer",
+  tagline: "Services",
+};
+
+const valuesProps = {
+  items: [
+    {
+      title: "Corporate",
+      description:
+        "Curabitur dignissim, felis non sollicitudin molestie, urna mauris pellentesque velit, ut eleifend.",
+    },
+    {
+      title: "Creative",
+      description:
+        "Aenean condimentum finibus mauris, a fermentum justo pan eget. Sed ultricies, neque quis.",
+    },
+    {
+      title: "Startups",
+      description:
+        "Donec sed orci tincidunt, aliquam nisl a, condimentum nunc. Nulla varius ex nec ante feugiat.",
+    },
+    {
+      title: "SaaS",
+      description:
+        "Phasellus tristique, elit dapibus cursus facilisis, lorem augue fringilla nunc, vitae fermentum.",
+    },
+    {
+      title: "Education",
+      description:
+        "In hac habitasse platea dictumst. Vivamus adipiscing fermentum quam volutpat aliquam. Integer et.",
+    },
+    {
+      title: "Real Estate",
+      description:
+        "Fusce at massa nec sapien auctor gravida in in tellus. Vivamus a tristique metus, et molestie.",
+    },
+  ],
+  columns: 3 as const,
+  tagline: "Values",
+  title: "What defines us",
+  subtitle: "Principles that guide our daily work",
+};
+
+const metadata = {
+  title: "Widgets - Astro Starter Pro",
+  description: "Showcase of available components and widgets.",
+  ignoreTitleTemplate: true,
+};
+---
+
+<BaseLayout {metadata}>
+  <Hero {...heroProps} />
+  <Features {...featuresProps} />
+  <Content {...contentProps} />
+  <Content2 {...content2Props} />
+  <Content2 {...content2InvertedProps} />
+  <ServiceList {...serviceListProps} />
+  <Values {...valuesProps} />
+</BaseLayout>
