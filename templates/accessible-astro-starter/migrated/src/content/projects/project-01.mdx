@@ -9,6 +9,10 @@ tags: ['Accessibility', 'Smart-Home', 'IoT']
 
 Our team developed an inclusive smart home solution that makes home automation accessible to everyone, with a special focus on users with visual impairments. The system uses advanced speech recognition and natural language processing to provide intuitive voice control, while incorporating haptic feedback for tactile confirmation of actions.
 
+import BlockQuote from '@components/BlockQuote.astro'
+import BreakoutImage from '@components/BreakoutImage.astro'
+import { Image } from 'astro:assets'
+
 <BreakoutImage src="/projects/project-image-1.png" decorative={true} />
 
 ## Technical Challenges
@@ -17,7 +21,36 @@ One of the biggest challenges was creating a reliable voice recognition system t
 
 ## Project Gallery
 
-<ImageGallery src1="/projects/project-image-1.png" alt1="Smart home assistant interface showing voice command visualization" src2="/projects/project-image-2.png" alt2="User interacting with the smart home system via voice commands" src3="/projects/project-image-3.png" alt3="Haptic feedback device component of the smart home system" src4="/projects/project-image-4.png" alt4="Dashboard showing analytics of voice command usage patterns" />
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+  <Image
+    src="/projects/project-image-1.png"
+    alt="Smart home assistant interface showing voice command visualization"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+  <Image
+    src="/projects/project-image-2.png"
+    alt="User interacting with the smart home system via voice commands"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+  <Image
+    src="/projects/project-image-3.png"
+    alt="Haptic feedback device component of the smart home system"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+  <Image
+    src="/projects/project-image-4.png"
+    alt="Dashboard showing analytics of voice command usage patterns"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+</div>
 
 ## Testimonial
 

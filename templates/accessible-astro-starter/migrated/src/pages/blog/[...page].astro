@@ -2,10 +2,12 @@
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import PageHeader from '@components/PageHeader.astro'
 import { Card, Pagination } from 'accessible-astro-components'
-import { getCollection } from 'astro:content'
-import type { GetStaticPaths, Page } from 'astro'
-import type { CollectionEntry } from 'astro:content'
+import type { PaginateFunction, Page } from 'astro'
+import { BLOG_API_URL } from 'astro:env/server'
+import type { ImageMetadata } from 'astro'
+import { slugify } from '@utils/slugify'
 
+// Import images directly for optimization
 import postImage1 from '@assets/images/posts/post-image-1.png'
 import postImage2 from '@assets/images/posts/post-image-2.png'
 import postImage3 from '@assets/images/posts/post-image-3.png'
@@ -13,33 +15,72 @@ import postImage4 from '@assets/images/posts/post-image-4.png'
 import postImage5 from '@assets/images/posts/post-image-5.png'
 import postImage6 from '@assets/images/posts/post-image-6.png'
 
-const postImages = [postImage1, postImage2, postImage3, postImage4, postImage5, postImage6]
-
-export const getStaticPaths = (async ({ paginate }) => {
-  const posts = await getCollection('blog', ({ data }) => !data.draft)
-  const sorted = posts.sort((a, b) => {
-    const dateA = a.data.date ? new Date(a.data.date).getTime() : 0
-    const dateB = b.data.date ? new Date(b.data.date).getTime() : 0
-    return dateB - dateA
-  })
-
-  return paginate(sorted, { pageSize: 6 })
-}) satisfies GetStaticPaths
-
-interface Props {
-  page: Page<CollectionEntry<'blog'>>
+interface ApiPost {
+  id: number
+  userId: number
+  title: string
+  body: string
 }
 
-const { page } = Astro.props
+interface Post extends ApiPost {
+  featuredImage: ImageMetadata
+  shortUrl: string
+}
+
+export async function getStaticPaths({ paginate }: { paginate: PaginateFunction }) {
+  if (!BLOG_API_URL) {
+    console.warn('BLOG_API_URL not set; skipping blog generation.')
+    return []
+  }
+  let data: ApiPost[] = []
+  try {
+    const response = await fetch(BLOG_API_URL)
+    if (!response.ok) {
+      console.warn(`BLOG_API_URL returned ${response.status}`)
+      return []
+    }
+    data = (await response.json()) as ApiPost[]
+  } catch (error) {
+    console.warn('Failed to fetch blog posts', error)
+    return []
+  }
+
+  const postImages = [postImage1, postImage2, postImage3, postImage4, postImage5, postImage6]
+
+  function truncateTitle(title: string) {
+    const words = title.split(' ')
+    const truncated = words.slice(0, 4).join(' ')
+    return truncated
+  }
+
+  // Limit to the first 30 posts for demo purposes
+  const postsWithImages = data.slice(0, 30).map((post) => {
+    const truncatedTitle = truncateTitle(post.title)
+    return {
+      ...post,
+      featuredImage: postImages[post.id % postImages.length],
+      title: truncatedTitle,
+      shortUrl: slugify(truncatedTitle),
+    }
+  })
+
+  return paginate(postsWithImages, { pageSize: 6 })
+}
+
+interface Props {
+  page: Page<Post>
+}
+
+const { page } = Astro.props as Props
 ---
 
 <DefaultLayout
   title="Blog"
-  description="Insights and articles about web accessibility, WCAG compliance, and inclusive design."
+  description="An example of a blog with dynamic content fetched from JSONPlaceholder using the title, body and userId."
 >
   <PageHeader
     title="Blog"
-    subtitle="Insights and articles about web accessibility, WCAG compliance, and inclusive design."
+    subtitle='An example of a blog with dynamic content fetched from <a href="https://jsonplaceholder.typicode.com/posts">JSONPlaceholder</a> using the title, body and userId. The Accessible Astro Card Component is used here to display al the posts.'
     bgType="bordered"
   />
 
@@ -48,17 +89,17 @@ const { page } = Astro.props
       <p class="text-sm"><em>Post {page.start + 1} through {page.end + 1} of {page.total} total posts</em></p>
       <ul class="my-3 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {
-          page.data.map((post, index) => (
+          page.data.map((post) => (
             <li>
               <Card
-                imageComponent={postImages[index % postImages.length]}
-                url={'/blog/' + post.id}
-                title={post.data.title}
+                imageComponent={post.featuredImage}
+                url={'/blog/' + post.shortUrl}
+                title={post.title}
                 headingLevel="h2"
-                footer={post.data.author ? 'By ' + post.data.author : undefined}
+                footer={'userId:' + post.userId}
                 fullHeight={true}
               >
-                {post.data.description}
+                {post.body}
               </Card>
             </li>
           ))

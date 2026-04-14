@@ -61,11 +61,9 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.0",
-    "@cloudcannon/editable-regions": "^0.0.12",
     "@tailwindcss/vite": "^4.2.1",
     "accessible-astro-components": "^5.2.0",
     "accessible-astro-launcher": "^2.0.0",
-    "astro-auto-import": "^0.5.1",
     "astro-seo": "^1.1.0"
   }
 }

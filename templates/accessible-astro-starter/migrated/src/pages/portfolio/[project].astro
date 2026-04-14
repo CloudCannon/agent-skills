@@ -5,7 +5,6 @@ import SocialShares from '@components/SocialShares.astro'
 import { Heading } from 'accessible-astro-components'
 import { getCollection, render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
-import { getTeamMember } from '@utils/team'
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects')
@@ -39,10 +38,11 @@ interface Props {
 const { project } = Astro.props
 const { Content } = await render(project)
 
-const teamMember = getTeamMember(project.data.author)
-const author = teamMember
-  ? { name: teamMember.name, image: teamMember.image ?? '/projects/project-image-1.png', bio: teamMember.bio ?? teamMember.role }
-  : { name: project.data.author, image: '/projects/project-image-1.png', bio: 'Project Creator' }
+const author = {
+  name: project.data.author,
+  image: '/projects/project-image-1.png',
+  bio: 'Project Creator',
+}
 ---
 
 <DefaultLayout title={project.data.title} description={project.data.description} url={`/portfolio/${project.id}`}>
@@ -52,11 +52,9 @@ const author = teamMember
     author={author}
     bgType="bordered"
     featuredImage={project.featuredImage}
-    titleProp="title"
-    subtitleProp="description"
   />
   <section class="my-12">
-    <div class="narrow space-content container" data-editable="text" data-type="block" data-prop="@content">
+    <div class="narrow space-content container">
       <Content />
     </div>
   </section>

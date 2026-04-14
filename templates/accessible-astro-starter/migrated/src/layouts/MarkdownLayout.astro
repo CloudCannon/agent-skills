@@ -17,7 +17,7 @@ const pageHeader = frontmatter.pageHeader
 >
   {pageHeader && <PageHeader title={pageHeader.title} subtitle={pageHeader.subtitle} bgType={pageHeader.bgType} />}
   <div class={containerClass}>
-    <div class="space-content my-12" data-editable="text" data-type="block" data-prop="@content">
+    <div class="space-content my-12">
       <slot />
     </div>
   </div>

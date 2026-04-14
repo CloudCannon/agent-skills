@@ -2,21 +2,31 @@
 import { Heading } from 'accessible-astro-components'
 import { Icon } from 'astro-icon/components'
 
+/**
+ * Feature Component
+ *
+ * @description A component that displays a feature with an icon, title, and description
+ */
 interface Props {
-  icon?: string
-  title?: string
-  description?: string
+  /**
+   * The icon to display
+   */
+  icon: string
+  /**
+   * The title to display
+   */
+  title: string
 }
 
-const { icon = 'mdi:rocket', title = 'Title', description }: Props = Astro.props
+const { icon = 'mdi:rocket', title = 'Title' }: Props = Astro.props
 ---
 
 <div class="feature flex flex-col gap-4">
   <Icon aria-hidden="true" name={icon} />
   <div class="content">
-    <Heading level="h3" size="h6" class="mb-2"><span data-editable="text" data-prop="title">{title}</span></Heading>
-    <p data-editable="text" data-prop="description">
-      {description ?? <slot>Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic, corporis.</slot>}
+    <Heading level="h3" size="h6" class="mb-2">{title}</Heading>
+    <p>
+      <slot>Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic, corporis.</slot>
     </p>
   </div>
 </div>

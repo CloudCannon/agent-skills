@@ -8,7 +8,9 @@ import {
 } from 'accessible-astro-launcher'
 import { Icon } from 'astro-icon/components'
 import { getCollection } from 'astro:content'
+import { BLOG_API_URL } from 'astro:env/server'
 import themeConfig from '@theme-config'
+import { slugify } from '@utils/slugify'
 
 /**
  * Launcher preferences for accessibility and theme.
@@ -29,10 +31,54 @@ const launcherPreferenceItems = [
   },
 ]
 
-const launcherBlogItems = (await getCollection('blog', ({ data }) => !data.draft)).map((post) => ({
-  label: post.data.title,
-  href: `/blog/${post.id}`,
-}))
+/**
+ * Maximum number of blog posts to show in the launcher.
+ * @type {number}
+ */
+const maxLauncherBlogPosts = 30
+
+/**
+ * Truncate blog post title to the first four words.
+ * Used for generating short labels/URLs for launcher items.
+ *
+ * @param {string} title
+ * @returns {string}
+ */
+const truncateBlogTitle = (title: string): string => {
+  return title.split(' ').slice(0, 4).join(' ')
+}
+
+/**
+ * Blog items for the launcher, fetched from `BLOG_API_URL`.
+ * Shows up to `maxLauncherBlogPosts` items.
+ *
+ * @type {Array<{ label: string, href: string }>}
+ */
+const launcherBlogItems = await (async () => {
+  if (!BLOG_API_URL) return []
+
+  try {
+    const response = await fetch(BLOG_API_URL)
+    if (!response.ok) {
+      console.warn(`Failed to fetch blog posts: ${response.status} ${response.statusText}`)
+      return []
+    }
+
+    const data = (await response.json()) as Array<{ title: string }>
+
+    return data.slice(0, maxLauncherBlogPosts).map((post) => {
+      const truncatedTitle = truncateBlogTitle(post.title)
+      const shortUrl = slugify(truncatedTitle)
+
+      return {
+        label: truncatedTitle,
+        href: `/blog/${shortUrl}`,
+      }
+    })
+  } catch {
+    return []
+  }
+})()
 
 /**
  * Project items for the launcher, sourced from the 'projects' collection.

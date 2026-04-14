@@ -54,18 +54,6 @@ interface Props {
    * Whether to join the last breadcrumb
    */
   joinLastBreadcrumb?: boolean
-  /**
-   * Frontmatter key for the title (enables visual editing)
-   */
-  titleProp?: string
-  /**
-   * Frontmatter key for the subtitle (enables visual editing)
-   */
-  subtitleProp?: string
-  /**
-   * Frontmatter key for the featured image (enables visual editing)
-   */
-  imageProp?: string
 }
 
 const {
@@ -78,9 +66,6 @@ const {
   author,
   customBreadcrumbLabels,
   joinLastBreadcrumb = false,
-  titleProp,
-  subtitleProp,
-  imageProp,
 } = Astro.props
 
 // Helper function to format segment names
@@ -150,7 +135,7 @@ const sanitizedSubtitle: string = subtitle
     <div class="space-content container">
       {
         featuredImage && (
-          <div class="featured-image-container mb-8" {...(imageProp ? { 'data-editable': 'image', 'data-prop-src': imageProp } : {})}>
+          <div class="featured-image-container mb-8">
             <Image
               src={featuredImage}
               alt=""
@@ -161,12 +146,8 @@ const sanitizedSubtitle: string = subtitle
           </div>
         )
       }
-      <Heading level="h1">{titleProp ? <span data-editable="text" data-prop={titleProp}>{title}</span> : title}</Heading>
-      {sanitizedSubtitle && (
-        subtitleProp
-          ? <p class="text-2xl" data-editable="text" data-prop={subtitleProp} set:html={sanitizedSubtitle} />
-          : <p class="text-2xl" set:html={sanitizedSubtitle} />
-      )}
+      <Heading level="h1">{title}</Heading>
+      {sanitizedSubtitle && <p class="text-2xl" set:html={sanitizedSubtitle} />}
       {
         author && (
           <div class="mt-6 flex items-center">

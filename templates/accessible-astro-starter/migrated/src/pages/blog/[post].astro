@@ -2,62 +2,172 @@
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import PageHeader from '@components/PageHeader.astro'
 import SocialShares from '@components/SocialShares.astro'
+import BreakoutImage from '@components/BreakoutImage.astro'
 import { Heading } from 'accessible-astro-components'
-import { getCollection, render } from 'astro:content'
-import type { CollectionEntry } from 'astro:content'
-import { getTeamMember } from '@utils/team'
+import { Image } from 'astro:assets'
+import { BLOG_API_URL } from 'astro:env/server'
+import { slugify } from '@utils/slugify'
 
-export async function getStaticPaths() {
-  const posts = await getCollection('blog')
-
-  const postImages = [
-    '/posts/post-image-1.png',
-    '/posts/post-image-2.png',
-    '/posts/post-image-3.png',
-    '/posts/post-image-4.png',
-    '/posts/post-image-5.png',
-    '/posts/post-image-6.png',
-  ]
-
-  return posts.map((post, index) => ({
-    params: { post: post.id },
-    props: {
-      post,
-      featuredImage: postImages[index % postImages.length],
-    },
-  }))
+interface ApiPost {
+  id: number
+  userId: number
+  title: string
+  body: string
 }
 
 interface Props {
-  post: CollectionEntry<'blog'>
-  featuredImage: string
+  post: ApiPost & {
+    featuredImage: string
+  }
 }
 
-const { post, featuredImage } = Astro.props
-const { Content } = await render(post)
+export async function getStaticPaths() {
+  if (!BLOG_API_URL) {
+    console.warn('BLOG_API_URL not set; skipping blog generation.')
+    return []
+  }
+  let data: ApiPost[] = []
+  try {
+    const response = await fetch(BLOG_API_URL)
+    if (!response.ok) {
+      console.warn(`BLOG_API_URL returned ${response.status}`)
+      return []
+    }
+    data = (await response.json()) as ApiPost[]
+  } catch (error) {
+    console.warn('Failed to fetch blog posts', error)
+    return []
+  }
 
-const teamMember = post.data.author ? getTeamMember(post.data.author) : undefined
-const author = teamMember
-  ? { name: teamMember.name, image: teamMember.image ?? '/posts/post-image-1.png', bio: teamMember.bio ?? teamMember.role }
-  : post.data.author
-    ? { name: post.data.author, image: '/posts/post-image-1.png', bio: 'Author' }
-    : undefined
+  const postImages = [
+    { src: '/posts/post-image-1.png' },
+    { src: '/posts/post-image-2.png' },
+    { src: '/posts/post-image-3.png' },
+    { src: '/posts/post-image-4.png' },
+    { src: '/posts/post-image-5.png' },
+    { src: '/posts/post-image-6.png' },
+  ]
+
+  function truncateTitle(title: string) {
+    const words = title.split(' ')
+    const truncated = words.slice(0, 4).join(' ')
+    return {
+      full: title,
+      truncated: truncated,
+    }
+  }
+
+  return data.map((post) => {
+    const titleObj = truncateTitle(post.title)
+
+    const postWithImage = {
+      ...post,
+      featuredImage: postImages[post.id % postImages.length].src,
+      title: titleObj.truncated,
+    }
+
+    return {
+      params: { post: slugify(titleObj.truncated) },
+      props: { post: postWithImage },
+    }
+  })
+}
+
+const { post } = Astro.props as Props
+const postSlug = Astro.params.post ?? slugify(post.title)
+const canonicalUrl = new URL(`/blog/${postSlug}`, Astro.site ?? Astro.url).href
+const author = {
+  name: 'A11Y Person',
+  image: '/posts/post-image-1.png',
+  bio: 'Pasionate accessibility advocate',
+}
 ---
 
-<DefaultLayout title={post.data.title} description={post.data.description ?? ''} url={`/blog/${post.id}`}>
+<DefaultLayout title={post.title} description={post.body} url={canonicalUrl}>
   <PageHeader
-    title={post.data.title}
-    subtitle={post.data.description}
+    title={post.title}
+    subtitle={post.body}
     author={author}
     bgType="bordered"
-    featuredImage={post.data.image ?? featuredImage}
-    imageProp="image"
-    titleProp="title"
-    subtitleProp="description"
+    featuredImage={post.featuredImage}
   />
   <section class="my-12">
-    <div class="narrow space-content container" data-editable="text" data-type="block" data-prop="@content">
-      <Content />
+    <div class="narrow container">
+      <p class="text-2xl">{post.body}</p>
+    </div>
+  </section>
+  <section class="my-12">
+    <div class="narrow space-content container">
+      <Heading level="h2">Demo content</Heading>
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur
+        adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
+      </p>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Image
+          src="/posts/post-image-1.png"
+          alt=""
+          width={1200}
+          height={600}
+          class="h-[250px] w-full rounded-lg object-cover"
+        />
+        <Image
+          src="/posts/post-image-2.png"
+          alt=""
+          width={1200}
+          height={600}
+          class="h-[250px] w-full rounded-lg object-cover"
+        />
+        <Image
+          src="/posts/post-image-3.png"
+          alt=""
+          width={1200}
+          height={600}
+          class="h-[250px] w-full rounded-lg object-cover"
+        />
+        <Image
+          src="/posts/post-image-4.png"
+          alt=""
+          width={1200}
+          height={600}
+          class="h-[250px] w-full rounded-lg object-cover"
+        />
+      </div>
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur
+        adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem
+        ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur
+        adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
+      </p>
+      <Heading level="h3">Demo content</Heading>
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur
+        adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
+      </p>
+      <ul class="list-inside list-disc">
+        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</li>
+        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</li>
+        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</li>
+        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</li>
+        <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</li>
+      </ul>
+      <Heading level="h3">Breakout Image</Heading>
+      <p>
+        This image breaks out of the narrow container on larger screens, creating a more immersive visual experience.
+      </p>
+      <BreakoutImage src="/posts/post-image-2.png" decorative={true} />
+      <p>
+        Notice how the image above extends beyond the boundaries of the text content, creating visual interest and
+        drawing attention to important visual elements.
+      </p>
+      <Heading level="h3">Demo content</Heading>
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur
+        adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem
+        ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur
+        adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
+      </p>
     </div>
   </section>
   <section class="my-12">
@@ -68,10 +178,3 @@ const author = teamMember
     </div>
   </section>
 </DefaultLayout>
-
-<style lang="scss" is:global>
-  .narrow {
-    margin-inline: auto;
-    max-width: 65ch;
-  }
-</style>

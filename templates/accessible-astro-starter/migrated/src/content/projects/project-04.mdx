@@ -9,6 +9,10 @@ tags: ['Accessibility', 'Education']
 
 Accessible Learning Hub transforms online education by making it truly inclusive for all learners. The platform automatically adapts content presentation based on individual needs, supporting dyslexia, ADHD, visual impairments, and other learning differences through AI-driven personalization.
 
+import BlockQuote from '@components/BlockQuote.astro'
+import BreakoutImage from '@components/BreakoutImage.astro'
+import { Image } from 'astro:assets'
+
 <BreakoutImage src="/projects/project-image-6.png" decorative={true} />
 
 ## Technical Challenges
@@ -17,7 +21,36 @@ The biggest challenge was creating a system that could dynamically adjust conten
 
 ## Project Gallery
 
-<ImageGallery src1="/projects/project-image-1.png" alt1="Accessible Learning Hub student dashboard with personalized content" src2="/projects/project-image-6.png" alt2="Content adaptation settings for different learning needs" src3="/projects/project-image-2.png" alt3="Interactive lesson with multiple accessibility features enabled" src4="/projects/project-image-3.png" alt4="Learning analytics showing improvement in student engagement" />
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+  <Image
+    src="/projects/project-image-1.png"
+    alt="Accessible Learning Hub student dashboard with personalized content"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+  <Image
+    src="/projects/project-image-6.png"
+    alt="Content adaptation settings for different learning needs"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+  <Image
+    src="/projects/project-image-2.png"
+    alt="Interactive lesson with multiple accessibility features enabled"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+  <Image
+    src="/projects/project-image-3.png"
+    alt="Learning analytics showing improvement in student engagement"
+    width={1200}
+    height={600}
+    class="h-[250px] w-full rounded-lg object-cover"
+  />
+</div>
 
 ## Testimonial
 

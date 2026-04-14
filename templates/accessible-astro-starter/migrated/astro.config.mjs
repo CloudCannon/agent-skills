@@ -1,13 +1,11 @@
-import { defineConfig } from 'astro/config'
+import { defineConfig, envField } from 'astro/config'
 import { fileURLToPath } from 'url'
-import AutoImport from 'astro-auto-import'
 import compress from 'astro-compress'
 import icon from 'astro-icon'
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
 import { enhanceConfigForWorkspace } from './scripts/workspace-config.js'
-import editableRegions from "@cloudcannon/editable-regions/astro-integration";
 
 // Vite configuration with path aliases and SCSS settings
 const viteConfig = {
@@ -41,19 +39,16 @@ const viteConfig = {
 export default defineConfig({
   compressHTML: true,
   site: 'https://accessible-astro-starter.incluud.dev',
-  integrations: [
-    editableRegions(),
-    AutoImport({
-      imports: [
-        '@components/BreakoutImage.astro',
-        '@components/BlockQuote.astro',
-        '@components/ImageGallery.astro',
-      ],
-    }),
-    compress(),
-    icon(),
-    mdx(),
-    sitemap(),
-  ],
+  integrations: [compress(), icon(), mdx(), sitemap()],
   vite: enhanceConfigForWorkspace(viteConfig),
+  env: {
+    schema: {
+      BLOG_API_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+        default: 'https://jsonplaceholder.typicode.com/posts',
+      }),
+    },
+  },
 })
