@@ -1,0 +1,34 @@
+label: Values
+icon: star
+picker_preview:
+  text:
+    - Values
+  icon:
+    - star
+preview:
+  text:
+    - key: title
+    - Values
+  icon:
+    - star
+value:
+  _type: values
+  title:
+  subtitle:
+  tagline:
+  items: []
+  columns: 2
+_inputs:
+  title:
+    type: text
+  subtitle:
+    type: textarea
+  tagline:
+    type: text
+  items:
+    type: array
+    options:
+      structures: _structures.value_items
+  columns:
+    type: number
+    comment: Number of columns (1-4)

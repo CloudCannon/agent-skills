@@ -1,0 +1,333 @@
+paths:
+  static: public
+  uploads: public/images
+
+collections_config:
+  pages:
+    path: src/content/pages
+    url: "/[slug]/"
+    icon: wysiwyg
+    _enabled_editors:
+      - visual
+      - data
+    schemas:
+      homepage:
+        path: .cloudcannon/schemas/homepage.md
+        name: Homepage
+        new_preview_url: /
+      page_builder:
+        path: .cloudcannon/schemas/page-builder.md
+        name: Page Builder
+        new_preview_url: /about/
+      contact:
+        path: .cloudcannon/schemas/contact.md
+        name: Contact Page
+        new_preview_url: /contact/
+      page:
+        path: .cloudcannon/schemas/page.md
+        name: Page
+    add_options:
+      - name: Page
+        schema: page
+        icon: wysiwyg
+        editor: content
+      - name: Page Builder
+        schema: page_builder
+        icon: dashboard
+    disable_url: false
+
+  blog:
+    path: src/content/blog
+    url: "/blog/[slug]/"
+    icon: post_add
+    _enabled_editors:
+      - visual
+      - content
+      - data
+    schemas:
+      default:
+        path: .cloudcannon/schemas/post.md
+        name: Blog Post
+    add_options:
+      - name: Blog Post
+        schema: default
+        icon: event_available
+        editor: content
+
+  data:
+    path: src/data
+    icon: settings
+    disable_add: true
+    disable_url: true
+    _enabled_editors:
+      - data
+
+collection_groups:
+  - heading: Content
+    collections:
+      - pages
+      - blog
+  - heading: Data
+    collections:
+      - data
+
+data_config:
+  icons:
+    path: src/data/icons.json
+  site-settings:
+    path: src/data/site-settings.json
+
+_inputs:
+  _schema:
+    hidden: true
+  _type:
+    hidden: true
+  title:
+    type: text
+  meta_title:
+    type: text
+    comment: Override the page title used in the browser tab and search results
+  description:
+    type: textarea
+  subtitle:
+    type: textarea
+  tagline:
+    type: text
+  content:
+    type: html
+    options:
+      allow_custom_markup: true
+      bold: true
+      italic: true
+      link: true
+      removeformat: true
+      undo: true
+      redo: true
+  image:
+    type: image
+  imageAlt:
+    type: text
+    comment: Alt text for the image
+  pubDate:
+    type: datetime
+    comment: Changes appear on the page after saving and rebuilding
+  author:
+    type: text
+  category:
+    type: text
+  tags:
+    type: array
+  draft:
+    type: switch
+  show_form:
+    type: switch
+    comment: Show the contact form on this page
+  icon:
+    type: select
+    comment: >-
+      Pick an icon or type a custom
+      [Iconify](https://icon-sets.iconify.design/lucide/) name
+    options:
+      allow_create: true
+      value_key: id
+      preview:
+        text:
+          - key: name
+      values: data.icons
+  iconClass:
+    type: select
+    comment: Color theme for the icon background
+    options:
+      allow_empty: true
+      value_key: id
+      preview:
+        text:
+          - key: name
+      values:
+        - name: Blue
+          id: bg-blue-500/10 text-blue-400
+        - name: Purple
+          id: bg-purple-500/10 text-purple-400
+        - name: Pink
+          id: bg-pink-500/10 text-pink-400
+        - name: Green
+          id: bg-green-500/10 text-green-400
+        - name: Yellow
+          id: bg-yellow-500/10 text-yellow-400
+        - name: Red
+          id: bg-red-500/10 text-red-400
+        - name: Indigo
+          id: bg-indigo-500/10 text-indigo-400
+        - name: Orange
+          id: bg-orange-500/10 text-orange-400
+        - name: Teal
+          id: bg-teal-500/10 text-teal-400
+  variant:
+    type: select
+    options:
+      values:
+        - primary
+        - secondary
+  ariaLabel:
+    type: text
+    comment: Accessible label for the link
+  href:
+    type: url
+  text:
+    type: text
+  isReversed:
+    type: switch
+  isAfterContent:
+    type: switch
+  columns:
+    type: number
+    comment: Number of grid columns (1-4)
+  content_blocks:
+    type: array
+    options:
+      structures:
+        values_from_glob:
+          - /src/components/widgets/*.cloudcannon.structure-value.yml
+
+_structures:
+  actions:
+    values:
+      - label: Action
+        icon: ads_click
+        picker_preview:
+          text:
+            - Action
+          icon:
+            - ads_click
+        preview:
+          text:
+            - key: text
+            - Action
+          icon:
+            - ads_click
+        value:
+          text:
+          href:
+          variant: primary
+          icon:
+          ariaLabel:
+        _inputs:
+          variant:
+            type: select
+            options:
+              values:
+                - primary
+                - secondary
+
+  feature_items:
+    values:
+      - label: Feature
+        icon: list
+        picker_preview:
+          text:
+            - Feature
+          icon:
+            - list
+        preview:
+          text:
+            - key: title
+            - Feature
+          icon:
+            - list
+        value:
+          title:
+          description:
+          icon:
+          iconClass:
+
+  service_items:
+    values:
+      - label: Service
+        icon: design_services
+        picker_preview:
+          text:
+            - Service
+          icon:
+            - design_services
+        preview:
+          text:
+            - key: title
+            - Service
+          icon:
+            - design_services
+        value:
+          title:
+          description:
+          icon:
+
+  value_items:
+    values:
+      - label: Value
+        icon: star
+        picker_preview:
+          text:
+            - Value
+          icon:
+            - star
+        preview:
+          text:
+            - key: title
+            - Value
+          icon:
+            - star
+        value:
+          title:
+          description:
+          icon:
+          iconClass:
+
+  nav_links:
+    values:
+      - label: Nav Link
+        icon: link
+        picker_preview:
+          text:
+            - Nav Link
+          icon:
+            - link
+        preview:
+          text:
+            - key: text
+            - Nav Link
+          icon:
+            - link
+        value:
+          text:
+          href:
+
+file_config:
+  - glob: src/data/site-settings.json
+    _inputs:
+      $:
+        type: object
+        options:
+          preview:
+            icon: settings
+      socialLinks:
+        type: object
+        options:
+          preview:
+            icon: share
+      navLinks:
+        type: array
+        options:
+          structures: _structures.nav_links
+      ogImage:
+        type: image
+
+_editables:
+  content:
+    blockquote: true
+    bold: true
+    bulletedlist: true
+    format: p h1 h2 h3 h4 h5 h6
+    image: true
+    italic: true
+    link: true
+    numberedlist: true
+    removeformat: true

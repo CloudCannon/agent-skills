@@ -1,0 +1,38 @@
+label: Content
+icon: article
+picker_preview:
+  text:
+    - Content
+  icon:
+    - article
+preview:
+  text:
+    - key: title
+    - Content
+  icon:
+    - article
+  image:
+    - key: image
+value:
+  _type: content
+  title:
+  subtitle:
+  tagline:
+  image:
+  imageAlt:
+_inputs:
+  title:
+    type: text
+  subtitle:
+    type: textarea
+  tagline:
+    type: text
+  image:
+    type: image
+    options:
+      paths:
+        uploads: /src/assets/images
+        static: ""
+  imageAlt:
+    type: text
+    comment: Alt text for the image

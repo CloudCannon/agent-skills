@@ -1,10 +1,9 @@
 ---
-import type { ImageMetadata } from "astro";
 interface Props {
   title?: string;
   description?: string;
   canonical?: string;
-  ogImage?: string | ImageMetadata;
+  ogImage?: string;
   ignoreTitleTemplate?: boolean;
 }
 
@@ -18,7 +17,7 @@ const {
   ignoreTitleTemplate = false,
 } = Astro.props;
 
-const ogImageSrc = typeof ogImage === "string" ? ogImage : ogImage.src;
+const ogImageSrc = ogImage;
 
 const fullTitle =
   title && !ignoreTitleTemplate

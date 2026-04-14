@@ -63,3 +63,10 @@
 :root[data-astro-transition] .reveal {
   transition: none !important;
 }
+
+/* Force reveal elements visible in the CloudCannon visual editor */
+.cms-editor-active .reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: none;
+}

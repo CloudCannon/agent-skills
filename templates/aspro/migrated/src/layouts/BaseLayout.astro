@@ -109,11 +109,24 @@ const finalIgnoreTitleTemplate = metadata?.ignoreTitleTemplate || false;
     <SpeedInsights />
     <Analytics />
     <script>
+      if (window.inEditorMode) {
+        import("../cloudcannon/registerComponents").catch((error) => {
+          console.warn("Failed to load CloudCannon component registration:", error);
+        });
+      }
+    </script>
+    <script>
       // Keep a global reference to prevent duplicate observers during View Transitions
       let scrollObserver: IntersectionObserver | null = null;
 
       const setupAnimations = () => {
-        // Disconnect previous observer if it exists (prevents ghost triggers)
+        if (window.inEditorMode) {
+          document
+            .querySelectorAll(".reveal")
+            .forEach((el) => el.classList.add("active"));
+          return;
+        }
+
         if (scrollObserver) {
           scrollObserver.disconnect();
         }

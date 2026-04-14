@@ -1,0 +1,42 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import BlockRenderer from "@/components/BlockRenderer.astro";
+
+export async function getStaticPaths() {
+  const pages = await getCollection("pages");
+  return pages.map((page) => ({
+    params: { slug: page.id === "index" ? undefined : page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+const data = page.data;
+
+const metadata = {
+  title: "meta_title" in data && data.meta_title ? data.meta_title : data.title,
+  description: data.description ?? undefined,
+};
+
+const blocks = "content_blocks" in data ? data.content_blocks ?? [] : [];
+---
+
+<BaseLayout {metadata}>
+  {blocks.length > 0 ? (
+    <div
+      data-editable="array"
+      data-prop="content_blocks"
+      data-component-key="_type"
+    >
+      {blocks.map((block) => (
+        <BlockRenderer block={block} />
+      ))}
+    </div>
+  ) : (
+    <article class="prose prose-lg dark:prose-invert mx-auto max-w-[750px] px-4 py-8 md:py-12">
+      <Content />
+    </article>
+  )}
+</BaseLayout>

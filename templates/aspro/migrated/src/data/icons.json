@@ -1,0 +1,23 @@
+[
+  { "name": "Arrow Right", "id": "lucide:arrow-right" },
+  { "name": "Box", "id": "lucide:box" },
+  { "name": "Briefcase", "id": "lucide:briefcase" },
+  { "name": "Check", "id": "lucide:check" },
+  { "name": "Eye", "id": "lucide:eye" },
+  { "name": "GitHub", "id": "lucide:github" },
+  { "name": "Globe", "id": "lucide:globe" },
+  { "name": "Home", "id": "lucide:home" },
+  { "name": "Lightbulb", "id": "lucide:lightbulb" },
+  { "name": "Mail", "id": "lucide:mail" },
+  { "name": "Map Pin", "id": "lucide:map-pin" },
+  { "name": "Palette", "id": "lucide:palette" },
+  { "name": "Phone", "id": "lucide:phone" },
+  { "name": "Refresh", "id": "lucide:refresh-cw" },
+  { "name": "Rocket", "id": "lucide:rocket" },
+  { "name": "Scan Search", "id": "lucide:scan-search" },
+  { "name": "Search", "id": "lucide:search" },
+  { "name": "User Check", "id": "lucide:user-check" },
+  { "name": "Users", "id": "lucide:users" },
+  { "name": "Wrench", "id": "lucide:wrench" },
+  { "name": "Zap", "id": "lucide:zap" }
+]

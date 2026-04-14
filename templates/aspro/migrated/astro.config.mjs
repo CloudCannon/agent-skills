@@ -4,10 +4,11 @@ import mdx from "@astrojs/mdx";
 import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
 import remarkReadingTime from "remark-reading-time";
+import editableRegions from "@cloudcannon/editable-regions/astro-integration";
 
 export default defineConfig({
   site: "https://astrostarterpro.com/",
-  integrations: [sitemap(), icon(), mdx()],
+  integrations: [sitemap(), icon(), mdx(), editableRegions()],
   markdown: {
     remarkPlugins: [
       remarkReadingTime,

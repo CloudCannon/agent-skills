@@ -55,12 +55,12 @@ export interface FeaturesProps extends HeadlineProps {
 
 export interface ContentProps extends HeadlineProps {
   content?: string;
-  image?: ImageMetadata;
+  image?: ImageMetadata | string;
   imageAlt?: string;
   items?: Feature[];
   isReversed?: boolean;
   isAfterContent?: boolean;
-  description?: string[]; // Adding back description as string array for compatibility
+  description?: string[] | string;
   actions?: string | CallToAction[];
 }
 

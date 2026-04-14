@@ -1,15 +1,22 @@
 ---
 import WidgetWrapper from "./WidgetWrapper.astro";
 import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import { Icon } from "astro-icon/components";
 import Headline from "@/components/ui/Headline.astro";
 import Button from "@/components/ui/Button.astro";
 import type { ContentProps } from "@/types/types";
 
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/**/*.{jpeg,jpg,png,gif,svg,webp,avif}",
+  { eager: true },
+);
+
 const {
   title,
   subtitle,
   tagline,
+  content,
   description = [],
   image,
   imageAlt = "",
@@ -22,6 +29,20 @@ const {
   items = [],
   isAfterContent = false,
 } = Astro.props as ContentProps;
+
+const slotContent =
+  content || (await Astro.slots.render("default")) || undefined;
+
+const resolvedSubtitle =
+  subtitle ||
+  (Array.isArray(description) && description.length > 0
+    ? description.join(" ")
+    : typeof description === "string"
+      ? description
+      : undefined);
+
+const imageSrc =
+  typeof image === "string" ? (images[image]?.default ?? image) : image;
 
 const { container: containerClassProp = "", ...otherClasses } = classes;
 ---
@@ -39,8 +60,7 @@ const { container: containerClassProp = "", ...otherClasses } = classes;
     <div class="md:basis-1/2 self-center text-left">
       <Headline
         title={title}
-        subtitle={subtitle ||
-          (Array.isArray(description) ? description.join(" ") : description)}
+        subtitle={resolvedSubtitle}
         tagline={tagline}
         titleAs="h2"
         classes={{
@@ -51,12 +71,20 @@ const { container: containerClassProp = "", ...otherClasses } = classes;
         }}
       />
 
-      {/* Slot before items if not isAfterContent */}
-      {!isAfterContent && <slot />}
+      {
+        !isAfterContent && slotContent && (
+          <div
+            set:html={slotContent}
+            data-editable="text"
+            data-type="block"
+            data-prop="content"
+          />
+        )
+      }
 
       {
-        items && items.length > 0 && (
-          <div class="space-y-8 my-8">
+        Array.isArray(items) && items.length > 0 && (
+          <div class="space-y-8 my-8" data-editable="array" data-prop="items">
             {items.map(
               ({
                 title: titleItem,
@@ -64,7 +92,7 @@ const { container: containerClassProp = "", ...otherClasses } = classes;
                 icon,
                 iconClass,
               }) => (
-                <div class="flex">
+                <div class="flex" data-editable="array-item">
                   <div class="shrink-0">
                     <div
                       class={`flex items-center justify-center w-10 h-10 rounded-full ${iconClass ? iconClass : "bg-primary/10 text-primary"}`}
@@ -78,10 +106,20 @@ const { container: containerClassProp = "", ...otherClasses } = classes;
                   </div>
                   <div class="ml-4">
                     {titleItem && (
-                      <h3 class="text-lg font-medium leading-6">{titleItem}</h3>
+                      <h3
+                        class="text-lg font-medium leading-6"
+                        data-editable="text"
+                        data-prop="title"
+                      >
+                        {titleItem}
+                      </h3>
                     )}
                     {descriptionItem && (
-                      <p class="mt-2 text-muted-foreground">
+                      <p
+                        class="mt-2 text-muted-foreground"
+                        data-editable="text"
+                        data-prop="description"
+                      >
                         {descriptionItem}
                       </p>
                     )}
@@ -94,37 +132,55 @@ const { container: containerClassProp = "", ...otherClasses } = classes;
       }
       {
         Array.isArray(actions) && actions.length > 0 && (
-          <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <div
+            class="mt-8 flex flex-col sm:flex-row gap-4"
+            data-editable="array"
+            data-prop="actions"
+          >
             {actions.map((action) => (
-              <Button
-                href={action.href}
-                variant={action.variant as "primary" | "secondary"}
-                aria-label={action.ariaLabel}
-                class="w-full sm:w-auto"
-              >
-                {action.icon && (
-                  <Icon name={action.icon} class="w-5 h-5 mr-2 -ml-1" />
-                )}
-                {action.text}
-              </Button>
+              <div data-editable="array-item">
+                <Button
+                  href={action.href}
+                  variant={action.variant as "primary" | "secondary"}
+                  aria-label={action.ariaLabel}
+                  class="w-full sm:w-auto"
+                >
+                  {action.icon && (
+                    <Icon name={action.icon} class="w-5 h-5 mr-2 -ml-1" />
+                  )}
+                  {action.text && (
+                    <editable-text data-prop="text">
+                      {action.text}
+                    </editable-text>
+                  )}
+                </Button>
+              </div>
             ))}
           </div>
         )
       }
 
-      {/* Slot after items if isAfterContent */}
-      {isAfterContent && <slot />}
+      {
+        isAfterContent && slotContent && (
+          <div
+            set:html={slotContent}
+            data-editable="text"
+            data-type="block"
+            data-prop="content"
+          />
+        )
+      }
     </div>
     <div class="md:basis-1/2 self-center mt-10 md:mt-0" aria-hidden="true">
       {
-        image && (
-          <div class="relative m-auto max-w-4xl">
+        imageSrc && (
+          <editable-image data-prop-src="image" class="relative m-auto max-w-4xl block">
             <Image
-              src={image}
+              src={imageSrc}
               alt={imageAlt}
               class="mx-auto w-full rounded-lg bg-gray-500 shadow-lg"
             />
-          </div>
+          </editable-image>
         )
       }
     </div>
