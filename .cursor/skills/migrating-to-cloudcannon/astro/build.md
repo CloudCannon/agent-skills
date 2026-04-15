@@ -36,7 +36,7 @@ The build command CloudCannon runs must match the full pipeline—usually the sa
 node scripts/your-prebuild-step.js && node scripts/another-step.js && astro build
 ```
 
-This goes in `.cloudcannon/initial-site-settings.json` as the `build_command`, or in `.cloudcannon/prebuild` if using the prebuild script approach (see [configuration.md](configuration.md)).
+This goes in `.cloudcannon/initial-site-settings.json` as the `build_command`, or in `.cloudcannon/prebuild` if using the prebuild script approach (see [configuration.md](../../cloudcannon-configuration/astro/configuration.md)).
 
 ## Common issues
 

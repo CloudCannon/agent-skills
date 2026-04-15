@@ -2,7 +2,7 @@
 
 > **Checklist discipline:** This doc ends with a [Review checklist addendum](#review-checklist-addendum). Work through the review checklist items as you go, then verify the addendum before marking this phase complete.
 
-Guidance for reviewing and restructuring content files to be CMS-friendly in an Astro site. Run this phase after the audit and before (or alongside) configuration.
+Guidance for reviewing and restructuring content files to be CMS-friendly in an Astro site. Run this phase after configuration (Phase 2). Small, targeted content fixes needed to support configuration decisions (adding `slug` fields, normalizing values) can happen during Phase 2 — see [../SKILL.md § Phases are sequential, not siloed](../SKILL.md).
 
 ## When to skip this phase
 
@@ -24,7 +24,7 @@ For each content collection, compare the files against the Zod schema in `conten
 - **Optional fields with defaults.** When a field has `z.default()`, Astro fills in the default at runtime. CloudCannon editors see what's in the file, not the runtime default. If a field is commonly used and should be visible in the editor, add it explicitly to content files even if the schema doesn't require it.
 - **`draft` field.** If the site filters on `draft`, ensure it's present where needed. When the filter uses `!data.draft`, omitting the field is equivalent to `draft: false` (since `!undefined === true`), so missing `draft` fields are safe. But for CloudCannon's UI, an explicit `draft: false` is better -- it gives editors a visible toggle. Collections with a `draft` field should default to the content editor (`editor: content` on add options or `_enabled_editors` starting with `content`). Draft pages aren't built, so the visual editor has no page to preview — the content editor doesn't require a built page.
 - **Date formats.** Use ISO 8601 (`2022-04-04T05:00:00Z`). Astro's `z.coerce.date()` handles both Date objects and ISO strings, but CloudCannon expects consistent date formatting.
-- **Image paths.** For static images (`public/`), use paths relative to the public root (e.g. `/images/banner.png`). For optimized images (`src/assets/`), use the full repo-relative path (e.g. `/src/assets/images/hero.jpg`) so `import.meta.glob` can resolve them at build time. Do not move optimized images to `public/` — see [configuration.md § Image path configuration](configuration.md#image-path-configuration) for the full upload path setup.
+- **Image paths.** For static images (`public/`), use paths relative to the public root (e.g. `/images/banner.png`). For optimized images (`src/assets/`), use the full repo-relative path (e.g. `/src/assets/images/hero.jpg`) so `import.meta.glob` can resolve them at build time. Do not move optimized images to `public/` — see [configuration.md § Image path configuration](../../cloudcannon-configuration/astro/configuration.md#image-path-configuration) for the full upload path setup.
 
 ### Field naming
 
@@ -69,8 +69,8 @@ No content file changes are needed for this pattern.
 
 Check for:
 
-- **MDX components and shortcodes** -- auto-imported components or explicit `import` statements in `.mdx` files. CloudCannon's editors can't render these but can parse and re-serialize them if snippet configs are defined. Document which files use them, note each component's props, and whether `client:load` is used. This inventory feeds directly into the snippet configuration in Phase 2. See [snippets.md](snippets.md) for the full workflow.
-- **Inline HTML that has no markdown equivalent** -- HTML blocks like `<figure>`, `<video>`, `<details>`, `<iframe>` can't be expressed in standard markdown syntax. These must become snippets so editors get a structured interface instead of raw HTML. For each pattern identified in the audit: (1) normalize all instances to a consistent format (same attributes, same whitespace), (2) document the normalized pattern in the project's migration notes. The snippet config itself is created in Phase 2 -- see [../snippets.md § Raw snippets for inline HTML](../snippets.md#raw-snippets-for-inline-html-in-md-files). Simple inline HTML that editors don't need to modify (e.g. `<sup>`, `<br>`) can be left as-is.
+- **MDX components and shortcodes** -- auto-imported components or explicit `import` statements in `.mdx` files. CloudCannon's editors can't render these but can parse and re-serialize them if snippet configs are defined. Document which files use them, note each component's props, and whether `client:load` is used. This inventory feeds directly into the snippet configuration in Phase 2. See the `cloudcannon-snippets` skill for the full workflow.
+- **Inline HTML that has no markdown equivalent** -- HTML blocks like `<figure>`, `<video>`, `<details>`, `<iframe>` can't be expressed in standard markdown syntax. These must become snippets so editors get a structured interface instead of raw HTML. For each pattern identified in the audit: (1) normalize all instances to a consistent format (same attributes, same whitespace), (2) document the normalized pattern in the project's migration notes. The snippet config itself is created in Phase 2 -- see [snippets.md § Raw snippets for inline HTML](../../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files). Simple inline HTML that editors don't need to modify (e.g. `<sup>`, `<br>`) can be left as-is.
 - **Complex embedded HTML** with `set:html` directives in the rendering template may not round-trip cleanly. Usually not an issue for content bodies.
 - **Empty content bodies.** Index files and section data often have no body content (all data lives in frontmatter). This is normal and CloudCannon handles it fine.
 - **Remark/rehype plugin output.** If custom remark or rehype plugins transform markdown in ways that affect the content structure (e.g. adding IDs to headings, wrapping images), note them but don't change the content. The plugins run at build time.
@@ -97,7 +97,7 @@ Resolve each case using this decision tree (ordered by preference):
 
 ### Page-builder content migration
 
-> **MANDATORY — Do not skip or shortcut this step.** When converting hardcoded pages to markdown with `content_blocks`, the agent MUST reference the structure definition for each block type and include ALL fields — even empty ones. The structure `value` is the canonical list of fields. Missing fields (even seemingly optional ones like `tagline` or `content`) cause ugly `undefined` errors in CloudCannon's editor. This is the single most common migration mistake.
+> **MANDATORY** — Follow the [field completeness rule in structures.md](../../cloudcannon-configuration/structures.md#field-completeness-rule). Every field from the structure `value` MUST appear in content frontmatter, even if empty.
 
 **Pattern for each block:**
 
@@ -107,7 +107,7 @@ Resolve each case using this decision tree (ordered by preference):
 4. Populate fields that have content from the original page
 5. Leave remaining fields at their default/empty values (strings empty, booleans `false`, arrays `[]`, objects with empty nested fields)
 
-**Why this matters:** The visual editor throws `undefined` errors when editable regions reference fields missing from frontmatter. Getting field completeness right during the initial content migration avoids a backfill step later. See [../structures.md](../structures.md) for the full field completeness rule.
+**Why this matters:** The visual editor throws `undefined` errors when editable regions reference fields missing from frontmatter. Getting field completeness right during the initial content migration avoids a backfill step later. See [structures.md](../../cloudcannon-configuration/structures.md) for the full field completeness rule.
 
 **Scaling warning:** Extracting 10+ pages of widget data into YAML is one of the most error-prone steps in a migration. Common pitfalls:
 
@@ -115,7 +115,7 @@ Resolve each case using this decision tree (ordered by preference):
 - **Field completeness at scale** — with 15+ block types, it's easy to forget fields on one or two blocks. Cross-reference each block against its structure definition systematically rather than working from memory.
 - **Build early, build often** — don't extract all pages before running a build. Extract a few representative pages first, build, fix errors, then extract the rest. This catches schema mismatches and guard issues before they multiply.
 
-**Null values in YAML:** Bare keys with no value (`tagline:`) parse as `null`. The Zod schema must use `.nullish()` instead of `.optional()` on optional fields, otherwise `null` values fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data. See [../structures.md](../structures.md#handling-null-values-from-empty-yaml-fields) for details on aligning the Zod schema and CloudCannon config.
+**Null values in YAML:** Bare keys with no value (`tagline:`) parse as `null`. The Zod schema must use `.nullish()` instead of `.optional()` on optional fields, otherwise `null` values fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data. See [structures.md](../../cloudcannon-configuration/structures.md#handling-null-values-from-empty-yaml-fields) for details on aligning the Zod schema and CloudCannon config.
 
 ### Astro slot content → frontmatter field
 
@@ -136,7 +136,7 @@ Decide which to keep:
 - If the two fields have no semantic distinction (description is just an alias for subtitle), remove one. Use the name that best describes what the editor sees.
 - If the fallback serves a genuinely different purpose (e.g. `description` is also used for page meta/SEO), keep both but rename to make the distinction obvious: `subtitle` for the visual slot, `meta_description` for SEO. Add a `comment` on the SEO input explaining its purpose.
 
-The goal: every field in the data panel corresponds to exactly one thing on the page, and every inline editable's `data-prop` points to a field that exists in the structure. See [visual-editing.md § Data-prop mismatch](visual-editing.md#page-builder-blocks) for the related visual editing guidance when a shared component renames the prop.
+The goal: every field in the data panel corresponds to exactly one thing on the page, and every inline editable's `data-prop` points to a field that exists in the structure. See [visual-editing-reference.md § Data-prop mismatch](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#page-builder-blocks) for the related visual editing guidance when a shared component renames the prop.
 
 ### Resolving optimized image paths from frontmatter
 
@@ -188,7 +188,39 @@ The preferred fix is to flatten to flat files (`blog/my-post.md`). Astro auto-ge
 
 - The folder structure encodes meaningful grouping beyond just the slug
 
-In these cases, keep folder-per-post and use the `{slug}` workaround documented in [configuration-gotchas.md](configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders).
+In these cases, keep folder-per-post and use the `{slug}` workaround documented in [configuration-gotchas.md](../../cloudcannon-configuration/astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders).
+
+### Converting API-driven content to local collections
+
+When a site fetches content from an external API at build time (e.g. JSONPlaceholder, headless CMS, REST endpoints), that content is invisible to CloudCannon. Convert it to a local content collection so editors can manage it directly.
+
+**Steps:**
+
+1. Create the collection directory (e.g. `src/content/blog/`) with sample markdown files matching the API's data shape
+2. Add a collection definition to `content.config.ts` with a Zod schema covering the fields the templates use
+3. Refactor page routes that called `fetch()` to use `getCollection()` / `getEntry()` + `getStaticPaths()`
+4. Refactor any components that also fetched from the API (listing components, launchers, search)
+5. Remove the API URL from environment variables / config
+
+**Sample content:** Create enough sample posts to test pagination and listing pages (6+ for a typical blog with `pageSize: 6`). Use thematically appropriate content rather than lorem ipsum — it makes CloudCannon demos more convincing.
+
+**Watch for inconsistent slug generation.** API-driven pages often have custom slug logic (truncation, transliteration) that differs from Astro's content collection IDs. Content collection entries use their filename as the ID, so ensure route patterns match (`params: { post: post.id }`).
+
+### Extracting TypeScript config to JSON data files
+
+Sites often store editable settings (navigation, social links, colors, CTAs) in a TypeScript config file that CloudCannon can't edit. Extract editable parts to JSON data files while keeping non-editable settings (asset imports, computed values) in the TS file.
+
+**Steps:**
+
+1. Identify which config values editors should control vs. which are developer-only
+2. Create JSON files in `src/data/` for each editable group (e.g. `navigation.json`, `social-links.json`)
+3. Update consuming components to import from the JSON files
+4. Strip extracted values from the TS config (set to empty defaults)
+5. Add `data_config` entries and `file_config` with appropriate `_inputs` and `_structures` in the CC config
+
+**Keep the TS config for:** Asset imports (`import logo from '...'`), computed values, framework-specific settings (colors that map to CSS vars, feature flags), anything that references other TS modules.
+
+**After extraction, audit the consuming component template.** The data file should contain ALL visible/configurable values — not just what was in the original TS config. Check the component template for hardcoded values that should also be in the data file: icons (e.g. a hardcoded `lucide:rocket`), colors, link targets, label text, image paths. If an editor can see it on the page and it could reasonably vary, it belongs in the data file.
 
 ### Data collections
 
@@ -208,8 +240,9 @@ Data collections should have `disable_url: true` in the CC collections config si
 
 > **MANDATORY — Run this checklist on every content file before considering the content phase complete.**
 
-- [ ] **CRITICAL:** Every block in `content_blocks` includes ALL fields from its structure definition — open the structure file and cross-reference field-by-field (see [../structures.md](../structures.md)). Common misses: `tagline`, `content`, `subtitle`, and nested object sub-keys like `callToAction.variant`
+- [ ] **CRITICAL:** Every block in `content_blocks` includes ALL fields from its structure definition — open the structure file and cross-reference field-by-field (see [structures.md](../../cloudcannon-configuration/structures.md)). Common misses: `tagline`, `content`, `subtitle`, and nested object sub-keys like `callToAction.variant`
 - [ ] Empty/default values are used for fields not present in the original page (strings empty, booleans `false`, arrays `[]`)
 - [ ] No block-level HTML (e.g. `<br />`, `<p>`, `<ul>`) in frontmatter strings unless the corresponding input is configured with block-level editing (e.g. a rich-text or markdown input with appropriate `options`)
 - [ ] Every array field in every structure-value file has an explicit `_inputs` entry linking it to its `_structures` definition
+- [ ] **Data file completeness**: For each JSON data file, compare the consuming component template against the data file fields. Every visible/configurable value (icons, link targets, label text, image paths) is in the data file, not hardcoded in the template
 

@@ -44,7 +44,7 @@ models:
 
 ### `_snippets_imports` can match unintended content
 
-Don't use `_snippets_imports` during migrations. It auto-imports pre-built snippet instances that can incorrectly match fenced code blocks, CSS/JS blocks, and other markup as snippets. Custom `_snippets` entries give full control over what gets matched. Built-in templates like `mdx_component` resolve without any imports. Hidden `_cc_mdx_*` catchalls are separate: they only appear when that imported default bundle is loaded, not when you use `template: mdx_component` alone.
+Don't use `_snippets_imports` during migrations — see [snippets.md § Configuration hierarchy](snippets.md#configuration-hierarchy) for the full rationale.
 
 ---
 

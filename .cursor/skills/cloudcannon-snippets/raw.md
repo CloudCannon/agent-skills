@@ -2,7 +2,7 @@
 
 Use when the SSG's component syntax doesn't match an available template — for example, when extra directives like Astro's `client:load` need to appear literally, or when you need fine-grained control over parsing.
 
-Read [snippets.md](../snippets.md) first for overview, imports, and shared snippet properties.
+Read [snippets.md](snippets.md) first for overview, imports, and shared snippet properties.
 
 ---
 

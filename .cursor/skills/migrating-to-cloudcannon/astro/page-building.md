@@ -17,7 +17,7 @@ Many templates have **no content-backed pages** -- all page data is hardcoded di
 
 1. **Create `src/content/pages/`** and add a `.md` file for each page. Extract the hardcoded data from the `.astro` template into YAML frontmatter. Add `_schema: <key>` to each file so CloudCannon matches the correct schema.
 
-2. **Add a `pagesCollection`** to the content config with a `z.union` schema covering all page types. See [configuration.md § Merge unique pages with a z.union](configuration.md#fallback-merge-unique-pages-into-pages-with-a-zunion) for the pattern. Place the most specific schemas first in the union. Define shared Zod objects for common shapes that appear across page types.
+2. **Add a `pagesCollection`** to the content config with a `z.union` schema covering all page types. See [configuration.md § Merge unique pages with a z.union](../../cloudcannon-configuration/astro/configuration.md#fallback-merge-unique-pages-into-pages-with-a-zunion) for the pattern. Place the most specific schemas first in the union. Define shared Zod objects for common shapes that appear across page types.
 
 3. **Update each `.astro` page** in `src/pages/` to fetch its data from the collection instead of hardcoding it:
 
@@ -129,7 +129,7 @@ A schema with a `content_blocks` array lets editors assemble pages from reusable
 
 **When to use it**: When the site has 3+ reusable block components (heroes, banners, features, CTAs, testimonials, rich text). Fewer than 3 blocks doesn't justify the added complexity.
 
-For the full structures reference (inline vs split, field completeness, previews, deriving from components), see [../structures.md](../structures.md). Structures must be defined during the configuration phase because the content phase uses them as the blueprint for field completeness.
+For the full structures reference (inline vs split, field completeness, previews, deriving from components), see [structures.md](../../cloudcannon-configuration/structures.md). Structures must be defined during the configuration phase because the content phase uses them as the blueprint for field completeness.
 
 ### Schema structure
 
@@ -168,7 +168,7 @@ Place `pageBuilderSchema` before the generic `pageSchema` in the union so it mat
 
 ### CC structures
 
-Define structures for each block type using `_type` as the discriminator. For sites with 5+ block types, use the split co-located approach (see [../structures.md](../structures.md)):
+Define structures for each block type using `_type` as the discriminator. For sites with 5+ block types, use the split co-located approach (see [structures.md](../../cloudcannon-configuration/structures.md)):
 
 ```yaml
 _inputs:
@@ -186,7 +186,7 @@ _inputs:
 
 ### BlockRenderer
 
-Create a `BlockRenderer.astro` component that maps `_type` to the matching widget. Use a shared `componentMap` (see [visual-editing.md § registerComponents](visual-editing.md#3-create-the-registercomponents-script)) so the mapping lives in one place:
+Create a `BlockRenderer.astro` component that maps `_type` to the matching widget. Use a shared `componentMap` (see [visual-editing.md § Setup steps](../../cloudcannon-visual-editing/astro/visual-editing.md#setup-steps)) so the mapping lives in one place:
 
 ```astro
 <!-- BlockRenderer.astro -->
@@ -205,9 +205,9 @@ const Component = componentMap[_type as string];
 )}
 ```
 
-Each array item combines two behaviours: `data-editable="array-item"` provides CRUD controls (add, remove, reorder) and `data-component` enables component re-rendering of the block's contents. When no suitable HTML element exists, use `<editable-array-item>` instead. See [visual-editing.md § Page builder blocks](visual-editing.md#page-builder-blocks) for the full visual editing setup.
+Each array item combines two behaviours: `data-editable="array-item"` provides CRUD controls (add, remove, reorder) and `data-component` enables component re-rendering of the block's contents. When no suitable HTML element exists, use `<editable-array-item>` instead. See [visual-editing-reference.md § Page builder blocks](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#page-builder-blocks) for the full visual editing setup.
 
-Every widget component inside also needs nested text/image regions on editable fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` when the host is wrapper-only). See [visual-editing.md § Text editing](visual-editing.md#text-editing) and [§ Image editing](visual-editing.md#image-editing). Every `_type` value used in content files must have a matching `registerAstroComponent(_type, Component)` call in `registerComponents.ts`.
+Every widget component inside also needs nested text/image regions on editable fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` when the host is wrapper-only). See [visual-editing-reference.md § Text editing](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#text-editing) and [§ Image editing](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#image-editing). Every `_type` value used in content files must have a matching `registerAstroComponent(_type, Component)` call in `registerComponents.ts`.
 
 ### CSS class overrides between blocks
 
@@ -215,4 +215,4 @@ Original templates often pass CSS class overrides to visually join adjacent bloc
 
 Accept minor visual diffs (~3-5%) for adjacent block spacing rather than leaking CSS into content. If spacing is critical, handle it in the component with a prop like `compact: true` (boolean, editor-friendly) instead of raw class strings.
 
-For the full visual editing setup (three-layer pattern, nested editables, sub-arrays, component registration), see [visual-editing.md](visual-editing.md).
+For the full visual editing setup (three-layer pattern, nested editables, sub-arrays, component registration), see [visual-editing.md](../../cloudcannon-visual-editing/astro/visual-editing.md).

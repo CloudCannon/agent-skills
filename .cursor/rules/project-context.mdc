@@ -44,8 +44,22 @@ Reference docs inside a skill directory should be promoted to standalone skills 
 3. It should be independently triggerable (useful outside the parent skill's workflow)
 4. An SSG-specific section within it exceeds ~100 lines
 
+The configuration, snippets, and visual editing docs were split out of the migration skill using these criteria — they're all independently triggerable and substantial enough to warrant standalone skills.
+
+**Cross-skill references:** When docs in one skill link to docs in another, use relative paths (e.g. `../../cloudcannon-configuration/structures.md`). For skill-level references in prose (not linking to a specific section), use skill name references instead (e.g. "read the `cloudcannon-snippets` skill") — this is more resilient to file moves within a skill.
+
+## Skill architecture
+
+The CloudCannon migration tooling is split across multiple composable skills:
+
+- **`migrating-to-cloudcannon`** — Orchestrator. Coordinates five migration phases (audit, configuration, content, visual editing, build). References the domain skills below at the appropriate phase.
+- **`cloudcannon-configuration`** — Standalone. Gadget CLI, `cloudcannon.config.yml`, structures, collection URLs, inputs. Usable independently for "configure my site for CC".
+- **`cloudcannon-snippets`** — Standalone. Snippet configuration for MDX components and inline HTML. Usable independently for "add snippets to my CC site".
+- **`cloudcannon-visual-editing`** — Standalone. Editable regions, Visual Editor setup, component re-rendering. Usable independently for "add visual editing to my CC site".
+- **`brainstorming`** — Generic process skill. Structured design exploration before implementation. Used for migrations and any architectural work.
+
 ## SSG-specific knowledge
 
-Each supported SSG has its own directory under the migration skill (e.g. `astro/`). SSG directories contain phase docs (audit, configuration, content, visual-editing, build) tailored to that SSG. Core CloudCannon reference docs (editable regions, Gadget CLI) stay at the skill root since they apply across all SSGs.
+Each supported SSG has its own `astro/` directory within the skills that need SSG-specific content (migration, configuration, visual-editing, snippets). Migration-specific phase docs (audit, content, build) stay in the migration skill. Domain knowledge (configuration patterns, editable region patterns, snippet setup) lives in the respective domain skill.
 
-When adding a new SSG, create a new directory with the same file structure as `astro/` and add it to the supported SSGs table in `SKILL.md`.
+When adding a new SSG, add an SSG directory to each relevant skill and add a row to the supported SSGs table in the migration SKILL.md.

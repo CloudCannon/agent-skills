@@ -1,118 +1,12 @@
-# Visual Editing (Astro)
+# Visual Editing Reference (Astro)
 
-> **Checklist discipline:** This doc ends with a [Verification checklist](#verification-checklist). Read it now so you know what to aim for, then work through every item before marking this phase complete. Common misses: blog/detail page editables skipped while focusing on page builder blocks, sub-arrays inside widgets missing editable attributes.
+Pattern reference for editable region types, data paths, component re-rendering, and edge cases. Read this doc on demand when a checklist item in [visual-editing.md](visual-editing.md) links here — don't read it all upfront.
 
-Guidance for adding CloudCannon Visual Editor support to an Astro site using `@cloudcannon/editable-regions`. For the full editable regions reference (region types, path syntax, API actions), see [../editable-regions.md](../editable-regions.md).
+For the full editable regions API (region types, path syntax, API actions), see [../editable-regions.md](../editable-regions.md).
 
-## Setup steps
+## Guard optional fields
 
-Run the setup script to handle steps 1-3 automatically:
-
-```bash
-bash .cursor/skills/migrating-to-cloudcannon/scripts/setup-editable-regions.sh .
-```
-
-This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a conditional import in the base layout so `registerComponents` only loads inside CloudCannon's Visual Editor:
-
-```astro
-<script>
-  if (window.inEditorMode) {
-    import("../cloudcannon/registerComponents").catch((error) => {
-      console.warn("Failed to load CloudCannon component registration:", error);
-    });
-  }
-</script>
-```
-
-`window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration code out of the production bundle entirely — it only loads when the page is being edited. Reference: [astro-minimal-starter Layout.astro](https://github.com/CloudCannon/astro-minimal-starter/blob/main/src/layouts/Layout.astro).
-
-Use a relative path for the import. Many Astro projects use `@*` as a path alias for `src/`, which means `@cloudcannon/registerComponents` would resolve correctly to the local file — but it looks like an npm scoped package reference and can confuse readers and tooling. A relative path avoids this ambiguity.
-
-The details of what the script sets up are below for reference.
-
-### 1. Install the package
-
-```bash
-npm install @cloudcannon/editable-regions
-```
-
-### 2. Add the Astro integration
-
-In `astro.config.mjs`:
-
-```javascript
-import editableRegions from "@cloudcannon/editable-regions/astro-integration";
-
-export default defineConfig({
-  integrations: [
-    // ...other integrations
-    editableRegions(),
-  ],
-});
-```
-
-This registers a Vite plugin that enables client-side rendering of Astro components (needed for `EditableComponent` regions).
-
-**Astro 4 compatibility:** The integration references `window` at module evaluation time in `helpers/cloudcannon.mjs`. In Astro 4's legacy content collections, `astro sync` (which runs at the start of `astro build`) evaluates the integration before the Vite plugin can shim browser globals, causing a `window is not defined` crash. The integration requires Astro 5+. For Astro 4 sites, skip the integration — `data-editable` HTML attributes still work for CloudCannon's Visual Editor (text editing, image picking, array CRUD), but component re-rendering (`registerAstroComponent`) is not available.
-
-### 3. Create the `registerComponents` script
-
-Create `src/cloudcannon/registerComponents.ts`. This is where Astro components are registered for live re-rendering in the Visual Editor. Initially it contains only commented-out examples -- uncomment and add registrations as components are wired up.
-
-```typescript
-// Enable React components (e.g. react-icons) inside registered Astro components.
-// import "@cloudcannon/editable-regions/astro-react-renderer";
-
-// Register Astro components for live re-rendering in the Visual Editor.
-// Import each component and call registerAstroComponent() to enable
-// EditableComponent regions to re-render when data changes.
-//
-// import { registerAstroComponent } from "@cloudcannon/editable-regions/astro";
-// import CallToAction from "@/layouts/partials/CallToAction.astro";
-// registerAstroComponent("call-to-action", CallToAction);
-```
-
-When the site uses a page builder with a `BlockRenderer`, create a shared `src/cloudcannon/componentMap.ts` that maps `_type` keys to their Astro component imports. Both `registerComponents.ts` and `BlockRenderer.astro` import from it, keeping the mapping in one place:
-
-```typescript
-// componentMap.ts
-import Hero from '~/components/Hero.astro';
-import Features from '~/components/Features.astro';
-// ...
-
-export const componentMap: Record<string, any> = {
-  hero: Hero,
-  features: Features,
-  // ...
-};
-```
-
-```typescript
-// registerComponents.ts
-import { registerAstroComponent } from '@cloudcannon/editable-regions/astro';
-import { componentMap } from './componentMap';
-
-for (const [key, component] of Object.entries(componentMap)) {
-  registerAstroComponent(key, component);
-}
-```
-
-### Package exports reference
-
-| Import path | Purpose |
-|---|---|
-| `@cloudcannon/editable-regions/astro-integration` | Astro integration for `astro.config.mjs` (build-time) |
-| `@cloudcannon/editable-regions/astro` | `registerAstroComponent()` for client-side component re-rendering |
-| `@cloudcannon/editable-regions/astro-react-renderer` | Side-effect import: registers a catch-all React renderer for the editable-regions client-side re-rendering pipeline (needed when React components like `react-icons` are used inside registered Astro components) |
-| `@cloudcannon/editable-regions/react` | `registerReactComponent()` for standalone React component re-rendering |
-
-## Adding editable regions
-
-> **Markdown body content uses `@content`.** To make a markdown file's body (not frontmatter) editable in the visual editor, use `data-prop="@content"` on the wrapper element. This is the only valid path — not `content`, not `body`, not `markdown_content`. Applies wherever body content is rendered: `<Content />` from `entry.render()`, `<slot />` in layouts receiving markdown, etc. See [Content body editing](#content-body-editing) for the full pattern.
-
-### Guard optional fields
-
-The primary defence against `undefined` errors is ensuring all fields exist in the content frontmatter via structure definitions (see [../structures.md](../structures.md) — field completeness rule). Conditional guards are the safety net for cases where a field is legitimately optional even when the structure defines it.
+The primary defence against `undefined` errors is ensuring all fields exist in the content frontmatter via structure definitions (see [structures.md](../../cloudcannon-configuration/structures.md) — field completeness rule). Conditional guards are the safety net for cases where a field is legitimately optional even when the structure defines it.
 
 Every element with a `data-editable` attribute must be conditionally rendered if its field can be undefined or null. CloudCannon's editable regions actively inspect the resolved value — rendering an element with `data-prop="subtitle"` when `subtitle` is undefined causes a runtime error, even if the original template rendered unconditionally.
 
@@ -134,53 +28,16 @@ When a shared component like `Headline.astro` renders title/subtitle/tagline for
 
 ### Content-sourced objects and arrays are never falsy
 
-This is one of the most common bugs in CloudCannon migrations. When content YAML defines an object with all-null inner fields (`callToAction:\n  text:\n  href:`) or an empty array (`actions: []`), JavaScript treats both as truthy. A guard like `obj &&` or `array &&` will always pass, rendering empty buttons, blank links, or wrapper divs with no content.
+Content YAML objects with all-null inner fields and empty arrays are truthy in JavaScript. Guard on meaningful inner fields (`image?.src &&`) and array length (`actions?.length > 0 &&`). See [structures.md § Guarding empty objects and arrays](../../cloudcannon-configuration/structures.md#guarding-empty-objects-and-arrays-in-components) for the full pattern with examples.
 
-**Objects:** Guard on a meaningful inner field, not the object itself. Choose the field(s) that indicate the object has real content:
-
-```astro
-<!-- Bad: always truthy for { text: null, href: null } -->
-{callToAction && <Button {...callToAction} />}
-
-<!-- Good: only renders when there's something to display -->
-{(callToAction?.text || callToAction?.icon) && <Button {...callToAction} />}
-```
-
-This applies to ANY content-sourced object — not just CTAs. Common examples:
-
-- `image?.src &&` instead of `image &&`
-- `(callToAction?.text || callToAction?.icon) &&` instead of `callToAction &&`
-- `link?.href &&` instead of `link &&`
-- `(social?.url || social?.icon) &&` instead of `social &&`
-
-See [../structures.md](../structures.md#guarding-empty-objects-and-arrays-in-components) for the underlying YAML behavior.
-
-**Arrays:** Empty arrays `[]` are truthy. Use `.length` to check:
-
-```astro
-<!-- Bad: always truthy for [] -->
-{actions && <div>...</div>}
-
-<!-- Good: checks actual content -->
-{Array.isArray(actions) && actions.length > 0 && <div>...</div>}
-```
-
-When iterating arrays of objects, filter out items that have nothing visible to render. The check should target the fields responsible for visible output (e.g. `text`, `icon`), not every field -- a button with only `href` set but no text or icon is still visually empty:
-
-```astro
-{actions.filter((a) => a?.text || a?.icon).map((action) => (
-  <Button {...action} />
-))}
-```
-
-**Dual slot/prop components**: Many Astro widgets accept both slot content (rendered as strings) and structured objects (from content collections). They commonly use `typeof value === 'string'` to branch between the two. When fixing guards for these components, preserve the string branch:
+**Astro-specific: dual slot/prop components.** Many Astro widgets accept both slot content (rendered as strings) and structured objects (from content collections). They commonly use `typeof value === 'string'` to branch between the two. When fixing guards for these components, preserve the string branch:
 
 ```astro
 {(typeof callToAction === 'string' ? callToAction : (callToAction?.text || callToAction?.icon)) && ...}
 {(Array.isArray(actions) ? actions.length > 0 : actions) && ...}
 ```
 
-### Text editing
+## Text editing
 
 **Where to put text regions:**
 
@@ -235,7 +92,7 @@ The same applies if you abstract slot content into an Astro `.astro` component: 
 <span slot="title" data-editable="text" data-prop="title">{title}</span>
 ```
 
-### Image editing
+## Image editing
 
 Put path attributes (`data-prop`, `data-prop-src`, etc.) on the **image region host**. The library resolves the target like this: if the host is an `<img>`, it edits that element; otherwise it uses the first descendant `<img>` inside the host. So you can use **either** a wrapper (`<editable-image>`, `<div data-editable="image">`, or a layout element that already wraps the picture) **or** `data-editable="image"` directly on a plain `<img>`.
 
@@ -280,24 +137,9 @@ Most Astro templates store images as simple string paths, so `data-prop-src` is 
 
 When the user clicks the image in the visual editor, CloudCannon opens the image picker. The `<img>` src is updated live.
 
-**Image location and optimization:** Images that should be optimized (hero images, featured images, content images) belong in `src/assets/`, not `public/`. Frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.webp`). Components use `import.meta.glob` to resolve the string to `ImageMetadata` at build time (see [content.md § Resolving optimized image paths](content.md#resolving-optimized-image-paths-from-frontmatter)). The `<Image>` component from `astro:assets` works correctly with resolved `ImageMetadata` — don't downgrade to `<img>` just because the path comes from frontmatter. Keep unoptimized assets (logos, favicons, social previews) in `public/`.
+**Image location and optimization:** Optimized images belong in `src/assets/`, not `public/`. Frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.webp`). Components use `import.meta.glob` to resolve the string to `ImageMetadata` at build time (see [content.md § Resolving optimized image paths](content.md#resolving-optimized-image-paths-from-frontmatter)). Don't downgrade to `<img>` just because the path comes from frontmatter.
 
-**Upload paths:** Configure upload paths **per-input**, not globally. Inputs whose images feed into `<Image>`/`<Picture>` (optimized) should upload to `src/assets/images`. The global upload path stays on `public/` for unoptimized images. Decide per-input based on whether the template uses optimized or unoptimized rendering:
-
-```yaml
-_inputs:
-  image:
-    type: image
-    options:
-      paths:
-        uploads: /src/assets/images
-        static: ''
-  logo:
-    type: image
-    # uses global path (public/) — not optimized
-```
-
-The `static: ''` (empty string) is critical — it tells CloudCannon not to strip any prefix, so frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.jpg`) that `import.meta.glob` needs. See [configuration.md § Image path configuration](configuration.md#image-path-configuration) for the full setup.
+**Upload paths:** Configure per-input upload paths so optimized images go to `src/assets/images` while unoptimized use the global `public/` path. The per-input `static: ''` is critical — without it, CloudCannon strips the path prefix and `import.meta.glob` can't resolve the image. See [configuration.md § Image path configuration](../../cloudcannon-configuration/astro/configuration.md#image-path-configuration) for the full setup with YAML examples.
 
 ### Button/link text
 
@@ -311,7 +153,7 @@ For text inside links or buttons, wrap the label in `<editable-text>` (or use `<
 </a>
 ```
 
-### Array editing
+## Array editing
 
 Wrap the container with `data-editable="array"` and each item with `data-editable="array-item"`. Child editable regions use paths relative to their array item:
 
@@ -345,11 +187,14 @@ When conditional elements, style bindings, or computed content need live updates
 </ul>
 ```
 
-**When HTML `<template>` blueprints are needed.** The client ([`@cloudcannon/editable-regions`](https://github.com/CloudCannon/editable-regions)) can materialize a new array row from, in order: partial DOM from an in-flight update, `<template>` children on the array wrapper, or—when the wrapper has `data-component-key` and each item has `data-component` matching a **registered** Astro component—an `editable-array-item` host that runs the component pipeline. So **page builder / `content_blocks` arrays** with `data-component-key`, per-item `data-component` + `data-id`, and `registerAstroComponent` for every `_type` **do not need** `<template>` siblings. That matches the [CloudCannon complex array / page building guide](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/) (their layout example uses no `<template>`). Duplicating every block shape inside `<template>` is optional at best when registration is complete, and introduces multiple sources of truth.
+**When HTML `<template>` blueprints are needed.** The runtime can create new array rows from three sources (tried in order): in-flight update DOM, `<template>` children on the wrapper, or registered component rendering. Use this table to decide:
 
-**Primitive-only arrays** (no `data-component` on each item and no `data-component` on the array wrapper) need either a **`<template>`** blueprint or an existing row the runtime can **clone** when the editor adds an item. If the array can be **empty** at build time, prefer a `<template>` so "Add item" always has structure. If the list is never empty, cloning the first item may suffice without a template.
-
-**Heterogeneous rows without per-item `data-component`** are less common in migrations than registered page-builder blocks or uniform primitive lists, but they still happen—for example a **sub-array inside an already registered widget** where you want a few fixed row shapes (different fields or markup per variant) and you **deliberately avoid** `registerAstroComponent` for each row type. Use multiple `<template>` elements with `data-id` matching each variant, paired with matching CloudCannon structures. That is separate from the registered page-builder pattern in [Page builder blocks](#page-builder-blocks).
+| Array type | Has `data-component-key` + per-item `data-component` + all types registered? | Can be empty at build time? | `<template>` needed? |
+|---|---|---|---|
+| **Page builder** (`content_blocks`) | Yes | Yes | **No** — the component pipeline handles it ([CC complex array docs](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/)) |
+| **Uniform primitive list** (no `data-component`) | No | Yes | **Yes** — one `<template>` so "Add item" has structure |
+| **Uniform primitive list** (no `data-component`) | No | No (always has items) | **Optional** — runtime can clone the first item |
+| **Heterogeneous rows without per-item registration** (e.g. sub-array variants inside a registered widget) | No | Varies | **Yes** — multiple `<template>` elements with `data-id` matching each variant, paired with CloudCannon structures |
 
 **Simple arrays** (uniform primitive rows) usually include a single `<template>`:
 
@@ -393,7 +238,7 @@ Pass `editable={false}` when rendering cross-collection content that isn't backe
 
 **Rebuild comments on sidebar-only fields (Astro 4).** On Astro 4 without component re-rendering, fields that appear on the page but are only editable via the sidebar (e.g. `badge`, `tags`, `variant`) won't live-update. Add `comment` to these inputs in the CC config explaining what the field does and that changes require a save and rebuild. On Astro 5+ with component registration, these fields update live and the comments aren't needed.
 
-### Page builder blocks
+## Page builder blocks
 
 For the structural setup (array wrapper, BlockRenderer, catch-all route, CC config), see [page-building.md](page-building.md). This section covers the **visual editing layers** that go on top of that structure.
 
@@ -457,7 +302,7 @@ Fix options (pick one per widget):
 
 Prefer option 1 when the shared component is used by 3+ widgets with different field mappings. Prefer option 2 when there's no semantic distinction between the field names.
 
-### Sub-arrays within widget components
+## Sub-arrays within widget components
 
 Widget components often contain their own arrays — an `items` list in a Features or Content widget, an `actions` list of buttons in a Hero, a `steps` timeline, etc. These sub-arrays need `data-editable="array"` / `data-editable="array-item"` attributes just like the top-level page builder array. Without them, the user can only edit sub-array items via the sidebar modal — there are no inline CRUD controls (add, remove, reorder, drag-and-drop).
 
@@ -495,7 +340,7 @@ Since the sub-array lives inside a registered component (e.g. Features3 rendered
 
 ### Empty data-prop (pass-through scope)
 
-An empty `data-prop=""` passes the current data scope through without navigating deeper. This is useful when the parent's data IS the value the child needs — for example, an array editable inside an array-bound component:
+An empty `data-prop=""` passes the current data scope through without navigating deeper. This works for primitive regions (text, image, array) but **does not work for `<editable-component>`** — the component controls UI treats the empty string as falsy and won't render the edit button. Use it when the parent's data IS the value the child needs — for example, an array editable inside an array-bound component:
 
 ```astro
 <!-- Component data-prop points to an array -->
@@ -587,7 +432,7 @@ When a page template fetches and renders items from a different collection (e.g.
 ))}
 ```
 
-Note: `entry.id` in Astro content collections already includes the file extension (e.g. `janette-lynch.md`), so don't append `.md` again.
+Note: `entry.id` behavior depends on the content collection type. **Legacy collections** (`type: "content"` in `src/content/config.ts`) include the file extension (e.g. `janette-lynch.md`). **Glob loader** (`glob()` in `src/content.config.ts`) strips the extension (e.g. `janette-lynch`), so you must append `.md` when building `@file` paths. Check which loader the collection uses before constructing paths.
 
 ## When to use a component editable region
 
@@ -694,7 +539,7 @@ Source editables work by reading and writing the raw source file (e.g. `src/page
 
 ### Including `.astro` pages in collections
 
-Pages with source editables should be included in the pages collection so editors can find and open them. Add specific `.astro` filenames to the collection's glob alongside `"*.md"` -- only include pages that actually have editable regions. Pages with no visually editable content (search, 404, tag listings) should be excluded. Set `_enabled_editors: [visual]` for the collection -- `.astro` files can only use the visual editor (their JS frontmatter isn't parseable as data), and `.md` pages work well in the visual editor too when they have editable regions. See [configuration-gotchas.md § Pages collection](configuration-gotchas.md#pages-collection-including-astro-pages) for the full config pattern.
+Pages with source editables should be included in the pages collection so editors can find and open them. Add specific `.astro` filenames to the collection's glob alongside `"*.md"` -- only include pages that actually have editable regions. Pages with no visually editable content (search, 404, tag listings) should be excluded. Set `_enabled_editors: [visual]` for the collection -- `.astro` files can only use the visual editor (their JS frontmatter isn't parseable as data), and `.md` pages work well in the visual editor too when they have editable regions. See [configuration-gotchas.md § Pages collection](../../cloudcannon-configuration/astro/configuration-gotchas.md#pages-collection-including-astro-pages) for the full config pattern.
 
 ### Syntax
 
@@ -775,7 +620,7 @@ For collections without detail pages (data-like `.md` files rendered only on lis
 ))}
 ```
 
-**Path syntax:** `@file` paths must have a leading `/` and are relative to the repository root. `entry.id` in Astro content collections includes the file extension (e.g. `apple.md`).
+**Path syntax:** `@file` paths must have a leading `/` and are relative to the repository root. For `entry.id` behavior, see the note in [Cross-collection items on a page](#cross-collection-items-on-a-page) — legacy collections include the file extension, glob loader collections do not.
 
 **`@data` vs `@file` for listing-only content:** When `.md` (or similar) entries never build to their own pages and only feed a listing, you can keep the `@file[/path]` pattern above, or consolidate into one structured data file if that stays manageable.
 
@@ -798,7 +643,7 @@ Not everything benefits from visual editing. Guidelines:
 - Hardcoded text in page templates
 - Blog metadata visible on the page (author name, publish date)
 
-**MDX bodies and CloudCannon snippets:** Snippets in MDX do not render as their live-site output in the content editor or in the visual editor — editing page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon’s snippet UI (often a clickable box). Treat that as a preview limitation, not a reason to avoid visual editing for MDX.
+**MDX bodies and CloudCannon snippets:** Snippets in MDX do not render as their live-site output in the content editor or in the visual editor — editing page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon's snippet UI (often a clickable box). Treat that as a preview limitation, not a reason to avoid visual editing for MDX.
 
 **Better for sidebar/data editor:**
 - Navigation menus (complex nested structures)
@@ -813,9 +658,6 @@ Not everything benefits from visual editing. Guidelines:
 - **Vue, Svelte, and Solid components** -- these frameworks throw runtime errors in editable regions, even when nested inside supported `.astro` or `.jsx` wrappers. First consider converting the component to `.astro` or React (prefer `.astro` unless it's state-heavy). If conversion isn't practical, guard with `import.meta.env.ENV_CLIENT` to render an editing fallback -- a simplified `.astro` component that visually resembles the real one and supports editable attributes, giving editors a useful preview and editing experience without the unsupported framework.
 - Components with complex DOM management (Swiper carousels, etc.) -- their JavaScript conflicts with editable region DOM manipulation, and often are hard to edit if functioning like they do on prod.
 - Components using genuinely server-only APIs (`getImage` from `astro:assets` for image processing, `fetch` to external APIs at render time) -- guard with `import.meta.env.ENV_CLIENT` to provide a simplified client-side path that skips optimization and renders plain HTML. Note: `import.meta.glob` resolves eagerly at build time and works fine in registered components. `getCollection`/`getEntry` from `astro:content` also work because the integration shims them for the client bundle.
-
-**Skip visual editing entirely:**
-- Header/footer (too many moving parts, better in data editor)
 
 ## Content vs presentation in frontmatter fields
 
@@ -833,7 +675,7 @@ span.highlight-text {
 }
 ```
 
-2. Configure the input as `type: html` referencing the stylesheet. **Important:** adding `styles` (or any toolbar option) causes CC to treat omitted toolbar keys as `false`, so you must re-declare the inline formatting defaults you want to keep (see [configuration-gotchas.md § Rich text input toolbar options](configuration-gotchas.md#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables)):
+2. Configure the input as `type: html` referencing the stylesheet. **Important:** adding `styles` (or any toolbar option) causes CC to treat omitted toolbar keys as `false`, so you must re-declare the inline formatting defaults you want to keep (see [configuration-gotchas.md § Rich text input toolbar options](../../cloudcannon-configuration/astro/configuration-gotchas.md#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables)):
 
 ```yaml
 _inputs:
@@ -903,13 +745,61 @@ Use this when each piece of the HTML has distinct semantic meaning (text vs link
 
 Responsive layout HTML (`<br class="block sm:hidden" />`, `&nbsp;` for spacing, `<span class="sm:whitespace-nowrap">`) are layout concerns that don't belong in content. Store plain text and handle responsiveness in the component or CSS.
 
+## Section titles and buttons in child components
+
+When a component renders a section title or button text from props (e.g. `FeaturedProjects` rendering "Featured projects" and "View all projects"), register the component and wrap with `<editable-component>` so `data-prop` paths inside the component resolve relative to the component's data scope. Use `data-editable="text"` on the heading and `<editable-text>` on the button text inside the component.
+
+`getCollection`/`getEntry` work inside registered components because `astro:content` is shimmed by the integration. This means self-contained components that fetch their own data (e.g. a FeaturedPosts component that calls `getCollection('blog')`) work correctly in the visual editor — you don't need to pass fetched data as props.
+
+## Third-party component fields
+
+When third-party npm components render props internally and don't pass through HTML attributes, editable text/image regions can't be placed on the rendered output. Create a thin wrapper component, register it, and use `data-component` on the array item. On data changes, the item re-renders and the wrapper passes new props through to the third-party component.
+
+```astro
+---
+import { ProfileCard } from 'some-component-library'
+const { name, role, avatar } = Astro.props
+---
+<ProfileCard name={name} role={role} avatar={avatar} />
+```
+
+For sections with third-party components that don't expose attributes, extract the section into its own registered component so the whole section re-renders on any data change. This handles title, content, and order updates.
+
+## Component editables backed by data files
+
+Use `<editable-component data-component="..." data-prop="@data[key]">` to make a component backed by a data file re-render live. The component prop names must match the data file's key names — for example, if `cta.json` has `link_text`, the component must accept `link_text` (not `linkText`), because the re-renderer passes data file values directly as props.
+
+```astro
+<editable-component data-component="call-to-action" data-prop="@data[cta]">
+  <CallToAction />
+</editable-component>
+```
+
+## Conditional editable-image on shared components
+
+When a shared component like `PageHeader` is used across collections, not all contexts have the same frontmatter fields. For example, blog posts have an `image` field in frontmatter, but project pages compute their featured image from an array — there's no `image` field to bind. Wrapping unconditionally in `<editable-image data-prop-src="image">` causes errors on pages where `image` doesn't exist in the data scope.
+
+Fix: add an optional prop (e.g. `imagePropPath`) that controls whether the image gets editable attributes. Only render the `<editable-image>` wrapper when the prop is provided:
+
+```astro
+{resolvedImage && imagePropPath ? (
+  <editable-image data-prop-src={imagePropPath}>
+    <Image src={resolvedImage} ... />
+  </editable-image>
+) : resolvedImage ? (
+  <Image src={resolvedImage} ... />
+) : null}
+```
+
+Pages where frontmatter includes the image field pass the prop; pages where it doesn't exist omit it.
+
 ## Component re-rendering
 
 For full live preview (not just text/image), components need to be registered so `EditableComponent` can re-render them in the browser when data changes.
 
 ### Astro components
 
-For page builder sites, add the component to `src/cloudcannon/componentMap.ts` -- it will be registered automatically by `registerComponents.ts` (see [setup step 3](#3-create-the-registercomponents-script)). For standalone components not in the page builder, add individual registrations directly in `registerComponents.ts`:
+For page builder sites, add the component to `src/cloudcannon/componentMap.ts` -- it will be registered automatically by `registerComponents.ts` (see [setup steps in visual-editing.md](visual-editing.md#setup-steps)). For standalone components not in the page builder, add individual registrations directly in `registerComponents.ts`:
 
 ```typescript
 import { registerAstroComponent } from "@cloudcannon/editable-regions/astro";
@@ -920,7 +810,7 @@ registerAstroComponent("call-to-action", CallToAction);
 
 ### Non-Astro framework components
 
-Only `.astro` and React components are supported in editable regions. Vue, Svelte, and Solid components throw runtime errors in the visual editor, even when nested inside supported `.astro` or `.jsx` wrappers.
+Only `.astro` and React components are supported (see [overview.md § Astro scope](overview.md)).
 
 **Decision: convert or provide an editing fallback.** For each unsupported component, decide whether to convert it to a supported framework or keep it and provide a fallback:
 
@@ -1122,85 +1012,3 @@ The `editableRegions()` integration builds a client bundle that re-renders regis
 ```
 
 This applies to any component rendered inside a `<template>` array blueprint where prop values may be empty.
-
-## Section titles and buttons in child components
-
-When a component renders a section title or button text from props (e.g. `FeaturedProjects` rendering "Featured projects" and "View all projects"), register the component and wrap with `<editable-component>` so `data-prop` paths inside the component resolve relative to the component's data scope. Use `data-editable="text"` on the heading and `<editable-text>` on the button text inside the component.
-
-`getCollection`/`getEntry` work inside registered components because `astro:content` is shimmed by the integration. This means self-contained components that fetch their own data (e.g. a FeaturedPosts component that calls `getCollection('blog')`) work correctly in the visual editor — you don't need to pass fetched data as props.
-
-## Third-party component fields
-
-When third-party npm components render props internally and don't pass through HTML attributes, editable text/image regions can't be placed on the rendered output. Create a thin wrapper component, register it, and use `data-component` on the array item. On data changes, the item re-renders and the wrapper passes new props through to the third-party component.
-
-```astro
----
-import { ProfileCard } from 'some-component-library'
-const { name, role, avatar } = Astro.props
----
-<ProfileCard name={name} role={role} avatar={avatar} />
-```
-
-For sections with third-party components that don't expose attributes, extract the section into its own registered component so the whole section re-renders on any data change. This handles title, content, and order updates.
-
-## Component editables backed by data files
-
-Use `<editable-component data-component="..." data-prop="@data[key]">` to make a component backed by a data file re-render live. The component prop names must match the data file's key names — for example, if `cta.json` has `link_text`, the component must accept `link_text` (not `linkText`), because the re-renderer passes data file values directly as props.
-
-```astro
-<editable-component data-component="call-to-action" data-prop="@data[cta]">
-  <CallToAction />
-</editable-component>
-```
-
-## Conditional editable-image on shared components
-
-When a shared component like `PageHeader` is used across collections, not all contexts have the same frontmatter fields. For example, blog posts have an `image` field in frontmatter, but project pages compute their featured image from an array — there's no `image` field to bind. Wrapping unconditionally in `<editable-image data-prop-src="image">` causes errors on pages where `image` doesn't exist in the data scope.
-
-Fix: add an optional prop (e.g. `imagePropPath`) that controls whether the image gets editable attributes. Only render the `<editable-image>` wrapper when the prop is provided:
-
-```astro
-{resolvedImage && imagePropPath ? (
-  <editable-image data-prop-src={imagePropPath}>
-    <Image src={resolvedImage} ... />
-  </editable-image>
-) : resolvedImage ? (
-  <Image src={resolvedImage} ... />
-) : null}
-```
-
-Pages where frontmatter includes the image field pass the prop; pages where it doesn't exist omit it.
-
-## Verification checklist
-
-After adding editable regions, work through these checks before moving to the build phase:
-
-- [ ] `@cloudcannon/editable-regions` is in `package.json` dependencies
-- [ ] The editable regions Astro integration (`editableRegions()` from `@cloudcannon/editable-regions/astro-integration`) is in the `integrations` array in `astro.config.mjs`
-- [ ] `src/cloudcannon/registerComponents.ts` exists and the base layout imports it (side-effect import so component registrations run in the Visual Editor)
-- [ ] Registered components accept spread props matching the shape of their `data-prop` value -- not a named wrapper prop (see [Component prop contract](#component-prop-contract))
-- [ ] Pages that render items from other collections have `@file` editables on those items. Remember `entry.id` includes the file extension — don't double it.
-- [ ] Slot content that should be editable uses a concrete DOM host (e.g. `<editable-text>` or `<span data-editable="text">`) instead of `<Fragment>`
-- [ ] **Markdown body content**: Pages rendering markdown body (via `<Content />`, `entry.render()`, or `<slot />` in layouts) have `data-editable="text" data-type="block" data-prop="@content"` on the wrapper element — `@content` is the only valid path for body content
-- [ ] Key page templates contain `data-editable` attributes -- spot-check the homepage, a content page, and any shared partials (CTA, testimonials, etc.)
-- [ ] **Shared partials backed by data**: CTA sections (the shared promotional block above the footer, not buttons), footer, navigation, and other cross-page sections are backed by data files with `@data[key]` editables — never leave these hardcoded
-- [ ] **Source editables**: Hardcoded text in page templates (hero headings, descriptions, CTA copy) has `data-editable="source"` with `data-path` and `data-key` attributes -- don't skip content just because it's not in a content collection
-- [ ] **Page builder array wrapper** has `data-component-key="_type"` alongside `data-editable="array"` and `data-prop="content_blocks"` — `data-id-key` can be omitted when it matches `data-component-key` (Dec 2025 default)
-- [ ] **Page builder blocks** have both `data-editable="array-item"` and `data-component={_type}` on each block element — either a plain HTML element (`<section>`) or `<editable-array-item>` when no suitable element exists
-- [ ] **Page builder blocks**: Widget components rendered inside blocks have nested text/image regions on their key fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` for wrapper-only hosts)
-- [ ] **Sub-arrays within widgets**: Widget components that render internal arrays (`items`, `actions`, `steps`, etc.) have `data-editable="array"` + `data-prop` on the container and `data-editable="array-item"` on each item — check both shared UI components and widgets that render arrays inline
-- [ ] **All UI component variants**: Numbered variants of shared components (e.g. `ItemGrid.astro` / `ItemGrid2.astro`) all have editable attributes — don't assume wiring one covers the rest
-- [ ] **Sub-array item editables**: Array items within widget sub-arrays have nested text/image regions on their editable fields (title, description, image, etc.) — `data-editable="text"` / `data-editable="image"` or `<editable-text>` / `<editable-image>` where appropriate
-- [ ] **Shared component map**: Page builder sites have a `src/cloudcannon/componentMap.ts` that both `BlockRenderer.astro` and `registerComponents.ts` import from — no duplicated mapping
-- [ ] **Registration keys match `_type`**: Every key in `componentMap` (or direct `registerAstroComponent` call) uses the exact `_type` string from the content files (e.g., `call_to_action` not `call-to-action`)
-- [ ] **All block types registered**: Every `_type` value that appears in content files has a corresponding entry in `componentMap` — missing entries mean no edit button and no live re-rendering for that block type
-- [ ] **Conditional guards**: Every `data-editable` element whose field can be undefined/null is wrapped in a conditional — object fields check an inner key (`{image?.src && ...}`, `{callToAction?.text && ...}`), scalar fields check the value directly (`{title && ...}`)
-- [ ] **`<template>` blueprints**: Primitive-only arrays (no per-item `data-component` + registration) have `<template>` children where needed—especially when the list can be empty at build—or another reliable way to clone the first item; page-builder arrays with `data-component-key` and every `_type` registered do **not** require `<template>` on the wrapper
-- [ ] **Cross-collection editable guard**: Shared components used for both frontmatter-backed items and programmatic cross-collection content (e.g. blog posts) have an `editable` prop to conditionally strip editable attributes
-- [ ] **Rebuild comments (Astro 4)**: Sidebar-only fields that affect page appearance (badge, tags, variant, etc.) have `comment` in `_inputs` noting they require a save and rebuild to preview
-- [ ] **Inline vs block text editables**: On-page `data-type` matches the field's input config — if the input allows block-level options (lists, headings), the editable uses `data-type="block"` and the host element supports block content (e.g. `<div>`, not `<p>`). Also check existing content for block-level HTML or workarounds (e.g. `<br>` faking a list) that signal the same need
-- [ ] **Data file input config**: Every data file in `data_config` has a corresponding `file_config` entry with proper input types and structure references — without this, data files render as raw JSON in the CloudCannon data editor
-- [ ] **Dead frontmatter fields**: If frontmatter contains fields not rendered in any template, remove them — they create confusing sidebar inputs with no visible effect
-- [ ] **Conditional editable-image on shared components**: Shared components (like PageHeader) used across collections with different frontmatter shapes only render `<editable-image>` when an `imagePropPath` (or similar) prop is provided — prevents errors on pages where the image field doesn't exist in the data scope
-- [ ] Build output contains `data-component-key`, `data-id-key`, `data-component=`, `data-id=`, and `data-editable="array-item"` attributes (grep `dist/` to verify)
-

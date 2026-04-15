@@ -8,7 +8,7 @@ description: >-
 
 # Migrating to CloudCannon
 
-This skill walks through migrating an existing SSG site so it works well with CloudCannon. The migration follows five phases, with SSG-specific guidance for each.
+This skill orchestrates a full migration of an existing SSG site to CloudCannon. It coordinates five phases, delegating domain-specific work to standalone skills that can also be used independently.
 
 > **Model recommendation:** This migration involves multi-file architectural decisions across five phases. Use a high-reasoning model (not a fast/lightweight one) for best results.
 
@@ -34,21 +34,30 @@ npx @cloudcannon/gadget detect-ssg
 
 This returns the detected SSG and confidence scores. Use the result to select the correct SSG guide above.
 
-## Migration phases (summary)
+## Migration phases
 
-Each SSG guide walks through these phases in order with SSG-specific instructions:
+Each SSG guide walks through these phases in order with SSG-specific instructions. Phases that delegate to standalone skills are marked below — read the skill when you reach that phase.
 
-1. **Audit** -- Analyze the site's content structure, components, routing, and build pipeline before making changes.
-2. **Configuration** -- Generate a baseline `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json` using Gadget, then customize. Create `.cloudcannon/README.md` as an editor-facing guide for the Site Dashboard. Includes snippet configuration for sites using MDX/shortcode components in content (see [snippets.md](snippets.md)).
-3. **Content** -- Restructure content files if needed so they're CMS-friendly.
-4. **Visual editing** -- Add support for CloudCannon's Visual Editor with editable regions.
-5. **Build and test** -- Validate the migration works end-to-end.
+1. **Audit** — Analyze the site's content structure, components, routing, and build pipeline before making changes.
+2. **Configuration** — Generate and customize CloudCannon config files.
+   - **Read the `cloudcannon-configuration` skill** for Gadget CLI usage, structures, collection URLs, inputs, and SSG-specific configuration guidance.
+   - If the site uses MDX components or inline HTML in content, also **read the `cloudcannon-snippets` skill** for snippet configuration.
+3. **Content** — Restructure content files if needed so they're CMS-friendly.
+4. **Visual editing** — Add support for CloudCannon's Visual Editor with editable regions.
+   - **Read the `cloudcannon-visual-editing` skill** for editable regions API, setup workflow, and SSG-specific patterns.
+5. **Build and test** — Validate the migration works end-to-end.
 
 Not every site needs all phases. Small sites may skip Phase 3 if content is already well-structured. Visual editing (Phase 4) is optional but high-value.
 
-**Read the phase checklist BEFORE and AFTER each phase.** Every phase doc ends with a verification checklist. Read it before starting the phase so you know what to aim for, then work through every item before marking the phase complete. This is the single most important discipline in the migration — the checklists catch things you will otherwise miss. Common misses that checklists prevent: data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page builder blocks, arrays not linked to structures.
+### Phase discipline
 
-**Phases are sequential, not siloed.** When a later-phase concern (e.g. a missing frontmatter field) blocks the current phase from producing the right result, make the targeted fix now rather than settling for a worse outcome. A human migrating a site wouldn't leave a broken URL pattern just because "content changes belong in Phase 3." Small, mechanical fixes (adding a missing field, normalizing a value) are fine in any phase. Structural changes (moving files, reorganizing collections, altering rendering) should still wait for their proper phase. Agents should feel free to modify files outside their current phase when needed — e.g. updating CC config during the visual-editing phase, or fixing content during configuration. The phases exist to organize the work, not to restrict when changes can be made.
+**Read the phase checklist BEFORE and AFTER each phase.** Every phase doc ends with a verification checklist. Read it before starting the phase so you know what to aim for, then work through every item before marking the phase complete. This is the single most important discipline in the migration — the checklists catch things you will otherwise miss.
+
+Common misses that checklists prevent: data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page builder blocks, arrays not linked to structures.
+
+**You are not done with a phase until every checklist item is verified.** Don't move on with unchecked items.
+
+**Phases are sequential, not siloed.** When a later-phase concern (e.g. a missing frontmatter field) blocks the current phase from producing the right result, make the targeted fix now rather than settling for a worse outcome. Small, mechanical fixes (adding a missing field, normalizing a value) are fine in any phase. Structural changes (moving files, reorganizing collections, altering rendering) should still wait for their proper phase.
 
 ## Scripts
 
@@ -62,10 +71,10 @@ Create a `migration/` directory at the project root with one file per phase (`au
 
 ### Testing boundaries (agents vs humans)
 
-- **CloudCannon and the visual editor** -- Fidelity checks inside the real product (preview, inline edit, save-to-git) are **human** tasks. Do not assume you can fully replicate CloudCannon in the local environment.
-- **After a substantive pass** -- Prefer asking the user to run verification (build, CloudCannon) rather than starting a long-lived dev server or heavy end-to-end testing in the agent session.
-- **Light automation** -- Builds, greps, small scripts, and checks described in SSG phase docs (e.g. inspecting `dist/`) are appropriate; keep them proportional.
-- **Deeper agent testing** -- When the task truly requires it, more advanced automated checks are fine; keep them proportional to the task.
+- **CloudCannon and the visual editor** — Fidelity checks inside the real product (preview, inline edit, save-to-git) are **human** tasks. Do not assume you can fully replicate CloudCannon in the local environment.
+- **After a substantive pass** — Prefer asking the user to run verification (build, CloudCannon) rather than starting a long-lived dev server or heavy end-to-end testing in the agent session.
+- **Light automation** — Builds, greps, small scripts, and checks described in SSG phase docs (e.g. inspecting `dist/`) are appropriate; keep them proportional.
+- **Deeper agent testing** — When the task truly requires it, more advanced automated checks are fine; keep them proportional to the task.
 
 ### When to close with the user
 
@@ -77,9 +86,9 @@ Be direct and brief: a short summary of what changed, then a **checklist** the u
 
 ### What to ask the user to verify
 
-1. **Local build** -- The project's real build entrypoint (usually `npm run build` or whatever `package.json` defines), not a partial command. If it failed, they should paste the **full** error output (or at least the command, exit code, and the last ~30 lines of stderr).
-2. **Checks you already ran** -- If you ran SSG-specific checks from the build doc (e.g. grep `dist/` for editable attributes), say so in one line so they do not duplicate work.
-3. **CloudCannon (human)** -- They should confirm in the hosted environment:
+1. **Local build** — The project's real build entrypoint (usually `npm run build` or whatever `package.json` defines), not a partial command. If it failed, they should paste the **full** error output (or at least the command, exit code, and the last ~30 lines of stderr).
+2. **Checks you already ran** — If you ran SSG-specific checks from the build doc (e.g. grep `dist/` for editable attributes), say so in one line so they do not duplicate work.
+3. **CloudCannon (human)** — They should confirm in the hosted environment:
    - Inline text regions can be edited in the preview on representative pages
    - Image regions open the image picker
    - Array regions show add/remove/reorder controls where arrays were wired
@@ -103,3 +112,13 @@ Follow the project's existing conventions when present. Otherwise:
 - `kebab-case` for files
 - `camelCase` for JavaScript and JSON
 - Markdown frontmatter and YAML: match the existing component prop names so frontmatter keys pass through without translation. When creating new fields with no existing convention, prefer `snake_case`.
+
+## Common mistakes
+
+| Excuse | Reality |
+|--------|---------|
+| "This site is simple enough to skip the audit" | The audit catches structural issues early. Skipping it means discovering problems mid-configuration. |
+| "I'll do the checklist at the end" | Read checklists BEFORE starting each phase. They tell you what to aim for. |
+| "Content restructuring can wait" | If a missing field blocks configuration, add it now. Phases are sequential, not siloed. |
+| "Visual editing is optional so I'll skip it" | It's the highest-value phase for editors. Only skip if the user explicitly says so. |
+| "The build passes so we're done" | A passing build doesn't mean the editor works. The user must verify in CloudCannon. |

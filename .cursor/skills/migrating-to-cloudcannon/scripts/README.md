@@ -26,12 +26,6 @@ bash rename-dash-index.sh /path/to/project
 
 After running, the agent still needs to update helper functions (`getSinglePage`, `getListPage` callers) to use `"index"` instead of `"-index"`.
 
-### `setup-editable-regions.sh` (Phase 4: Visual Editing)
+## Scripts in other skills
 
-Installs `@cloudcannon/editable-regions`, adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts` with commented-out examples.
-
-```bash
-bash setup-editable-regions.sh /path/to/project
-```
-
-Tries a normal `npm install` first; falls back to `--legacy-peer-deps` only if peer dependency conflicts occur. After running, the agent still needs to import the registerComponents script from the base layout and add editable region attributes to templates.
+- **`setup-editable-regions.sh`** — Lives in the `cloudcannon-visual-editing` skill's `scripts/` directory. Installs `@cloudcannon/editable-regions`, wires the Astro integration, and creates the `registerComponents.ts` stub.

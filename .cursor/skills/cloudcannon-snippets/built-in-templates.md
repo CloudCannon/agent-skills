@@ -2,7 +2,7 @@
 
 Reference for built-in snippet templates shipped with CloudCannon's snippet parser (`@cloudcannon/scrap-booker`). These resolve automatically when referenced by name in `_snippets` — no `_snippets_imports` required for template resolution.
 
-> **Two layers:** Built-in **templates** (`mdx_component`, `mdx_paired_component`) live in the parser; you get them by setting `template:` on entries in `_snippets`. **Pre-built snippet instances** (for example `import`, `_cc_mdx_unknown`) are a separate MDX default bundle that only enters your config when `_snippets_imports` loads those defaults. Migrations normally skip `_snippets_imports`, so you use templates without ever loading the catchall bundle. See [Built-in templates](#built-in-templates) vs [MDX default import bundle](#mdx-default-import-bundle) below.
+> **Two layers:** Built-in **templates** (e.g. `mdx_component`) are always available by name in `_snippets`. **Pre-built snippet instances** (e.g. `_cc_mdx_unknown`) are a separate bundle that only loads via `_snippets_imports` — migrations skip this (see [snippets.md § Configuration hierarchy](snippets.md#configuration-hierarchy)). See [Built-in templates](#built-in-templates) vs [MDX default import bundle](#mdx-default-import-bundle) below.
 
 For how to use templates in migrations, see [template-based.md](template-based.md). For raw snippet syntax, see [raw.md](raw.md).
 

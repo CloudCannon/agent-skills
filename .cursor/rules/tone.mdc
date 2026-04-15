@@ -11,3 +11,6 @@ alwaysApply: true
 - Don't use square brackets at the start of console logs, eg. `[debugging] Here is a  log`.
 - Avoid factory functions where possible.
 - Avoid generator functions where possible.
+- When presenting lots of findings or changes, break them into sections. Get feedback between sections for larger outputs rather than dumping everything at once.
+- When blocked or uncertain, stop and ask. Name the specific blocker, propose options, and let the user decide. Don't force through with assumptions.
+- When a skill or phase doc has a verification checklist, run through every item before declaring the work done. Don't skip checklist items because things "look right".

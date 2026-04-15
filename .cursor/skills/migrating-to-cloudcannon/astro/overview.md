@@ -9,7 +9,7 @@ This guide covers Astro sites that use:
 - Astro content collections (`src/content/` with `content.config.ts` or `src/content/config.ts`)
 - `.astro` single-file components
 - Static output (`output: "static"` -- the default)
-- Islands architecture with optional framework integrations. Only `.astro` and React components are supported in editable regions -- Vue, Svelte, and Solid components throw runtime errors in the visual editor even when nested inside supported components. Convert to a supported framework, or use `ENV_CLIENT` editing fallbacks (see [visual-editing.md](visual-editing.md))
+- Islands architecture with optional framework integrations. Only `.astro` and React components are supported in editable regions -- Vue, Svelte, and Solid components throw runtime errors in the visual editor even when nested inside supported components. Convert to a supported framework, or use `ENV_CLIENT` editing fallbacks (see the `cloudcannon-visual-editing` skill)
 
 Server-rendered Astro sites (`output: "server"` or `output: "hybrid"`) are not covered -- CloudCannon requires static output.
 
@@ -25,7 +25,9 @@ See [audit.md](audit.md).
 
 Generate a baseline `cloudcannon.config.yml` using Gadget, then customize based on the audit findings. If the site uses MDX components in content, configure snippets as part of this phase.
 
-See [configuration.md](configuration.md) and [snippets.md](snippets.md).
+**Read the `cloudcannon-configuration` skill** for Gadget CLI, structures, collection URLs, and Astro-specific configuration guidance.
+
+If the site uses MDX components or inline HTML in content, also **read the `cloudcannon-snippets` skill**.
 
 ### Phase 3: Content
 
@@ -37,7 +39,7 @@ See [content.md](content.md).
 
 Add `@cloudcannon/editable-regions` for inline editing in CloudCannon's Visual Editor.
 
-See [visual-editing.md](visual-editing.md). Also reference the core [editable regions overview](../editable-regions.md). Only read the [internals doc](../editable-regions-internals.md) if debugging unexpected editable region behavior.
+**Read the `cloudcannon-visual-editing` skill** for editable regions API, setup workflow, and Astro-specific patterns.
 
 ### Phase 5: Build and test
 

@@ -41,9 +41,9 @@ Gadget produces a structural baseline. The following customizations are almost a
 - **All schema fields mapped** -- cross-reference every field in the Zod schema against the `_inputs` config. Every user-facing field needs an appropriate input type (`textarea` for multi-line strings like excerpts/descriptions, `datetime` for dates, `image` for image paths, etc.). Missing fields fall back to CC's type inference, which is often wrong. When unsure whether a field is user-facing or developer-only, check whether its value is rendered as visible text on the built page. If it appears on the page, it should be editable with an appropriate input type. Only fields undergoing heavy programmatic transformation (e.g. used purely as a build-time lookup key) should be hidden.
 - **`collection_groups`** -- organize collections into sidebar groups for a clean editing experience.
 - **`_editables`** -- configure rich text editor toolbars per collection or globally.
-- **Editor styles** -- when the audit flagged styled HTML in content fields (inline spans with CSS classes for accent colors, emphasis, etc.), create `.cloudcannon/styles/editor.css` with semantic class definitions and reference it from `type: html` inputs via `options.styles`. This lets editors apply custom styling (e.g. brand-colored highlight text) through the rich text toolbar without Tailwind utility classes in the content. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter) and the [Jetstream template](https://github.com/CloudCannon/jetstream-astro-template) for the reference pattern.
+- **Editor styles** -- when the audit flagged styled HTML in content fields (inline spans with CSS classes for accent colors, emphasis, etc.), create `.cloudcannon/styles/editor.css` with semantic class definitions and reference it from `type: html` inputs via `options.styles`. This lets editors apply custom styling (e.g. brand-colored highlight text) through the rich text toolbar without Tailwind utility classes in the content. See [content.md § Handling styled HTML in frontmatter](../../migrating-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter) and the [Jetstream template](https://github.com/CloudCannon/jetstream-astro-template) for the reference pattern.
 - **`markdown`** -- if content files contain Markdown-syntax tables (`| col | col |`), set `markdown.options.table: true`. See [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
-- **`_snippets`** -- configure snippets for non-standard markdown amongst markdown content. In Astro this is often MDX components used in rich text content. Built-in templates like `mdx_component` resolve automatically — no `_snippets_imports` needed. See [snippets.md](snippets.md).
+- **`_snippets`** -- configure snippets for non-standard markdown amongst markdown content. In Astro this is often MDX components used in rich text content. Built-in templates like `mdx_component` resolve automatically — no `_snippets_imports` needed. See the `cloudcannon-snippets` skill.
 - **`_select_data`** -- define shared dropdown options for fields used across collections. When values need friendly display names (e.g. icon identifiers), use objects with `name`/`id` instead of flat strings, paired with `value_key: id` on the input:
 
 ```yaml
@@ -142,7 +142,7 @@ If a page has data coming from a file separate from the content page, or a page 
 - Move section data from `.md` frontmatter into `src/data/*.json` files
 - Add `data_config` entries in `cloudcannon.config.yml` pointing to each JSON file
 - Import the JSON directly in Astro components (no collection needed)
-- Use `@data[key].path` for an editable region's `data-prop` for connecting data to an element in the visual editor
+- Use `@data[key].field` syntax for editable regions (e.g. `data-prop="@data[call-to-action].title"`)
 
 For pages with unique schemas (e.g. a homepage with `banner`/`features`), merge the page into the `pages` collection using a `z.union` in the Zod schema and CC schemas for the correct editor fields (see Fallback below).
 
@@ -230,7 +230,7 @@ For visual editing, use `@data[key].path` syntax in editable regions:
 </h2>
 ```
 
-Data files appear in the sidebar under their own collection group (typically "Data"). Configure `_inputs` and `_structures` globally since data files don't have collection-scoped config.
+Data files configured via `data_config` allows those files to be referenced by other CloudCannon config, but **they do not automatically appear in the sidebar**. The most common reason to add an entry to `data_config` is to populate select inputs. To make data files browsable and editable in the sidebar, add a `collections_config` entry pointing to the data file(s) and group it under a "Data" `collection_group`. Configure `_inputs` and `_structures` globally since data files don't have collection-scoped config.
 
 ## Image path configuration
 
@@ -430,9 +430,9 @@ After generating and customizing the config, work through these checks before mo
 - [ ] Every input has some explicit config: objects have `type: object` + preview icon, selects have `type: select`, images have `type: image`, booleans have `type: switch`, text areas have `type: textarea` or `type: html`. No input should be left unconfigured if CloudCannon can't infer the right type from the field name alone
 - [ ] Sites with 5+ block types use the split co-located approach (`values_from_glob`)
 - [ ] Every MDX component in content has a `_snippets` entry, or `_enabled_editors: [source, data]` only as a last resort after snippet/refactor attempts — unconfigured components break the content editor; document rationale in migration notes
-- [ ] MDX files with explicit `import` statements: set up `astro-auto-import` (or equivalent) so imports are injected at build time and removed from source files — bare `import` lines show as raw text in the content editor. See [snippets.md § Auto-import](snippets.md#auto-import-keeping-import-statements-out-of-content)
+- [ ] MDX files with explicit `import` statements: set up `astro-auto-import` (or equivalent) so imports are injected at build time and removed from source files — bare `import` lines show as raw text in the content editor. See [astro.md § Auto-import](../../cloudcannon-snippets/astro.md#auto-import-keeping-import-statements-out-of-content)
 - [ ] `_enabled_editors` order has the preferred default editor first (`visual` for page collections, `visual` then `content` for blog posts)
-- [ ] `<br />` tags in plain text frontmatter fields that simulate lists are converted to HTML lists (`<ul><li>`) in `type: html` fields, or split into arrays. `<br />` in rich text fields is fine. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter)
+- [ ] `<br />` tags in plain text frontmatter fields that simulate lists are converted to HTML lists (`<ul><li>`) in `type: html` fields, or split into arrays. `<br />` in rich text fields is fine. See [content.md § Handling styled HTML in frontmatter](../../migrating-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter)
 - [ ] `markdown.options.table` is `true` if any content files contain Markdown-syntax tables
 - [ ] `add_options` restricts the Add button to only creatable schemas
 - [ ] Collections where editors should not create new files use `disable_add: true`

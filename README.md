@@ -1,107 +1,92 @@
-# CloudCannon Migration Skill
+# CloudCannon Agent Skills
 
-This repo develops and tests a [Cursor skill](https://docs.cursor.com/context/skills) for migrating existing SSG sites to [CloudCannon](https://cloudcannon.com) -- a git-based CMS. The skill lives at `.cursor/skills/migrating-to-cloudcannon/` and includes procedural docs, reference material, and automation scripts. The goal is to package this skill so it can be given to prospective customers, letting an AI agent guide them through onboarding.
+[Cursor skills](https://docs.cursor.com/context/skills) that help AI agents migrate existing SSG sites to [CloudCannon](https://cloudcannon.com) -- a git-based CMS. Copy the skills into your project, open Cursor, and ask the agent to migrate your site.
 
-## How it works
+## Prerequisites
 
-We develop the skill by working through real site templates:
+- [Cursor](https://cursor.com) IDE with agent mode
+- An existing SSG site (see [supported SSGs](#supported-ssgs))
+- A [CloudCannon](https://cloudcannon.com) account (for final verification)
 
-1. Pick an existing SSG template that has no CloudCannon knowledge
-2. Add the untouched template to `templates/<name>/pristine/` and copy it to `templates/<name>/migrated/`
-3. Use an AI agent (armed with the skill) to migrate `migrated/`
-4. Review the result and refine the skill docs and scripts based on what we learn
+## Supported SSGs
 
-The skill docs are **living documents** -- agents are expected to update them as they discover new patterns, edge cases, or better approaches.
+| SSG | Status |
+|-----|--------|
+| Astro | Supported |
 
-## Repository structure
+More SSGs are planned. Each SSG has its own directory within the relevant skills containing SSG-specific guidance.
 
-```
-.cursor/
-  rules/                              # Project-specific agent rules (not shipped)
-  skills/
-    migrating-to-cloudcannon/         # The skill -- this is the primary output
-      SKILL.md                        # Entry point -- detects SSG, routes to SSG guide
-      GUIDE.md                        # Human traversal guide (file map, reading order, decision tree)
-      gadget-guide.md                 # Core: Gadget CLI commands and options
-      editable-regions.md             # Core: region types, attribute reference
-      editable-regions-internals.md   # Core: lifecycle, JS API, quirks (read on demand)
-      collection-urls.md              # Core: URL patterns, placeholders, trailing slash
-      structures.md                   # Core: inline vs split, previews, field completeness
-      snippets.md                     # Core: snippet concepts, when to use, config patterns
-      snippets/                       # Snippet sub-docs
-        built-in-templates.md         #   MDX template reference, parser internals
-        raw.md                        #   Raw snippet syntax, all parser types
-        template-based.md             #   Template-based snippet workflow
-        gotchas.md                    #   Snippet pitfalls and debugging
-      astro/                          # Astro-specific migration guide
-        overview.md                   #   Astro entry point with phase links
-        audit.md                      #   Phase 1: Analyze the Astro site
-        configuration.md              #   Phase 2: CC config, schemas, inputs
-        configuration-gotchas.md      #   Phase 2: Patterns and pitfalls
-        page-building.md              #   Phase 2/4: Pages collection, page builder
-        content.md                    #   Phase 3: Content review
-        snippets.md                   #   Phase 2: Astro snippet configuration
-        visual-editing.md             #   Phase 4: Visual editor setup
-        build.md                      #   Phase 5: Build and validate
-      scripts/                        # Deterministic migration scripts
-        README.md                     #   Script descriptions and future ideas
-        audit-astro.sh                #   Phase 1: Gather audit data
-        rename-dash-index.sh          #   Phase 3: Rename -index.md to index.md
-        setup-editable-regions.sh     #   Phase 4: Install + configure editable regions
+## Available skills
 
-add-test-site.mjs                    # Clone a template repo into pristine/ + migrated/
-run-test-site.mjs                    # Install, build, and launch Fog Machine for a template
+The tooling is split across composable skills that can be used together or independently.
 
-templates/
-  <name>/
-    pristine/                         # Untouched original (never modify)
-    migrated/                         # Agent works here
-      migration/
-        transcripts/                  # Archived agent transcripts (.jsonl)
-```
+| Skill | Purpose | When to use |
+|-------|---------|-------------|
+| `migrating-to-cloudcannon` | Full migration orchestrator | Migrating a site to CloudCannon end-to-end (audit, configure, content, visual editing, build) |
+| `cloudcannon-configuration` | CloudCannon config setup | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the Gadget CLI |
+| `cloudcannon-snippets` | Snippet configuration | Configuring MDX components or inline HTML for CloudCannon's Content Editor |
+| `cloudcannon-visual-editing` | Visual Editor support | Adding editable regions so page content can be edited inline in CloudCannon's Visual Editor |
+| `brainstorming` | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation |
 
-## Agent reading order
-
-For a detailed walkthrough of how agents (and humans reviewing agent behavior) traverse the skill files -- including reading order per phase, decision trees for optional docs, and a cross-reference map -- see [GUIDE.md](.cursor/skills/migrating-to-cloudcannon/GUIDE.md).
-
-The short version: `SKILL.md` detects the SSG and routes to `astro/overview.md`, which links to phase docs (audit -> configuration -> content -> visual-editing -> build). Each phase doc references core docs and scripts on demand. The ideal agent reads just-in-time rather than front-loading all reference docs at once.
-
-## Key principles
-
-**Scripts first**: Anything deterministic and repetitive should be a script, not an agent task. This saves tokens, improves consistency, and makes the process more predictable.
-
-**Just-in-time reading**: Agents should read docs as needed during each phase rather than loading everything upfront. The skill is structured to support this.
+For a full migration, start with `migrating-to-cloudcannon` -- it orchestrates the other skills at the right time. The standalone skills (`cloudcannon-configuration`, `cloudcannon-snippets`, `cloudcannon-visual-editing`) are useful when you only need one piece, e.g. "add visual editing to my existing CloudCannon site".
 
 ## Getting started
 
-### Prerequisites
+1. Copy the `.cursor/skills/` directory from this repo into your project's `.cursor/skills/` directory
+2. Open your project in Cursor
+3. Ask the agent to migrate your site to CloudCannon
 
-- [Cursor](https://cursor.com) IDE with agent mode
+The agent picks up skills automatically based on their trigger descriptions in `SKILL.md`. For a full migration, something like "migrate this site to CloudCannon" is enough to get started.
 
-### Working on a template
+## How it works
 
-1. Add a new template: `npm run add-template -- <name> <repo-url>`
-   - Clones the repo into `templates/<name>/pristine/`, removes `.git`, and copies to `migrated/`
-2. Open the repo in Cursor and ask the agent to migrate `migrated/` -- it will pick up the `migrating-to-cloudcannon` skill automatically
-3. As the agent works, review its changes and prompt it to update the skill docs if it discovers something new
-4. Test the result: `npm run fog-template -- <name>`
-   - Installs dependencies, builds, and launches Fog Machine on the output
+A full migration runs through five phases:
+
+1. **Audit** -- Analyze the site's content structure, components, routing, and build pipeline
+2. **Configuration** -- Generate and customize CloudCannon config files (delegates to `cloudcannon-configuration` and optionally `cloudcannon-snippets`)
+3. **Content** -- Restructure content files if needed so they're CMS-friendly
+4. **Visual editing** -- Add editable regions for inline editing in CloudCannon's Visual Editor (delegates to `cloudcannon-visual-editing`)
+5. **Build and test** -- Validate the migration works end-to-end
+
+Each phase has a verification checklist. The agent reads docs just-in-time during each phase rather than front-loading everything. Deterministic steps are automated as scripts to save tokens and improve consistency.
+
+Not every site needs all phases. Small sites may skip content restructuring. Visual editing is optional but high-value.
+
+## Contributing
+
+### Repo structure
+
+```
+.cursor/
+  rules/                              # Agent rules for developing the skills (not shipped)
+  skills/
+    migrating-to-cloudcannon/         # Migration orchestrator
+    cloudcannon-configuration/        # Config skill (standalone)
+    cloudcannon-snippets/             # Snippets skill (standalone)
+    cloudcannon-visual-editing/       # Visual editing skill (standalone)
+    brainstorming/                    # Design exploration skill
+
+templates/                            # Test sites for validating the skills
+  <name>/
+    pristine/                         # Untouched original (never modify)
+    migrated/                         # Agent works here
+```
+
+### Template workflow
+
+Skills are developed and tested by running migrations against real site templates:
+
+1. Add a template: `npm run add-template -- <name> <repo-url>`
+2. Ask an agent to migrate `templates/<name>/migrated/` using the skills
+3. Review the result and update skill docs based on what you learn
+4. Test locally: `npm run fog-template -- <name>` (builds and launches [Fog Machine](https://github.com/CloudCannon/fog-machine) for local CloudCannon testing)
 5. To start fresh, delete `migrated/` and copy `pristine/` again
 
-### Editing the skill directly
+### Key conventions
 
-The files in `.cursor/skills/migrating-to-cloudcannon/` are the primary output of this project. Edit them directly or let agents update them during migrations. The `.cursor/rules/` directory contains project-specific conventions for how we develop the skill -- these are not part of the shipped deliverable.
+- **Scripts first** -- Anything deterministic and repetitive should be a script, not an agent task. Saves tokens and improves consistency.
+- **Living documents** -- Skills and reference docs are actively maintained. Agents are expected to update them when they discover new patterns or edge cases.
+- **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
+- **No peeking at previous migrations** -- Completed migrations exist in `templates/` but agents must never read other templates' `migrated/` directories. If the skill docs are insufficient, that's a gap to fix in the docs.
 
-## Templates
-
-| Template | SSG | Status |
-|----------|-----|--------|
-| [accessible-astro-starter](templates/accessible-astro-starter/) | Astro | Migrated |
-| [astro-cactus](templates/astro-cactus/) | Astro | Migrated |
-| [astro-nano](templates/astro-nano/) | Astro | Migrated |
-| [astro-paper](templates/astro-paper/) | Astro | Migrated |
-| [astrofy](templates/astrofy/) | Astro | Migrated |
-| [astroplate](templates/astroplate/) | Astro | Migrated |
-| [astroship](templates/astroship/) | Astro | Migrated |
-| [astrowind](templates/astrowind/) | Astro | Migrated |
-| [astrowind2](templates/astrowind2/) | Astro | Migrated |
+For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](.cursor/skills/migrating-to-cloudcannon/GUIDE.md).

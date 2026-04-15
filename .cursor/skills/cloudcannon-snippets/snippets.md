@@ -15,10 +15,10 @@ Agents must handle both layers during a migration, but keep them conceptually se
 
 | Doc | When to read |
 |---|---|
-| [Template-based snippets](snippets/template-based.md) | Component syntax matches a built-in template (most common). Covers MDX templates, snippet model reference, example lifecycle. |
-| [Raw snippets](snippets/raw.md) | Component needs custom syntax (e.g. `client:load`). Covers parser types, snippet format reference, custom templates. |
-| [Built-in templates](snippets/built-in-templates.md) | Built-in MDX templates vs MDX default import bundle; patterns, definitions, `mdx_format`, parser internals. |
-| [Gotchas](snippets/gotchas.md) | Debugging or reviewing. Common pitfalls and workarounds. |
+| [Template-based snippets](template-based.md) | Component syntax matches a built-in template (most common). Covers MDX templates, snippet model reference, example lifecycle. |
+| [Raw snippets](raw.md) | Component needs custom syntax (e.g. `client:load`). Covers parser types, snippet format reference, custom templates. |
+| [Built-in templates](built-in-templates.md) | Built-in MDX templates vs MDX default import bundle; patterns, definitions, `mdx_format`, parser internals. |
+| [Gotchas](gotchas.md) | Debugging or reviewing. Common pitfalls and workarounds. |
 
 ---
 
@@ -34,18 +34,18 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-> **Note:** `_snippets_imports` exists but should not be used during migrations. It loads pre-built catchall snippet instances (including one that hides `import` statements) which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control without `_snippets_imports`. Built-in **templates** like `mdx_component` are always available by name — "resolve automatically" means CC knows the template pattern without needing `_snippets_imports`, not that `mdx_component` handles import statements. Import handling is an SSG concern: use `astro-auto-import` (or equivalent) to inject imports at build time so `import` lines don't appear in source files. See [astro/snippets.md § Auto-import](astro/snippets.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle** (catchalls like `_cc_mdx_unknown`), see [built-in-templates.md](snippets/built-in-templates.md).
+> **Note:** `_snippets_imports` exists but should not be used during migrations. It loads pre-built catchall snippet instances (including one that hides `import` statements) which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control without `_snippets_imports`. Built-in **templates** like `mdx_component` are always available by name — "resolve automatically" means CC knows the template pattern without needing `_snippets_imports`, not that `mdx_component` handles import statements. Import handling is an SSG concern: use `astro-auto-import` (or equivalent) to inject imports at build time so `import` lines don't appear in source files. See [astro.md § Auto-import](astro.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle** (catchalls like `_cc_mdx_unknown`), see [built-in-templates.md](built-in-templates.md).
 
 ---
 
 ## Which approach?
 
-- **Template-based** → component syntax matches a built-in template exactly (no extra directives, standard attribute format). See [template-based.md](snippets/template-based.md).
-- **Raw** → extra syntax needs to appear literally, or non-standard attribute format, or fine-grained parsing control needed. See [raw.md](snippets/raw.md).
+- **Template-based** → component syntax matches a built-in template exactly (no extra directives, standard attribute format). See [template-based.md](template-based.md).
+- **Raw** → extra syntax needs to appear literally, or non-standard attribute format, or fine-grained parsing control needed. See [raw.md](raw.md).
 
 Most migrations use template-based for simple components and raw for anything with SSG-specific directives.
 
-For **Astro**, [astro/snippets.md](astro/snippets.md) connects this choice to the SSG layer: when to adopt the MDX stack (including refactoring from Markdown-only) versus staying on `.md` with more raw parsing work.
+For **Astro**, [astro.md](astro.md) connects this choice to the SSG layer: when to adopt the MDX stack (including refactoring from Markdown-only) versus staying on `.md` with more raw parsing work.
 
 ---
 
@@ -87,7 +87,7 @@ _editables:
 
 ## When NOT to use a snippet
 
-If a rich text field contains structured HTML with a fixed layout and only a few changing values (e.g. a banner with specific classes for centering and link styling), don't define it as a snippet. Instead, decompose the HTML into explicit props and let the component own the markup. See [astro/visual-editing.md > Structured props over rich text](astro/visual-editing.md#structured-props-over-rich-text) for the full pattern.
+If a rich text field contains structured HTML with a fixed layout and only a few changing values (e.g. a banner with specific classes for centering and link styling), don't define it as a snippet. Instead, decompose the HTML into explicit props and let the component own the markup. See [visual-editing-reference.md § Content vs presentation in frontmatter fields](../cloudcannon-visual-editing/astro/visual-editing-reference.md#content-vs-presentation-in-frontmatter-fields) for the full pattern.
 
 ---
 
@@ -95,15 +95,13 @@ If a rich text field contains structured HTML with a fixed layout and only a few
 
 Snippets aren't just for MDX components. Plain `.md` content files often contain HTML blocks that have no markdown equivalent -- `<figure>` with `<figcaption>`, `<video>`, `<details>`/`<summary>`, `<iframe>`, etc. Without a snippet config, editors see raw HTML in the content editor. With a snippet, they get a structured panel with named fields.
 
-No MDX integration or auto-import setup is needed. Raw snippets match the HTML pattern directly in the source text.
-
-For `parser: key_values` on attribute lists, `format` is optional in schema but **you almost always need** `root_value_delimiter` and `string_boundary` so `key="value"` parses and round-trips. See [raw.md — `key_values`](snippets/raw.md#key_values--keyvalue-pairs) and [Snippet Format](snippets/raw.md#snippet-format).
+No MDX integration or auto-import setup is needed. Raw snippets match the HTML pattern directly in the source text. For `key_values` format requirements, see [raw.md § key_values](raw.md#key_values--keyvalue-pairs).
 
 ### When to create an HTML snippet
 
 During the audit, scan content files for HTML blocks and ask: can this be expressed in **standard markdown** or as a **first-class CloudCannon rich-text construct** (below)? If not, it's a snippet candidate. Block-level HTML with multiple attributes or nested elements should usually become snippets.
 
-**First-class elements.** CloudCannon maps these to supported editor semantics. The saved file can show HTML tags or Markdown syntax depending on `markdown.options` (and the toolbar on `_editables.content` where those features have buttons — same idea as [Markdown tables in configuration-gotchas](astro/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)):
+**First-class elements.** CloudCannon maps these to supported editor semantics. The saved file can show HTML tags or Markdown syntax depending on `markdown.options` (and the toolbar on `_editables.content` where those features have buttons — same idea as [Markdown tables in configuration-gotchas](../cloudcannon-configuration/astro/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)):
 
 - **Block:** `p`, `h1`–`h6`, `blockquote`, `hr`, `ul`, `ol`, `li`, `table`, fenced code blocks / `pre` with `code`
 - **Inline:** `strong`, `em`, `code`, `a`, `img`, `u`, `s` (strikethrough), `sub`, `sup`
@@ -198,7 +196,7 @@ _snippets:
         type: html
 ```
 
-The `key_values` parser handles the `<img>` tag's `src` and `alt` attributes as a group. Use `key_values` (not `argument`) for HTML attribute values — see [gotchas](snippets/gotchas.md) for why. The `content` parser handles rich text (including nested HTML like `<a>` tags) in the figcaption. The `view: gallery` + `preview.gallery.image` shows the actual image in the content editor — see [snippet preview for images](#snippet-preview-for-images) below.
+The `key_values` parser handles the `<img>` tag's `src` and `alt` attributes as a group. Use `key_values` (not `argument`) for HTML attribute values — see [gotchas](gotchas.md) for why. The `content` parser handles rich text (including nested HTML like `<a>` tags) in the figcaption. The `view: gallery` + `preview.gallery.image` shows the actual image in the content editor — see [snippet preview for images](#snippet-preview-for-images) below.
 
 ### Example: `<video>` with fixed attributes
 
@@ -269,4 +267,4 @@ Apply this pattern to every snippet that has an image `editor_key` — not just 
 ---
 
 **SSG-specific guidance:**
-- Astro: [astro/snippets.md](astro/snippets.md)
+- Astro: [astro.md](astro.md)

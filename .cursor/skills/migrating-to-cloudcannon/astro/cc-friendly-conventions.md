@@ -33,7 +33,7 @@ Use Astro 5+. The CloudCannon editable regions integration (`@cloudcannon/editab
 
 ## Components
 
-- Use `.astro` components and React (`@astrojs/react`) for anything that will be visually editable in CloudCannon. Vue, Svelte, and Solid components throw runtime errors inside editable regions.
+- Use `.astro` components and React (`@astrojs/react`) for anything that will be visually editable in CloudCannon. Vue, Svelte, and Solid are unsupported in editable regions (see [overview.md § Astro scope](overview.md)).
 - Avoid presentational wrapper components (e.g. a `<Link>` that just renders a styled `<a>`) inside editable content — they'd need snippet configuration to survive editing. Use plain HTML + CSS instead.
 
 ## Page structure

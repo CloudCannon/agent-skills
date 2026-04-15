@@ -44,19 +44,6 @@ Common filters for URLs:
 
 **When to use data placeholders:** During the audit, check how the SSG generates output URLs. If the routing uses a frontmatter field (e.g. `getStaticPaths` returns `params: { slug: post.data.slug }` rather than using the filename), use `{field}` in the CloudCannon `url`. Compare a few filenames against their build output paths in `dist/` -- if they don't match, the URL is frontmatter-driven.
 
-## Astro glob loader and `slug` frontmatter
-
-Astro's `glob()` loader has a built-in feature: if a content file's frontmatter contains a `slug` field, it overrides the auto-generated `id` (which is normally the filename without extension). This means `post.id` — which most templates use for routing — can come from either:
-
-1. The frontmatter `slug` field (when present)
-2. The filename (when `slug` is absent)
-
-This is easy to miss because the `slug` field doesn't need to be in the Zod schema — the glob loader consumes it before validation. The application code doesn't reference `data.slug` either; it's already baked into `post.id`.
-
-**Implications for CC URLs:** When a template uses `post.id` for routing (common pattern: `params: { slug: post.id }` in `getStaticPaths`), and some content files have a `slug` frontmatter that differs from the filename, CC's `[slug]` placeholder (filename-based) will produce the wrong URL. Use `{slug}` (frontmatter-based) instead.
-
-**Ensuring consistency:** If only some posts have `slug` frontmatter, add it to the rest (matching the filename) so `{slug}` works uniformly. Also add `slug` to the CC schema template so new posts get the field, and make the `slug` input visible so editors can control their URL.
-
 ## Content in subdirectories within a collection
 
 When a collection has subdirectories (e.g. `blog/examples/`, `blog/releases/`) and the SSG routing preserves the subdirectory in the output URL (e.g. `/posts/examples/my-post/`), the `{slug}` placeholder alone won't match — it only contains the slug portion, not the directory prefix.
@@ -73,14 +60,6 @@ Prefer option 1 for small subdirectories within a content collection (example po
 
 Note: directories prefixed with `_` (e.g. `_releases/`) are often excluded from routing by the SSG — their posts get URLs without the directory prefix. These work fine with plain `{slug}`. Check the SSG's path utility for `_`-prefix filtering before deciding.
 
-## Trailing slash rule (Astro)
-
-The URL must match the built output path exactly. Check `astro.config.mjs` for `trailingSlash` and `build.format`:
-
-- **`build.format: "directory"` (default)** -- Astro builds pages as `dir/index.html`. URLs need a trailing slash: `/about/`, `/blog/my-post/`. This is the default even when `trailingSlash` is set to `"never"`.
-- **`build.format: "file"`** -- Astro builds pages as `page.html`. URLs do not have a trailing slash: `/about`, `/blog/my-post`.
-- **`build.format: "preserve"`** -- matches the source file structure. Check the output to determine the pattern.
-
 ## Troubleshooting
 
 If a page doesn't load in the visual editor:
@@ -89,3 +68,7 @@ If a page doesn't load in the visual editor:
 2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the `build.format` setting.
 3. **Check fixed vs data placeholders** -- `[slug]` is the filename; `{slug}` is the frontmatter `slug` field. If the SSG uses a frontmatter field for routing, you need curly braces.
 4. **Build and inspect** -- when in doubt, build the site and inspect the `dist/` directory to see the actual output paths.
+
+## SSG-specific details
+
+- **Astro**: [astro/collection-urls.md](astro/collection-urls.md) — glob loader `slug` override, trailing slash rules.

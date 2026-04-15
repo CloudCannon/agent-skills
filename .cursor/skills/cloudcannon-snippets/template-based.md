@@ -2,7 +2,7 @@
 
 Use when the SSG's component syntax matches a built-in template exactly. Simpler and less verbose than raw snippets.
 
-Read [snippets.md](../snippets.md) first for overview and shared snippet properties.
+Read [snippets.md](snippets.md) first for overview and shared snippet properties.
 
 ---
 

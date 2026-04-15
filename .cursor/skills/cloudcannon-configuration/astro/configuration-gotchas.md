@@ -327,6 +327,16 @@ pages:
 
 Only include `.astro` pages that actually have editable regions. The `[slug]` pattern handles `index.astro` correctly — resolves to `/`.
 
+### Prefer one unified pages collection
+
+When a site has both content collection pages (`src/content/pages/*.md`) and source-editable `.astro` pages (`src/pages/contact.astro`), **default to including both in a single `pages` collection** rather than creating a separate `static_pages` collection. A unified collection avoids confusing editors with two "pages" buckets in the sidebar.
+
+Use `_enabled_editors` and schemas to differentiate behavior within the collection:
+- `.md` content collection pages: `_enabled_editors: [visual, content, data]`, structured schemas
+- `.astro` source-editable pages: `_enabled_editors: [visual]`, `disable_add: true` on those entries
+
+Only split into separate collections when there's a genuine UX reason — for example, dozens of `.astro` pages that would clutter the main pages list, or fundamentally different workflows where combining them would confuse editors.
+
 ### Deciding whether to enable page creation
 
 **Disable page creation (`disable_add: true`)** when:
@@ -341,7 +351,7 @@ Use `disable_add: true` to hide the Add button. Do not use `add_options: []` for
 
 ### Source editables vs. refactoring to `.md`
 
-**Source editables (preferred for most cases):** Add `data-editable="source"` attributes directly. Low effort, no structural changes needed. See [visual-editing.md § Source editables](visual-editing.md#source-editables-for-hardcoded-content).
+**Source editables:** Add `data-editable="source"` attributes directly. Low effort, no structural changes needed. See [visual-editing-reference.md § Source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#source-editables-for-hardcoded-content).
 
 **Refactor to `.md`:** When a page has a handful of distinct sections that editors should control, extract the content into a `.md` file with structured frontmatter.
 

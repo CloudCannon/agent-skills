@@ -295,7 +295,7 @@ This applies to any content-sourced object, not just these specific prop names. 
 
 When iterating, filter out items that have nothing visible to render — check the fields responsible for visible output, not every field: `actions.filter((a) => a?.text || a?.icon).map(...)`.
 
-Check and update these guards during the visual-editing phase when wiring up editable regions. See [astro/visual-editing.md § Content-sourced objects and arrays are never falsy](astro/visual-editing.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
+Check and update these guards during the visual-editing phase when wiring up editable regions. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/astro/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
 
 ### Fields to include
 

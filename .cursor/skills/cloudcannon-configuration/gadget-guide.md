@@ -52,7 +52,7 @@ Returns:
 { "source": "src", "ssg": "astro" }
 ```
 
-For monorepos or projects with a non-standard structure, the source folder tells CloudCannon where the site files live.
+This is informational only — **do not set `source` in `cloudcannon.config.yml`** during migration. See [astro/configuration.md](astro/configuration.md) for details on why `source` should be omitted.
 
 ### 3. Inspect Available Collections
 
