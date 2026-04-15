@@ -56,6 +56,8 @@ Document the component hierarchy:
 
 Flag components that are good candidates for visual editing (hero banners, feature sections, CTAs) vs. those better suited to the data panel (navigation, social links, theme settings).
 
+- **`astro-icon` usage** -- flag if components use `<Icon>` from `astro-icon`. Ensure `src/icons/` exists (even if empty) to avoid `Unable to load the "local" icon set!` build errors. Guard `<Icon>` renders on a truthy name in `<template>` blueprints (`{icon && <Icon ... />}`). `astro-icon` is fully compatible with `editableRegions()` and `registerAstroComponent` — register these components normally.
+
 Also flag **image handling patterns** for each component: does it use `<Image>` or `<Picture>` from `astro:assets` (optimized, images in `src/assets/`) or plain `<img>` (static, images in `public/`)? This classification determines upload path configuration in Phase 2. Images in `src/assets/` must stay there — do not move them to `public/`.
 
 Also flag **presentational wrapper components** (e.g. a `<Link>` that just renders a styled `<a>`) that appear inside editable content. These can't survive source editing and need either inlining as plain HTML + CSS or a snippet config. See [visual-editing.md § Astro components in source editables](visual-editing.md#astro-components-in-source-editables).

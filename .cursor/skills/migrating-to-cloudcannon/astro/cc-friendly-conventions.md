@@ -47,6 +47,31 @@ Use Astro 5+. The CloudCannon editable regions integration (`@cloudcannon/editab
 
 Cross-page content (navigation, CTAs, testimonials, site settings) should live in JSON files (e.g. `src/data/cta.json`) rather than scattered across collection frontmatter. This keeps shared data consistent and editable in one place via CloudCannon's data editor.
 
+**Default to editable.** All user-facing text should be editable. Never leave common UI sections (CTA sections, footer, navigation, header) hardcoded without explicit justification from the customer. These are the sections editors most frequently need to update.
+
+**Footer pattern:** Footer link columns are simple `{title, links[]}` arrays — extract to a data file (e.g. `src/data/footer.json`). Tip text, credits, and other footer strings go in the same file. Use `@data[footer]` editables in the component.
+
+**CTA section pattern:** "CTA" here means the shared promotional section that typically appears above the footer across pages (e.g. "Contact us today", "Get started free") — not individual buttons or links. If the section is rendered on multiple pages via a shared component or layout (e.g. a `CallToAction` inside `Footer.astro` which is in the base layout), extract its content to a data file. The test is whether the same content appears on multiple built pages, not how many files import the component directly.
+
+## Image galleries in MDX content
+
+When content has inline image grids (raw HTML wrapping `<Image>` components), create a self-closing `Gallery` component that takes an `images` array prop and renders images internally. This avoids paired/markdown-content snippets where editors could insert arbitrary content. Constants (width, height, class) live in the component; only `src` and `alt` are in the data.
+
+```astro
+---
+import { Image } from 'astro:assets'
+const { images = [] } = Astro.props
+---
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+  {images.map((img) => (
+    <Image src={img.src} alt={img.alt} width={1200} height={600}
+      class="h-[250px] w-full rounded-lg object-cover" />
+  ))}
+</div>
+```
+
+Add to AutoImport so content files use it without explicit imports. Configure a `_snippets` entry with `type: array` for the images prop so editors get a structured interface for adding/removing images.
+
 ## Markdown content
 
 - Keep content bodies as clean markdown. Avoid custom remark/rehype plugins that structurally transform content in ways CloudCannon's editor can't reproduce.
