@@ -8,7 +8,7 @@ All scripts accept an optional `[project-dir]` argument (defaults to the current
 
 ### `audit-astro.sh` (Phase 1: Audit)
 
-Gathers audit data for an Astro site. Runs Gadget commands (`detect-ssg`, `collections`, `build`) then supplements with project metadata Gadget doesn't cover: dependency versions, package manager, Node version, page routes, data files, content config location, and dash-index file detection.
+Gathers audit data for an Astro site. Runs CloudCannon CLI commands (`configure detect-ssg`, `configure detect-collections`, `configure detect-build-commands`) then supplements with project metadata the CLI doesn't cover: dependency versions, package manager, Node version, page routes, data files, content config location, and dash-index file detection.
 
 ```bash
 bash audit-astro.sh /path/to/project

@@ -35,25 +35,12 @@ Each template's `migrated/migration/` directory holds per-phase notes (`audit.md
 - **Skills**: Procedural workflows triggered by user intent. "How to do X" with ordered steps, decision trees, and checklists.
 - **Scripts**: Deterministic automation that lives alongside the skill that uses it. Saves tokens, improves consistency.
 
-## When to split a reference doc into its own skill
-
-Reference docs inside a skill directory should be promoted to standalone skills when any of these apply:
-
-1. The doc exceeds ~300 lines
-2. It needs its own scripts directory
-3. It should be independently triggerable (useful outside the parent skill's workflow)
-4. An SSG-specific section within it exceeds ~100 lines
-
-The configuration, snippets, and visual editing docs were split out of the migration skill using these criteria — they're all independently triggerable and substantial enough to warrant standalone skills.
-
-**Cross-skill references:** When docs in one skill link to docs in another, use relative paths (e.g. `../../cloudcannon-configuration/structures.md`). For skill-level references in prose (not linking to a specific section), use skill name references instead (e.g. "read the `cloudcannon-snippets` skill") — this is more resilient to file moves within a skill.
-
 ## Skill architecture
 
 The CloudCannon migration tooling is split across multiple composable skills:
 
 - **`migrating-to-cloudcannon`** — Orchestrator. Coordinates five migration phases (audit, configuration, content, visual editing, build). References the domain skills below at the appropriate phase.
-- **`cloudcannon-configuration`** — Standalone. Gadget CLI, `cloudcannon.config.yml`, structures, collection URLs, inputs. Usable independently for "configure my site for CC".
+- **`cloudcannon-configuration`** — Standalone. CloudCannon CLI, `cloudcannon.config.yml`, structures, collection URLs, inputs. Usable independently for "configure my site for CC".
 - **`cloudcannon-snippets`** — Standalone. Snippet configuration for MDX components and inline HTML. Usable independently for "add snippets to my CC site".
 - **`cloudcannon-visual-editing`** — Standalone. Editable regions, Visual Editor setup, component re-rendering. Usable independently for "add visual editing to my CC site".
 - **`brainstorming`** — Generic process skill. Structured design exploration before implementation. Used for migrations and any architectural work.

@@ -288,6 +288,38 @@ Since December 2025, `data-id-key` and `data-id` **default** to the `data-compon
 
 Paths are relative to the component's data scope (the array item), so `data-prop="title"` resolves to `content_blocks[n].title`.
 
+### BlockRenderer architecture
+
+**Array-item wrappers belong in the page template, not in BlockRenderer.** CloudCannon wraps each registered component in its own `data-editable="array-item"` element with tracking attributes (`data-prop`, `data-length`, `data-id`). If the component's rendered output ALSO starts with a `data-editable="array-item"` element, you get double nesting: `array > array-item > array-item`. The inner array-item can't find an `array` parent and throws "Array item editable regions must be nested inside an array editable region."
+
+The correct pattern:
+
+```astro
+<!-- Page template (e.g. index.astro) — owns the array-item wrapper -->
+<div data-editable="array" data-prop="content_blocks" data-component-key="_type">
+  {content_blocks?.map((block) => (
+    <div data-editable="array-item" data-component={block._type}>
+      <BlockRenderer {...block} />
+    </div>
+  ))}
+</div>
+```
+
+**BlockRenderer should be a thin dynamic dispatcher**, not a markup container. It imports `componentMap` and renders the matching component:
+
+```astro
+---
+import { componentMap } from '../cloudcannon/componentMap'
+const { _type, ...props } = Astro.props
+const Component = componentMap[_type]
+---
+{Component && <Component {...props} />}
+```
+
+**Each block type should have its own component file.** If the pristine site had a section as inline markup in a page template (no dedicated component), create a component during the migration. The component owns its section markup and its editable attributes (sub-arrays, text regions, image regions). BlockRenderer never contains section markup — it only dispatches.
+
+**`componentMap` is the single source of truth.** Both `BlockRenderer.astro` and `registerComponents.ts` import from `src/cloudcannon/componentMap.ts`. The map keys are the `_type` values from content files. The map values are the actual component imports (not BlockRenderer itself — mapping every type to BlockRenderer defeats the purpose).
+
 **Registration:** Every `_type` value must have a matching `registerAstroComponent` call. The key string must match the `_type` value exactly (e.g., `_type: call_to_action` → `registerAstroComponent('call_to_action', CallToAction)`, not `'call-to-action'`).
 
 **Shared sub-components (e.g. Headline):** When a shared component like `Headline.astro` renders title/subtitle for many widgets, adding `data-editable` attributes to it is acceptable — inside a page builder block, the editables are scoped to the parent component, so `data-prop="title"` resolves correctly to the block's title.
@@ -509,6 +541,8 @@ Blog post detail pages typically have a hero section (title, date, author, image
   <Content />
 </div>
 ```
+
+**Shared PageHeader components.** When the blog detail page uses a shared `PageHeader` component (common in starter themes), the editable attributes still need to reach the rendered elements. Don't mark the hero as "sidebar-only" just because the component is shared. Instead, add optional prop-path parameters to the PageHeader (e.g. `titleProp`, `subtitleProp`, `imageProp`) that conditionally render `data-editable` attributes when provided. Callers pass the frontmatter field name (e.g. `titleProp="title"`); pages without that field in their data scope omit the prop. This keeps PageHeader reusable while enabling inline editing where the data supports it.
 
 **Dates must NOT be text editables.** `<editable-text data-prop="pubDate">` sets a raw string, which conflicts with `z.coerce.date()` schemas. Use the sidebar datetime picker instead, and add a `comment` on the input so editors know changes appear after save:
 

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Gathers Phase 1 audit data for an Astro site.
-# Runs Gadget commands for SSG/collection/build detection,
-# then supplements with project metadata Gadget doesn't cover.
+# Runs CloudCannon CLI commands for SSG/collection/build detection,
+# then supplements with project metadata the CLI doesn't cover.
 #
 # Usage: bash audit-astro.sh [project-dir]
 #   project-dir defaults to the current directory.
@@ -14,24 +14,24 @@ cd "$PROJECT_DIR"
 echo "=== Audit: $(basename "$(pwd)") ==="
 echo ""
 
-# --- Gadget: SSG detection ---
-echo "## Gadget: SSG Detection"
+# --- CloudCannon CLI: SSG detection ---
+echo "## CloudCannon CLI: SSG Detection"
 echo '```json'
-npx @cloudcannon/gadget detect-ssg 2>/dev/null || echo '{ "error": "npx @cloudcannon/gadget detect-ssg failed" }'
+npx @cloudcannon/cli configure detect-ssg 2>/dev/null || echo '{ "error": "npx @cloudcannon/cli configure detect-ssg failed" }'
 echo '```'
 echo ""
 
-# --- Gadget: Collections ---
-echo "## Gadget: Collections"
+# --- CloudCannon CLI: Collections ---
+echo "## CloudCannon CLI: Collections"
 echo '```json'
-npx @cloudcannon/gadget collections --ssg astro 2>/dev/null || echo '{ "error": "npx @cloudcannon/gadget collections failed" }'
+npx @cloudcannon/cli configure detect-collections --ssg astro 2>/dev/null || echo '{ "error": "npx @cloudcannon/cli configure detect-collections failed" }'
 echo '```'
 echo ""
 
-# --- Gadget: Build suggestions ---
-echo "## Gadget: Build Suggestions"
+# --- CloudCannon CLI: Build suggestions ---
+echo "## CloudCannon CLI: Build Suggestions"
 echo '```json'
-npx @cloudcannon/gadget build --ssg astro 2>/dev/null || echo '{ "error": "npx @cloudcannon/gadget build failed" }'
+npx @cloudcannon/cli configure detect-build-commands --ssg astro 2>/dev/null || echo '{ "error": "npx @cloudcannon/cli configure detect-build-commands failed" }'
 echo '```'
 echo ""
 

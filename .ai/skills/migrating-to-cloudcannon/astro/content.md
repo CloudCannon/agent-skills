@@ -44,7 +44,7 @@ Some Astro templates use a `-index.md` file to hold listing/index page metadata 
 
 1. **Rename the files.** Run the rename script to handle this automatically:
    ```bash
-   bash .cursor/skills/migrating-to-cloudcannon/scripts/rename-dash-index.sh .
+   bash .ai/skills/migrating-to-cloudcannon/scripts/rename-dash-index.sh .
    ```
 2. **Update `getSinglePage()`** to filter on `id === "index"` instead of `id.startsWith("-")`.
 3. **Update `getListPage()` callers** from `"-index"` to `"index"`.

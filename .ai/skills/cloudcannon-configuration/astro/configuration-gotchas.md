@@ -130,9 +130,9 @@ YAML parses bare numbers (`price: 29`) as integers, not strings. If the correspo
 
 Common culprits: `price`, `amount`, `count`, `order`, `rating`. Structure default values follow the same rule.
 
-## Verify Gadget's `source` path
+## Verify the CloudCannon CLI's `source` path
 
-Agents should never add `source` and should remove it if Gadget generates one. See [configuration.md § Review the generated config](configuration.md#review-the-generated-config).
+Agents should never add `source` and should remove it if the CloudCannon CLI generates one. See [configuration.md § Review the generated config](configuration.md#review-the-generated-config).
 
 ## Title-derived slugs and `{title|slugify|lowercase}`
 
@@ -364,3 +364,22 @@ When combining multiple page schemas with `z.union`, schemas with many `.default
 Symptoms: fields from the correct schema are silently absent at runtime (`data.show_form === undefined`), conditional rendering breaks, and blocks of the page disappear.
 
 **Fix:** Use `z.discriminatedUnion("_schema", [...])` with a literal `_schema` field in each schema. This forces Zod to match on the `_schema` value rather than validating fields. Requires every content file to declare `_schema` explicitly. See [configuration.md § Fallback](configuration.md#fallback-merge-unique-pages-into-pages-with-a-zunion).
+
+## Data inputs must follow the JSON, not a template
+
+Before finalizing `file_config` for a data file, grep the actual JSON keys and ensure every key has a matching input. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the JSON actually has those keys. Mismatches fail silently in both directions:
+
+- **Dead input on a missing key** → silently ignored. No warning, no editor UI, no-op at build.
+- **Missing input on an existing key** → falls through to a plain text field. Editors see a raw text box where a color picker / switch / image uploader should be.
+
+The failure mode is "the editor works but a few fields aren't styled right," which is easy to miss on a fast visual pass.
+
+**Recipe:** before committing `file_config`, list every leaf key path in each JSON file and cross-reference the `_inputs` scope:
+
+```bash
+jq -r 'paths(scalars) | join(".")' src/data/*.json | sort -u
+```
+
+Every path in the output should either have a corresponding `_inputs` entry (scoped via `file_config` or matched by global `_inputs`) or be intentionally left untyped. Keys in `_inputs` that do NOT appear in the output are dead config — remove them.
+
+Applies equally when the template changes: if you remove a color key from the JSON, remove the matching input in the same commit.

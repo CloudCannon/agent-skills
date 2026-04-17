@@ -61,3 +61,4 @@ Read this before starting and verify every item when done.
 | "This component is too niche for a snippet" | If editors encounter it in content, they need to be able to edit it. Configure it. |
 | "Import statements in content are fine" | Use auto-import (Astro: `astro-auto-import`) to keep imports out of content files. |
 | "I can use `_snippets_imports` for this" | Don't. It loads catchall matchers that can match incorrectly. Write explicit `_snippets` entries. |
+| "I configured `_snippets`, snippets are done" | Without `astro-auto-import` wired in `astro.config.mjs` AND the `import` lines removed from MDX files, editors still see raw `import` statements at the top of MDX content. All four pipeline steps are required — see [astro.md § MDX setup pipeline](astro.md#mdx-setup-pipeline-must-complete-all-four). |

@@ -29,7 +29,7 @@ Once the site is scaffolded, return here and run the migration phases as normal.
 Before starting, identify the SSG. Run from the project root:
 
 ```bash
-npx @cloudcannon/gadget detect-ssg
+npx @cloudcannon/cli configure detect-ssg
 ```
 
 This returns the detected SSG and confidence scores. Use the result to select the correct SSG guide above.
@@ -40,7 +40,7 @@ Each SSG guide walks through these phases in order with SSG-specific instruction
 
 1. **Audit** — Analyze the site's content structure, components, routing, and build pipeline before making changes.
 2. **Configuration** — Generate and customize CloudCannon config files.
-   - **Read the `cloudcannon-configuration` skill** for Gadget CLI usage, structures, collection URLs, inputs, and SSG-specific configuration guidance.
+   - **Read the `cloudcannon-configuration` skill** for CloudCannon CLI usage, structures, collection URLs, inputs, and SSG-specific configuration guidance.
    - If the site uses MDX components or inline HTML in content, also **read the `cloudcannon-snippets` skill** for snippet configuration.
 3. **Content** — Restructure content files if needed so they're CMS-friendly.
 4. **Visual editing** — Add support for CloudCannon's Visual Editor with editable regions.
@@ -122,3 +122,4 @@ Follow the project's existing conventions when present. Otherwise:
 | "Content restructuring can wait" | If a missing field blocks configuration, add it now. Phases are sequential, not siloed. |
 | "Visual editing is optional so I'll skip it" | It's the highest-value phase for editors. Only skip if the user explicitly says so. |
 | "The build passes so we're done" | A passing build doesn't mean the editor works. The user must verify in CloudCannon. |
+| "I'll call the homepage file `home.md` — it's more descriptive" | CloudCannon resolves the URL from the slug; `home.md` with `url: "/[slug]/"` → `/home/`. Use `index.md` so Astro collapses the slug to `/`. |

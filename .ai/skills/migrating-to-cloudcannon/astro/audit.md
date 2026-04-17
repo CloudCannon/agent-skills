@@ -3,10 +3,10 @@
 Analyze the site before making any changes. Start by running the audit script to gather data automatically:
 
 ```bash
-bash .cursor/skills/migrating-to-cloudcannon/scripts/audit-astro.sh .
+bash .ai/skills/migrating-to-cloudcannon/scripts/audit-astro.sh .
 ```
 
-This runs Gadget detection and collects project metadata. Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `migration/audit.md` at the project root.
+This runs CloudCannon CLI detection and collects project metadata. Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `migration/audit.md` at the project root.
 
 ## 1. Astro version and dependencies
 

@@ -1,10 +1,10 @@
 # CloudCannon Agent Skills
 
-[Cursor skills](https://docs.cursor.com/context/skills) that help AI agents migrate existing SSG sites to [CloudCannon](https://cloudcannon.com) -- a git-based CMS. Copy the skills into your project, open Cursor, and ask the agent to migrate your site.
+Agent skills that help AI coding agents migrate existing SSG sites to [CloudCannon](https://cloudcannon.com) -- a git-based CMS. Copy the skills into your project, open it in your AI coding agent, and ask it to migrate your site.
 
 ## Prerequisites
 
-- [Cursor](https://cursor.com) IDE with agent mode
+- An AI coding agent that supports skills (e.g. an agent mode in your IDE)
 - An existing SSG site (see [supported SSGs](#supported-ssgs))
 - A [CloudCannon](https://cloudcannon.com) account (for final verification)
 
@@ -23,7 +23,7 @@ The tooling is split across composable skills that can be used together or indep
 | Skill | Purpose | When to use |
 |-------|---------|-------------|
 | `migrating-to-cloudcannon` | Full migration orchestrator | Migrating a site to CloudCannon end-to-end (audit, configure, content, visual editing, build) |
-| `cloudcannon-configuration` | CloudCannon config setup | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the Gadget CLI |
+| `cloudcannon-configuration` | CloudCannon config setup | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the CloudCannon CLI |
 | `cloudcannon-snippets` | Snippet configuration | Configuring MDX components or inline HTML for CloudCannon's Content Editor |
 | `cloudcannon-visual-editing` | Visual Editor support | Adding editable regions so page content can be edited inline in CloudCannon's Visual Editor |
 | `brainstorming` | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation |
@@ -32,8 +32,8 @@ For a full migration, start with `migrating-to-cloudcannon` -- it orchestrates t
 
 ## Getting started
 
-1. Copy the `.cursor/skills/` directory from this repo into your project's `.cursor/skills/` directory
-2. Open your project in Cursor
+1. Copy the `.ai/skills/` directory from this repo into your project's agent-skills directory (e.g. `.ai/skills/`, `.claude/skills/`, or `.cursor/skills/` depending on your tool)
+2. Open your project in your AI coding agent
 3. Ask the agent to migrate your site to CloudCannon
 
 The agent picks up skills automatically based on their trigger descriptions in `SKILL.md`. For a full migration, something like "migrate this site to CloudCannon" is enough to get started.
@@ -57,7 +57,7 @@ Not every site needs all phases. Small sites may skip content restructuring. Vis
 ### Repo structure
 
 ```
-.cursor/
+.ai/
   rules/                              # Agent rules for developing the skills (not shipped)
   skills/
     migrating-to-cloudcannon/         # Migration orchestrator
@@ -89,4 +89,4 @@ Skills are developed and tested by running migrations against real site template
 - **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
 - **No peeking at previous migrations** -- Completed migrations exist in `templates/` but agents must never read other templates' `migrated/` directories. If the skill docs are insufficient, that's a gap to fix in the docs.
 
-For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](.cursor/skills/migrating-to-cloudcannon/GUIDE.md).
+For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](.ai/skills/migrating-to-cloudcannon/GUIDE.md).

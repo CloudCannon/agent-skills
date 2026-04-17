@@ -6,7 +6,7 @@ import { join, relative, resolve, extname } from 'node:path';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 
-// Cursor's sandbox can set PLAYWRIGHT_BROWSERS_PATH to a temp dir that
+// Some agent sandboxes set PLAYWRIGHT_BROWSERS_PATH to a temp dir that
 // doesn't persist across runs. Clear it so Playwright uses its default cache.
 if (process.env.PLAYWRIGHT_BROWSERS_PATH && !existsSync(process.env.PLAYWRIGHT_BROWSERS_PATH)) {
 	delete process.env.PLAYWRIGHT_BROWSERS_PATH;

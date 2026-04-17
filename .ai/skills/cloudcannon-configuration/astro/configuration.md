@@ -4,24 +4,24 @@
 
 Guidance for creating and configuring `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json` for an Astro site.
 
-## Baseline generation with Gadget
+## Baseline generation with the CloudCannon CLI
 
-Use the Gadget CLI to generate a baseline configuration. Run subcommands individually to cross-reference against the Phase 1 audit. See [../gadget-guide.md](../gadget-guide.md) for the full CLI reference and all available commands.
+Use the CloudCannon CLI to generate a baseline configuration. Run subcommands individually to cross-reference against the Phase 1 audit. See [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) for the full CLI reference and all available commands.
 
 ```bash
-npx @cloudcannon/gadget generate --auto --init-settings --ssg astro
+npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg astro
 ```
 
-**When Gadget is unavailable** (sandbox network restrictions, version incompatibility, etc.), write the config manually using the audit findings. Follow the same review and customization checklists below — Gadget is a time-saver, not a prerequisite.
+**When the CloudCannon CLI is unavailable** (sandbox network restrictions, version incompatibility, etc.), write the config manually using the audit findings. Follow the same review and customization checklists below — the CloudCannon CLI is a time-saver, not a prerequisite.
 
 ## Review the generated config
 
 After generation, read `cloudcannon.config.yml` and check:
 
-- **`source`** -- Do not add this during migration. It is **deployment-specific** (monorepos, non-standard layouts) and belongs with the user's hosting setup. For typical Astro sites, **omit `source`** so CloudCannon's root is the **repository root**; that way config can reference paths outside `src` when needed. If Gadget writes a `source` value, **remove it** unless the project truly requires it.
+- **`source`** -- Do not add this during migration. It is **deployment-specific** (monorepos, non-standard layouts) and belongs with the user's hosting setup. For typical Astro sites, **omit `source`** so CloudCannon's root is the **repository root**; that way config can reference paths outside `src` when needed. If the CloudCannon CLI writes a `source` value, **remove it** unless the project truly requires it.
 - **`collections_config`** -- are all content collections present? Do paths match the `base` directories from `content.config.ts`? **Remove `output: true`** if present on any collection — this key is defunct in unified config. Collections are automatically output when they have a `url` pattern. The only related key still in use is `disable_url: true` (to prevent a collection from being output).
 - **`paths`** -- Set `static` to `public` (Astro's default asset folder) unless the project uses a different public directory. Set `uploads` to match where uploaded images should land: use `public/images` when the site keeps images in a subfolder, `public` when assets live at the root of public, and default to **`public/images`** when there is no precedent yet. See [Image path configuration](#image-path-configuration) below for handling optimized vs static images.
-- **Build settings** (`.cloudcannon/initial-site-settings.json`) -- Build settings must be nested under a `build` key (the old flat format with `build_command`/`output_path` at the root is defunct). Structure: `ssg` at the root, then `build.install_command`, `build.build_command`, `build.output_path`, and `build.node_version`. Align values with the repo: `ssg`: `"astro"`; `install_command`: from the detected package manager (omit if there is none); `build_command`: the script from `package.json` if present, otherwise `"astro build"`; `output_path`: `"dist"`; `node_version`: if `.nvmrc` or `.node-version` exists in the project root, set `"file"` (CC reads the version from that file automatically); otherwise if `package.json` has `engines.node`, extract the major version (e.g. `">=18"` → `"18"`); otherwise omit (CC uses its default). Prefer **`.cloudcannon/prebuild`** for extra setup steps so `build_command` stays a straight build, not a shell chain. **Note:** This file only takes effect on first site creation. For existing CloudCannon sites, build settings must be changed in the CloudCannon UI (**Site Settings > Builds > Configuration**). See [gadget-guide.md](../gadget-guide.md) for details.
+- **Build settings** (`.cloudcannon/initial-site-settings.json`) -- Build settings must be nested under a `build` key (the old flat format with `build_command`/`output_path` at the root is defunct). Structure: `ssg` at the root, then `build.install_command`, `build.build_command`, `build.output_path`, and `build.node_version`. Align values with the repo: `ssg`: `"astro"`; `install_command`: from the detected package manager (omit if there is none); `build_command`: the script from `package.json` if present, otherwise `"astro build"`; `output_path`: `"dist"`; `node_version`: if `.nvmrc` or `.node-version` exists in the project root, set `"file"` (CC reads the version from that file automatically); otherwise if `package.json` has `engines.node`, extract the major version (e.g. `">=18"` → `"18"`); otherwise omit (CC uses its default). Prefer **`.cloudcannon/prebuild`** for extra setup steps so `build_command` stays a straight build, not a shell chain. **Note:** This file only takes effect on first site creation. For existing CloudCannon sites, build settings must be changed in the CloudCannon UI (**Site Settings > Builds > Configuration**). See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) for details.
 
 ## Customize the config
 
@@ -33,7 +33,7 @@ The decision rule: if skipping the change means the config is wrong or fragile, 
 
 ### Customization checklist
 
-Gadget produces a structural baseline. The following customizations are almost always needed, informed by the Phase 1 audit:
+The CloudCannon CLI produces a structural baseline. The following customizations are almost always needed, informed by the Phase 1 audit:
 
 - **`_inputs`** -- configure how fields appear in the editor (dropdowns, date pickers, image uploaders, comments, hidden fields). Map these from the Zod schemas discovered in the audit. When a frontmatter field contains markdown (e.g. a hero description with `**bold**` text), use `type: markdown`, not `type: textarea`. The same goes for fields that contain html elements (e.g. a hero description with `<strong>bold</strong>` text) - they should use `type: html`, instead of `type: textarea`. Use scoped input keys (e.g. `hero.description`) when the general input should stay as `textarea` but a specific context needs `markdown`.
 - **`_structures`** -- define reusable component structures for arrays and object inputs. **MANDATORY for ALL array and object inputs on the site** — not just page builder blocks. Every array field (`items`, `actions`, `stats`, `prices`, `testimonials`, `images`, etc.) must have a corresponding structure definition AND an explicit `_inputs` entry linking the array to that structure. Without this, editors cannot add items to arrays. Do not rely on CloudCannon's naming-convention heuristic — it is unreliable. See [../structures.md](../structures.md) for the full requirements.
@@ -120,11 +120,11 @@ _inputs:
     hidden: true
 ```
 
-The full set of configuration keys is defined in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). For IDE autocomplete and validation, use JSON Schema Store with the setup in [gadget-guide.md § JSON Schemas](../gadget-guide.md#json-schemas) (recommended extensions, no `# yaml-language-server: $schema=...` line in YAML).
+The full set of configuration keys is defined in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). For IDE autocomplete and validation, use JSON Schema Store with the setup in [cloudcannon-cli-guide.md § JSON Schemas](../cloudcannon-cli-guide.md#json-schemas) (recommended extensions, no `# yaml-language-server: $schema=...` line in YAML).
 
 ## Consolidating single-file collections
 
-After Gadget generates collections, review the result for collections that contain only a single file. A collection of one doesn't add value in the CloudCannon sidebar, is semantically less correct, and should be consolidated. Two strategies, applied in order:
+After the CloudCannon CLI generates collections, review the result for collections that contain only a single file. A collection of one doesn't add value in the CloudCannon sidebar, is semantically less correct, and should be consolidated. Two strategies, applied in order:
 
 ### Strategy A: Merge simple pages into the `pages` collection
 
@@ -231,6 +231,47 @@ For visual editing, use `@data[key].path` syntax in editable regions:
 ```
 
 Data files configured via `data_config` allows those files to be referenced by other CloudCannon config, but **they do not automatically appear in the sidebar**. The most common reason to add an entry to `data_config` is to populate select inputs. To make data files browsable and editable in the sidebar, add a `collections_config` entry pointing to the data file(s) and group it under a "Data" `collection_group`. Configure `_inputs` and `_structures` globally since data files don't have collection-scoped config.
+
+### Single `data` collection or split?
+
+Default: **one `data` collection** with `path: src/data`, `glob: '**/*.json'`, `disable_url: true`, and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface.
+
+```yaml
+collections_config:
+  data:
+    path: src/data
+    glob:
+      - '**/*.json'
+    disable_url: true
+    icon: settings
+    _enabled_editors:
+      - data
+
+file_config:
+  - glob: src/data/theme.json
+    _inputs:
+      $:
+        type: object
+        options:
+          preview:
+            icon: palette
+      # ... per-file inputs
+  - glob: src/data/navigation.json
+    _inputs:
+      $:
+        type: object
+        options:
+          preview:
+            icon: menu
+      # ...
+```
+
+Split into per-file collections only when:
+- The files have radically different edit cadences or permissions
+- Editors actively complain they can't find a specific file under "Data"
+- You need different `_enabled_editors` per file that `file_config` can't express
+
+"Each file gets its own sidebar icon" is not a strong enough reason — `file_config.$.options.preview.icon` handles per-file icons inside a single collection.
 
 ## Image path configuration
 
@@ -406,6 +447,7 @@ Write in plain language. Avoid technical terms like YAML, frontmatter, Zod, sche
 
 After generating and customizing the config, work through these checks before moving to the next phase:
 
+- [ ] **MDX gate** — if any `.mdx` files use JSX components (grep `src/content/**/*.mdx` for `<[A-Z]`), the MDX setup pipeline in [cloudcannon-snippets/astro.md § MDX setup pipeline](../../cloudcannon-snippets/astro.md#mdx-setup-pipeline-must-complete-all-four) must be complete **before** `cloudcannon.config.yml` is considered done. Skipping it is the #1 source of regressions on migration — `_snippets` alone is not enough; auto-import and `import` removal are all required.
 - [ ] `cloudcannon.config.yml` exists and is valid YAML
 - [ ] `.cloudcannon/initial-site-settings.json` exists with `"ssg": "astro"` and build settings nested under `"build"` (`build_command`, `output_path`, `install_command`)
 - [ ] `node_version` is set in initial-site-settings.json: `"file"` when `.nvmrc` or `.node-version` exists, or the major version from `package.json` `engines.node` if present

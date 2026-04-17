@@ -13,7 +13,7 @@ The migration is split across four skills:
 | Skill | Purpose | Standalone? |
 |---|---|---|
 | `migrating-to-cloudcannon` | Orchestrator — phases, SSG detection, handoff | No — orchestrates the others |
-| `cloudcannon-configuration` | CC config, Gadget, structures, collection URLs, inputs | Yes — "configure my site for CC" |
+| `cloudcannon-configuration` | CC config, CloudCannon CLI, structures, collection URLs, inputs | Yes — "configure my site for CC" |
 | `cloudcannon-snippets` | Snippet config for MDX components and inline HTML | Yes — "add snippets to my CC site" |
 | `cloudcannon-visual-editing` | Editable regions, Visual Editor setup | Yes — "add visual editing to my CC site" |
 
@@ -33,8 +33,8 @@ scripts/README.md                       Script inventory
 scripts/*.sh                            Automation scripts (audit, rename)
 
 ── cloudcannon-configuration ──────────────────────────────────
-SKILL.md                                Entry point — Gadget, collections, inputs, structures
-gadget-guide.md                         Gadget CLI commands and options
+SKILL.md                                Entry point — CloudCannon CLI, collections, inputs, structures
+cloudcannon-cli-guide.md                CloudCannon CLI commands and options
 structures.md                           Structures — inline vs split, previews, field completeness
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 astro/configuration.md                  Phase 2: CC config, schemas, inputs, add options
@@ -66,7 +66,7 @@ scripts/setup-editable-regions.sh       Installs package, wires Astro integratio
 3. `migrating-to-cloudcannon/astro/audit.md` → full audit procedure
 
 ### Phase 2: Configuration
-1. `cloudcannon-configuration/gadget-guide.md` → generate baseline
+1. `cloudcannon-configuration/cloudcannon-cli-guide.md` → generate baseline
 2. `cloudcannon-configuration/astro/configuration.md` → customize config
 3. `cloudcannon-configuration/collection-urls.md` → if any collection produces pages
 4. `migrating-to-cloudcannon/astro/page-building.md` → if audit identified pages for content collection or page builder

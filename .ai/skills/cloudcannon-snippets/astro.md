@@ -11,6 +11,17 @@ This workflow assumes editors use **MDX component tags** in content. Concretely:
 
 **Agent discretion:** A site may start as Markdown-only. Either refactor toward the bullets above—install MDX, register it, convert or rename affected entries to `.mdx`—when built-in `mdx_*` templates and auto-import are simpler than a large raw-snippet surface, or keep `.md` and rely on **raw** snippets per [raw.md](raw.md) and [Which approach?](snippets.md#which-approach) in the overview. Raw snippets offer maximum flexibility and literal syntax control; the MDX + template path is often less complicated for standard props and paired content, at the cost of format and build setup.
 
+## MDX setup pipeline (must complete all four)
+
+| # | Step | File | Skip = broken |
+| --- | --- | --- | --- |
+| 1 | `npm install astro-auto-import` | `package.json` | `import` statements leak into editor |
+| 2 | Register `AutoImport({ imports: [...] })` **before** `mdx()` | `astro.config.mjs` | Components not resolved at build |
+| 3 | Delete `import` lines from all `.mdx` content files | `src/content/**/*.mdx` | Raw imports shown to editors |
+| 4 | Add `_snippets` entries (or raw snippet) for every JSX tag | `cloudcannon.config.yml` | Components shown as broken in editor |
+
+All four are mandatory. Steps 1+2 without 4 = editor still can't insert/parse the components. Step 4 without 1+2 = build fails. Verify at the end with the [component inventory grep](#component-inventory-grep-must-run-check).
+
 ## Auto-import: keeping import statements out of content
 
 CloudCannon's Content Editor displays the raw file contents. Import statements (`import Button from '../components/Button'`) would be visible to editors in the rich text view — confusing for non-technical users. Astro content must use an auto-import mechanism so components are available without explicit imports.
@@ -269,12 +280,36 @@ Every component used in MDX content must either have a `_snippets` entry or the 
 
 For files restricted to source/data editor, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
 
+## Common mistakes
+
+| ❌ Mistake | ✓ Correct |
+| --- | --- |
+| Adding `_snippets` entries without `astro-auto-import` | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required |
+| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption |
+| Leaving `import` lines at the top of `.mdx` content files | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports. |
+| Registering `AutoImport` after `mdx()` in `astro.config.mjs` | Order matters — `AutoImport` must come earlier in the `integrations` array |
+| "I'll configure the common ones now and add the rest later" | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
+
+## Component inventory grep (must-run check)
+
+Before declaring snippets done, list every JSX tag used in content and verify each has a `_snippets` entry:
+
+```bash
+grep -rohE '<[A-Z][a-zA-Z]+' src/content/**/*.mdx src/pages/**/*.mdx 2>/dev/null | sort -u
+# or with ripgrep:
+rg -oN '<[A-Z][a-zA-Z]+' -g '*.mdx' src/content src/pages | sed 's/.*://' | sort -u
+```
+
+Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [source, data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
+
 ## Verification
 
 After adding snippet configs:
 
+- [ ] MDX setup pipeline (steps 1–4) complete — see [table above](#mdx-setup-pipeline-must-complete-all-four)
+- [ ] Component inventory grep returns zero unconfigured names — see [§ Component inventory grep](#component-inventory-grep-must-run-check)
+- [ ] No `^import ` lines remain in any `.mdx` content file
 - [ ] `_snippets` entries exist in `cloudcannon.config.yml` (no `_snippets_imports` needed — built-in templates resolve automatically)
-- [ ] **Component inventory grep**: Run `grep -rohE '<[A-Z][a-zA-Z]+' src/content/**/*.mdx src/pages/**/*.mdx 2>/dev/null | sort -u` (or the equivalent `rg` command). Every component name in the output has a `_snippets` entry OR is documented in migration notes with a rationale for exclusion. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip
 - [ ] Every component used in MDX content has a corresponding `_snippets` entry, or the file uses `_enabled_editors: [source, data]` only as a last resort with rationale in migration notes
 - [ ] Components with `client:load` use raw snippet syntax, not templates
 - [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)

@@ -7,7 +7,7 @@ Workflow for adding CloudCannon Visual Editor support to an Astro site using `@c
 Run the setup script to handle steps 1-3 automatically:
 
 ```bash
-bash .cursor/skills/cloudcannon-visual-editing/scripts/setup-editable-regions.sh .
+bash .ai/skills/cloudcannon-visual-editing/scripts/setup-editable-regions.sh .
 ```
 
 This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a conditional import in the base layout so `registerComponents` only loads inside CloudCannon's Visual Editor:
@@ -67,8 +67,9 @@ Before writing any editable attributes, produce a census of every visible sectio
 | Homepage | Features grid | component + array (nested text per item) | Icons, titles, descriptions all in frontmatter | — |
 | Homepage | Featured Projects | component + source (title, button) | Heading and button text hardcoded in component — extract to data or use source editables | — |
 | Homepage | FAQ | component + array | All values in frontmatter; heading/description need text editables | — |
-| Footer | CTA banner | data-file + component | Check: is icon in data file or hardcoded? | — |
-| Footer | Link columns | data-file + array | Links currently hardcoded — need footer data file | — |
+| All pages | Header / Navigation | data-file | Nav items in data file? Icons? Mobile menu? | — |
+| All pages | Footer link columns | data-file + array | All link text, URLs, column headings in data file? | — |
+| All pages | Footer CTA banner | data-file + component | Title, link text, URL in data file? | — |
 
 After completing the census, implement the editable regions section by section. Update the census with any changes made during implementation.
 
@@ -89,6 +90,8 @@ Work through every item after implementing editable regions. Each item links to 
 
 ### Universal (every migration)
 
+- [ ] **Editor enablement**: Every collection with editable attributes on its rendered pages has `visual` in `_enabled_editors`
+  → [configuration.md](../../cloudcannon-configuration/astro/configuration.md)
 - [ ] **Census coverage**: Every section in the census has editable regions OR a documented justification that meets the `sidebar-only` rules above
 - [ ] **Array containers**: Every array rendered from frontmatter/data has `data-editable="array"` + `data-prop` on the container AND `data-editable="array-item"` on each item
   → [Array editing](visual-editing-reference.md#array-editing)

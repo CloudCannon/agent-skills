@@ -6,6 +6,16 @@ Guidance for creating content-backed pages and array-based page builders in Astr
 
 Many templates have **no content-backed pages** -- all page data is hardcoded directly in `.astro` templates. The audit identifies these pages as content collection candidates when they have 3+ sections of structured or repeated components (card lists, timelines, feature grids). See [audit.md § Classifying static pages](audit.md#classifying-static-pages-source-editables-vs-content-collection).
 
+### Pages collection cheatsheet
+
+| Rule | Value |
+| --- | --- |
+| Homepage filename | `src/content/pages/index.md` — never `home.md` (slug collapses to `/`) |
+| One-off pages (contact, 404) | Schemas defined but excluded from `add_options` |
+| CMS-created pages | Require a catch-all route at `src/pages/[...slug].astro` |
+| Collection URL | `url: "/[slug]/"` — `index` slug resolves to `/` |
+| `getEntry` id | Matches the filename slug — `getEntry('pages', 'index')` for `index.md` |
+
 ### When this applies
 
 - Static `.astro` pages with structured data (arrays of cards, timeline entries, hero sections with multiple fields) that editors need CRUD control over
@@ -122,6 +132,11 @@ pages:
 ```
 
 Only creatable page types appear in `add_options`. One-off pages with dedicated routes (homepage, contact) have schemas for editing but are excluded from `add_options` -- creating a second one would produce a file with no dedicated route.
+
+### Common mistakes
+
+- ❌ **Naming the homepage `home.md`** with `url: "/[slug]/"` → CloudCannon resolves it to `/home/`, the dedicated `src/pages/index.astro` serves `/`, and the visual editor targets the wrong URL. ✓ Use `src/content/pages/index.md` so the slug collapses to root. Even when you also have a dedicated `src/pages/index.astro` that `getEntry`s the file, the collection slug must still be `index`.
+- ❌ Promoting a file named anything other than `index.md` into root position via ad-hoc logic (custom route code, redirects). ✓ Use the Astro-native collapse: filename `index.md` → URL `/`.
 
 ## Array-based page builder
 

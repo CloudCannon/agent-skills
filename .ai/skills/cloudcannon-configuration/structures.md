@@ -28,6 +28,35 @@ There are two ways to align what the content files contain with what the schema 
 
 Either approach works — the goal is that both sides agree on how empty values are represented. When using `.nullish()` in Zod, component templates should continue to use truthiness checks (`{title && ...}`) since both `null` and `""` are falsy.
 
+### Common mistakes — optional fields
+
+❌ Leaving an optional field out of the structure `value` template because "only some items use it"
+✓ Every field that appears on any item must be in the value template with a sensible default (empty string, `false`, `0`, `[]`). Omitting it means:
+  - CloudCannon can't match an existing item that *does* have the field to the structure
+  - Editors can't add the field to new items from the sidebar
+  - Items with the field round-trip as "unknown" in the editor
+
+Example — a `nav_items` structure where only the GitHub link has an `icon`:
+
+```yaml
+# ❌ Wrong — no icon field in the value template
+value:
+  type: link
+  label: Label
+  href: /
+  external: false
+
+# ✓ Right — icon present as empty default
+value:
+  type: link
+  label: Label
+  href: /
+  icon: ''
+  external: false
+```
+
+The same rule applies whether the field is rare (used by 1 of 10 items), conditional (only populated when `type: dropdown`), or purely decorative. If any real data file has the key, the structure value must declare it.
+
 ## Inline approach (small sites)
 
 For sites with fewer than 5 block types, define structures directly in `cloudcannon.config.yml`:
