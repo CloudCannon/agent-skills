@@ -103,23 +103,7 @@ Check `package.json` scripts and `astro.config.mjs`:
 
 CloudCannon's build must reproduce the full pipeline, including pre-build scripts.
 
-## 6. Visual diff baseline (optional)
-
-Visual diff captures baseline screenshots for automated regression detection after migration. It requires Playwright (~250MB Chromium download) and full sandbox permissions. Ask the user during planning whether they want visual diff — if they decline, rely on manual spot-checks after the build phase.
-
-If the user opts in, capture the baseline after confirming the site builds but before any code changes:
-
-```bash
-node visual-diff.mjs capture <site-dir>
-```
-
-This requires full sandbox permissions (`required_permissions: ["all"]`) because Playwright launches Chromium. Set `PLAYWRIGHT_BROWSERS_PATH=0` to use locally installed browsers.
-
-This builds the site, screenshots one representative page per route pattern at desktop and mobile viewports, and saves them to `<site-dir>/.visual-diff/baseline/`. The compare step runs after the build phase -- see [build.md](build.md).
-
-If skipped, note in `migration/build.md` that no visual baseline was captured and regression detection is manual.
-
-## 7. Flags and special patterns
+## 6. Flags and special patterns
 
 Note anything that needs special handling in later phases:
 

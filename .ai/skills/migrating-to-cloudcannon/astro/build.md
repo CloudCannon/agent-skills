@@ -2,18 +2,6 @@
 
 Guidance for validating an Astro migration works end-to-end.
 
-## Visual diff check (optional)
-
-If a baseline was captured during the audit phase, run the visual comparison after building. If no baseline was captured (user opted out or Playwright wasn't available), skip this step and rely on manual spot-checks.
-
-```bash
-node visual-diff.mjs compare <site-dir>
-```
-
-This requires full sandbox permissions (`required_permissions: ["all"]`) because Playwright launches Chromium.
-
-This screenshots the same routes, diffs them against the baseline, and reports any pages exceeding the pixel-diff threshold (default 1%). Diff images are saved to `<site-dir>/.visual-diff/diffs/` for manual review. Use `--no-build` if you've already built, or `--threshold=N` to adjust the percentage threshold.
-
 ## Build verification checklist
 
 1. **Clean the cache first** -- run `rm -rf .astro dist` before building. Astro's `.astro/` directory caches content collection data, and after major restructuring (adding/removing content files, renaming collections) the cache can serve stale entries that mask real errors or generate ghost routes from deleted files.

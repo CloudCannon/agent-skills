@@ -58,35 +58,17 @@ Not every site needs all phases. Small sites may skip content restructuring. Vis
 
 ```
 .ai/
-  rules/                              # Agent rules for developing the skills (not shipped)
   skills/
     migrating-to-cloudcannon/         # Migration orchestrator
     cloudcannon-configuration/        # Config skill (standalone)
     cloudcannon-snippets/             # Snippets skill (standalone)
     cloudcannon-visual-editing/       # Visual editing skill (standalone)
     brainstorming/                    # Design exploration skill
-
-templates/                            # Test sites for validating the skills
-  <name>/
-    pristine/                         # Untouched original (never modify)
-    migrated/                         # Agent works here
 ```
-
-### Template workflow
-
-Skills are developed and tested by running migrations against real site templates:
-
-1. Add a template: `npm run add-template -- <name> <repo-url>`
-2. Ask an agent to migrate `templates/<name>/migrated/` using the skills
-3. Review the result and update skill docs based on what you learn
-4. Test locally: `npm run fog-template -- <name>` (builds and launches [Fog Machine](https://github.com/CloudCannon/fog-machine) for local CloudCannon testing)
-5. To start fresh, delete `migrated/` and copy `pristine/` again
 
 ### Key conventions
 
-- **Scripts first** -- Anything deterministic and repetitive should be a script, not an agent task. Saves tokens and improves consistency.
-- **Living documents** -- Skills and reference docs are actively maintained. Agents are expected to update them when they discover new patterns or edge cases.
+- **Living documents** -- Skills are actively maintained. When an agent uncovers a new pattern or edge case during a migration, update the relevant skill as part of the same task rather than leaving it as a follow-up.
 - **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
-- **No peeking at previous migrations** -- Completed migrations exist in `templates/` but agents must never read other templates' `migrated/` directories. If the skill docs are insufficient, that's a gap to fix in the docs.
 
 For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](.ai/skills/migrating-to-cloudcannon/GUIDE.md).
