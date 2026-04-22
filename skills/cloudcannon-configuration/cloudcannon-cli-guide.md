@@ -16,6 +16,7 @@ npx @cloudcannon/cli configure generate --auto --initial-build-settings
 ```
 
 This generates:
+
 - `cloudcannon.config.yml` — CloudCannon configuration with detected SSG settings, collections, and paths
 - `.cloudcannon/initial-site-settings.json` — Build settings (install command, build command, output path) so the site builds on first upload
 
@@ -32,6 +33,7 @@ npx @cloudcannon/cli configure detect-ssg
 ```
 
 Returns the detected SSG and confidence scores:
+
 ```json
 {
   "ssg": "astro",
@@ -48,6 +50,7 @@ npx @cloudcannon/cli configure detect-source --ssg astro
 ```
 
 Returns:
+
 ```json
 { "source": "src", "ssg": "astro" }
 ```

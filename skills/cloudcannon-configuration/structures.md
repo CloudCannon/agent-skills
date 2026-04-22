@@ -32,9 +32,10 @@ Either approach works — the goal is that both sides agree on how empty values 
 
 ❌ Leaving an optional field out of the structure `value` template because "only some items use it"
 ✓ Every field that appears on any item must be in the value template with a sensible default (empty string, `false`, `0`, `[]`). Omitting it means:
-  - CloudCannon can't match an existing item that *does* have the field to the structure
-  - Editors can't add the field to new items from the sidebar
-  - Items with the field round-trip as "unknown" in the editor
+
+- CloudCannon can't match an existing item that _does_ have the field to the structure
+- Editors can't add the field to new items from the sidebar
+- Items with the field round-trip as "unknown" in the editor
 
 Example — a `nav_items` structure where only the GitHub link has an `icon`:
 
@@ -273,14 +274,14 @@ _inputs:
 
 ### Required parts
 
-| Key | Purpose |
-|-----|---------|
-| `label` | Display name in the Add menu |
-| `icon` | Material Icons name |
-| `picker_preview` | How it looks in modals (Add menu, structure picker) |
-| `preview` | How it looks as a card elsewhere (sidebar, collection lists) — cascade format with `key:` lookups |
-| `value` | The data template — `_type` discriminator plus all fields |
-| `_inputs` | Field type configuration scoped to this component |
+| Key              | Purpose                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `label`          | Display name in the Add menu                                                                      |
+| `icon`           | Material Icons name                                                                               |
+| `picker_preview` | How it looks in modals (Add menu, structure picker)                                               |
+| `preview`        | How it looks as a card elsewhere (sidebar, collection lists) — cascade format with `key:` lookups |
+| `value`          | The data template — `_type` discriminator plus all fields                                         |
+| `_inputs`        | Field type configuration scoped to this component                                                 |
 
 ### The `_type` discriminator
 
@@ -323,6 +324,7 @@ Read the component's Props interface (or destructuring) to determine all fields:
 In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truthy object. Similarly, `actions: []` creates an empty array — also truthy. Component conditionals must check for meaningful content, not just the outer value:
 
 **Objects** — check a meaningful inner field:
+
 - `image?.src &&` instead of `image &&`
 - `(callToAction?.text || callToAction?.icon) &&` instead of `callToAction &&`
 - `link?.href &&` instead of `link &&`
@@ -330,6 +332,7 @@ In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truth
 This applies to any content-sourced object, not just these specific prop names. The key question is: "what inner field indicates this object has real content?"
 
 **Arrays** — check `.length`:
+
 - `actions?.length > 0 &&` instead of `actions &&`
 
 When iterating, filter out items that have nothing visible to render — check the fields responsible for visible output, not every field: `actions.filter((a) => a?.text || a?.icon).map(...)`.
@@ -339,6 +342,7 @@ Check and update these guards during the visual-editing phase when wiring up edi
 ### Fields to include
 
 Include all props that are meaningful for editors:
+
 - Content fields: `title`, `subtitle`, `tagline`, `content`, `description`
 - Media fields: `image`, `images`
 - Behaviour fields: `isReversed`, `isAfterContent`, `isBeforeContent`
@@ -348,6 +352,7 @@ Include all props that are meaningful for editors:
 ### Fields to exclude
 
 Omit internal component props that don't belong in the CMS:
+
 - `id` — used for HTML anchors, not content
 - `isDark` — theme variant, typically hardcoded
 - `classes` — CSS customization, not for editors

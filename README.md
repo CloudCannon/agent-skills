@@ -71,3 +71,15 @@ skills/
 - **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
 
 For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](skills/migrating-to-cloudcannon/GUIDE.md).
+
+### Development
+
+Markdown files are formatted with [Prettier](https://prettier.io). CI runs `prettier --check` on every pull request and fails if anything is unformatted.
+
+```sh
+npm install           # one-time: install dev dependencies
+npm run format        # format all markdown files in place
+npm run format:check  # preview what CI will check (no changes written)
+```
+
+Run `npm run format` before committing changes to any markdown file.

@@ -16,9 +16,9 @@ JSX/MDX component syntax for Astro and generic MDX sites: built-in templates (al
 
 ### Built-in templates
 
-| Template | Pattern | Required definitions |
-|---|---|---|
-| `mdx_component` | `<[[name]][[args]]/>` | `component_name`, `named_args` |
+| Template               | Pattern                                    | Required definitions                          |
+| ---------------------- | ------------------------------------------ | --------------------------------------------- |
+| `mdx_component`        | `<[[name]][[args]]/>`                      | `component_name`, `named_args`                |
 | `mdx_paired_component` | `<[[name]][[args]]>[[content]]</[[name]]>` | `component_name`, `named_args`, `content_key` |
 
 See [template-based.md](template-based.md) for full usage guidance and examples.
@@ -28,24 +28,25 @@ See [template-based.md](template-based.md) for full usage guidance and examples.
 The format object used internally by MDX templates. Useful when writing raw snippets that need to match MDX template behavior:
 
 ```yaml
-root_value_delimiter: '='
+root_value_delimiter: "="
 root_value_boundary:
-  start: '{'
-  end: '}'
+  start: "{"
+  end: "}"
 root_value_boundary_optional:
   string: true
 root_pair_delimiter:
-  - ' '
+  - " "
 string_boundary:
   - '"'
   - "'"
 forbidden_tokens:
-  - '/>'
-  - '>'
+  - "/>"
+  - ">"
 allow_implied_values: true
 ```
 
 Key behaviors from this format:
+
 - String attributes use quotes: `prop="value"`
 - Non-string attributes use braces: `prop={true}`, `prop={42}`
 - Both single and double quotes accepted
@@ -56,13 +57,13 @@ Key behaviors from this format:
 
 Requires `_snippets_imports` to load CloudCannon's MDX defaults. These entries are **not** the same as referencing `mdx_component` or `mdx_paired_component`: they are separate named snippets that match unrecognized MDX-ish content as hidden fallbacks (imports, unknown tags, `{expression}`, exports).
 
-| Snippet | What it catches |
-|---|---|
-| `import` | `import X from 'y'` statements |
-| `_cc_mdx_unknown` | Self-closing components: `<Unknown ... />` |
-| `_cc_mdx_paired_unknown` | Paired components: `<Unknown ...>content</Unknown>` |
-| `_cc_mdx_unknown_template` | Expression templates: `{expression}` |
-| `_cc_mdx_unknown_export` | Named exports: `export const x = value;` |
+| Snippet                    | What it catches                                     |
+| -------------------------- | --------------------------------------------------- |
+| `import`                   | `import X from 'y'` statements                      |
+| `_cc_mdx_unknown`          | Self-closing components: `<Unknown ... />`          |
+| `_cc_mdx_paired_unknown`   | Paired components: `<Unknown ...>content</Unknown>` |
+| `_cc_mdx_unknown_template` | Expression templates: `{expression}`                |
+| `_cc_mdx_unknown_export`   | Named exports: `export const x = value;`            |
 
 Without `_snippets_imports` for MDX defaults, none of the rows above are registered — only the explicit `_snippets` entries you define (using built-in templates or raw config) apply.
 
@@ -79,7 +80,7 @@ params:
   backticks:
     parser: repeating_literal
     options:
-      literal: '`'
+      literal: "`"
       minimum: 3
       default: 3
 ```

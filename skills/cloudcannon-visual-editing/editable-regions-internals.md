@@ -73,11 +73,11 @@ Editables form a DOM-mirroring tree. Children register as listeners on their nea
 
 CloudCannon provides three mechanisms for detecting the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
 
-| Mechanism | Context | Use for |
-|---|---|---|
-| `.cms-editor-active` on `<body>` | CSS | Overriding styles (animations, visibility). Most reliable for initial page load |
-| `window.inEditorMode` | Runtime JS | Inline `<script>` logic, conditional imports |
-| `import.meta.env.ENV_CLIENT` | Build-time (Vite) | Astro component template expressions (only in editable-regions client bundle, not the production build) |
+| Mechanism                        | Context           | Use for                                                                                                 |
+| -------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `.cms-editor-active` on `<body>` | CSS               | Overriding styles (animations, visibility). Most reliable for initial page load                         |
+| `window.inEditorMode`            | Runtime JS        | Inline `<script>` logic, conditional imports                                                            |
+| `import.meta.env.ENV_CLIENT`     | Build-time (Vite) | Astro component template expressions (only in editable-regions client bundle, not the production build) |
 
 ### Connecting
 
@@ -91,15 +91,15 @@ document.addEventListener("cloudcannon:load", () => {
 
 ### Core Methods
 
-| Method | Returns | Description |
-|---|---|---|
-| `currentFile()` | `File` | Handle for the page currently being edited |
-| `file(path)` | `File` | Handle for a specific file by path |
-| `collection(key)` | `Collection` | Handle for a collection |
-| `dataset(key)` | `Dataset` | Handle for a dataset defined in `data_config` |
-| `getPreviewUrl(url, inputConfig?)` | `string` | Resolve a preview URL for DAM/asset files |
-| `uploadFile(file, inputConfig?)` | `Promise<string>` | Upload a file, returns the URL |
-| `findStructure(structure, value)` | `any` | Look up a structure value |
+| Method                             | Returns           | Description                                   |
+| ---------------------------------- | ----------------- | --------------------------------------------- |
+| `currentFile()`                    | `File`            | Handle for the page currently being edited    |
+| `file(path)`                       | `File`            | Handle for a specific file by path            |
+| `collection(key)`                  | `Collection`      | Handle for a collection                       |
+| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config` |
+| `getPreviewUrl(url, inputConfig?)` | `string`          | Resolve a preview URL for DAM/asset files     |
+| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file, returns the URL                |
+| `findStructure(structure, value)`  | `any`             | Look up a structure value                     |
 
 ### File Interface
 
@@ -151,48 +151,48 @@ interface Collection {
 
 ### Text Editor
 
-| Quirk | Mitigation |
-|---|---|
+| Quirk                                                            | Mitigation                                               |
+| ---------------------------------------------------------------- | -------------------------------------------------------- |
 | No `destroy()` — old instances fire `onChange` after DOM removal | Use a generation counter; stale closures check and no-op |
-| `onChange` fires on init (ProseMirror normalizes on mount) | Guard with a `setupComplete` flag |
-| Editor starts empty — does not read `innerHTML` | Call `setContent(value)` immediately after creation |
-| `setContent` resets cursor position | Track focus state; skip on focused editors |
+| `onChange` fires on init (ProseMirror normalizes on mount)       | Guard with a `setupComplete` flag                        |
+| Editor starts empty — does not read `innerHTML`                  | Call `setContent(value)` immediately after creation      |
+| `setContent` resets cursor position                              | Track focus state; skip on focused editors               |
 
 ### Data API
 
-| Quirk | Detail |
-|---|---|
-| Slug separator is `.` not `/` | `"hero.title"` for `{ hero: { title: "X" } }` |
-| `dataset.items()` return type varies | Can return `File` or `File[]` — always handle both |
-| `change` events are coarse | Doesn't indicate which key changed — re-read all keys |
-| `change` fires for own writes | Guard against echo loops |
+| Quirk                                | Detail                                                |
+| ------------------------------------ | ----------------------------------------------------- |
+| Slug separator is `.` not `/`        | `"hero.title"` for `{ hero: { title: "X" } }`         |
+| `dataset.items()` return type varies | Can return `File` or `File[]` — always handle both    |
+| `change` events are coarse           | Doesn't indicate which key changed — re-read all keys |
+| `change` fires for own writes        | Guard against echo loops                              |
 
 ### DOM and Content
 
-| Quirk | Detail |
-|---|---|
-| Values often contain HTML | Use `innerHTML` not `textContent` |
+| Quirk                             | Detail                                                           |
+| --------------------------------- | ---------------------------------------------------------------- |
+| Values often contain HTML         | Use `innerHTML` not `textContent`                                |
 | `<editable-text>` replacement tag | Replace with `<span>` (inline) or `<div>` (block) when stripping |
-| MutationObserver timing | Process cloned DOM trees while detached |
+| MutationObserver timing           | Process cloned DOM trees while detached                          |
 
 ### Events
 
-| Event | Fired On | When |
-|---|---|---|
-| `cloudcannon:load` | `document` | CloudCannon API is ready |
-| `change` | File, Collection, Dataset | Data changed (including own writes) |
-| `delete` | File, Collection, Dataset | Data deleted |
-| `cloudcannon-api` | DOM elements (bubbles) | Internal editable regions event bus |
-| `editable:focus` / `editable:blur` | DOM elements (bubbles) | Focus state changes |
+| Event                              | Fired On                  | When                                |
+| ---------------------------------- | ------------------------- | ----------------------------------- |
+| `cloudcannon:load`                 | `document`                | CloudCannon API is ready            |
+| `change`                           | File, Collection, Dataset | Data changed (including own writes) |
+| `delete`                           | File, Collection, Dataset | Data deleted                        |
+| `cloudcannon-api`                  | DOM elements (bubbles)    | Internal editable regions event bus |
+| `editable:focus` / `editable:blur` | DOM elements (bubbles)    | Focus state changes                 |
 
 ### Global State
 
-| Global | Purpose |
-|---|---|
-| `window.inEditorMode` | `true` when inside the Visual Editor iframe |
+| Global                  | Purpose                                     |
+| ----------------------- | ------------------------------------------- |
+| `window.inEditorMode`   | `true` when inside the Visual Editor iframe |
 | `window.CloudCannonAPI` | API router — call `.useVersion("v1", true)` |
-| `window.cc_components` | Component renderer registry |
-| `window.cc_snippets` | Snippet renderer registry |
+| `window.cc_components`  | Component renderer registry                 |
+| `window.cc_snippets`    | Snippet renderer registry                   |
 
 ---
 

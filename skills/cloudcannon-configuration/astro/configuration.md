@@ -65,6 +65,7 @@ _inputs:
           - key: name
       values: _select_data.icons
 ```
+
 - **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit. **Multiple schemas can live in one collection** -- both via `schemas:` config and Zod `z.union`. See [§ Schemas](#schemas) below for the worked multi-schema `pages` example.
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
 - **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. Example:
@@ -106,7 +107,6 @@ _inputs:
       preview:
         icon: ads_click
 ```
-
 
 ### Hide developer-only frontmatter fields
 
@@ -159,9 +159,9 @@ Pair with the matching Zod side. Order most-specific first so `z.union` discrimi
 const pagesCollection = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/pages" }),
   schema: z.union([
-    landingSchema,      // most specific first
+    landingSchema, // most specific first
     pageBuilderSchema,
-    defaultPageSchema,  // catch-all last
+    defaultPageSchema, // catch-all last
   ]),
 });
 ```
@@ -208,8 +208,14 @@ If a page has a unique schema but doesn't have related files that would make the
 
 ```typescript
 const pageSchema = z.object({ ...commonFields });
-const contactPageSchema = z.object({ ...commonFields, name_label: z.string(), /* ... */ });
-const homepageSchema = z.object({ ...commonFields, banner: z.object({ /* ... */ }), features: z.array(/* ... */) });
+const contactPageSchema = z.object({ ...commonFields, name_label: z.string() /* ... */ });
+const homepageSchema = z.object({
+  ...commonFields,
+  banner: z.object({
+    /* ... */
+  }),
+  features: z.array(/* ... */),
+});
 
 const pagesCollection = defineCollection({
   loader: glob({ pattern: "**/*.{md,mdx}", base: "src/content/pages" }),
@@ -291,7 +297,7 @@ collections_config:
   data:
     path: src/data
     glob:
-      - '**/*.json'
+      - "**/*.json"
     disable_url: true
     icon: settings
     _enabled_editors:
@@ -317,6 +323,7 @@ file_config:
 ```
 
 Split into per-file collections only when:
+
 - The files have radically different edit cadences or permissions
 - Editors actively complain they can't find a specific file under "Data"
 - You need different `_enabled_editors` per file that `file_config` can't express
@@ -347,7 +354,7 @@ _inputs:
     options:
       paths:
         uploads: /src/assets/images
-        static: ''
+        static: ""
 ```
 
 The per-input `static: ''` (empty string) is critical — it tells CloudCannon not to strip any prefix, so frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.jpg`) that `import.meta.glob` needs to resolve the image at build time.
@@ -441,7 +448,7 @@ When `add_options` is defined, **only** the listed options appear. Schemas not l
 The first editor in the `_enabled_editors` list is the default when opening a file. Order matters. Recommended orderings:
 
 - **Page builder collections**: `[visual, data]` — visual editor shows the live page; data editor for bulk field editing
-- **Blog posts** (with visual editing support): `[visual, content, data]` — visual is default for existing posts. Use `editor: content` on `add_options` to open *new* posts in the content editor (which doesn't need a built page)
+- **Blog posts** (with visual editing support): `[visual, content, data]` — visual is default for existing posts. Use `editor: content` on `add_options` to open _new_ posts in the content editor (which doesn't need a built page)
 - **Data-only collections** (no page output): `[data]`
 - **`.astro` page collections** (source editables): `[visual]`
 
@@ -451,7 +458,7 @@ A common mistake is putting `data` first on page collections — this makes ever
 
 Set `editor: content` on the add option to open new files in the content editor instead of the visual editor. The content editor doesn't need a preview URL, so it works immediately. This is the preferred approach for collections where the primary editing workflow is writing markdown (blog posts, docs, articles), and for collections with a `draft` field — draft pages aren't built, so the visual editor has no page to preview. The content editor doesn't require a built page, making it the only reliable editing experience for drafts. For page-builder collections, use `new_preview_url` on the schema instead.
 
-Note that `editor: content` on add options only controls the editor for *new* files. Existing files use the `_enabled_editors` order. Blog posts should still have `visual` first in `_enabled_editors` so existing posts open in the visual editor by default.
+Note that `editor: content` on add options only controls the editor for _new_ files. Existing files use the `_enabled_editors` order. Blog posts should still have `visual` first in `_enabled_editors` so existing posts open in the visual editor by default.
 
 ## Page building patterns
 

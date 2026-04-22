@@ -13,12 +13,12 @@ This workflow assumes editors use **MDX component tags** in content. Concretely:
 
 ## MDX setup pipeline (must complete all four)
 
-| # | Step | File | Skip = broken |
-| --- | --- | --- | --- |
-| 1 | `npm install astro-auto-import` | `package.json` | `import` statements leak into editor |
-| 2 | Register `AutoImport({ imports: [...] })` **before** `mdx()` | `astro.config.mjs` | Components not resolved at build |
-| 3 | Delete `import` lines from all `.mdx` content files | `src/content/**/*.mdx` | Raw imports shown to editors |
-| 4 | Add `_snippets` entries (or raw snippet) for every JSX tag | `cloudcannon.config.yml` | Components shown as broken in editor |
+| #   | Step                                                         | File                     | Skip = broken                        |
+| --- | ------------------------------------------------------------ | ------------------------ | ------------------------------------ |
+| 1   | `npm install astro-auto-import`                              | `package.json`           | `import` statements leak into editor |
+| 2   | Register `AutoImport({ imports: [...] })` **before** `mdx()` | `astro.config.mjs`       | Components not resolved at build     |
+| 3   | Delete `import` lines from all `.mdx` content files          | `src/content/**/*.mdx`   | Raw imports shown to editors         |
+| 4   | Add `_snippets` entries (or raw snippet) for every JSX tag   | `cloudcannon.config.yml` | Components shown as broken in editor |
 
 All four are mandatory. Steps 1+2 without 4 = editor still can't insert/parse the components. Step 4 without 1+2 = build fails. Verify at the end with the [component inventory grep](#component-inventory-grep-must-run-check).
 
@@ -43,11 +43,7 @@ import mdx from "@astrojs/mdx";
 export default defineConfig({
   integrations: [
     AutoImport({
-      imports: [
-        "@/shortcodes/Button",
-        "@/shortcodes/Notice",
-        "@/shortcodes/Youtube",
-      ],
+      imports: ["@/shortcodes/Button", "@/shortcodes/Notice", "@/shortcodes/Youtube"],
     }),
     mdx(),
   ],
@@ -57,7 +53,7 @@ export default defineConfig({
 Each entry maps a module to a default import. The component is available in MDX by its filename (e.g. `Button`, `Notice`). Named exports use object syntax:
 
 ```javascript
-imports: [{ "astro-embed": ["Tweet", "YouTube"] }]
+imports: [{ "astro-embed": ["Tweet", "YouTube"] }];
 ```
 
 ### Alternative: `components` prop
@@ -104,7 +100,7 @@ For raw `key_values` on MDX attributes, include `format` with `root_value_delimi
 
 ```yaml
 youtube:
-  snippet: '<Youtube client:load [[named_args]] />'
+  snippet: "<Youtube client:load [[named_args]] />"
   inline: false
   preview:
     text: YouTube Video
@@ -119,7 +115,7 @@ youtube:
           - editor_key: title
             type: string
         format:
-          root_value_delimiter: '='
+          root_value_delimiter: "="
           string_boundary:
             - '"'
   _inputs:
@@ -132,7 +128,7 @@ youtube:
 
 ```yaml
 accordion:
-  snippet: '<Accordion client:load [[named_args]]>[[inner_content]]</Accordion>'
+  snippet: "<Accordion client:load [[named_args]]>[[inner_content]]</Accordion>"
   inline: false
   preview:
     text: Accordion
@@ -145,7 +141,7 @@ accordion:
           - editor_key: title
             type: string
         format:
-          root_value_delimiter: '='
+          root_value_delimiter: "="
           string_boundary:
             - '"'
     inner_content:
@@ -163,7 +159,7 @@ If several components all need `client:load`, define a custom template to avoid 
 ```yaml
 _snippets_templates:
   astro_client_component:
-    snippet: '<[[component_name]] client:load [[named_args]] />'
+    snippet: "<[[component_name]] client:load [[named_args]] />"
     params:
       component_name:
         parser: literal
@@ -176,7 +172,7 @@ _snippets_templates:
           models:
             ref: named_args
           format:
-            root_value_delimiter: '='
+            root_value_delimiter: "="
             string_boundary:
               - '"'
 ```
@@ -204,7 +200,7 @@ For nested patterns like `<Tabs><Tab>...</Tab></Tabs>`, use a single snippet wit
 
 ```yaml
 tabs:
-  snippet: '<Tabs client:load>[[repeating_tabs]]</Tabs>'
+  snippet: "<Tabs client:load>[[repeating_tabs]]</Tabs>"
   inline: false
   preview:
     text: Tabs
@@ -226,7 +222,7 @@ tabs:
     repeating_tabs:
       parser: repeating
       options:
-        snippet: '<Tab [[named_args]]>[[tab_content]]</Tab>'
+        snippet: "<Tab [[named_args]]>[[tab_content]]</Tab>"
         editor_key: tab_items
         default_length: 2
         style:
@@ -242,7 +238,7 @@ tabs:
           - editor_key: name
             type: string
         format:
-          root_value_delimiter: '='
+          root_value_delimiter: "="
           string_boundary:
             - '"'
     tab_content:
@@ -264,6 +260,7 @@ Every component used in MDX content must either have a `_snippets` entry or the 
 **Preference order:** Define `_snippets` first so the content editor can parse, offer toolbar inserts, and round-trip the markup. Well-configured snippets are the right default for MDX body content; `_enabled_editors: [source, data]` is a **last resort** after you are confident no reasonable snippet plus component refactor can represent the pattern. Document what you tried and why snippets are not viable in the migration notes.
 
 **Try first:**
+
 - Self-closing components with string/number/boolean props (Button, Youtube, Video)
 - Paired components with simple inner content and a few props (Notice, Accordion)
 - Nested tag trees that map to parsers: `repeating` for patterns like `<Tabs><Tab>…</Tab></Tabs>`, `content` for rich inner regions, raw `snippet` strings for literals such as `client:load`
@@ -273,6 +270,7 @@ Every component used in MDX content must either have a `_snippets` entry or the 
 **Nesting:** Depth alone does not disqualify a pattern. What matters is whether the tree is **regular and mappable** to snippet parsers (often one parent snippet with `repeating` children). Deep but repetitive structure may still be one snippet. Hard cases are **arbitrary or unbounded** child trees that do not match a repeating or fixed-slot model.
 
 **Source/data only when (high bar):**
+
 - Shapes that still cannot be captured with template, raw, `repeating`, and `content` parsers after a genuine snippet attempt
 - Prop payloads that remain unmappable after simplifying the component API and `_inputs` — not "looks complex at a glance"
 - Vendor components you cannot wrap, where MDX usage cannot be narrowed to a representable subset
@@ -282,13 +280,13 @@ For files restricted to source/data editor, add `_enabled_editors: [source, data
 
 ## Common mistakes
 
-| ❌ Mistake | ✓ Correct |
-| --- | --- |
-| Adding `_snippets` entries without `astro-auto-import` | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required |
-| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption |
-| Leaving `import` lines at the top of `.mdx` content files | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports. |
-| Registering `AutoImport` after `mdx()` in `astro.config.mjs` | Order matters — `AutoImport` must come earlier in the `integrations` array |
-| "I'll configure the common ones now and add the rest later" | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
+| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
+| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |
+| Leaving `import` lines at the top of `.mdx` content files                | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports.                                                      |
+| Registering `AutoImport` after `mdx()` in `astro.config.mjs`             | Order matters — `AutoImport` must come earlier in the `integrations` array                                                         |
+| "I'll configure the common ones now and add the rest later"              | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
 
 ## Component inventory grep (must-run check)
 
@@ -315,4 +313,3 @@ After adding snippet configs:
 - [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)
 - [ ] `astro build` passes cleanly
 - [ ] Components in existing `.mdx` files should round-trip correctly (CC parses and re-serializes without losing attributes)
-

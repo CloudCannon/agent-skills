@@ -13,7 +13,7 @@ Define a `snippet` string with `[[placeholder]]` markers, then configure a `para
 ```yaml
 _snippets:
   youtube:
-    snippet: '<Youtube client:load [[named_args]] />'
+    snippet: "<Youtube client:load [[named_args]] />"
     params:
       named_args:
         parser: key_values
@@ -22,7 +22,7 @@ _snippets:
             - editor_key: id
               type: string
           format:
-            root_value_delimiter: '='
+            root_value_delimiter: "="
             string_boundary:
               - '"'
 ```
@@ -40,6 +40,7 @@ Each `params.*` entry has a `parser` key. Available parsers:
 The most common parser for component attributes. Handles `key="value"` or `key={expression}` syntax.
 
 Options:
+
 - `models` (array, required) — snippet model configs for each attribute (see [template-based.md](template-based.md) for the model reference)
 - `format` (object) — Parsing format (see Snippet Format below). Optional for the validator, but for typical attribute lists (`key="value"` or `key={expression}`) treat it as **required**: set at least `root_value_delimiter` and `string_boundary`. Without them, quoted values and `=` pairs do not parse as intended. Omit only when you rely solely on implied keys (`allow_implied_values: true`) and unquoted values.
 - `style` (object) — output formatting (inline/block whitespace)
@@ -57,7 +58,7 @@ params:
           type: string
           optional: true
       format:
-        root_value_delimiter: '='
+        root_value_delimiter: "="
         string_boundary:
           - '"'
 ```
@@ -67,6 +68,7 @@ params:
 Parses content between paired tags. Supports nested snippets.
 
 Options:
+
 - `editor_key` (string, required) — key in the editor for the content
 - `allow_nested` (boolean) — recognize nested snippets within the content
 - `raw` (boolean) — treat content as raw text (no markdown parsing)
@@ -90,12 +92,14 @@ Parses a single value, optionally delimited by characters. Best for shortcode-st
 **Do not use `argument` for HTML attribute values** (e.g. `src="[[src]]"`). It does not work in that context, even with `forbidden_tokens` or `string_boundary`. Use `key_values` instead — see [gotchas](gotchas.md#dont-use-argument-for-html-attribute-values).
 
 Options:
+
 - `model` (object) — snippet model config for the value
 - `format` (object) — Parsing format (see Snippet Format below). Same practical rule as `key_values`: for quoted or delimited values, set the `format` fields the parser needs; empty defaults rarely match real syntax.
 
 ### `argument_list` — multiple distinct positional arguments
 
 Options:
+
 - `models` (array) — ordered array of snippet models, one per position
 
 ### `literal` — exact fixed value
@@ -103,6 +107,7 @@ Options:
 Matches a specific literal string. Mainly used within custom templates.
 
 Options:
+
 - `literal` (string or ref) — the exact value to match
 
 ### `optional` — higher-order wrapper
@@ -114,6 +119,7 @@ Makes another parser optional (matching zero times is valid).
 Matches a single character repeated N or more times. Used for patterns like variable-length backtick fences (` ``` `, ` ```` `, etc.).
 
 Options:
+
 - `literal` (string, required) — the character to repeat
 - `minimum` (number) — minimum number of repetitions required
 - `default` (number) — repetitions to use when creating a new snippet
@@ -123,7 +129,7 @@ params:
   backticks:
     parser: repeating_literal
     options:
-      literal: '`'
+      literal: "`"
       minimum: 3
       default: 3
 ```
@@ -133,6 +139,7 @@ params:
 Parses a repeating inline template and presents matched items as a structured array in the editor (add/remove/reorder).
 
 Options:
+
 - `snippet` (string, required) — an **inline template string** with `[[placeholder]]` markers for the child pattern. This is NOT a reference to another `_snippets` entry — it is the raw template for a single repeated item, e.g. `'<Tab [[named_args]]>[[content]]</Tab>'`.
 - `editor_key` (string) — key for the array input in the editor
 - `default_length` (number) — how many items to create when inserting a new snippet. Default `1`.
@@ -150,13 +157,13 @@ Options:
 ```yaml
 _snippets:
   tabs:
-    snippet: '<Tabs client:load>[[repeating_tabs]]</Tabs>'
+    snippet: "<Tabs client:load>[[repeating_tabs]]</Tabs>"
     inline: false
     params:
       repeating_tabs:
         parser: repeating
         options:
-          snippet: '<Tab [[named_args]]>[[tab_content]]</Tab>'
+          snippet: "<Tab [[named_args]]>[[tab_content]]</Tab>"
           editor_key: tab_items
           default_length: 2
           style:
@@ -172,7 +179,7 @@ _snippets:
             - editor_key: name
               type: string
           format:
-            root_value_delimiter: '='
+            root_value_delimiter: "="
             string_boundary:
               - '"'
       tab_content:
@@ -192,6 +199,7 @@ Note: `named_args` and `tab_content` are in the same `params` block as `repeatin
 Like `repeating`, but produces a single instance instead of an array. The `options.snippet` is an **inline template string** (same rules as `repeating` — NOT a snippet name reference). The sub-parser inherits the parent's `params`.
 
 Options:
+
 - `snippet` (string, required) — inline template string with `[[placeholder]]` markers
 - `remove_empty` (boolean) — remove the wrapper output when all its fields are empty
 
@@ -200,7 +208,7 @@ params:
   wrapped:
     parser: wrapper
     options:
-      snippet: '<Inner [[inner_args]] />'
+      snippet: "<Inner [[inner_args]] />"
   inner_args:
     parser: key_values
     options:
@@ -208,7 +216,7 @@ params:
         - editor_key: size
           type: string
       format:
-        root_value_delimiter: '='
+        root_value_delimiter: "="
         string_boundary:
           - '"'
 ```
@@ -221,49 +229,49 @@ Controls how values are parsed and serialized. Applied via the `format` key in p
 
 ### Core fields (used in most raw snippets)
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `root_value_delimiter` | string | **none** | Delimiter between key and value. Use `'='` for MDX/JSX (`key="val"`), `': '` for Liquid (`key: "val"`). **Must always be set explicitly.** |
-| `string_boundary` | array of strings | **none** | Quote characters for string values. Usually `['"']`. Without this, strings won't be parsed. |
-| `root_pair_delimiter` | array of strings | **none** | Delimiter between key-value pairs. Usually `[' ']` (space). |
-| `forbidden_tokens` | array of strings | **none** | Characters that stop the parser. Useful to prevent greedy matching. |
+| Field                  | Type             | Default  | Description                                                                                                                                |
+| ---------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `root_value_delimiter` | string           | **none** | Delimiter between key and value. Use `'='` for MDX/JSX (`key="val"`), `': '` for Liquid (`key: "val"`). **Must always be set explicitly.** |
+| `string_boundary`      | array of strings | **none** | Quote characters for string values. Usually `['"']`. Without this, strings won't be parsed.                                                |
+| `root_pair_delimiter`  | array of strings | **none** | Delimiter between key-value pairs. Usually `[' ']` (space).                                                                                |
+| `forbidden_tokens`     | array of strings | **none** | Characters that stop the parser. Useful to prevent greedy matching.                                                                        |
 
 ### Value type parsing
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `allow_booleans` | boolean | `false` | Parse unquoted `true`/`false` as booleans |
-| `allow_numbers` | boolean | `false` | Parse unquoted numeric values as numbers |
-| `allow_null` | boolean | `false` | Parse `null` as a null value |
+| Field                  | Type    | Default | Description                                                                                                          |
+| ---------------------- | ------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `allow_booleans`       | boolean | `false` | Parse unquoted `true`/`false` as booleans                                                                            |
+| `allow_numbers`        | boolean | `false` | Parse unquoted numeric values as numbers                                                                             |
+| `allow_null`           | boolean | `false` | Parse `null` as a null value                                                                                         |
 | `allow_implied_values` | boolean | `false` | Allow keys without values to imply `true`. For attributes like `<Component disabled />` where `disabled` has no `=`. |
 
 ### Expression boundaries (MDX `{expression}` syntax)
 
-| Field | Type | Description |
-|---|---|---|
-| `root_value_boundary` | object `{start, end}` | Boundary tokens around values. MDX uses `{ start: "{", end: "}" }` for expression syntax like `prop={true}` or `prop={42}`. |
-| `root_value_boundary_optional` | object | Which value types don't require boundaries. MDX uses `{ string: true }` so strings can be `prop="val"` (quoted) while non-strings use `prop={true}` (braced). |
+| Field                          | Type                  | Description                                                                                                                                                   |
+| ------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `root_value_boundary`          | object `{start, end}` | Boundary tokens around values. MDX uses `{ start: "{", end: "}" }` for expression syntax like `prop={true}` or `prop={42}`.                                   |
+| `root_value_boundary_optional` | object                | Which value types don't require boundaries. MDX uses `{ string: true }` so strings can be `prop="val"` (quoted) while non-strings use `prop={true}` (braced). |
 
 These two fields work together. When `root_value_boundary` is set to `{ start: "{", end: "}" }` and `root_value_boundary_optional: { string: true }`, the parser handles both `prop="string"` and `prop={true}` in the same snippet.
 
 ### String handling
 
-| Field | Type | Default | Description |
-|---|---|---|---|
+| Field                     | Type   | Default  | Description                                                                                                       |
+| ------------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------- |
 | `string_escape_character` | string | **none** | Character for escaping string boundaries. Usually `'\'`. Set this if attribute values may contain escaped quotes. |
-| `allowed_string_cases` | object | **none** | Restrict which case types are valid: `{ any, leading_upper, leading_lower, lower, upper }`. Rarely needed. |
+| `allowed_string_cases`    | object | **none** | Restrict which case types are valid: `{ any, leading_upper, leading_lower, lower, upper }`. Rarely needed.        |
 
 ### Advanced (rarely needed in migrations)
 
-| Field | Type | Description |
-|---|---|---|
-| `root_boundary` | object `{start, end}` | Boundary tokens enclosing the entire key-value segment |
-| `remove_empty_root_boundary` | boolean | Remove root boundary tokens when the segment is empty. Default `false`. |
-| `object_boundary` | object `{start, end}` | Start/end tokens for inline object literals (usually `{ start: "{", end: "}" }`) |
-| `object_value_delimiter` | string | Key-value delimiter within objects (usually `':'`) |
-| `object_pair_delimiter` | string | Pair delimiter within objects (usually `','`) |
-| `array_boundary` | object `{start, end}` | Start/end tokens for inline array literals (usually `{ start: "[", end: "]" }`) |
-| `array_delimiter` | string | Item delimiter within arrays (usually `','`) |
+| Field                        | Type                  | Description                                                                      |
+| ---------------------------- | --------------------- | -------------------------------------------------------------------------------- |
+| `root_boundary`              | object `{start, end}` | Boundary tokens enclosing the entire key-value segment                           |
+| `remove_empty_root_boundary` | boolean               | Remove root boundary tokens when the segment is empty. Default `false`.          |
+| `object_boundary`            | object `{start, end}` | Start/end tokens for inline object literals (usually `{ start: "{", end: "}" }`) |
+| `object_value_delimiter`     | string                | Key-value delimiter within objects (usually `':'`)                               |
+| `object_pair_delimiter`      | string                | Pair delimiter within objects (usually `','`)                                    |
+| `array_boundary`             | object `{start, end}` | Start/end tokens for inline array literals (usually `{ start: "[", end: "]" }`)  |
+| `array_delimiter`            | string                | Item delimiter within arrays (usually `','`)                                     |
 
 For the full reference of all format options, see the [CloudCannon Snippet Format docs](https://cloudcannon.com/documentation/developer-reference/configuration-file/types/snippet-format/).
 
@@ -273,12 +281,12 @@ For the full reference of all format options, see the [CloudCannon Snippet Forma
 
 ```yaml
 format:
-  root_value_delimiter: '='
+  root_value_delimiter: "="
   string_boundary:
     - '"'
   root_value_boundary:
-    start: '{'
-    end: '}'
+    start: "{"
+    end: "}"
   root_value_boundary_optional:
     string: true
   allow_booleans: true
@@ -289,7 +297,7 @@ format:
 
 ```yaml
 format:
-  root_value_delimiter: '='
+  root_value_delimiter: "="
   string_boundary:
     - '"'
 ```
@@ -298,9 +306,9 @@ format:
 
 ```yaml
 format:
-  root_value_delimiter: ': '
+  root_value_delimiter: ": "
   root_pair_delimiter:
-    - ','
+    - ","
   string_boundary:
     - '"'
 ```
@@ -314,7 +322,7 @@ If multiple components share the same structure (e.g. several self-closing compo
 ```yaml
 _snippets_templates:
   astro_client_component:
-    snippet: '<[[component_name]] client:load [[named_args]] />'
+    snippet: "<[[component_name]] client:load [[named_args]] />"
     params:
       component_name:
         parser: literal
@@ -327,7 +335,7 @@ _snippets_templates:
           models:
             ref: named_args
           format:
-            root_value_delimiter: '='
+            root_value_delimiter: "="
             string_boundary:
               - '"'
 ```

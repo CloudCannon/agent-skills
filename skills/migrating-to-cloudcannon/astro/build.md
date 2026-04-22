@@ -43,4 +43,3 @@ Astro's `<style is:inline>` bypasses Vite processing, so `@import` of node_modul
 ### `astro:content` or `astro:assets` import errors in client bundle
 
 If the build fails because Astro virtual modules can't be resolved in the client build, ensure the `editableRegions()` integration is registered in `astro.config.mjs`. The integration's Vite plugin shims these modules for client-side rendering.
-

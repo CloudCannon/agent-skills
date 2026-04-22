@@ -158,13 +158,13 @@ When content uses a folder-per-post structure (e.g. `blog/01-getting-started/ind
 
 `_editables` has five keys, each backed by a different schema. The available toolbar options depend on which key — mixing them is the most common `_editables` mistake.
 
-| Editable key | Schema | Inline formatting (bold/italic/link/...) | Block formatting (lists, blockquote) | `format` dropdown | Image options |
-|---|---|---|---|---|---|
-| `content` | `BlockEditable` | ✅ | ✅ | ✅ | ✅ |
-| `block` | `BlockEditable` | ✅ | ✅ | ✅ | ✅ |
-| `text` | `TextEditable` | ✅ | ❌ | ❌ | ❌ |
-| `image` | `ImageEditable` | n/a | n/a | n/a | image options only |
-| `link` | `LinkEditable` | n/a | n/a | n/a | n/a |
+| Editable key | Schema          | Inline formatting (bold/italic/link/...) | Block formatting (lists, blockquote) | `format` dropdown | Image options      |
+| ------------ | --------------- | ---------------------------------------- | ------------------------------------ | ----------------- | ------------------ |
+| `content`    | `BlockEditable` | ✅                                       | ✅                                   | ✅                | ✅                 |
+| `block`      | `BlockEditable` | ✅                                       | ✅                                   | ✅                | ✅                 |
+| `text`       | `TextEditable`  | ✅                                       | ❌                                   | ❌                | ❌                 |
+| `image`      | `ImageEditable` | n/a                                      | n/a                                  | n/a               | image options only |
+| `link`       | `LinkEditable`  | n/a                                      | n/a                                  | n/a               | n/a                |
 
 **`_editables.text` is inline-only.** It does NOT have `bulletedlist`, `numberedlist`, `blockquote`, `format`, `table`, or any block-level option — only inline formatting (`bold`, `italic`, `link`, `strike`, `subscript`, `superscript`, `underline`, `undo`, `redo`, `removeformat`, `copyformatting`, `remove_custom_markup`, `allow_custom_markup`). If you need block-level controls, use `_editables.content` or `_editables.block`. Source: [`src/editables.ts`](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/src/editables.ts).
 
@@ -234,7 +234,7 @@ For heading-level fields (title, subtitle), intentionally omit block-level optio
 
 ## `_enabled_editors` order is the default editor
 
-The first item in `_enabled_editors` is the editor that opens by default when a user clicks a file. `[data, visual]` opens the data editor; `[visual, data]` opens the visual editor. Page builder collections should almost always have `visual` first. See [configuration.md § _enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).
+The first item in `_enabled_editors` is the editor that opens by default when a user clicks a file. `[data, visual]` opens the data editor; `[visual, data]` opens the visual editor. Page builder collections should almost always have `visual` first. See [configuration.md § \_enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).
 
 ## Data references require three connected pieces
 
@@ -329,6 +329,7 @@ _inputs:
 Some Astro templates store site configuration in TypeScript files with `as const` objects. These cannot be edited in CloudCannon's data editor.
 
 Options, in order of preference:
+
 1. **Leave as-is** — document as developer-only. Best for small blogs where the config rarely changes.
 2. **Convert to JSON** — extract the config into a `.json` file, import it in TypeScript, configure as `data_config` in CC.
 3. **Hybrid** — move frequently-edited fields to JSON while keeping developer-only settings in TypeScript.
@@ -364,6 +365,7 @@ Only include `.astro` pages that actually have editable regions. The `[slug]` pa
 When a site has both content collection pages (`src/content/pages/*.md`) and source-editable `.astro` pages (`src/pages/contact.astro`), **default to including both in a single `pages` collection** rather than creating a separate `static_pages` collection. A unified collection avoids confusing editors with two "pages" buckets in the sidebar.
 
 Use `_enabled_editors` and schemas to differentiate behavior within the collection:
+
 - `.md` content collection pages: `_enabled_editors: [visual, content, data]`, structured schemas
 - `.astro` source-editable pages: `_enabled_editors: [visual]`, `disable_add: true` on those entries
 
@@ -372,10 +374,12 @@ Only split into separate collections when there's a genuine UX reason — for ex
 ### Deciding whether to enable page creation
 
 **Disable page creation (`disable_add: true`)** when:
+
 - The template is blog-focused and standalone pages are one-offs with hardcoded layouts
 - Enabling creation would give editors a broken or unstyled result
 
 **Enable page creation** when:
+
 - The template has a generic page layout that works for arbitrary content
 - New `.md` pages would render correctly with the existing layout and navigation
 

@@ -189,12 +189,12 @@ When conditional elements, style bindings, or computed content need live updates
 
 **When HTML `<template>` blueprints are needed.** The runtime can create new array rows from three sources (tried in order): in-flight update DOM, `<template>` children on the wrapper, or registered component rendering. Use this table to decide:
 
-| Array type | Has `data-component-key` + per-item `data-component` + all types registered? | Can be empty at build time? | `<template>` needed? |
-|---|---|---|---|
-| **Page builder** (`content_blocks`) | Yes | Yes | **No** — the component pipeline handles it ([CC complex array docs](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/)) |
-| **Uniform primitive list** (no `data-component`) | No | Yes | **Yes** — one `<template>` so "Add item" has structure |
-| **Uniform primitive list** (no `data-component`) | No | No (always has items) | **Optional** — runtime can clone the first item |
-| **Heterogeneous rows without per-item registration** (e.g. sub-array variants inside a registered widget) | No | Varies | **Yes** — multiple `<template>` elements with `data-id` matching each variant, paired with CloudCannon structures |
+| Array type                                                                                                | Has `data-component-key` + per-item `data-component` + all types registered? | Can be empty at build time? | `<template>` needed?                                                                                                                                                                               |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Page builder** (`content_blocks`)                                                                       | Yes                                                                          | Yes                         | **No** — the component pipeline handles it ([CC complex array docs](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/)) |
+| **Uniform primitive list** (no `data-component`)                                                          | No                                                                           | Yes                         | **Yes** — one `<template>` so "Add item" has structure                                                                                                                                             |
+| **Uniform primitive list** (no `data-component`)                                                          | No                                                                           | No (always has items)       | **Optional** — runtime can clone the first item                                                                                                                                                    |
+| **Heterogeneous rows without per-item registration** (e.g. sub-array variants inside a registered widget) | No                                                                           | Varies                      | **Yes** — multiple `<template>` elements with `data-id` matching each variant, paired with CloudCannon structures                                                                                  |
 
 **Simple arrays** (uniform primitive rows) usually include a single `<template>`:
 
@@ -303,7 +303,7 @@ Page builder blocks need **both** on the same element. Without `data-component`,
 When a suitable HTML element exists, add both attributes directly:
 
 ```html
-<section data-editable="array-item" data-component={_type} data-id={_type}>
+<section data-editable="array-item" data-component="{_type}" data-id="{_type}">
   <Component {...props} />
 </section>
 ```
@@ -311,7 +311,7 @@ When a suitable HTML element exists, add both attributes directly:
 When no suitable element exists, use the `<editable-array-item>` web component:
 
 ```html
-<editable-array-item data-component={_type} data-id={_type}>
+<editable-array-item data-component="{_type}" data-id="{_type}">
   <Component {...props} />
 </editable-array-item>
 ```
@@ -616,14 +616,14 @@ Source editables work by reading and writing the raw source file (e.g. `src/page
 
 ### When to use source editables
 
-| Use source-editable when... | Use page builder + nested editables instead when... |
-| --- | --- |
-| The page is mostly long-form prose and you need 1-2 inline string edits (e.g. a hero headline above markdown) | The page has 2+ structured sections |
-| There are 1-2 pages of this type and editors won't add more | Editors might want to add similar pages |
-| The site is genuinely simple -- homepage + a blog, no marketing pages, no landing pages | The site has multiple unique-layout marketing/info pages |
-| Refactoring to a content collection would change the rendered HTML in ways the user explicitly told you not to | Refactor freely; output should match |
+| Use source-editable when...                                                                                    | Use page builder + nested editables instead when...      |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| The page is mostly long-form prose and you need 1-2 inline string edits (e.g. a hero headline above markdown)  | The page has 2+ structured sections                      |
+| There are 1-2 pages of this type and editors won't add more                                                    | Editors might want to add similar pages                  |
+| The site is genuinely simple -- homepage + a blog, no marketing pages, no landing pages                        | The site has multiple unique-layout marketing/info pages |
+| Refactoring to a content collection would change the rendered HTML in ways the user explicitly told you not to | Refactor freely; output should match                     |
 
-**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification -- but the *mechanism* defaults to a content collection or page-builder block, not source-editable. Source-editable is the exception, reserved for long-form prose where the layout _is_ the body.
+**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification -- but the _mechanism_ defaults to a content collection or page-builder block, not source-editable. Source-editable is the exception, reserved for long-form prose where the layout _is_ the body.
 
 ### Including `.astro` pages in collections
 
@@ -724,6 +724,7 @@ Keep separate files and `@file` when one file would be unwieldy, you need rich p
 Not everything benefits from visual editing. Guidelines:
 
 **Good for visual editing (inline text/image/source):**
+
 - Page titles, headings, descriptions
 - Hero/banner content (from frontmatter via `data-prop`, or hardcoded via `data-editable="source"`)
 - Images (hero, feature, author avatar)
@@ -735,6 +736,7 @@ Not everything benefits from visual editing. Guidelines:
 **MDX bodies and CloudCannon snippets:** Snippets in MDX do not render as their live-site output in the content editor or in the visual editor — editing page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon's snippet UI (often a clickable box). Treat that as a preview limitation, not a reason to avoid visual editing for MDX.
 
 **Better for sidebar/data editor:**
+
 - Navigation menus (complex nested structures)
 - Social links
 - Theme settings (colors, fonts)
@@ -744,6 +746,7 @@ Not everything benefits from visual editing. Guidelines:
 - Taxonomy arrays (categories, tags)
 
 **Provide editing fallbacks with `ENV_CLIENT`:**
+
 - **Vue, Svelte, and Solid components** -- these frameworks throw runtime errors in editable regions, even when nested inside supported `.astro` or `.jsx` wrappers. First consider converting the component to `.astro` or React (prefer `.astro` unless it's state-heavy). If conversion isn't practical, guard with `import.meta.env.ENV_CLIENT` to render an editing fallback -- a simplified `.astro` component that visually resembles the real one and supports editable attributes, giving editors a useful preview and editing experience without the unsupported framework.
 - Components with complex DOM management (Swiper carousels, etc.) -- their JavaScript conflicts with editable region DOM manipulation, and often are hard to edit if functioning like they do on prod.
 - Components using genuinely server-only APIs (`getImage` from `astro:assets` for image processing, `fetch` to external APIs at render time) -- guard with `import.meta.env.ENV_CLIENT` to provide a simplified client-side path that skips optimization and renders plain HTML. Note: `import.meta.glob` resolves eagerly at build time and works fine in registered components. `getCollection`/`getEntry` from `astro:content` also work because the integration shims them for the client bundle.
@@ -796,7 +799,7 @@ _inputs:
 4. Content uses the semantic class instead of Tailwind utilities:
 
 ```yaml
-title: "Free template for <span class=\"highlight-text\">Astro 5.0</span> + Tailwind CSS"
+title: 'Free template for <span class="highlight-text">Astro 5.0</span> + Tailwind CSS'
 ```
 
 Editors see the accent color in the toolbar and can toggle it on text selections. This is the preferred approach for any styling expressible as a CSS class. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter) for the full decision tree.
@@ -806,6 +809,7 @@ Editors see the accent color in the toolbar and can toggle it on text selections
 When a field packs multiple semantic values into one string with HTML structure — e.g. a `content` field mixing plain text, a link with classes, and a CTA — decompose into explicit props and let the component own the markup.
 
 Before (single rich text field):
+
 ```json
 {
   "content": "<span class='text-center block'>Enjoying our project? <a class='underline' href='...'>Star on GitHub</a></span>"
@@ -813,6 +817,7 @@ Before (single rich text field):
 ```
 
 After (explicit props):
+
 ```json
 {
   "text": "Enjoying our project?",
@@ -822,6 +827,7 @@ After (explicit props):
 ```
 
 The component templates the values into the correct HTML:
+
 ```astro
 <p class="text-center">
   {text} <a class="underline" href={link_url} target="_blank" rel="noopener">{link_text}</a>
@@ -876,7 +882,7 @@ The select input is editable in the sidebar by default — but **the rendered ca
    // src/data/authors.json
    {
      "jane-smith": { "name": "Jane Smith", "avatar": "...", "bio": "..." },
-     "john-doe":   { "name": "John Doe",  "avatar": "...", "bio": "..." }
+     "john-doe": { "name": "John Doe", "avatar": "...", "bio": "..." }
    }
    ```
 
@@ -892,10 +898,10 @@ The select input is editable in the sidebar by default — but **the rendered ca
        type: select
        options:
          values: data.authors
-         value_key: ''
+         value_key: ""
    ```
 
-3. **Dedicated registered component** that takes the slug as a prop and does the lookup *internally*. The lookup must live inside the registered component — not in the page template — because that's the code that re-runs when CC re-renders.
+3. **Dedicated registered component** that takes the slug as a prop and does the lookup _internally_. The lookup must live inside the registered component — not in the page template — because that's the code that re-runs when CC re-renders.
 
    ```astro
    ---
@@ -911,7 +917,7 @@ The select input is editable in the sidebar by default — but **the rendered ca
 
    ```ts
    // registerComponents.ts
-   registerAstroComponent('author-card', AuthorCard)
+   registerAstroComponent("author-card", AuthorCard);
    ```
 
 4. **Editable wrapper** at the call site, with `data-prop` pointing at the slug field:
@@ -932,7 +938,7 @@ const author = authors[post.data.author]
 <PageHeader author={author} />
 ```
 
-The frontmatter still updates when the editor changes the select, but the displayed object was computed at build time from the *previous* slug. Nothing re-renders. Sidebar feels broken — change occurs but the page doesn't reflect it. Move the lookup into the registered component.
+The frontmatter still updates when the editor changes the select, but the displayed object was computed at build time from the _previous_ slug. Nothing re-renders. Sidebar feels broken — change occurs but the page doesn't reflect it. Move the lookup into the registered component.
 
 **When the call site is a shared component (e.g. PageHeader).** Mirror the optional-prop pattern from titleProp/subtitleProp/imageProp: accept `authorSlug` and `authorProp`, and only render the `<editable-component>` wrapper when both are passed. Pages that don't have an author omit both props.
 
@@ -1023,6 +1029,7 @@ registerAstroComponent("announcement", AnnouncementDisplay);
 ```
 
 **When to use an editing fallback:**
+
 - Vue, Svelte, or Solid components that can't be converted to `.astro`/React
 - Components using third-party DOM libraries (Swiper, GSAP, etc.)
 - Web Components with shadow DOM that don't serialize cleanly
@@ -1047,6 +1054,7 @@ If a suitable container already exists in the markup (e.g. a `<section>` wrappin
 **For array items**, use `<editable-array-item>` instead of `<editable-component>` when you need a web component wrapper. `<editable-array-item>` can also carry `data-component` for re-rendering — see [Page builder blocks](#page-builder-blocks).
 
 **Caveats:**
+
 - Astro components that use `astro:content` or `astro:assets` imports need the integration's Vite plugin (which shims these modules for client-side rendering)
 - React components inside registered Astro components (e.g. `react-icons`) need the React framework renderer. Add `import "@cloudcannon/editable-regions/astro-react-renderer"` to `registerComponents.ts` -- this is a side-effect import that registers a catch-all React renderer for the editable-regions client-side re-rendering pipeline (it mirrors Astro's SSR renderer interface but runs entirely within the editor). Without it, any React component encountered during re-rendering will fail with "NoMatchingRenderer". Because its `check` function unconditionally returns `true`, it acts as a fallback for all unmatched components -- import it after any other framework renderers
 - The React framework renderer only covers React -- there are no equivalent renderers for Vue, Svelte, or Solid. These frameworks will always error in editable regions and must be converted or given editing fallbacks
@@ -1130,11 +1138,11 @@ if (window.inEditorMode) {
 
 **Summary of detection mechanisms** ([CC docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
 
-| Mechanism | Context | Use for |
-|---|---|---|
-| `.cms-editor-active` on `<body>` | CSS | Overriding animation/visibility styles (primary fix) |
-| `window.inEditorMode` | Runtime JS | Inline `<script>` logic, conditional imports |
-| `import.meta.env.ENV_CLIENT` | Build-time (Vite) | Astro component template expressions, module scripts (only in editable-regions client bundle) |
+| Mechanism                        | Context           | Use for                                                                                       |
+| -------------------------------- | ----------------- | --------------------------------------------------------------------------------------------- |
+| `.cms-editor-active` on `<body>` | CSS               | Overriding animation/visibility styles (primary fix)                                          |
+| `window.inEditorMode`            | Runtime JS        | Inline `<script>` logic, conditional imports                                                  |
+| `import.meta.env.ENV_CLIENT`     | Build-time (Vite) | Astro component template expressions, module scripts (only in editable-regions client bundle) |
 
 **Audit flag:** During the audit phase, flag any scroll-reveal or entrance animation patterns. Search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and common class names like `reveal`, `aos`, `animate-on-scroll`. Note the file(s) responsible so they can be patched in the visual editing phase.
 
@@ -1151,6 +1159,7 @@ The `editableRegions()` integration builds a client bundle that re-renders regis
 **What doesn't work** — Components that use Node-only APIs at runtime (filesystem access, `process.env`, native binaries) will fail in the browser context. Vue, Svelte, and Solid components don't have renderers (only React has one via `astro-react-renderer`). These need editing fallbacks — see [When to use an editing fallback](#when-to-use-an-editing-fallback).
 
 **Runtime shims provided by editable-regions:**
+
 - `Astro.props` — passed through from CloudCannon's prop data
 - `Astro.slots` — shimmed with `has()` and `render()` via `renderSlotToString`
 - `Astro.request` — shimmed as `new Request(window.location.href)` (one new instance per `createAstro` call)

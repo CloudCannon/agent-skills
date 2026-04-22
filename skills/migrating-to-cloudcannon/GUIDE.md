@@ -10,12 +10,12 @@ How to navigate the migration skill and its companion skills — for humans revi
 
 The migration is split across four skills:
 
-| Skill | Purpose | Standalone? |
-|---|---|---|
-| `migrating-to-cloudcannon` | Orchestrator — phases, SSG detection, handoff | No — orchestrates the others |
-| `cloudcannon-configuration` | CC config, CloudCannon CLI, structures, collection URLs, inputs | Yes — "configure my site for CC" |
-| `cloudcannon-snippets` | Snippet config for MDX components and inline HTML | Yes — "add snippets to my CC site" |
-| `cloudcannon-visual-editing` | Editable regions, Visual Editor setup | Yes — "add visual editing to my CC site" |
+| Skill                        | Purpose                                                         | Standalone?                              |
+| ---------------------------- | --------------------------------------------------------------- | ---------------------------------------- |
+| `migrating-to-cloudcannon`   | Orchestrator — phases, SSG detection, handoff                   | No — orchestrates the others             |
+| `cloudcannon-configuration`  | CC config, CloudCannon CLI, structures, collection URLs, inputs | Yes — "configure my site for CC"         |
+| `cloudcannon-snippets`       | Snippet config for MDX components and inline HTML               | Yes — "add snippets to my CC site"       |
+| `cloudcannon-visual-editing` | Editable regions, Visual Editor setup                           | Yes — "add visual editing to my CC site" |
 
 ## File Map
 
@@ -61,11 +61,13 @@ scripts/setup-editable-regions.sh       Installs package, wires Astro integratio
 ## Reading Order Per Phase
 
 ### Phase 1: Audit
+
 1. `migrating-to-cloudcannon/SKILL.md` → detect SSG
 2. `migrating-to-cloudcannon/astro/overview.md` → phase summary
 3. `migrating-to-cloudcannon/astro/audit.md` → full audit procedure
 
 ### Phase 2: Configuration
+
 1. `cloudcannon-configuration/cloudcannon-cli-guide.md` → generate baseline
 2. `cloudcannon-configuration/astro/configuration.md` → customize config
 3. `cloudcannon-configuration/collection-urls.md` → if any collection produces pages
@@ -75,15 +77,18 @@ scripts/setup-editable-regions.sh       Installs package, wires Astro integratio
 7. `cloudcannon-configuration/astro/configuration-gotchas.md` → reference during and after configuration
 
 ### Phase 3: Content
+
 1. `migrating-to-cloudcannon/astro/content.md`
 2. `cloudcannon-configuration/structures.md` → field completeness rule
 
 ### Phase 4: Visual Editing
+
 1. `cloudcannon-visual-editing/SKILL.md` → overview and quick reference
 2. `cloudcannon-visual-editing/astro/visual-editing.md` → full Astro integration workflow
 3. `migrating-to-cloudcannon/astro/page-building.md` → if page builder (BlockRenderer, array editables)
 
 ### Phase 5: Build
+
 1. `migrating-to-cloudcannon/astro/build.md`
 
 ## Decision Tree: When to Read Optional Docs

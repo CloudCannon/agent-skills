@@ -53,19 +53,19 @@ Cross-page content (navigation, CTAs, testimonials, site settings) should live i
 
 Every site has most of these. For each row, the default treatment is non-negotiable unless you have a written technical reason not to — scan the repo for each one and either implement it or document the exception in `migration/visual-editing.md`.
 
-| Section | Default treatment | Data file / approach |
-|---|---|---|
-| Header / Navigation | data-file + component | `src/data/navigation.json` with `items[]` structure |
-| Footer link columns | data-file + array | `src/data/footer.json` — `columns[{heading, links[]}]` |
-| Footer tip / credits / image credit | data-file | Same `src/data/footer.json`, under `tip`, `credits`, `image_credit` keys |
-| CTA banner (above footer) | data-file + `editable-component` | `src/data/cta.json` — `title`, `link`, `link_text` |
-| Share block (post / project detail) | source editables OR `src/data/sharing.json` | `data-editable="source"` on heading + description in the page template |
-| Author card | data-file | `src/data/authors.json` keyed by slug; frontmatter `author: <slug>`; `select` input |
-| Cookie banner / announcement bar | data-file | `src/data/announcement.json` or similar |
+| Section                             | Default treatment                           | Data file / approach                                                                |
+| ----------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Header / Navigation                 | data-file + component                       | `src/data/navigation.json` with `items[]` structure                                 |
+| Footer link columns                 | data-file + array                           | `src/data/footer.json` — `columns[{heading, links[]}]`                              |
+| Footer tip / credits / image credit | data-file                                   | Same `src/data/footer.json`, under `tip`, `credits`, `image_credit` keys            |
+| CTA banner (above footer)           | data-file + `editable-component`            | `src/data/cta.json` — `title`, `link`, `link_text`                                  |
+| Share block (post / project detail) | source editables OR `src/data/sharing.json` | `data-editable="source"` on heading + description in the page template              |
+| Author card                         | data-file                                   | `src/data/authors.json` keyed by slug; frontmatter `author: <slug>`; `select` input |
+| Cookie banner / announcement bar    | data-file                                   | `src/data/announcement.json` or similar                                             |
 
 **Footer rule:** columns are simple `{heading, links[]}` arrays. Tip text, credits, and image credits go in the same file. Use `@data[footer]` editables in the component.
 
-The columns array editable wraps **only the mapped columns** — static siblings (logo, tagline) sit *outside* the `data-editable="array"` wrapper. Wrap with `class="contents"` so the array container stays layout-neutral and the surrounding grid still flows. Child editables inside each `data-editable="array-item"` use **relative paths** (`data-prop="heading"`, `data-prop="links"`, `data-prop="label"`) — never the indexed form `data-prop="@data[footer].columns[N].heading"`. See [visual-editing-reference.md § Arrays inside data files](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#arrays-inside-data-files).
+The columns array editable wraps **only the mapped columns** — static siblings (logo, tagline) sit _outside_ the `data-editable="array"` wrapper. Wrap with `class="contents"` so the array container stays layout-neutral and the surrounding grid still flows. Child editables inside each `data-editable="array-item"` use **relative paths** (`data-prop="heading"`, `data-prop="links"`, `data-prop="label"`) — never the indexed form `data-prop="@data[footer].columns[N].heading"`. See [visual-editing-reference.md § Arrays inside data files](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#arrays-inside-data-files).
 
 **CTA rule:** "CTA" here means the shared promotional section that typically appears above the footer across pages (e.g. "Contact us today", "Get started free") — not individual buttons or links. If the section is rendered on multiple pages via a shared component or layout, extract its content to a data file. The test is whether the same content appears on multiple built pages, not how many files import the component directly.
 
@@ -73,11 +73,11 @@ The columns array editable wraps **only the mapped columns** — static siblings
 
 Authors are a data relationship, not a free-text field. Decide treatment by reuse pattern:
 
-| Situation | Treatment | Rationale |
-|---|---|---|
+| Situation                                         | Treatment                                                                                                       | Rationale                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Few authors (≤ ~10), reused across posts/projects | `src/data/authors.json` keyed by slug; frontmatter `author: <slug>`; `select` input with `values: data.authors` | Centralized bios, avatars, roles; cheap to extend |
-| Many authors with their own pages / URLs | `src/content/authors/` collection; `_enabled_editors: [data]` if they don't render individual pages | Needs CRUD and routing |
-| One-off, never reused | Inline string on the post | Not worth the indirection |
+| Many authors with their own pages / URLs          | `src/content/authors/` collection; `_enabled_editors: [data]` if they don't render individual pages             | Needs CRUD and routing                            |
+| One-off, never reused                             | Inline string on the post                                                                                       | Not worth the indirection                         |
 
 **Anti-pattern:** constructing the author object inline in a page template with a hardcoded bio (`const author = { name: post.data.author, bio: 'Accessibility advocate' }`). If you see this, lift to a data file — the author's bio, avatar, and role belong in one editable place, not scattered across page templates.
 
@@ -87,7 +87,7 @@ A `select` input that references another data file is editable in the sidebar **
 
 1. **Data file** keyed by slug — e.g. `src/data/authors.json` with `{ "<slug>": { name, avatar, bio } }`.
 2. **CC input** — expose the data file under `data_config` (`authors: { path: src/data/authors.json }`), then a `select` input with `values: data.authors` and `value_key: ''` so the frontmatter stores the slug. Without the `data_config` entry, `data.authors` won't resolve.
-3. **Dedicated registered component** that takes the slug and does the lookup *internally* (e.g. `AuthorCard.astro`). Register with `registerAstroComponent('author-card', AuthorCard)`.
+3. **Dedicated registered component** that takes the slug and does the lookup _internally_ (e.g. `AuthorCard.astro`). Register with `registerAstroComponent('author-card', AuthorCard)`.
 4. **Editable wrapper** at the call site: `<editable-component data-component="author-card" data-prop="<slug-field>"><AuthorCard author={slug} /></editable-component>`. The slug-field name must match the frontmatter key (e.g. `data-prop="author"`).
 
 When the editor changes the select, CC re-renders the registered component with the new slug, the lookup re-runs, and the displayed card updates live.

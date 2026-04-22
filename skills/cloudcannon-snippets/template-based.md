@@ -34,6 +34,7 @@ Built-in templates for Astro and generic MDX sites. No `_snippets_imports` requi
 Matches: `<ComponentName arg1="val1" arg2="val2" />`
 
 Required definitions:
+
 - `component_name` (string) — the component tag name as it appears in content
 - `named_args` (array of snippet models) — the component's attributes
 
@@ -42,6 +43,7 @@ Required definitions:
 Matches: `<ComponentName arg1="val1">inner content</ComponentName>`
 
 Required definitions:
+
 - `component_name` (string)
 - `named_args` (array of snippet models)
 - `content_key` (string) — the editor key for the content between the tags
@@ -52,16 +54,16 @@ Required definitions:
 
 The model config for each argument/attribute. Used in template `named_args` and raw `key_values.models`.
 
-| Field | Type | Description |
-|---|---|---|
-| `editor_key` | string | Key shown in the CC editor. Also used for `_inputs` targeting. |
-| `source_key` | string | Key in the source text. Defaults to `editor_key`. Only set when they differ. |
-| `type` | string | Data type: `string`, `number`, `boolean`, `array`, `object` |
-| `optional` | boolean | Whether this arg is required. Default `false`. |
-| `default` | any | Default value when creating a new snippet in the editor |
-| `remove_empty` | boolean | Omit from output if empty. Requires `optional: true`. Default `false`. |
-| `allowed_values` | array | Restrict to specific values. Pair with a select input on the `editor_key`. |
-| `implied_boolean` | boolean | Any value aliases to `true`, empty to `false`. Default `false`. |
+| Field             | Type    | Description                                                                  |
+| ----------------- | ------- | ---------------------------------------------------------------------------- |
+| `editor_key`      | string  | Key shown in the CC editor. Also used for `_inputs` targeting.               |
+| `source_key`      | string  | Key in the source text. Defaults to `editor_key`. Only set when they differ. |
+| `type`            | string  | Data type: `string`, `number`, `boolean`, `array`, `object`                  |
+| `optional`        | boolean | Whether this arg is required. Default `false`.                               |
+| `default`         | any     | Default value when creating a new snippet in the editor                      |
+| `remove_empty`    | boolean | Omit from output if empty. Requires `optional: true`. Default `false`.       |
+| `allowed_values`  | array   | Restrict to specific values. Pair with a select input on the `editor_key`.   |
+| `implied_boolean` | boolean | Any value aliases to `true`, empty to `false`. Default `false`.              |
 
 Template `named_args` use array syntax:
 
@@ -112,6 +114,7 @@ _snippets:
 ```
 
 What happens:
+
 1. CC's Content Editor sees `<Notice type="warning">...</Notice>` in the MDX
 2. The built-in `mdx_paired_component` template matches it against the `notice` snippet definition
 3. The editor displays it as a "Notice" block (with the info icon from `preview`)

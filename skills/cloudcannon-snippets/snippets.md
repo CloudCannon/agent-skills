@@ -13,12 +13,12 @@ Agents must handle both layers during a migration, but keep them conceptually se
 
 ## Sub-docs
 
-| Doc | When to read |
-|---|---|
+| Doc                                          | When to read                                                                                                                  |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | [Template-based snippets](template-based.md) | Component syntax matches a built-in template (most common). Covers MDX templates, snippet model reference, example lifecycle. |
-| [Raw snippets](raw.md) | Component needs custom syntax (e.g. `client:load`). Covers parser types, snippet format reference, custom templates. |
-| [Built-in templates](built-in-templates.md) | Built-in MDX templates vs MDX default import bundle; patterns, definitions, `mdx_format`, parser internals. |
-| [Gotchas](gotchas.md) | Debugging or reviewing. Common pitfalls and workarounds. |
+| [Raw snippets](raw.md)                       | Component needs custom syntax (e.g. `client:load`). Covers parser types, snippet format reference, custom templates.          |
+| [Built-in templates](built-in-templates.md)  | Built-in MDX templates vs MDX default import bundle; patterns, definitions, `mdx_format`, parser internals.                   |
+| [Gotchas](gotchas.md)                        | Debugging or reviewing. Common pitfalls and workarounds.                                                                      |
 
 ---
 
@@ -26,11 +26,11 @@ Agents must handle both layers during a migration, but keep them conceptually se
 
 Root-level config keys that relate to snippets:
 
-| Key | Purpose |
-|---|---|
-| `_snippets` | Define individual snippet configurations (the main key agents write) |
-| `_snippets_templates` | Define custom reusable snippet templates (when built-in ones don't cover your syntax) |
-| `_snippets_definitions` | Define reusable values shared across snippets via `{ ref: "key" }` syntax |
+| Key                     | Purpose                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `_snippets`             | Define individual snippet configurations (the main key agents write)                  |
+| `_snippets_templates`   | Define custom reusable snippet templates (when built-in ones don't cover your syntax) |
+| `_snippets_definitions` | Define reusable values shared across snippets via `{ ref: "key" }` syntax             |
 
 Most migrations only need `_snippets`.
 
@@ -53,21 +53,21 @@ For **Astro**, [astro.md](astro.md) connects this choice to the SSG layer: when 
 
 Every entry under `_snippets` supports these keys (shared by both approaches):
 
-| Key | Type | Description |
-|---|---|---|
-| `template` | string | Template to inherit (mutually exclusive with `snippet`) |
-| `snippet` | string | Raw matching pattern with `[[placeholder]]` markers (mutually exclusive with `template`) |
-| `definitions` | object | Values for template variables (used with `template`) |
-| `params` | object | Parser configs for each placeholder (used with `snippet`) |
-| `inline` | boolean | Can this appear mid-sentence? Default `false` (block-level) |
-| `preview` | object | Card appearance in the editor |
-| `picker_preview` | object | Appearance in the snippet picker modal — same options as `preview`. `key:` lookups are supported but often won't resolve in picker contexts, so literal values are typical. |
-| `view` | string | Rendering mode: `card` (default), `inline`, `gallery` |
-| `_inputs` | object | Input configurations scoped to this snippet's fields |
-| `_structures` | object | Structure definitions for array/object fields in this snippet |
-| `_select_data` | object | Fixed dropdown options scoped to this snippet |
-| `strict_whitespace` | boolean | Match whitespace exactly? Default `false` (normalized) |
-| `alternate_formats` | array | Other syntaxes that should also match this snippet |
+| Key                 | Type    | Description                                                                                                                                                                 |
+| ------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `template`          | string  | Template to inherit (mutually exclusive with `snippet`)                                                                                                                     |
+| `snippet`           | string  | Raw matching pattern with `[[placeholder]]` markers (mutually exclusive with `template`)                                                                                    |
+| `definitions`       | object  | Values for template variables (used with `template`)                                                                                                                        |
+| `params`            | object  | Parser configs for each placeholder (used with `snippet`)                                                                                                                   |
+| `inline`            | boolean | Can this appear mid-sentence? Default `false` (block-level)                                                                                                                 |
+| `preview`           | object  | Card appearance in the editor                                                                                                                                               |
+| `picker_preview`    | object  | Appearance in the snippet picker modal — same options as `preview`. `key:` lookups are supported but often won't resolve in picker contexts, so literal values are typical. |
+| `view`              | string  | Rendering mode: `card` (default), `inline`, `gallery`                                                                                                                       |
+| `_inputs`           | object  | Input configurations scoped to this snippet's fields                                                                                                                        |
+| `_structures`       | object  | Structure definitions for array/object fields in this snippet                                                                                                               |
+| `_select_data`      | object  | Fixed dropdown options scoped to this snippet                                                                                                                               |
+| `strict_whitespace` | boolean | Match whitespace exactly? Default `false` (normalized)                                                                                                                      |
+| `alternate_formats` | array   | Other syntaxes that should also match this snippet                                                                                                                          |
 
 ---
 
@@ -134,10 +134,8 @@ Source pattern in markdown:
 
 ```html
 <figure>
-<img src="https://example.com/photo.jpg" alt="Description" />
-<figcaption>
-Photo by <a href="https://example.com">Author</a>
-</figcaption>
+  <img src="https://example.com/photo.jpg" alt="Description" />
+  <figcaption>Photo by <a href="https://example.com">Author</a></figcaption>
 </figure>
 ```
 
@@ -267,4 +265,5 @@ Apply this pattern to every snippet that has an image `editor_key` — not just 
 ---
 
 **SSG-specific guidance:**
+
 - Astro: [astro.md](astro.md)

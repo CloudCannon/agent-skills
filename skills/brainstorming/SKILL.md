@@ -33,6 +33,7 @@ If only one approach makes sense, say so and explain why alternatives don't work
 ### 4. Present design
 
 Once you understand what to build, present the design in sections scaled to complexity:
+
 - A few sentences for straightforward sections
 - More detail for sections with genuine tradeoffs
 - **Get approval after each section** so the user can course-correct early
@@ -67,10 +68,10 @@ Once the user approves the design, proceed to implementation. For migrations, th
 
 ## Common mistakes
 
-| Excuse | Reality |
-|--------|---------|
-| "This is too simple to need a design" | Simple tasks are where assumptions cause the most waste. The design can be short. |
-| "I already know what to do" | You know what YOU would do. The user may have different priorities or constraints. |
-| "Asking questions slows things down" | Wrong assumptions slow things down more. One question now saves rework later. |
+| Excuse                                       | Reality                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------- |
+| "This is too simple to need a design"        | Simple tasks are where assumptions cause the most waste. The design can be short.      |
+| "I already know what to do"                  | You know what YOU would do. The user may have different priorities or constraints.     |
+| "Asking questions slows things down"         | Wrong assumptions slow things down more. One question now saves rework later.          |
 | "The user will tell me if something's wrong" | Users often don't know what to flag until they see the wrong result. Validate upfront. |
-| "I'll figure it out as I go" | That's how you end up redoing work. Explore the space first. |
+| "I'll figure it out as I go"                 | That's how you end up redoing work. Explore the space first.                           |
