@@ -3,7 +3,7 @@
 Analyze the site before making any changes. Start by running the audit script to gather data automatically:
 
 ```bash
-bash .ai/skills/migrating-to-cloudcannon/scripts/audit-astro.sh .
+bash skills/migrating-to-cloudcannon/scripts/audit-astro.sh .
 ```
 
 This runs CloudCannon CLI detection and collects project metadata. Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `migration/audit.md` at the project root.
@@ -68,22 +68,22 @@ Also flag **hardcoded text in page templates**, but classify it through the cens
 
 Use this decision table for every `.astro` page that isn't already in a collection. **Page builder is the default for unique-layout pages** -- source-editable is the exception, reserved for long-form prose.
 
-| Page characteristics | Pattern | Why |
-| --- | --- | --- |
-| Many entries, identical shape (blog posts, team profiles, products, articles) | **Fixed-schema collection** | Consistency matters; editors fill fields, not layout |
-| Multiple "sibling" pages that share most structure (services, locations, specialties) | **Fixed-schema collection** | Shared shape benefits all entries; one template change updates all |
-| Unique layout per page, but multiple such pages exist (homepage, about, our-team, contact, landing pages, FAQ, marketing pages) | **Page builder `pages` collection** ← DEFAULT | Editors compose from blocks. New pages addable from CMS. Multiple schemas in the same collection are fine. |
-| Long-form prose with minimal structure (legal, policy docs, terms) | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal |
-| Truly one-shot, never edited by content team (404, system pages) | **Hardcoded `.astro`** | No editor value |
+| Page characteristics                                                                                                            | Pattern                                                                                                                                                                               | Why                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Many entries, identical shape (blog posts, team profiles, products, articles)                                                   | **Fixed-schema collection**                                                                                                                                                           | Consistency matters; editors fill fields, not layout                                                       |
+| Multiple "sibling" pages that share most structure (services, locations, specialties)                                           | **Fixed-schema collection**                                                                                                                                                           | Shared shape benefits all entries; one template change updates all                                         |
+| Unique layout per page, but multiple such pages exist (homepage, about, our-team, contact, landing pages, FAQ, marketing pages) | **Page builder `pages` collection** ← DEFAULT                                                                                                                                         | Editors compose from blocks. New pages addable from CMS. Multiple schemas in the same collection are fine. |
+| Long-form prose with minimal structure (legal, policy docs, terms)                                                              | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal                                                                  |
+| Truly one-shot, never edited by content team (404, system pages)                                                                | **Hardcoded `.astro`**                                                                                                                                                                | No editor value                                                                                            |
 
 Then produce this **mandatory census table** in `migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
 
-| Page file | Distinct content sections | Layout repeated on other pages? | Editor will add similar pages? | Recommended pattern |
-| --- | --- | --- | --- | --- |
-| `src/pages/index.astro` | hero, press, nav-cards, cta | No | Maybe | Page builder |
-| `src/pages/about.astro` | hero, story, team, cta | No | Maybe | Page builder |
-| `src/pages/privacy-policy.astro` | title, long markdown body | Yes (terms, etc.) | No | Fixed-schema `legal` collection |
-| ... | ... | ... | ... | ... |
+| Page file                        | Distinct content sections   | Layout repeated on other pages? | Editor will add similar pages? | Recommended pattern             |
+| -------------------------------- | --------------------------- | ------------------------------- | ------------------------------ | ------------------------------- |
+| `src/pages/index.astro`          | hero, press, nav-cards, cta | No                              | Maybe                          | Page builder                    |
+| `src/pages/about.astro`          | hero, story, team, cta      | No                              | Maybe                          | Page builder                    |
+| `src/pages/privacy-policy.astro` | title, long markdown body   | Yes (terms, etc.)               | No                             | Fixed-schema `legal` collection |
+| ...                              | ...                         | ...                             | ...                            | ...                             |
 
 > ❌ **Don't classify a unique-layout page as source-editable just because it's "the only one of its kind."** The right question is: does it have 2+ distinct content sections? If yes, page builder. Source-editable is for long-form prose where the layout _is_ the body.
 >
@@ -118,4 +118,3 @@ Note anything that needs special handling in later phases:
 - Pre-build code generation that must run for the site to build
 - **Inline HTML in markdown content that has no markdown equivalent** -- scan `.md` content files for HTML blocks like `<figure>`, `<video>`, `<details>`, `<iframe>`, etc. For each pattern, ask: can this be expressed in standard markdown? If not, it's a snippet candidate. Document each pattern (tag structure, attributes, which values vary between instances) and note it as input for `_snippets` configuration in Phase 2. This applies to `.md` files only -- MDX component usage is covered separately above. See [snippets.md § Raw snippets for inline HTML](../../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files).
 - **Astro version impacts on migration**: Astro 4 (legacy `src/content/config.ts`) vs Astro 5+ (new `src/content.config.ts` with `glob()` loader) affects multiple migration decisions: `slug` is a reserved schema field in Astro 4 (use `permalink` instead), the `editable-regions` Astro integration requires Astro 5+, and `entry.id` includes the file extension in legacy collections (`cv.md`) but not in `glob()` loader collections (`cv`). Note: Astro 5 sites can still use legacy `type: "content"` in `src/content/config.ts` — the `entry.id` behavior depends on the loader type, not just the Astro version. Note the Astro version and loader type prominently in the audit.
-

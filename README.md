@@ -10,8 +10,8 @@ Agent skills that help AI coding agents migrate existing SSG sites to [CloudCann
 
 ## Supported SSGs
 
-| SSG | Status |
-|-----|--------|
+| SSG   | Status    |
+| ----- | --------- |
 | Astro | Supported |
 
 More SSGs are planned. Each SSG has its own directory within the relevant skills containing SSG-specific guidance.
@@ -20,19 +20,19 @@ More SSGs are planned. Each SSG has its own directory within the relevant skills
 
 The tooling is split across composable skills that can be used together or independently.
 
-| Skill | Purpose | When to use |
-|-------|---------|-------------|
-| `migrating-to-cloudcannon` | Full migration orchestrator | Migrating a site to CloudCannon end-to-end (audit, configure, content, visual editing, build) |
-| `cloudcannon-configuration` | CloudCannon config setup | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the CloudCannon CLI |
-| `cloudcannon-snippets` | Snippet configuration | Configuring MDX components or inline HTML for CloudCannon's Content Editor |
-| `cloudcannon-visual-editing` | Visual Editor support | Adding editable regions so page content can be edited inline in CloudCannon's Visual Editor |
-| `brainstorming` | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation |
+| Skill                        | Purpose                       | When to use                                                                                   |
+| ---------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `migrating-to-cloudcannon`   | Full migration orchestrator   | Migrating a site to CloudCannon end-to-end (audit, configure, content, visual editing, build) |
+| `cloudcannon-configuration`  | CloudCannon config setup      | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the CloudCannon CLI  |
+| `cloudcannon-snippets`       | Snippet configuration         | Configuring MDX components or inline HTML for CloudCannon's Content Editor                    |
+| `cloudcannon-visual-editing` | Visual Editor support         | Adding editable regions so page content can be edited inline in CloudCannon's Visual Editor   |
+| `brainstorming`              | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation                           |
 
 For a full migration, start with `migrating-to-cloudcannon` -- it orchestrates the other skills at the right time. The standalone skills (`cloudcannon-configuration`, `cloudcannon-snippets`, `cloudcannon-visual-editing`) are useful when you only need one piece, e.g. "add visual editing to my existing CloudCannon site".
 
 ## Getting started
 
-1. Copy the `.ai/skills/` directory from this repo into your project's agent-skills directory (e.g. `.ai/skills/`, `.claude/skills/`, or `.cursor/skills/` depending on your tool)
+1. Run `npx skills add CloudCannon/agent-skills` in the root of your project
 2. Open your project in your AI coding agent
 3. Ask the agent to migrate your site to CloudCannon
 
@@ -57,13 +57,12 @@ Not every site needs all phases. Small sites may skip content restructuring. Vis
 ### Repo structure
 
 ```
-.ai/
-  skills/
-    migrating-to-cloudcannon/         # Migration orchestrator
-    cloudcannon-configuration/        # Config skill (standalone)
-    cloudcannon-snippets/             # Snippets skill (standalone)
-    cloudcannon-visual-editing/       # Visual editing skill (standalone)
-    brainstorming/                    # Design exploration skill
+skills/
+  migrating-to-cloudcannon/         # Migration orchestrator
+  cloudcannon-configuration/        # Config skill (standalone)
+  cloudcannon-snippets/             # Snippets skill (standalone)
+  cloudcannon-visual-editing/       # Visual editing skill (standalone)
+  brainstorming/                    # Design exploration skill
 ```
 
 ### Key conventions
@@ -71,4 +70,4 @@ Not every site needs all phases. Small sites may skip content restructuring. Vis
 - **Living documents** -- Skills are actively maintained. When an agent uncovers a new pattern or edge case during a migration, update the relevant skill as part of the same task rather than leaving it as a follow-up.
 - **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
 
-For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](.ai/skills/migrating-to-cloudcannon/GUIDE.md).
+For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](skills/migrating-to-cloudcannon/GUIDE.md).

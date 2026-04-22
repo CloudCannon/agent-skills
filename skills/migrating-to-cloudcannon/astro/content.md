@@ -44,7 +44,7 @@ Some Astro templates use a `-index.md` file to hold listing/index page metadata 
 
 1. **Rename the files.** Run the rename script to handle this automatically:
    ```bash
-   bash .ai/skills/migrating-to-cloudcannon/scripts/rename-dash-index.sh .
+   bash skills/migrating-to-cloudcannon/scripts/rename-dash-index.sh .
    ```
 2. **Update `getSinglePage()`** to filter on `id === "index"` instead of `id.startsWith("-")`.
 3. **Update `getListPage()` callers** from `"-index"` to `"index"`.
@@ -133,6 +133,7 @@ When an Astro component receives rich content via a `<slot />` (e.g. `<Content2>
 **One field per visual slot:** When a component shows `propA || propB` (e.g. `subtitle || description`), two fields feed the same visual slot. In the CMS structure, keep only one field for that slot. Pick one name and use it everywhere — the structure, the Zod schema, the content files, and the component.
 
 Decide which to keep:
+
 - If the two fields have no semantic distinction (description is just an alias for subtitle), remove one. Use the name that best describes what the editor sees.
 - If the fallback serves a genuinely different purpose (e.g. `description` is also used for page meta/SEO), keep both but rename to make the distinction obvious: `subtitle` for the visual slot, `meta_description` for SEO. Add a `comment` on the SEO input explaining its purpose.
 
@@ -162,6 +163,7 @@ const imageSrc = typeof image === "string"
 ```
 
 Key points:
+
 - `{ eager: true }` resolves at build time (no async)
 - The `typeof` check handles components whose prop type allows both `ImageMetadata` and `string` (common in templates with dual static/optimized support)
 - The `?? image` fallback handles external URLs or `public/` paths gracefully
@@ -245,4 +247,3 @@ Data collections should have `disable_url: true` in the CC collections config si
 - [ ] No block-level HTML (e.g. `<br />`, `<p>`, `<ul>`) in frontmatter strings unless the corresponding input is configured with block-level editing (e.g. a rich-text or markdown input with appropriate `options`)
 - [ ] Every array field in every structure-value file has an explicit `_inputs` entry linking it to its `_structures` definition
 - [ ] **Data file completeness**: For each JSON data file, compare the consuming component template against the data file fields. Every visible/configurable value (icons, link targets, label text, image paths) is in the data file, not hardcoded in the template
-
