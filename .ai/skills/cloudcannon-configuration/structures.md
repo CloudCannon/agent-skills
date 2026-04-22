@@ -87,7 +87,17 @@ _inputs:
       structures: _structures.content_blocks
 ```
 
-Link the array to the structure explicitly via `_inputs.content_blocks.options.structures` — don't rely on the naming-convention heuristic.
+Link the array to the structure explicitly via `_inputs.content_blocks.options.structures` — don't rely on the naming-convention heuristic. **Use the full `_structures.<name>` path, not the bare name:**
+
+```yaml
+# ❌ Wrong — bare name, relies on naming-convention fallback
+options:
+  structures: content_blocks
+
+# ✓ Right — full path
+options:
+  structures: _structures.content_blocks
+```
 
 > **MANDATORY — Every array and object input MUST have explicit structure linkage.** Do not rely on CloudCannon's naming-convention heuristic — it is unreliable. Every array field (`items`, `actions`, `stats`, `prices`, `testimonials`, `images`, `inputs`, etc.) MUST have an `_inputs` entry with `type: array` and `options.structures` pointing to the correct structure. This applies in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Without explicit linkage, editors cannot add items to arrays — the "Add" button won't appear or won't offer the correct structure. This is a blocking UX issue that must be caught before handoff.
 

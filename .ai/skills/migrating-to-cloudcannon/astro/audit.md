@@ -62,25 +62,34 @@ Also flag **image handling patterns** for each component: does it use `<Image>` 
 
 Also flag **presentational wrapper components** (e.g. a `<Link>` that just renders a styled `<a>`) that appear inside editable content. These can't survive source editing and need either inlining as plain HTML + CSS or a snippet config. See [visual-editing-reference.md § Astro components in source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#astro-components-in-source-editables).
 
-Also flag **hardcoded text in page templates** as source editable candidates. Common locations: homepage hero sections, CTA copy, section headings on listing pages. These don't need a content collection or data file -- they use `EditableSource` to edit the raw `.astro` file directly. See [visual-editing-reference.md § Source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#source-editables-for-hardcoded-content).
+Also flag **hardcoded text in page templates**, but classify it through the census table below -- not by defaulting to source-editable. Hero sections, CTA copy, and section headings on listing pages almost always belong in a page-builder `pages` collection entry, not pinned to the `.astro` source. Source-editable is reserved for long-form prose where the layout _is_ the body. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#when-to-use-source-editables).
 
 ### Classifying static pages: source editables vs. content collection
 
-Source editables are the right choice for a few scattered text strings in a fixed layout. But many templates have static `.astro` pages with **structured, repeated data** -- arrays of cards, timeline entries, feature grids, hero sections with multiple fields. These need a different approach.
+Use this decision table for every `.astro` page that isn't already in a collection. **Page builder is the default for unique-layout pages** -- source-editable is the exception, reserved for long-form prose.
 
-For each static `.astro` page, count the distinct data-driven sections. Pages with **3+ sections of repeated or structured components** (card lists, timelines, stats grids, hero with title/subtitle/buttons) are candidates for extracting into a `src/content/pages/` content collection rather than using source editables. Content collection entries give editors full CRUD control over arrays and structured fields via the data editor -- source editables can't do this.
+| Page characteristics | Pattern | Why |
+| --- | --- | --- |
+| Many entries, identical shape (blog posts, team profiles, products, articles) | **Fixed-schema collection** | Consistency matters; editors fill fields, not layout |
+| Multiple "sibling" pages that share most structure (services, locations, specialties) | **Fixed-schema collection** | Shared shape benefits all entries; one template change updates all |
+| Unique layout per page, but multiple such pages exist (homepage, about, our-team, contact, landing pages, FAQ, marketing pages) | **Page builder `pages` collection** ← DEFAULT | Editors compose from blocks. New pages addable from CMS. Multiple schemas in the same collection are fine. |
+| Long-form prose with minimal structure (legal, policy docs, terms) | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal |
+| Truly one-shot, never edited by content team (404, system pages) | **Hardcoded `.astro`** | No editor value |
 
-Also note which components appear on **multiple pages** (e.g. the same card component used on homepage, projects, and services). These indicate a **reusable page type** that could be offered as a creatable schema in the CMS, enabling editors to create new pages of that type without developer help.
+Then produce this **mandatory census table** in `migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
 
-For page-oriented templates (portfolios, docs, marketing sites), assess whether the base layout is generic enough that a simple **title + markdown body page** would render correctly through it. If so, note this as a candidate for a generic creatable page schema.
+| Page file | Distinct content sections | Layout repeated on other pages? | Editor will add similar pages? | Recommended pattern |
+| --- | --- | --- | --- | --- |
+| `src/pages/index.astro` | hero, press, nav-cards, cta | No | Maybe | Page builder |
+| `src/pages/about.astro` | hero, story, team, cta | No | Maybe | Page builder |
+| `src/pages/privacy-policy.astro` | title, long markdown body | Yes (terms, etc.) | No | Fixed-schema `legal` collection |
+| ... | ... | ... | ... | ... |
 
-Produce a clear classification for each static page:
+> ❌ **Don't classify a unique-layout page as source-editable just because it's "the only one of its kind."** The right question is: does it have 2+ distinct content sections? If yes, page builder. Source-editable is for long-form prose where the layout _is_ the body.
+>
+> ❌ **Don't propose a CloudCannon "collection of one"** (a `homepage` collection with one entry, an `about` collection with one entry, etc.). Use one `pages` collection that holds homepage, about, contact, landing pages, etc. -- possibly with multiple schemas. The only exception is when the site genuinely has a single landmark page plus one repeating section (e.g. homepage + blog).
 
-- **Source editables** -- page has a few pieces of hardcoded text in a fixed layout, no arrays or repeated components
-- **Content collection entry** -- page has structured/repeated data that editors need CRUD control over
-- **Reusable page type** -- the page's rendering pattern (e.g. card listing, generic body page) could support creating new pages from the CMS
-
-This classification feeds directly into the configuration phase. See [page-building.md § Creating a pages collection](page-building.md#creating-a-pages-collection-from-hardcoded-pages).
+This classification feeds directly into the configuration phase. For census rows that say "Page builder", go straight to [page-building.md § When to reach for page builder](page-building.md#when-to-reach-for-page-builder).
 
 ## 5. Build pipeline
 

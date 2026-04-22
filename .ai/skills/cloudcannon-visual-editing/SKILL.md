@@ -76,4 +76,5 @@ The SSG-specific workflow docs contain detailed completeness checklists. These a
 | "The footer/nav doesn't need editables" | Shared partials need data-file-backed editables. Every visible section needs a treatment. |
 | "Array items just need add/remove controls" | Without nested text/image editables on items, editors can't edit field values inline. |
 | "I'll register components later" | Unregistered components can't re-render. Wire them as you go. |
-| "Source editables aren't needed — this text rarely changes" | If it's visible, it should be editable. Hardcoded text needs `data-editable="source"`. |
+| "Source editables aren't needed — this text rarely changes" | If it's visible, it should be editable -- but the *mechanism* depends on the page. Page-builder `pages` collection entry for unique-layout pages with 2+ sections; data file for shared UI; `data-editable="source"` only for long-form prose. |
+| "I'll source-editable any hardcoded string on a page" | Source-editable is for long-form prose only. If the page has 2+ structured sections, it belongs in a page-builder `pages` collection. See [migrating-to-cloudcannon/astro/page-building.md § When to reach for page builder](../migrating-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder). |

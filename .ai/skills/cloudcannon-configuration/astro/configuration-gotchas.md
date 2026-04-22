@@ -154,6 +154,22 @@ When content uses a folder-per-post structure (e.g. `blog/01-getting-started/ind
 
 **Fallback (when flattening isn't practical):** Add a `slug` field to each content file's frontmatter matching the folder name, then use `{slug}` (data placeholder) in the CC URL pattern. For legacy Astro collections, `slug` in frontmatter overrides the auto-generated slug without needing to be in the Zod schema. Include `slug` in the CC schema template so new posts get the field.
 
+## `_editables` key-to-schema mapping
+
+`_editables` has five keys, each backed by a different schema. The available toolbar options depend on which key — mixing them is the most common `_editables` mistake.
+
+| Editable key | Schema | Inline formatting (bold/italic/link/...) | Block formatting (lists, blockquote) | `format` dropdown | Image options |
+|---|---|---|---|---|---|
+| `content` | `BlockEditable` | ✅ | ✅ | ✅ | ✅ |
+| `block` | `BlockEditable` | ✅ | ✅ | ✅ | ✅ |
+| `text` | `TextEditable` | ✅ | ❌ | ❌ | ❌ |
+| `image` | `ImageEditable` | n/a | n/a | n/a | image options only |
+| `link` | `LinkEditable` | n/a | n/a | n/a | n/a |
+
+**`_editables.text` is inline-only.** It does NOT have `bulletedlist`, `numberedlist`, `blockquote`, `format`, `table`, or any block-level option — only inline formatting (`bold`, `italic`, `link`, `strike`, `subscript`, `superscript`, `underline`, `undo`, `redo`, `removeformat`, `copyformatting`, `remove_custom_markup`, `allow_custom_markup`). If you need block-level controls, use `_editables.content` or `_editables.block`. Source: [`src/editables.ts`](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/src/editables.ts).
+
+**Headings are a `format` string, not boolean keys.** `heading2: true` / `heading3: true` are not in the schema. Use `format: "p h1 h2 h3 h4 h5 h6"` (space-separated) in `ToolbarOptions`.
+
 ## Set `markdown.options.table` when content has Markdown tables
 
 CloudCannon defaults `markdown.options.table` to `false`, meaning the rich text editor outputs `<table>` HTML. If the site's content files already use Markdown table syntax (`| col | col |`), set this to `true` so tables survive round-tripping through the editor. Grep content directories for the pipe-delimited pattern:
@@ -238,7 +254,23 @@ If the data file should appear in the sidebar, it also needs a `collections_conf
 
 ## Always link arrays to structures explicitly
 
-Don't rely on CC's naming-convention heuristic (where an array key `foo` auto-matches `_structures.foo`). Use `type: array` with `options.structures` to make the link visible and intentional.
+Don't rely on CC's naming-convention heuristic (where an array key `foo` auto-matches `_structures.foo`). Use `type: array` with `options.structures` to make the link visible and intentional. **Use the full `_structures.<name>` path, not the bare name:**
+
+```yaml
+# ❌ Wrong — bare name, relies on naming-convention fallback
+_inputs:
+  content_blocks:
+    type: array
+    options:
+      structures: content_blocks
+
+# ✓ Right — full path
+_inputs:
+  content_blocks:
+    type: array
+    options:
+      structures: _structures.content_blocks
+```
 
 ## Add preview icon fallbacks on structures
 
@@ -351,11 +383,11 @@ Use `disable_add: true` to hide the Add button. Do not use `add_options: []` for
 
 ### Source editables vs. refactoring to `.md`
 
-**Source editables:** Add `data-editable="source"` attributes directly. Low effort, no structural changes needed. See [visual-editing-reference.md § Source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#source-editables-for-hardcoded-content).
+**Source editables:** Add `data-editable="source"` attributes directly. Low effort, no structural changes needed. **Reserved for long-form prose only** -- not the default for any one-off hardcoded string. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#when-to-use-source-editables).
 
-**Refactor to `.md`:** When a page has a handful of distinct sections that editors should control, extract the content into a `.md` file with structured frontmatter.
+**Refactor to `.md`:** The default for unique-layout pages with 2+ content sections. Extract the content into a `.md` entry in the `pages` collection with structured frontmatter and a page-builder schema.
 
-**Decision rule:** If the page has a few pieces of hardcoded text in a fixed layout, use source editables. If the page has structured data that editors need CRUD control over, the content collection approach is usually better -- see [page-building.md](page-building.md).
+**Decision rule:** Run the page through the [audit.md classification census](../../migrating-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection). Page builder is the default; source-editable is the exception for long-form prose. See [page-building.md § When to reach for page builder](../../migrating-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder).
 
 ## `z.union` silently matches the wrong schema when fields have defaults
 

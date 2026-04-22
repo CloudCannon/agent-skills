@@ -238,6 +238,55 @@ Pass `editable={false}` when rendering cross-collection content that isn't backe
 
 **Rebuild comments on sidebar-only fields (Astro 4).** On Astro 4 without component re-rendering, fields that appear on the page but are only editable via the sidebar (e.g. `badge`, `tags`, `variant`) won't live-update. Add `comment` to these inputs in the CC config explaining what the field does and that changes require a save and rebuild. On Astro 5+ with component registration, these fields update live and the comments aren't needed.
 
+### Arrays inside data files
+
+When the array lives inside a shared data file (e.g. `src/data/footer.json` with `columns[{heading, links[]}]`), the path on the **parent** array editable is the only place the `@data[key]` prefix appears. Child editables inside each `data-editable="array-item"` use **relative paths** — same rule as frontmatter-backed arrays. The library uses the array-item context to resolve, so an indexed path (`@data[footer].columns[0].heading`) on a child editable is unrecognised and resolves to undefined.
+
+```astro
+<!-- DO: data-file array, relative paths inside items -->
+<div class="contents" data-editable="array" data-prop="@data[footer].columns">
+  {columns.map((column) => (
+    <div data-editable="array-item">
+      <h3 data-editable="text" data-prop="heading">{column.heading}</h3>
+      <ul data-editable="array" data-prop="links">
+        {column.links.map((link) => (
+          <li data-editable="array-item">
+            <editable-text data-prop="label">{link.label}</editable-text>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</div>
+
+<!-- DON'T: full indexed paths on child editables resolve to undefined -->
+<editable-text data-prop={`@data[footer].columns[${i}].heading`}>
+  {column.heading}
+</editable-text>
+```
+
+Nested data-file arrays follow the same rule: the inner `data-editable="array" data-prop="links"` uses the relative key (`links`), and items inside it use relative keys (`label`, `href`). The `@data[...]` prefix never repeats once you're inside an array item — relative paths chain naturally through nested levels.
+
+### Don't mix array items with non-array siblings
+
+A `data-editable="array"` wrapper treats every direct child as an `array-item` — including children that aren't part of the array. Putting a static element (logo column, summary block, "see all" link) as a sibling of `array.map(...)` output inside the same array wrapper breaks the array context: the static child has no matching frontmatter index, and the editable runtime errors trying to resolve it.
+
+```astro
+<!-- WRONG: static logo column inside the array container -->
+<div class="grid grid-cols-4" data-editable="array" data-prop="@data[footer].columns">
+  {columns.map((column) => (<div data-editable="array-item">...</div>))}
+  <div>{/* static logo + tagline — not in columns[] */}</div>
+</div>
+
+<!-- RIGHT: split the layout container from the array container -->
+<div class="grid grid-cols-4">
+  <div class="contents" data-editable="array" data-prop="@data[footer].columns">
+    {columns.map((column) => (<div data-editable="array-item">...</div>))}
+  </div>
+  <div>{/* static logo + tagline */}</div>
+</div>
+```
+
 ## Page builder blocks
 
 For the structural setup (array wrapper, BlockRenderer, catch-all route, CC config), see [page-building.md](page-building.md). This section covers the **visual editing layers** that go on top of that structure.
@@ -542,6 +591,8 @@ Blog post detail pages typically have a hero section (title, date, author, image
 </div>
 ```
 
+**When the author is a select referencing a separate data file** (the common pattern — see [cc-friendly-conventions.md § Author strategy](../../migrating-to-cloudcannon/astro/cc-friendly-conventions.md#author-strategy)) and the rendered card shows the resolved name/avatar/bio, a plain `<editable-text data-prop="author">` only updates the visible slug — it can't update the avatar or bio because those come from a different file. Use the registered-component pattern in [Cross-collection select inputs](#cross-collection-select-inputs) instead.
+
 **Shared PageHeader components.** When the blog detail page uses a shared `PageHeader` component (common in starter themes), the editable attributes still need to reach the rendered elements. Don't mark the hero as "sidebar-only" just because the component is shared. Instead, add optional prop-path parameters to the PageHeader (e.g. `titleProp`, `subtitleProp`, `imageProp`) that conditionally render `data-editable` attributes when provided. Callers pass the frontmatter field name (e.g. `titleProp="title"`); pages without that field in their data scope omit the prop. This keeps PageHeader reusable while enabling inline editing where the data supports it.
 
 **Dates must NOT be text editables.** `<editable-text data-prop="pubDate">` sets a raw string, which conflicts with `z.coerce.date()` schemas. Use the sidebar datetime picker instead, and add a `comment` on the input so editors know changes appear after save:
@@ -559,17 +610,20 @@ _inputs:
 
 ## Source editables for hardcoded content
 
-Not all editable content lives in frontmatter or data files. Many templates have hardcoded text in `.astro` page templates -- hero headings, taglines, descriptions, CTA copy. These should still be visually editable using `EditableSource`.
-
 Source editables work by reading and writing the raw source file (e.g. `src/pages/index.astro`) directly. They don't need a content collection or data file -- just a `data-path` pointing to the source file and a `data-key` to identify the region within it.
+
+**Source-editable is for long-form prose, not for any hardcoded string.** Unique-layout pages with 2+ structured sections belong in a page-builder `pages` collection, not pinned to the `.astro` source. See [migrating-to-cloudcannon/astro/page-building.md § When to reach for page builder](../../migrating-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder).
 
 ### When to use source editables
 
-- Hardcoded text in `.astro` page templates (homepage hero, taglines, section headings)
-- Static content that isn't backed by a content collection or data file
-- Any visible text on a page that an editor should be able to change
+| Use source-editable when... | Use page builder + nested editables instead when... |
+| --- | --- |
+| The page is mostly long-form prose and you need 1-2 inline string edits (e.g. a hero headline above markdown) | The page has 2+ structured sections |
+| There are 1-2 pages of this type and editors won't add more | Editors might want to add similar pages |
+| The site is genuinely simple -- homepage + a blog, no marketing pages, no landing pages | The site has multiple unique-layout marketing/info pages |
+| Refactoring to a content collection would change the rendered HTML in ways the user explicitly told you not to | Refactor freely; output should match |
 
-**Do not dismiss content as "developer-only" just because it's hardcoded.** If an editor can see it on the page, they should be able to edit it. Source editables make this possible without refactoring to a data file or content collection.
+**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification -- but the *mechanism* defaults to a content collection or page-builder block, not source-editable. Source-editable is the exception, reserved for long-form prose where the layout _is_ the body.
 
 ### Including `.astro` pages in collections
 
@@ -612,13 +666,14 @@ Pages with source editables should be included in the pages collection so editor
 
 ### Identifying source editable candidates during audit
 
-During Phase 1, flag hardcoded text in page templates as source editable candidates. Common locations:
+During Phase 1, run hardcoded text through the [audit.md classification census](../../migrating-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) before reaching for source-editable. Most "hardcoded text" candidates -- homepage heroes, CTA sections, section headings -- belong in a page-builder `pages` collection entry, not pinned to the `.astro` source.
 
-- Homepage hero sections (title, subtitle, description)
-- CTA sections with static copy
-- Section headings on listing pages
-- Footer taglines or copyright text
-- Any page that has visible text not sourced from frontmatter or a data file
+Source-editable is the right tool only when:
+
+- The page is mostly long-form prose with 1-2 inline strings to edit (e.g. a hero headline above a markdown body), AND
+- There are 1-2 pages of this type with no plans to add more
+
+Footer taglines and other shared-UI text are not source-editable candidates -- they belong in a data file. See [migrating-to-cloudcannon/astro/cc-friendly-conventions.md § Shared-UI treatment table](../../migrating-to-cloudcannon/astro/cc-friendly-conventions.md#shared-ui-treatment-table).
 
 ## Astro components in source editables
 
@@ -808,6 +863,78 @@ Use `<editable-component data-component="..." data-prop="@data[key]">` to make a
   <CallToAction />
 </editable-component>
 ```
+
+## Cross-collection select inputs
+
+Many sites use a `select` input to reference another data file — `author: <slug>` on posts/projects pointing into `src/data/authors.json`, `category: <slug>` pointing into `src/data/categories.json`, `team_member: <slug>` into a team file. The frontmatter stores the slug; the rendered card shows fields from the referenced file (name, avatar, bio).
+
+The select input is editable in the sidebar by default — but **the rendered card on the page won't update on change** unless the wiring is right. The pattern that works:
+
+1. **Data file** keyed by slug.
+
+   ```json
+   // src/data/authors.json
+   {
+     "jane-smith": { "name": "Jane Smith", "avatar": "...", "bio": "..." },
+     "john-doe":   { "name": "John Doe",  "avatar": "...", "bio": "..." }
+   }
+   ```
+
+2. **CC config** — expose the data file under `data_config` (without this, `data.authors` won't resolve in the select), then a `select` input with `value_key: ''` so the frontmatter stores the bare slug (not `{key, value}`).
+
+   ```yaml
+   data_config:
+     authors:
+       path: src/data/authors.json
+
+   _inputs:
+     author:
+       type: select
+       options:
+         values: data.authors
+         value_key: ''
+   ```
+
+3. **Dedicated registered component** that takes the slug as a prop and does the lookup *internally*. The lookup must live inside the registered component — not in the page template — because that's the code that re-runs when CC re-renders.
+
+   ```astro
+   ---
+   // The component imports the data file, accepts the slug, looks up the entry,
+   // and renders whatever fields the card displays. Shape your own component to
+   // your data and UI — only the prop+lookup pattern is load-bearing.
+   import authors from '../data/authors.json'
+   const { author } = Astro.props
+   const entry = author ? authors[author] : undefined
+   ---
+   {entry && <!-- render entry.name, entry.avatar, entry.bio, etc. -->}
+   ```
+
+   ```ts
+   // registerComponents.ts
+   registerAstroComponent('author-card', AuthorCard)
+   ```
+
+4. **Editable wrapper** at the call site, with `data-prop` pointing at the slug field:
+
+   ```astro
+   <editable-component data-component="author-card" data-prop="author">
+     <AuthorCard author={post.data.author} />
+   </editable-component>
+   ```
+
+When the editor changes the select, CC re-renders `author-card` with the new slug, AuthorCard's lookup re-runs against `authors.json`, and the displayed name/avatar/bio update live.
+
+**Anti-pattern (silent breakage).** Doing the lookup in the page template and passing the resolved `{ name, image, bio }` object to a static child component:
+
+```astro
+<!-- WRONG: lookup runs at build time; nothing on the page binds to the slug -->
+const author = authors[post.data.author]
+<PageHeader author={author} />
+```
+
+The frontmatter still updates when the editor changes the select, but the displayed object was computed at build time from the *previous* slug. Nothing re-renders. Sidebar feels broken — change occurs but the page doesn't reflect it. Move the lookup into the registered component.
+
+**When the call site is a shared component (e.g. PageHeader).** Mirror the optional-prop pattern from titleProp/subtitleProp/imageProp: accept `authorSlug` and `authorProp`, and only render the `<editable-component>` wrapper when both are passed. Pages that don't have an author omit both props.
 
 ## Conditional editable-image on shared components
 

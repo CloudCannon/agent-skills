@@ -8,20 +8,33 @@ Many templates have **no content-backed pages** -- all page data is hardcoded di
 
 ### Pages collection cheatsheet
 
-| Rule | Value |
-| --- | --- |
-| Homepage filename | `src/content/pages/index.md` — never `home.md` (slug collapses to `/`) |
-| One-off pages (contact, 404) | Schemas defined but excluded from `add_options` |
-| CMS-created pages | Require a catch-all route at `src/pages/[...slug].astro` |
-| Collection URL | `url: "/[slug]/"` — `index` slug resolves to `/` |
-| `getEntry` id | Matches the filename slug — `getEntry('pages', 'index')` for `index.md` |
+| Rule                         | Value                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Homepage filename            | `src/content/pages/index.md` — never `home.md` (slug collapses to `/`)  |
+| One-off pages (contact, 404) | Schemas defined but excluded from `add_options`                         |
+| CMS-created pages            | Require a catch-all route at `src/pages/[...slug].astro`                |
+| Collection URL               | `url: "/[slug]/"` — `index` slug resolves to `/`                        |
+| `getEntry` id                | Matches the filename slug — `getEntry('pages', 'index')` for `index.md` |
 
-### When this applies
+### When to reach for page builder
 
-- Static `.astro` pages with structured data (arrays of cards, timeline entries, hero sections with multiple fields) that editors need CRUD control over
-- Source editables aren't sufficient because editors need to add, remove, or reorder items -- not just edit text in place
-- The template has multiple static pages that should be editable, making a `pages` collection worthwhile
-- **Default toward content-backed pages** unless you have a concrete reason not to. Moving copy and structure into the collection keeps templates thin, gives editors real CRUD, and scales better as the site grows. **Source editables** are fine for small, page-specific hardcoded bits—use them as the exception, not the default pattern.
+> **Page builder is the default for unique-layout pages.** If a site has any of: homepage, about, our-team, contact, FAQ, landing pages, marketing pages, or any other one-off pages with 2+ content sections -- they belong in a single `pages` content collection driven by a page-builder schema. Source editables and hardcoded `.astro` files are the exception, not the alternative. See [audit.md § Classifying static pages](audit.md#classifying-static-pages-source-editables-vs-content-collection) for the classification census.
+
+**Reach for page builder when...**
+
+- [ ] The page has 2 or more distinct content sections (hero, features, testimonials, CTA, etc.)
+- [ ] Sections from this page reappear on other pages (or could)
+- [ ] Editors might want to reorder, add, or remove sections without engineering
+- [ ] The site has more than one unique-layout page (homepage + about + contact ≠ three single-entry collections)
+- [ ] You catch yourself thinking "single-entry collection" -- that's the signal to use a page-builder `pages` collection instead
+
+**Don't fall back to source-editable when...**
+
+- [ ] The page is unique-layout but has structured sections -- that's a page-builder page, not source-editable
+- [ ] You're tempted to add `data-editable="source"` to 5+ separate strings on one page -- that's a sign the page should be a `pages` collection entry instead
+- [ ] The user wants to add new pages of similar shape -- source-editable can't do that as well as page builder can.
+
+> ❌ **Single-entry collection per unique page** (`homepage` collection with one entry, `our-team` collection with one entry). ✅ One `pages` collection containing `index.md`, `our-team.md`, `groups.md`, etc. Use `z.union` in Astro and multiple `schemas:` entries in `cloudcannon.config.yml` when the pages need different fields. See [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas) for the worked multi-schema example.
 
 ### Steps
 
@@ -165,7 +178,7 @@ Add a `pageBuilderSchema` to the union with `content_blocks` as a discriminated 
 
 ```typescript
 const contentBlock = z.discriminatedUnion("_type", [
-  z.object({ _type: z.literal("banner"), title: z.string(), /* ... */ }),
+  z.object({ _type: z.literal("banner"), title: z.string() /* ... */ }),
   z.object({ _type: z.literal("features"), items: z.array(/* ... */) }),
   z.object({ _type: z.literal("rich_text"), content: z.string() }),
   z.object({ _type: z.literal("call_to_action") }),
