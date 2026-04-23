@@ -10,8 +10,8 @@ Agent skills that help AI coding agents migrate existing SSG sites to [CloudCann
 
 ## Supported SSGs
 
-| SSG | Status |
-|-----|--------|
+| SSG   | Status    |
+| ----- | --------- |
 | Astro | Supported |
 
 More SSGs are planned. Each SSG has its own directory within the relevant skills containing SSG-specific guidance.
@@ -20,19 +20,19 @@ More SSGs are planned. Each SSG has its own directory within the relevant skills
 
 The tooling is split across composable skills that can be used together or independently.
 
-| Skill | Purpose | When to use |
-|-------|---------|-------------|
-| `migrating-to-cloudcannon` | Full migration orchestrator | Migrating a site to CloudCannon end-to-end (audit, configure, content, visual editing, build) |
-| `cloudcannon-configuration` | CloudCannon config setup | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the CloudCannon CLI |
-| `cloudcannon-snippets` | Snippet configuration | Configuring MDX components or inline HTML for CloudCannon's Content Editor |
-| `cloudcannon-visual-editing` | Visual Editor support | Adding editable regions so page content can be edited inline in CloudCannon's Visual Editor |
-| `brainstorming` | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation |
+| Skill                        | Purpose                       | When to use                                                                                   |
+| ---------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `migrating-to-cloudcannon`   | Full migration orchestrator   | Migrating a site to CloudCannon end-to-end (audit, configure, content, visual editing, build) |
+| `cloudcannon-configuration`  | CloudCannon config setup      | Setting up `cloudcannon.config.yml`, collections, inputs, structures, or the CloudCannon CLI  |
+| `cloudcannon-snippets`       | Snippet configuration         | Configuring MDX components or inline HTML for CloudCannon's Content Editor                    |
+| `cloudcannon-visual-editing` | Visual Editor support         | Adding editable regions so page content can be edited inline in CloudCannon's Visual Editor   |
+| `brainstorming`              | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation                           |
 
 For a full migration, start with `migrating-to-cloudcannon` -- it orchestrates the other skills at the right time. The standalone skills (`cloudcannon-configuration`, `cloudcannon-snippets`, `cloudcannon-visual-editing`) are useful when you only need one piece, e.g. "add visual editing to my existing CloudCannon site".
 
 ## Getting started
 
-1. Copy the `.ai/skills/` directory from this repo into your project's agent-skills directory (e.g. `.ai/skills/`, `.claude/skills/`, or `.cursor/skills/` depending on your tool)
+1. Run `npx skills add CloudCannon/agent-skills` in the root of your project
 2. Open your project in your AI coding agent
 3. Ask the agent to migrate your site to CloudCannon
 
@@ -57,36 +57,29 @@ Not every site needs all phases. Small sites may skip content restructuring. Vis
 ### Repo structure
 
 ```
-.ai/
-  rules/                              # Agent rules for developing the skills (not shipped)
-  skills/
-    migrating-to-cloudcannon/         # Migration orchestrator
-    cloudcannon-configuration/        # Config skill (standalone)
-    cloudcannon-snippets/             # Snippets skill (standalone)
-    cloudcannon-visual-editing/       # Visual editing skill (standalone)
-    brainstorming/                    # Design exploration skill
-
-templates/                            # Test sites for validating the skills
-  <name>/
-    pristine/                         # Untouched original (never modify)
-    migrated/                         # Agent works here
+skills/
+  migrating-to-cloudcannon/         # Migration orchestrator
+  cloudcannon-configuration/        # Config skill (standalone)
+  cloudcannon-snippets/             # Snippets skill (standalone)
+  cloudcannon-visual-editing/       # Visual editing skill (standalone)
+  brainstorming/                    # Design exploration skill
 ```
-
-### Template workflow
-
-Skills are developed and tested by running migrations against real site templates:
-
-1. Add a template: `npm run add-template -- <name> <repo-url>`
-2. Ask an agent to migrate `templates/<name>/migrated/` using the skills
-3. Review the result and update skill docs based on what you learn
-4. Test locally: `npm run fog-template -- <name>` (builds and launches [Fog Machine](https://github.com/CloudCannon/fog-machine) for local CloudCannon testing)
-5. To start fresh, delete `migrated/` and copy `pristine/` again
 
 ### Key conventions
 
-- **Scripts first** -- Anything deterministic and repetitive should be a script, not an agent task. Saves tokens and improves consistency.
-- **Living documents** -- Skills and reference docs are actively maintained. Agents are expected to update them when they discover new patterns or edge cases.
+- **Living documents** -- Skills are actively maintained. When an agent uncovers a new pattern or edge case during a migration, update the relevant skill as part of the same task rather than leaving it as a follow-up.
 - **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
-- **No peeking at previous migrations** -- Completed migrations exist in `templates/` but agents must never read other templates' `migrated/` directories. If the skill docs are insufficient, that's a gap to fix in the docs.
 
-For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](.ai/skills/migrating-to-cloudcannon/GUIDE.md).
+For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](skills/migrating-to-cloudcannon/GUIDE.md).
+
+### Development
+
+Markdown files are formatted with [Prettier](https://prettier.io). CI runs `prettier --check` on every pull request and fails if anything is unformatted.
+
+```sh
+npm install           # one-time: install dev dependencies
+npm run format        # format all markdown files in place
+npm run format:check  # preview what CI will check (no changes written)
+```
+
+Run `npm run format` before committing changes to any markdown file.

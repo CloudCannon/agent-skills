@@ -1,6 +1,0 @@
----
-company:
-role:
-dateStart:
-dateEnd:
----
