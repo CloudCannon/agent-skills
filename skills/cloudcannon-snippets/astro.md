@@ -1,34 +1,36 @@
 # Snippets (Astro)
 
-Guidance for configuring CloudCannon snippets for MDX components in an Astro site. Read the cross-SSG [snippets overview](snippets.md) first for CC snippet concepts and reference. This page complements that overview’s template-based vs raw discussion by focusing on the **Astro + MDX** stack (content shape, auto-import, and Astro-specific raw patterns such as `client:load`).
+Guidance for configuring CloudCannon snippets for MDX components in an Astro site. Read the cross-SSG [snippets overview](snippets.md) first for CC snippet concepts and reference. This page focuses on the **Astro + MDX** stack: content shape, auto-import, and Astro-specific raw patterns like `client:load`.
 
 ## When this doc applies (MDX path)
 
-This workflow assumes editors use **MDX component tags** in content. Concretely:
+Applies when:
 
 - MDX integration (`@astrojs/mdx`) installed and registered in `astro.config.mjs`
-- Content files that use those components are `.mdx` (not `.md`)
+- Content files using those components are `.mdx` (not `.md`)
 
-**Agent discretion:** A site may start as Markdown-only. Either refactor toward the bullets above—install MDX, register it, convert or rename affected entries to `.mdx`—when built-in `mdx_*` templates and auto-import are simpler than a large raw-snippet surface, or keep `.md` and rely on **raw** snippets per [raw.md](raw.md) and [Which approach?](snippets.md#which-approach) in the overview. Raw snippets offer maximum flexibility and literal syntax control; the MDX + template path is often less complicated for standard props and paired content, at the cost of format and build setup.
+**Agent discretion:** A site may start as Markdown-only. Either refactor toward MDX — install, register, convert affected entries to `.mdx` — when built-in `mdx_*` templates and auto-import are simpler than a large raw-snippet surface, or keep `.md` and rely on **raw** snippets per [raw.md](raw.md) and [Which approach?](snippets.md#which-approach) in the overview. Raw snippets offer maximum flexibility and literal syntax control; MDX + template is often simpler for standard props and paired content, at the cost of format and build setup.
 
 ## MDX setup pipeline (must complete all four)
 
+**MUST:** All four steps are required. Steps 1+2 without 4 = editor can't insert/parse components. Step 4 without 1+2 = build fails.
+
 | #   | Step                                                         | File                     | Skip = broken                        |
 | --- | ------------------------------------------------------------ | ------------------------ | ------------------------------------ |
-| 1   | `npm install astro-auto-import`                              | `package.json`           | `import` statements leak into editor |
+| 1   | Run `npm install astro-auto-import`                          | `package.json`           | `import` statements leak into editor |
 | 2   | Register `AutoImport({ imports: [...] })` **before** `mdx()` | `astro.config.mjs`       | Components not resolved at build     |
-| 3   | Delete `import` lines from all `.mdx` content files          | `src/content/**/*.mdx`   | Raw imports shown to editors         |
+| 3   | Delete `import` lines from every `.mdx` content file         | `src/content/**/*.mdx`   | Raw imports shown to editors         |
 | 4   | Add `_snippets` entries (or raw snippet) for every JSX tag   | `cloudcannon.config.yml` | Components shown as broken in editor |
 
-All four are mandatory. Steps 1+2 without 4 = editor still can't insert/parse the components. Step 4 without 1+2 = build fails. Verify at the end with the [component inventory grep](#component-inventory-grep-must-run-check).
+Verify at the end with the [component inventory grep](#component-inventory-grep-must-run-check).
 
 ## Auto-import: keeping import statements out of content
 
-CloudCannon's Content Editor displays the raw file contents. Import statements (`import Button from '../components/Button'`) would be visible to editors in the rich text view — confusing for non-technical users. Astro content must use an auto-import mechanism so components are available without explicit imports.
+CloudCannon's Content Editor displays the raw file contents. Import statements (`import Button from '../components/Button'`) would be visible to editors in the rich text view. Astro content must use an auto-import mechanism so components are available without explicit imports.
 
-### `astro-auto-import`
+### `astro-auto-import` (recommended)
 
-The recommended approach. This Astro integration injects imports into MDX files at build time.
+Astro integration that injects imports into MDX files at build time.
 
 ```bash
 npm install astro-auto-import
@@ -68,7 +70,7 @@ const { Content } = await entry.render();
 <Content components={{ Button }} />
 ```
 
-Less scalable but avoids the extra dependency. The `astro-auto-import` approach is better for templates with many shortcodes. If auto-import fails to resolve components (path alias issues, pnpm hoisting), fallback to this approach -- it's reliable and sufficient for sites with only 1-2 MDX components.
+Less scalable but avoids the extra dependency. Use as a fallback when `astro-auto-import` fails to resolve components (path alias issues, pnpm hoisting) or for sites with only 1–2 MDX components.
 
 ## Built-in templates for Astro
 
@@ -78,23 +80,27 @@ Astro MDX files use standard MDX component syntax. The built-in `mdx_component` 
 
 For each component used in MDX content:
 
-1. **Find the component source** — check the auto-import config or shortcodes directory
-2. **Read its props** — look at the TypeScript interface or function parameters
-3. **Check how it's used in content** — self-closing or wrapping content? Uses `client:load`?
-4. **Choose the approach**:
-   - No `client:load` + self-closing → `mdx_component` template
-   - No `client:load` + wraps content → `mdx_paired_component` template
-   - Has `client:load` → raw snippet syntax (template-based can't output directives)
-5. **Write the snippet config** — map props to named_args/models, add `_inputs` for good editor UX
-6. **Add `_inputs` for constrained values** — use `select` for props with known options, `url` for links, etc.
+1. Find the component source (check the auto-import config or shortcodes directory)
+2. Read its props (TypeScript interface or function parameters)
+3. Check how it's used in content — self-closing or wrapping content? Uses `client:load`?
+4. Pick the approach (table below)
+5. Write the snippet config — map props to `named_args`/`models`
+6. Add `_inputs` for constrained values (`select` for known options, `url` for links, etc.)
+
+### Which approach to use
+
+| Content shape                             | Approach                                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| No `client:load` + self-closing           | `mdx_component` template                                                                                    |
+| No `client:load` + wraps content          | `mdx_paired_component` template                                                                             |
+| Has `client:load` (any directive)         | Raw snippet — templates can't output directives                                                             |
+| Nested tree (`<Tabs><Tab>…</Tab></Tabs>`) | Single raw snippet with `repeating` parser. See [§ Nested components](#nested-components-repeating-parser). |
 
 ## Handling `client:load` directives
 
-Astro's `client:load`, `client:idle`, `client:visible` directives trigger client-side hydration for interactive components. The MDX templates (`mdx_component`, `mdx_paired_component`) don't output these directives — they produce plain `<Component />` syntax.
+**MUST:** Use raw snippet syntax for components with `client:load`, `client:idle`, or `client:visible`. The MDX templates don't output these directives — they produce plain `<Component />` syntax.
 
-Use raw snippet syntax to include the directive as literal text.
-
-For raw `key_values` on MDX attributes, include `format` with `root_value_delimiter` and `string_boundary` whenever you use normal `prop="value"` (or similar) syntax — optional in schema, required in practice. See [raw.md — `key_values`](raw.md#key_values--keyvalue-pairs).
+**MUST:** For raw `key_values` on MDX attributes, include `format` with `root_value_delimiter` and `string_boundary` whenever you use `prop="value"` syntax — optional in schema, required in practice. See [raw.md — `key_values`](raw.md#key_values--keyvalue-pairs).
 
 ### Self-closing with `client:load`
 
@@ -177,7 +183,7 @@ _snippets_templates:
               - '"'
 ```
 
-Then individual snippets inherit from it:
+Individual snippets inherit from it:
 
 ```yaml
 _snippets:
@@ -194,7 +200,10 @@ _snippets:
 
 ## Nested components (repeating parser)
 
-For nested patterns like `<Tabs><Tab>...</Tab></Tabs>`, use a single snippet with the `repeating` parser. See [raw.md § repeating](raw.md#repeating--repeat-a-child-pattern-as-array-items) for the full parser reference. Do NOT define the child as a separate `_snippets` entry — it would match standalone and steal content from the parent.
+**MUST:** For nested patterns like `<Tabs><Tab>…</Tab></Tabs>`, use a single snippet with the `repeating` parser.
+**MUST NOT:** Define the child as a separate `_snippets` entry — it would match standalone and steal content from the parent.
+
+See [raw.md § repeating](raw.md#repeating--repeat-a-child-pattern-as-array-items) for the full parser reference.
 
 **Astro-specific note:** Tabs components typically need `client:load` on the parent element. Include this in the snippet template string:
 
@@ -255,38 +264,42 @@ Configure `_inputs` using the `editor_key` from the repeating parser (`tab_items
 
 ## Every MDX component must be accounted for
 
-Every component used in MDX content must either have a `_snippets` entry or the file must be restricted to source/data editor only (`_enabled_editors: [source, data]`). There is no middle ground — an unconfigured component shows as a broken/unrecognizable element in the content editor. "Demo content", "only used once", or "not worth configuring" are not valid reasons to skip.
+**MUST:** Every component used in MDX content has a `_snippets` entry OR the file is restricted to `_enabled_editors: [source, data]`. No middle ground — an unconfigured component shows as broken in the content editor.
+**MUST NOT:** Skip with justifications like "demo content", "only used once", or "not worth configuring".
 
-**Preference order:** Define `_snippets` first so the content editor can parse, offer toolbar inserts, and round-trip the markup. Well-configured snippets are the right default for MDX body content; `_enabled_editors: [source, data]` is a **last resort** after you are confident no reasonable snippet plus component refactor can represent the pattern. Document what you tried and why snippets are not viable in the migration notes.
+### Preference order
 
-**Try first:**
+1. **Define `_snippets`** — the right default. Content editor can parse, offer toolbar inserts, and round-trip the markup.
+2. **Restrict to `_enabled_editors: [source, data]`** — last resort. Only after you are confident no reasonable snippet + component refactor can represent the pattern. Document what you tried and why snippets aren't viable in the migration notes.
 
-- Self-closing components with string/number/boolean props (Button, Youtube, Video)
-- Paired components with simple inner content and a few props (Notice, Accordion)
-- Nested tag trees that map to parsers: `repeating` for patterns like `<Tabs><Tab>…</Tab></Tabs>`, `content` for rich inner regions, raw `snippet` strings for literals such as `client:load`
-- Components editors should insert from the toolbar — including components with no author-editable props (still add a minimal snippet so the content editor recognizes them)
-- Refactor before giving up: move JS expressions and derived values inside the component; expose only props you can describe with `_inputs`. Wrap or thin-wrap third-party components when possible so MDX only passes simple values
+### Try first (low-to-medium difficulty)
 
-**Nesting:** Depth alone does not disqualify a pattern. What matters is whether the tree is **regular and mappable** to snippet parsers (often one parent snippet with `repeating` children). Deep but repetitive structure may still be one snippet. Hard cases are **arbitrary or unbounded** child trees that do not match a repeating or fixed-slot model.
+- Self-closing with string/number/boolean props (Button, Youtube, Video)
+- Paired with simple inner content and a few props (Notice, Accordion)
+- Nested tag trees that map to parsers: `repeating` for `<Tabs><Tab>…</Tab></Tabs>`, `content` for rich inner regions, raw `snippet` strings for literals like `client:load`
+- Components editors should insert from the toolbar — even with no author-editable props, add a minimal snippet so the editor recognizes them
+- Refactor before giving up: move JS expressions and derived values inside the component; expose only props describable with `_inputs`. Wrap third-party components so MDX only passes simple values.
 
-**Source/data only when (high bar):**
+**Nesting depth alone doesn't disqualify a pattern.** What matters is whether the tree is **regular and mappable** to snippet parsers. Deep but repetitive structure may still be one snippet. Hard cases are **arbitrary or unbounded** child trees that don't match a repeating or fixed-slot model.
 
-- Shapes that still cannot be captured with template, raw, `repeating`, and `content` parsers after a genuine snippet attempt
+### Source/data only (high bar)
+
+- Shapes that still can't be captured with template, raw, `repeating`, or `content` parsers after a genuine snippet attempt
 - Prop payloads that remain unmappable after simplifying the component API and `_inputs` — not "looks complex at a glance"
-- Vendor components you cannot wrap, where MDX usage cannot be narrowed to a representable subset
+- Vendor components you can't wrap, where MDX usage can't be narrowed to a representable subset
 - Verified round-trip or parsing failures with a prototype snippet — not a default when MDX contains expressions (refactor those into the component first)
 
-For files restricted to source/data editor, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
+For restricted files, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
 
 ## Common mistakes
 
-| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
-| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |
-| Leaving `import` lines at the top of `.mdx` content files                | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports.                                                      |
-| Registering `AutoImport` after `mdx()` in `astro.config.mjs`             | Order matters — `AutoImport` must come earlier in the `integrations` array                                                         |
-| "I'll configure the common ones now and add the rest later"              | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
+| MUST NOT                                                             | MUST                                                                                       |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Add `_snippets` entries without `astro-auto-import`                  | Complete steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) |
+| Skip `<Image>` from `astro:assets` because "it's a layout component" | Add `_snippets` for every JSX tag in `.mdx` — layout isn't an exemption                    |
+| Leave `import` lines at the top of `.mdx` content files              | Delete them and let `AutoImport` inject them                                               |
+| Register `AutoImport` after `mdx()` in `astro.config.mjs`            | Put `AutoImport` earlier in the `integrations` array                                       |
+| Configure "the common ones now, rest later"                          | Run the [component inventory grep](#component-inventory-grep-must-run-check)               |
 
 ## Component inventory grep (must-run check)
 
@@ -298,18 +311,16 @@ grep -rohE '<[A-Z][a-zA-Z]+' src/content/**/*.mdx src/pages/**/*.mdx 2>/dev/null
 rg -oN '<[A-Z][a-zA-Z]+' -g '*.mdx' src/content src/pages | sed 's/.*://' | sort -u
 ```
 
-Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [source, data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
+Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, OR the containing file must be restricted with `_enabled_editors: [source, data]` with the exclusion documented in migration notes. Includes layout components like `<Image>` in grid patterns — "only used for layout" is not a valid reason.
 
 ## Verification
 
-After adding snippet configs:
-
-- [ ] MDX setup pipeline (steps 1–4) complete — see [table above](#mdx-setup-pipeline-must-complete-all-four)
-- [ ] Component inventory grep returns zero unconfigured names — see [§ Component inventory grep](#component-inventory-grep-must-run-check)
+- [ ] MDX setup pipeline (steps 1–4) complete — [§ pipeline](#mdx-setup-pipeline-must-complete-all-four)
+- [ ] Component inventory grep returns zero unconfigured names — [§ grep](#component-inventory-grep-must-run-check)
 - [ ] No `^import ` lines remain in any `.mdx` content file
-- [ ] `_snippets` entries exist in `cloudcannon.config.yml` (no `_snippets_imports` needed — built-in templates resolve automatically)
-- [ ] Every component used in MDX content has a corresponding `_snippets` entry, or the file uses `_enabled_editors: [source, data]` only as a last resort with rationale in migration notes
+- [ ] `_snippets` entries exist in `cloudcannon.config.yml` (no `_snippets_imports` needed)
+- [ ] Every component used in MDX has a corresponding `_snippets` entry, or the file uses `_enabled_editors: [source, data]` with rationale in migration notes
 - [ ] Components with `client:load` use raw snippet syntax, not templates
-- [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)
+- [ ] `_inputs` configured for constrained values (select dropdowns, url inputs)
 - [ ] `astro build` passes cleanly
-- [ ] Components in existing `.mdx` files should round-trip correctly (CC parses and re-serializes without losing attributes)
+- [ ] Components in existing `.mdx` files round-trip correctly (CC parses and re-serializes without losing attributes)

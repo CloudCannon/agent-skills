@@ -22,9 +22,13 @@ This installs the package (falling back to `--legacy-peer-deps` if needed), adds
 </script>
 ```
 
-`window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration code out of the production bundle entirely — it only loads when the page is being edited. Use a relative path for the import (not `@cloudcannon/...` which looks like an npm scope).
+`window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration code out of the production bundle entirely — it only loads when the page is being edited.
 
-**Astro 4 compatibility:** The integration requires Astro 5+. For Astro 4, skip the integration — `data-editable` HTML attributes still work but component re-rendering is not available. See [visual-editing-reference.md § How the Astro integration works](visual-editing-reference.md#how-the-astro-integration-works).
+**MUST:** Use a relative path for the `import()` (not `@cloudcannon/...`).
+**Why:** `@cloudcannon/...` looks like an npm scope and will resolve to the package, not your local file.
+
+**MUST:** Use Astro 5+ for the integration.
+**Why:** Astro 4 can still use `data-editable` HTML attributes, but component re-rendering is unavailable. See [visual-editing-reference.md § How the Astro integration works](visual-editing-reference.md#how-the-astro-integration-works).
 
 When the site uses a page builder with a `BlockRenderer`, create a shared `src/cloudcannon/componentMap.ts` — see [visual-editing-reference.md § Component re-rendering](visual-editing-reference.md#component-re-rendering).
 
@@ -47,20 +51,35 @@ Before writing any editable attributes, produce a census of every visible sectio
 
 **For each section, document:**
 
-| Column                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Page**              | Which page the section appears on                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **Section**           | Descriptive name (e.g. "Hero", "Features grid", "FAQ accordion", "Footer links")                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **Treatment**         | One of: `text`, `image`, `array`, `component`, `source`, `data-file`, `combined` (multiple types), `sidebar-only`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **Binding plan**      | The actual `data-prop` paths and any registered-component name. Required when the treatment is `data-file`, `array`, `component`, or involves a `select` referencing another data file. Forces the wiring decision _before_ writing any HTML. Examples: `@data[footer].columns` parent + relative `heading`/`links`/`label` inside items; `@data[cta]` on `<editable-component data-component="call-to-action">`; `data-prop="author"` on `<editable-component data-component="author-card">` (registered component does the slug lookup). Hyphen `—` is fine for `text`/`image`/`source` rows where the binding is obvious from the field name. |
-| **Data completeness** | Are ALL visible/configurable values in the data source? List any hardcoded values in the template that should also be in the data (icons, colors, link targets, label text)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| **Justification**     | Required when treatment is `sidebar-only`. Must cite a specific technical reason, not just "complex" or "not worth it"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Column                | Description                                                                                                                                                                                                                                                                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Page**              | Which page the section appears on                                                                                                                                                                                                                                                                                                                  |
+| **Section**           | Descriptive name (e.g. "Hero", "Features grid", "FAQ accordion", "Footer links")                                                                                                                                                                                                                                                                   |
+| **Treatment**         | One of: `text`, `image`, `array`, `component`, `source`, `data-file`, `combined` (multiple types), `sidebar-only`                                                                                                                                                                                                                                  |
+| **Binding plan**      | The actual `data-prop` paths and any registered-component name. Required for `data-file`, `array`, `component`, or `select`-into-another-data-file treatments. Hyphen `—` is fine for `text`/`image`/`source` rows where the binding is obvious. See [§ Binding plan by treatment](#binding-plan-by-treatment) for the pattern per treatment type. |
+| **Data completeness** | Are ALL visible/configurable values in the data source? List any hardcoded values in the template that should also be in the data (icons, colors, link targets, label text)                                                                                                                                                                        |
+| **Justification**     | Required when treatment is `sidebar-only`. Must cite a specific technical reason, not just "complex" or "not worth it"                                                                                                                                                                                                                             |
 
-**Rules for `sidebar-only` justification:**
+#### Binding plan by treatment
 
-- "Uses third-party npm components" is NOT sufficient alone. First try wrapping the section in `<editable-component>` for re-rendering. See [visual-editing-reference.md § Third-party component fields](visual-editing-reference.md#third-party-component-fields)
-- Valid reasons: component genuinely cannot be wrapped (shadow DOM, framework incompatibility after attempting conversion), AND the section is still wrapped in `editable-component` for sidebar-triggered re-rendering
-- Every `sidebar-only` section should still have array editables for CRUD if it renders a list
+| Treatment                             | Binding plan pattern                                                                                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text` / `image` / `source`           | Hyphen `—` — binding is obvious from the field name (or from `data-path` / `data-key` on source editables).                                           |
+| `array` (frontmatter)                 | `data-prop="<array-field>"` on the parent; relative `data-prop` on inner editables inside each item.                                                  |
+| `data-file`                           | `@data[<key>]` on the parent wrapper. Descendants use relative paths — never repeat `@data[...]` inside items.                                        |
+| `component`                           | `<editable-component data-component="<name>" data-prop="<field>">`. Component registered in `registerComponents.ts`.                                  |
+| `data-file + component`               | `<editable-component data-component="<name>" data-prop="@data[<key>]">`. E.g. `@data[cta]` on `<editable-component data-component="call-to-action">`. |
+| `select → component`                  | `data-prop="<slug-field>"` on `<editable-component data-component="<name>">`. The registered component does the slug lookup internally.               |
+| `combined` (e.g. `data-file + array`) | `@data[<key>].<array>` on the parent; relative paths inside items. Static siblings (logo column, "see all" link) live outside the array wrapper.      |
+
+#### Rules for `sidebar-only` justification
+
+**MUST NOT:** Use "uses third-party npm components" as a justification on its own.
+**Why:** Most third-party components can still be wrapped in `<editable-component>` for sidebar-triggered re-rendering. See [visual-editing-reference.md § Third-party component fields](visual-editing-reference.md#third-party-component-fields).
+
+**Valid reasons:** The component genuinely can't be wrapped (shadow DOM, framework incompatibility after attempting conversion) AND the section is still wrapped in `<editable-component>` for re-rendering.
+
+**MUST:** Every `sidebar-only` section that renders a list still has array editables for CRUD.
 
 **Example census:**
 
@@ -91,9 +110,8 @@ Run through these after setup, before starting on editable regions:
 
 ## Completeness checklist
 
-> **Rule: if an editor can see it on the page, an editor must be able to edit it.** Every item below enforces this rule. Hardcoded headings, labels, or paragraphs are not "developer-only" — they are an unfinished migration. A section is either editable or has a written exception in `migration/visual-editing.md` explaining why.
-
-Work through every item after implementing editable regions. Each item links to the relevant pattern documentation.
+**MUST:** If an editor can see it on the page, an editor must be able to edit it. A section is either editable or has a written exception in `migration/visual-editing.md`.
+**Why:** Hardcoded headings, labels, or paragraphs are not "developer-only" — they are an unfinished migration.
 
 ### Universal (every migration)
 
@@ -102,29 +120,29 @@ Work through every item after implementing editable regions. Each item links to 
 - [ ] **Census coverage**: Every section in the census has editable regions OR a documented justification that meets the `sidebar-only` rules above
 - [ ] **Array containers**: Every array rendered from frontmatter/data has `data-editable="array"` + `data-prop` on the container AND `data-editable="array-item"` on each item
       → [Array editing](visual-editing-reference.md#array-editing)
-- [ ] **Nested editables in array items**: Every array item has nested `data-editable="text"` / `data-editable="image"` (or `<editable-text>` / `<editable-image>`) on its visible fields (title, description, image). Array CRUD alone is NOT sufficient — without nested editables, items only get add/remove/reorder controls, no inline text editing or image picking
+- [ ] **Nested editables in array items**: Every array item has nested `data-editable="text"` / `data-editable="image"` (or `<editable-text>` / `<editable-image>`) on its visible fields.
       → [Array editing](visual-editing-reference.md#array-editing)
-- [ ] **Array path scope**: Inside `data-editable="array-item"`, every nested `data-prop` is **relative** to the item (`data-prop="heading"`, `data-prop="links"`) — never a full path with an index (`data-prop="@data[footer].columns[0].heading"` or the template-literal form). The `@data[...]` prefix appears once on the parent array editable and never repeats inside items. Same rule for nested arrays inside data files
+- [ ] **Array path scope**: Inside `data-editable="array-item"`, every nested `data-prop` is **relative** to the item (`data-prop="heading"`, `data-prop="links"`).
       → [Arrays inside data files](visual-editing-reference.md#arrays-inside-data-files)
-- [ ] **Array container purity**: Every `data-editable="array"` wrapper contains **only** elements produced by the array (`data-editable="array-item"` rows plus optional `<template>` blueprints). Static siblings (logo column, summary block, "see all" link) live _outside_ the array wrapper
+- [ ] **Array container purity**: Every `data-editable="array"` wrapper contains **only** elements produced by the array (`data-editable="array-item"` rows plus optional `<template>` blueprints).
       → [Don't mix array items with non-array siblings](visual-editing-reference.md#dont-mix-array-items-with-non-array-siblings)
 - [ ] **Image editables**: Every image rendered from frontmatter/data has an `<editable-image>` wrapper or `data-editable="image"` on the `<img>` itself
       → [Image editing](visual-editing-reference.md#image-editing)
-- [ ] **Child component labels**: Components with hardcoded section titles, button text, or icons are either: (a) extracted to frontmatter/data and made editable, or (b) have source editables on the hardcoded text. Don't skip labels just because they're in a child component
+- [ ] **Child component labels**: Components with hardcoded section titles, button text, or icons are either: (a) extracted to frontmatter/data and made editable, or (b) have source editables on the hardcoded text.
       → [Section titles and buttons](visual-editing-reference.md#section-titles-and-buttons-in-child-components)
-- [ ] **Registration wiring**: Every component in `registerComponents.ts` is actually referenced via `data-component` in a template. Unused registrations = missed wiring
+- [ ] **Registration wiring**: Every component in `registerComponents.ts` is actually referenced via `data-component` in a template.
       → [Component re-rendering](visual-editing-reference.md#component-re-rendering)
-- [ ] **Shared partials backed by data**: CTA, footer, navigation, and other cross-page sections are backed by data files with `@data[key]` editables. Verify EACH sub-section of the partial independently — don't mark the footer done because the CTA inside it works
+- [ ] **Shared partials backed by data**: CTA, footer, navigation, and other cross-page sections are backed by data files with `@data[key]` editables.
       → [Component editables backed by data files](visual-editing-reference.md#component-editables-backed-by-data-files)
-- [ ] **Data file completeness**: For components backed by data files, ALL visible/configurable values are in the data file — not hardcoded in the template. Check icons, colors, link targets, label text, image paths
+- [ ] **Data file completeness**: For components backed by data files, ALL visible/configurable values are in the data file — not hardcoded in the template.
       → [Component editables backed by data files](visual-editing-reference.md#component-editables-backed-by-data-files)
-- [ ] **Cross-collection select wiring**: Every `select` input that references another data file (`author`, `category`, `team_member`) renders through a **registered component** that does the slug lookup _internally_, wrapped in `<editable-component data-component="..." data-prop="<slug-field>">`. Build-time lookup in the page template with the resolved object passed to a static child component is broken — sidebar changes update the frontmatter but the displayed card stays stale
+- [ ] **Cross-collection select wiring**: Every `select` input that references another data file (`author`, `category`, `team_member`) renders through a **registered component** that does the slug lookup _internally_, wrapped in `<editable-component data-component="..." data-prop="<slug-field>">`.
       → [Cross-collection select inputs](visual-editing-reference.md#cross-collection-select-inputs)
 - [ ] **Markdown body content**: Pages rendering markdown body (via `<Content />`, `entry.render()`, or `<slot />` in layouts) have `data-editable="text" data-type="block" data-prop="@content"` on the wrapper element
       → [Content body editing](visual-editing-reference.md#content-body-editing)
 - [ ] **Slot content hosts**: Editable slot content uses a concrete DOM host (`<editable-text>`, `<span>`) not `<Fragment>`
       → [Text editing](visual-editing-reference.md#text-editing)
-- [ ] **Source editables**: Hardcoded text in page templates has `data-editable="source"` with `data-path` and `data-key`. Don't skip content just because it's not in a collection
+- [ ] **Source editables**: Hardcoded text in page templates has `data-editable="source"` with `data-path` and `data-key`.
       → [Source editables](visual-editing-reference.md#source-editables-for-hardcoded-content)
 - [ ] **Conditional guards**: Every `data-editable` element whose field can be undefined/null is wrapped in a conditional
       → [Guard optional fields](visual-editing-reference.md#guard-optional-fields)
@@ -134,7 +152,7 @@ Work through every item after implementing editable regions. Each item links to 
       → [Component prop contract](visual-editing-reference.md#component-prop-contract)
 - [ ] **Cross-collection editable guard**: Shared components used for both frontmatter items and programmatic cross-collection content have an `editable` prop to conditionally strip editable attributes
       → [Array editing](visual-editing-reference.md#array-editing)
-- [ ] **`<template>` blueprints**: Primitive-only arrays that can be empty at build time have `<template>` children. Page-builder arrays with registered components do NOT need templates
+- [ ] **`<template>` blueprints**: Primitive-only arrays that can be empty at build time have `<template>` children.
       → [Array editing](visual-editing-reference.md#array-editing)
 - [ ] **Data file input config**: Every data file in `data_config` has a `file_config` entry with proper input types and structure references
       → [configuration.md](../../cloudcannon-configuration/astro/configuration.md)

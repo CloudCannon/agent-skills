@@ -34,7 +34,7 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-> **Note:** `_snippets_imports` exists but should not be used during migrations. It loads pre-built catchall snippet instances (including one that hides `import` statements) which can match content incorrectly (e.g. fenced code blocks, CSS/JS blocks). Custom `_snippets` entries give full control without `_snippets_imports`. Built-in **templates** like `mdx_component` are always available by name — "resolve automatically" means CC knows the template pattern without needing `_snippets_imports`, not that `mdx_component` handles import statements. Import handling is an SSG concern: use `astro-auto-import` (or equivalent) to inject imports at build time so `import` lines don't appear in source files. See [astro.md § Auto-import](astro.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle** (catchalls like `_cc_mdx_unknown`), see [built-in-templates.md](built-in-templates.md).
+`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#do-not-use-_snippets_imports-during-migrations). Import handling in MDX content is an SSG concern: use `astro-auto-import` (or equivalent) — see [astro.md § Auto-import](astro.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
 
 ---
 
@@ -99,22 +99,27 @@ No MDX integration or auto-import setup is needed. Raw snippets match the HTML p
 
 ### When to create an HTML snippet
 
-During the audit, scan content files for HTML blocks and ask: can this be expressed in **standard markdown** or as a **first-class CloudCannon rich-text construct** (below)? If not, it's a snippet candidate. Block-level HTML with multiple attributes or nested elements should usually become snippets.
+For each HTML block found in the audit, ask: does the tag appear in the first-class table below? If yes, configure `markdown.options` (and where relevant, the `_editables.content` toolbar). If no, it's a snippet candidate. Block-level HTML with multiple attributes or nested elements should usually become a snippet.
 
-**First-class elements.** CloudCannon maps these to supported editor semantics. The saved file can show HTML tags or Markdown syntax depending on `markdown.options` (and the toolbar on `_editables.content` where those features have buttons — same idea as [Markdown tables in configuration-gotchas](../cloudcannon-configuration/astro/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)):
+#### First-class elements
 
-- **Block:** `p`, `h1`–`h6`, `blockquote`, `hr`, `ul`, `ol`, `li`, `table`, fenced code blocks / `pre` with `code`
-- **Inline:** `strong`, `em`, `code`, `a`, `img`, `u`, `s` (strikethrough), `sub`, `sup`
+CloudCannon maps these tags to supported editor semantics — **no snippet needed** as long as `markdown.options` align with how the SSG authors them. The toolbar on `_editables.content` surfaces buttons for the supported features (same idea as [Markdown tables in configuration-gotchas](../cloudcannon-configuration/astro/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)).
 
-**Strikethrough:** When parsing, CloudCannon treats `<s>`, `<strike>`, and `<del>` as strikethrough. On save, output is normalized toward a single canonical HTML form (expected to converge on `<s>`). Legacy `<strike>` in source does not require a snippet. Set **`markdown.options.strikethrough`** to match the SSG: if `true`, strikethrough can round-trip as Markdown `~~text~~`; if `false`, it stays as HTML.
+| Element                                         | Block / inline | `markdown.options` / notes                                                                                                                                                                                                                                                                         |
+| ----------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `p`, `h1`–`h6`, `blockquote`, `hr`              | Block          | Standard markdown.                                                                                                                                                                                                                                                                                 |
+| `ul`, `ol`, `li`                                | Block          | Standard markdown.                                                                                                                                                                                                                                                                                 |
+| `table`                                         | Block          | Set `markdown.options.table: true` if content uses Markdown-syntax tables.                                                                                                                                                                                                                         |
+| Fenced code blocks / `pre` > `code`             | Block          | Standard markdown.                                                                                                                                                                                                                                                                                 |
+| `strong`, `em`, `a`, `img`, `code`              | Inline         | Standard markdown.                                                                                                                                                                                                                                                                                 |
+| `u`                                             | Inline         | Standard markdown.                                                                                                                                                                                                                                                                                 |
+| `s` (also accepts `<strike>`, `<del>` on parse) | Inline         | `markdown.options.strikethrough: true` round-trips as `~~text~~`; `false` keeps HTML. Output converges on `<s>` on save.                                                                                                                                                                           |
+| `sub`                                           | Inline         | Default behaviour keeps literal `<sub>`.                                                                                                                                                                                                                                                           |
+| `sup`                                           | Inline         | Default `superscript: false` keeps literal `<sup>`. Set `superscript: true` only if the SSG understands caret syntax (`^text^`).                                                                                                                                                                   |
+| `br`                                            | Inline         | Use `markdown.options.breaks` + `markdown.options.xhtml` to match the SSG. `breaks: true` preserves `\n`; with `breaks: false`, `xhtml` toggles `<br>` vs `<br />`. See [options.breaks](https://cloudcannon.com/documentation/developer-articles/configure-your-markdown-engine/#options.breaks). |
+| `mark`                                          | Inline         | Treat like other first-class inline tags — no snippet needed for highlight markup alone. Dedicated `markdown.options` flag planned but not yet shipped; re-check docs.                                                                                                                             |
 
-**Examples (align options with what you see in content):**
-
-- **`<sup>`** — Default **`superscript: false`** keeps literal `<sup>` in the file. Use **`superscript: true`** only if the SSG understands caret superscript (`^text^`) and the site should save that way.
-- **Line breaks / `<br>`** — Use **`markdown.options.breaks`** with **`markdown.options.xhtml`** so hard breaks match the SSG and existing files. Per CloudCannon, `breaks: true` preserves newlines as `\n` in the saved file; with `breaks: false`, `xhtml: false` vs `true` affects whether hard breaks serialize as `<br>` vs `<br />`. See [options.breaks](https://cloudcannon.com/documentation/developer-articles/configure-your-markdown-engine/#options.breaks).
-- **`<mark>`** — Treat like the other first-class inline cases: no snippet for highlight markup alone. A dedicated `markdown.options` flag is not in product yet but is planned; re-check docs when it ships.
-
-Full option list and behavior: [Configure your Markdown engine](https://cloudcannon.com/documentation/developer-articles/configure-your-markdown-engine/).
+Full option reference: [Configure your Markdown engine](https://cloudcannon.com/documentation/developer-articles/configure-your-markdown-engine/).
 
 ### Workflow
 

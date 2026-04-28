@@ -8,9 +8,9 @@ description: >-
 
 # CloudCannon Snippets
 
-Snippets let editors insert and edit complex markup (components, shortcodes, embeds) inside CloudCannon's rich text Content Editor. This skill covers both the SSG layer (how components are imported/built) and the CloudCannon layer (`_snippets` config that teaches the editor the syntax).
+Snippets let editors insert and edit complex markup (components, shortcodes, embeds) inside CloudCannon's rich text Content Editor. Covers the SSG layer (how components are imported/built) and the CloudCannon layer (`_snippets` config that teaches the editor the syntax).
 
-## When to use this skill
+## When to use
 
 - Adding snippet support to a new or existing CloudCannon site
 - Configuring MDX components for the Content Editor
@@ -35,15 +35,16 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 
 ## Quick decision
 
-- **Template-based** → component syntax matches a built-in template exactly. See [template-based.md](template-based.md).
-- **Raw** → extra syntax, SSG-specific directives, or fine-grained parsing control. See [raw.md](raw.md).
-- **Inline HTML in `.md`** → `<figure>`, `<video>`, `<details>` etc. Use raw snippets. See [snippets.md § Raw snippets for inline HTML](snippets.md#raw-snippets-for-inline-html-in-md-files).
+| Case                                         | Approach                                                                                                              |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Component syntax matches a built-in template | Template-based — see [template-based.md](template-based.md)                                                           |
+| Extra syntax, SSG directives, custom parsing | Raw — see [raw.md](raw.md)                                                                                            |
+| Inline HTML in `.md` (`<figure>`, `<video>`) | Raw snippets — see [snippets.md § Raw snippets for inline HTML](snippets.md#raw-snippets-for-inline-html-in-md-files) |
 
-Most setups use template-based for simple components and raw for anything with SSG-specific directives.
+## Completion checklist
 
-## Checklist
-
-Read this before starting and verify every item when done.
+**MUST:** verify every item before marking snippets done.
+**Why:** snippets silently degrade — a missing toolbar entry or broken round-trip looks fine until an editor opens the file.
 
 - [ ] Every component used in content files has a `_snippets` entry
 - [ ] `_editables` includes `snippet: true` on relevant content blocks
@@ -52,14 +53,6 @@ Read this before starting and verify every item when done.
 - [ ] Snippet previews are configured (`view: gallery` for image-bearing snippets)
 - [ ] `picker_preview` uses static values (not `key:` lookups, which don't resolve in picker context)
 
-## Common mistakes
+## Common pitfalls
 
-| Excuse                                         | Reality                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "The built-in templates handle this"           | Verify the round-trip. Built-in templates have known edge cases — see [gotchas.md](gotchas.md).                                                                                                                                                                                                                                                                                                                                             |
-| "I'll configure the snippet toolbar later"     | No toolbar means editors can't insert snippets. Add `snippet: true` to `_editables` now.                                                                                                                                                                                                                                                                                                                                                    |
-| "This component is too niche for a snippet"    | If editors encounter it in content, they need to be able to edit it. Configure it.                                                                                                                                                                                                                                                                                                                                                          |
-| "Import statements in content are fine"        | Use auto-import (Astro: `astro-auto-import`) to keep imports out of content files.                                                                                                                                                                                                                                                                                                                                                          |
-| "I can use `_snippets_imports` for this"       | Don't. It loads catchall matchers that can match incorrectly. Write explicit `_snippets` entries.                                                                                                                                                                                                                                                                                                                                           |
-| "I configured `_snippets`, snippets are done"  | Without `astro-auto-import` wired in `astro.config.mjs` AND the `import` lines removed from MDX files, editors still see raw `import` statements at the top of MDX content. All four pipeline steps are required — see [astro.md § MDX setup pipeline](astro.md#mdx-setup-pipeline-must-complete-all-four).                                                                                                                                 |
-| "Inline image grid in MDX is fine as raw HTML" | Editors can't safely edit raw `<div class="grid">` + `<Image>` blocks. Extract to a self-closing `<Gallery images={[{src, alt}, ...]} />` component (auto-imported) with a matching `_snippets` entry — `images` as `type: array` with nested `images[*].src: type: image`. See [cc-friendly-conventions.md § Image galleries in MDX content](../migrating-to-cloudcannon/astro/cc-friendly-conventions.md#image-galleries-in-mdx-content). |
+For toolbar config, `_snippets_imports`, round-trip failures, and image-grid extraction patterns, see [gotchas.md](gotchas.md). Astro MDX pipeline gotchas live in [astro.md § MDX setup pipeline](astro.md#mdx-setup-pipeline-must-complete-all-four).
