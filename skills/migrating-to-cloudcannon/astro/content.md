@@ -104,6 +104,12 @@ Check for:
 
 ### Handling styled HTML in frontmatter
 
+**Rule — markdown fields:** Markdown content fields (`type: markdown` inputs) must be plain markdown or plain HTML without class attributes. Class attributes, inline styles, and arbitrary attributed HTML collapse into uneditable snippet chips in CloudCannon's rich-text editor — authors can't click into the element to edit link text or URLs.
+
+❌ `<a href="/x" class="text-primary font-medium">text</a>` (becomes an uneditable chip)
+✅ `<a href="/x">text</a>` with styling in CSS targeting the rendered prose container
+✅ `[text](/x)` plain markdown link
+
 **MUST NOT:** Preserve inline HTML with CSS classes, entities, or responsive markup in frontmatter verbatim.
 **Why:** CloudCannon's visual editor renders unknown HTML classes with red outlines and can't interact with them.
 **Rule:** Frontmatter stores content; components own presentation.

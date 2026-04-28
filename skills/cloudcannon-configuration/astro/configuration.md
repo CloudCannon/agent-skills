@@ -569,6 +569,14 @@ Work through these before moving to the next phase. One check per line.
 
 - [ ] `<br />` tags in plain text frontmatter that simulate lists are converted to HTML lists in `type: html` fields, or split into arrays. `<br />` in rich text fields is fine. See [content.md § Handling styled HTML in frontmatter](../../migrating-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter)
 - [ ] `markdown.options.table` is `true` if any content files contain Markdown-syntax tables
+- [ ] For every boolean/switch/enum field in `_inputs`, the template has a conditional render. No dead fields — an editor-visible switch that toggles nothing is a broken UX signal. *(L4)*
+- [ ] For every `data-editable="text"` region with a template `|| "default"` fallback, the collection schema (or structure-value default) sets the same text as a real value, and existing content files are backfilled. Template fallbacks alone are invisible to the editor. *(L9)*
+- [ ] `grep -n "type: markdown" cloudcannon.config.yml` — every hit has an `options:` block (inline or via `*anchor`). No bare `type: markdown` declarations. *(L12)*
+- [ ] Every schema-default change is paired with a backfill script across existing content entries. *(L24)*
+- [ ] Every array/multiselect backed by a data file references `values: data.<name>` — no hardcoded duplicates. *(L25)*
+- [ ] Every data file that holds a list of like-shaped items is a **top-level array** with an explicit `slug`/`id` field per item, wired to a `_structures` entry so editors get an "Add" button. *(L42)*
+- [ ] When an array data file's items each correspond to a page route, the route is a single dynamic `[slug].astro` with `getStaticPaths` reading the data file — not one hardcoded `.astro` per known slug. *(L44)*
+- [ ] No component template contains a `length === 0 ? showAll : showSelected` toggle on a multiselect-driven field. Empty = render nothing, OR seed defaults at the schema-file level. *(L50)*
 
 ### Schemas & add options
 

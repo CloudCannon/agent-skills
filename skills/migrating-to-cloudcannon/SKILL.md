@@ -55,6 +55,27 @@ Not every site needs all phases. Small sites may skip Phase 3 if content is alre
 
 **Phases are sequential, not siloed.** When a later-phase concern (e.g. a missing frontmatter field) blocks the current phase from producing the right result, make the targeted fix now. Small, mechanical fixes (adding a missing field, normalizing a value) are fine in any phase. Structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
 
+## Sectioning large migrations
+
+After the audit, count from `migration/audit.md`:
+
+| Signal | Threshold | Source |
+|---|---|---|
+| Total pages | > 30 | Audit § Pages and routing |
+| Hardcoded `.astro` → YAML conversions | > 15 | Audit census table rows recommending page-builder or fixed-schema collection |
+| Distinct collections | > 5 | Audit § Content collections + new collections from census |
+
+**If any 2 thresholds are tripped, pause before Phase 2 and propose a sectioning plan to the user.** Single-pass migrations erode agent context and miss helper-script opportunities.
+
+| Shape | When |
+|---|---|
+| **Vertical (per-collection)** | Page-builder pages or unique-shape collections dominate — each unit has its own schema/visual-editing decisions |
+| **Horizontal (per-phase)** | Collections are mostly uniform — repetitive per-collection work benefits from one mental model at a time |
+
+Present as: *"Audit shows N pages / M hardcoded conversions / K collections. Recommend breaking into X sessions: [proposed split]. One pass is faster wall-clock; sectioning trades that for fresher context and fewer repeat mistakes. One pass, or break it up?"*
+
+**Repetition → script rule:** After migrating 2 entries of the same shape, write a throwaway script for the rest. 23 hand-conversions of the same article shape is wasted tokens and an error multiplier.
+
 ## Scripts
 
 Deterministic migration steps are automated as scripts in [scripts/](scripts/). Run these before or during the relevant phase.
@@ -128,3 +149,4 @@ For migration process and architecture mistakes, see the phase docs:
 | Shared UI (CTA banners, footers, share blocks) | [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table)            |
 | Multi-schema collections (`pages` with `z.union`) | [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas)       |
 | Config-syntax hallucinations (wrong keys/types) | [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys)                        |
+| Markdown body renders as unstyled text — no heading sizes, list bullets, or link colour — despite `prose prose-lg` classes | `@tailwindcss/typography` not installed or not registered. Tailwind 4 needs `@plugin "@tailwindcss/typography";` in the main CSS (after `@import "tailwindcss";`). Two-line fix: `npm install @tailwindcss/typography` + add the `@plugin` directive. *(L47)* |

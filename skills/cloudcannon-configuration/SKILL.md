@@ -8,6 +8,8 @@ description: >-
 
 # CloudCannon Configuration
 
+> **Editing these docs:** agents are at context ceiling. Before adding content, delete a line of prose. Prefer table rows, checklist items, and ❌/✅ pairs. If a new lesson can't land as one of those three shapes, it probably belongs in a linked deep-dive, not the SKILL.md.
+
 Create and customize `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json` — the files that tell CloudCannon how to understand and present a site's content.
 
 ## When to use
@@ -55,6 +57,17 @@ Observed LLM hallucinations. Not exhaustive — the TS source is authoritative. 
 | `options.structures: my_blocks` (bare name, unreliable)             | `options.structures: _structures.my_blocks` (full path)                                                                                        | [`src/structures.ts`](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/src/structures.ts)                          |
 | `paths.collections`, `paths.data`                                   | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                               | [`src/paths.ts`](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/src/paths.ts)                                    |
 | Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — grep the file                                          | [`src/icon.ts`](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/src/icon.ts)                                      |
+
+## Common mistakes
+
+| Symptom / mistake | Fix |
+|---|---|
+| Hardcoded `{value, label}` pairs for values that live in a data file | Reference `values: data.<file>` + `value_key` + `preview` so the dropdown stays in sync with the data. *(L3)* |
+| Defined a switch/boolean in `_inputs` but the template never reads it | An editor-visible switch that toggles nothing is a broken UX signal. For every boolean/enum field, grep the template for a conditional render. If none, add one or remove the field. *(L4)* |
+| `type: markdown` with no `options:`, or using plural `snippets:` | Editor shows an "unconfigured snippets" toolbar. Every markdown input needs explicit `options:`. Once you declare any option, all omitted keys become false. Valid keys: `bold`, `italic`, `link`, `bulletedlist`, `numberedlist`, `blockquote`, `format`, `image`, `removeformat`, `table`, `snippet` (singular). The inline `data-editable="text" data-type="block"` region and the sidebar input panel are independent channels — configuring one does not configure the other. *(L12)* |
+| "Data file is a top-level object keyed by slug (`{ roswell: {...}, marietta: {...} }`)" | Editors can't add a third item — keys are baked into `file_config`. Convert to a top-level array with an explicit `slug` field per item; consumers switch from `data[slug]` to `data.find(d => d.slug === s)`. `values: data.<file>` + `value_key: slug` is unchanged. *(L42)* |
+| "Visual editor errors on one existing entry but not others — the errored entry's frontmatter has a field populated that the template renders with `data-editable`" | The collection's `_inputs` has no entry for that field. Grep every `data-prop=` in the template, grep `_inputs:` in the collection config, diff the keys. Any editable region without a matching `_inputs` entry is the bug. Add an entry whose `type:` matches the region's `data-type`. *(L45)* |
+| `reference()` field treated as a string | `reference()` resolves to `{collection, id}` objects at runtime. Type Props as `{collection: string; id: string}[]`. Use `getEntry(ref)` to resolve, or `arr.some(r => r.id === currentId)` for membership. *(L48)* |
 
 ## Docs
 

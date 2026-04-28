@@ -1,5 +1,7 @@
 # Configuration Gotchas (Astro)
 
+> **Quick rules:** (1) Array item previews: `[*]` only for plain arrays — structured arrays need preview on the structure value: [§ Array item previews](#array-item-previews--vs-structure-value). (2) Every `type: markdown` needs explicit `options:`: [SKILL.md common mistakes](../SKILL.md#common-mistakes). (3) Data files that hold like-shaped items must be arrays, not objects keyed by slug: [configuration.md § Content specifics](configuration.md#content-specifics). (4) Divergent top-level keys break structure matching: [structures.md § Common mistakes](../structures.md#common-mistakes).
+
 ## Configure icon fields as select inputs
 
 **MUST:** When a template uses an icon library (e.g. `astro-icon` with Iconify sets), configure the `icon` input as `type: select` with `allow_create: true`.
@@ -291,13 +293,21 @@ See [configuration.md § Object inputs need preview icons](configuration.md#obje
 
 **Key collisions:** A key like `image` may be a string path (`type: image`) in some contexts and an object (`{ src, alt }`) in others. Keep the simpler/more common definition globally and use `file_config` or scoped keys for the other.
 
-## Array item previews go on `[*]`, not on the array
+## Array item previews — `[*]` vs structure value
 
-**MUST:** Target `arrayName[*]` (the item), not `arrayName` (the array itself), when defining array item previews.
+Where the preview lives depends on whether the array has `structures:`.
+
+| Array shape | Preview location |
+|---|---|
+| Plain array — no `structures:` | `arrayName[*]` in `_inputs` |
+| Structured array — `structures: _structures._foo` OR inline `structures: { style, values: [...] }` | Inside the structure value itself, alongside `label` / `icon` / `value` / `_inputs` |
+
+`[*]` previews on a structured array validate clean and silently do nothing. If you see arrays with `structures:` and a matching `[*]` preview block, the `[*]` is dead weight — delete it and move the config onto the structure value. See [structures.md § Previews](../structures.md#previews). *(L38)*
+
 **MUST NOT:** Add `type: object` to `arrayName[*]` for snippet array items — the repeating parser already defines the item shape.
-**Why:** Previews configured on the array itself don't apply to items; the item-scoped `[*]` selector is what CC uses to render each row.
 
 ```yaml
+# ✅ Plain array — [*] preview is correct here
 _inputs:
   tab_items:
     type: array
@@ -307,6 +317,18 @@ _inputs:
         text:
           - key: name
         icon: tab
+
+# ✅ Structured array — preview goes on the structure value
+_structures:
+  _nav_items:
+    style: modal
+    values:
+      - label: Nav link
+        icon: link
+        preview:
+          text: [{ key: name }, Nav link]
+          icon: [link]
+        value: { name: Link label, href: / }
 ```
 
 ## Data-only markdown collections
