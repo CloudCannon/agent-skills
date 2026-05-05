@@ -1112,6 +1112,52 @@ Without this, Astro components that import from `astro:content` or `astro:assets
 
 The wrapper is stored in `window.cc_components[key]` where `EditableComponent` can find it.
 
+## Schema file gates prop forwarding on re-render _(L53)_
+
+When `@cloudcannon/editable-regions` re-renders a registered component inside the visual editor, the **schema file** (`.cloudcannon/schemas/<collection>.md`) determines which frontmatter fields are forwarded as props. Fields that exist in the entry's frontmatter and parse cleanly through the Astro/Zod content schema are still **stripped from props on re-render** if they are not declared in the CC schema's frontmatter shape. This applies to nested fields too — declaring a key at the top level of the schema is not enough if the section reads it from a nested object.
+
+**MUST NOT:** add a hidden `_input` in `cloudcannon.config.yml` and expect the field to flow through. `_inputs` control how fields render in the sidebar UI; they have no effect on which fields are forwarded to a re-rendered editable-region component. The schema file is the gate.
+
+### Symptom → diagnosis
+
+The component renders correctly in `astro build` output but is missing data inside the visual editor:
+
+1. Log `Object.keys(Astro.props)` from inside the component frontmatter and view it in the editor preview (console logs aren't reachable from inside the iframe).
+2. Compare the surviving keys against the section's frontmatter on disk. Stripped keys are the diagnostic.
+3. Open the relevant schema file in `.cloudcannon/schemas/`. The stripped keys will be absent from the schema's frontmatter shape (or absent from the relevant nested object).
+4. Add the missing keys with sensible default values. Reload the editor — they appear in props immediately, no save/rebuild required.
+
+### Concrete example
+
+Entry `src/content/pages/home.md`:
+
+```yaml
+postsSection:
+  categorySlug: news # used by the component to filter posts
+  heading: Latest News
+  intro: ...
+```
+
+Component `PostsListing.astro` reads `categorySlug` from `Astro.props`. In the visual editor, `Astro.props` contained only `heading` and `intro`; `categorySlug` was missing.
+
+- ❌ Did not help: declaring `postsSection.categorySlug` as a hidden `_input` in `cloudcannon.config.yml`.
+- ✅ Fixed it: adding `categorySlug: ""` inside the `postsSection:` block in `.cloudcannon/schemas/page.md`.
+
+### Debug snippet
+
+Drop this at the top of a section component, reload the editor, and read off which keys survived:
+
+```astro
+---
+const debug = { allPropKeys: Object.keys(Astro.props), allProps: Astro.props };
+---
+<pre style="background:#fffbe6;border:2px solid #f59e0b;padding:12px;font-size:12px;white-space:pre-wrap;word-break:break-all;">
+{JSON.stringify(debug, null, 2)}
+</pre>
+```
+
+If a key is missing, the schema file is the place to fix it.
+
 ## Troubleshooting — why isn't my field live-updating?
 
 | Symptom                                                                                                                                                                             | Diagnosis & fix                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -1124,6 +1170,7 @@ The wrapper is stored in `window.cc_components[key]` where `EditableComponent` c
 | Sidebar field (switch/dropdown) doesn't trigger a re-render OR `Cannot destructure property 'x' of 'n.props' as it is undefined` — text editables on the same component update fine | Two possible causes: (1) **Schema flat-fields** — scattered fields with `propPrefix=""`. Fix by nesting under one frontmatter key (see [§Nested frontmatter](#scattered-fields-feeding-a-registered-component--nest-the-frontmatter)). (2) **Standalone self-marking** — component rendered directly from a page template has `data-editable="component"` on its own root. Fix by using `<editable-component>` at the call site (see [§Registration placement](#where-does-the-registration-go--component-root-or-call-site)). _(L40)_ |
 | Multiselect of refs renders nothing or all — selection appears not to work                                                                                                          | `reference()` fields are `{collection, id}` objects at runtime, not strings. Comparing `entry.id === ref` is string-vs-object → always false. Fix: use `getEntry(ref)` for one ref, or `entry.data.x.some(r => r.id === currentId)` for membership. Type Props as `{collection: string; id: string}[]`, never `string[]`. _(L48)_                                                                                                                                                                                                      |
 | Multiselect appears to work but selection is ignored — same output regardless of what's selected                                                                                    | Component has an `if (length === 0) showAll` fallback. Combined with a ref-comparison bug (L48), the filtered array always empties and the fallback always fires. Remove the fallback. Empty array = render nothing. Seed defaults in `.cloudcannon/schemas/<collection>.md`. _(L50)_                                                                                                                                                                                                                                                  |
+| Component renders correctly in `astro build` but a field is missing from `Astro.props` in the visual editor                                                                         | The CC schema file (`.cloudcannon/schemas/<collection>.md`) gates which frontmatter fields are forwarded on re-render. Fields absent from the schema shape are stripped from props, even if they parse cleanly through the Zod content schema. A hidden `_input` in `cloudcannon.config.yml` does NOT fix this. Add the missing key (with a sensible default) inside the correct nested object in the schema file. See [§Schema file gates prop forwarding](#schema-file-gates-prop-forwarding-l53). _(L53)_                            |
 
 ## Scroll-reveal and entrance animations
 
