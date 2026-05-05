@@ -302,7 +302,7 @@ Where the preview lives depends on whether the array has `structures:`.
 | Plain array — no `structures:`                                                                     | `arrayName[*]` in `_inputs`                                                         |
 | Structured array — `structures: _structures._foo` OR inline `structures: { style, values: [...] }` | Inside the structure value itself, alongside `label` / `icon` / `value` / `_inputs` |
 
-`[*]` previews on a structured array validate clean and silently do nothing. If you see arrays with `structures:` and a matching `[*]` preview block, the `[*]` is dead weight — delete it and move the config onto the structure value. See [structures.md § Previews](../structures.md#previews). _(L38)_
+`[*]` previews on a structured array validate clean and silently do nothing. If you see arrays with `structures:` and a matching `[*]` preview block, the `[*]` is dead weight — delete it and move the config onto the structure value. See [structures.md § Previews](../structures.md#previews).
 
 **MUST NOT:** Add `type: object` to `arrayName[*]` for snippet array items — the repeating parser already defines the item shape.
 

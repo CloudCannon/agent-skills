@@ -125,7 +125,7 @@ Run through these after setup, before starting on editable regions:
   - [ ] each iterated row has `data-editable="array-item"`
   - [ ] each text field inside the row has `data-editable="text" data-prop="<rowKey>"`
   - [ ] each image inside the row has `data-editable="image" data-prop="<rowKey>"`
-  - [ ] **Verify**: in visual mode, clicking a row outlines the row; clicking a field inside outlines the field. If nothing highlights, markers are missing — sidebar-editable ≠ visual-editable. _(L52)_
+  - [ ] **Verify**: in visual mode, clicking a row outlines the row; clicking a field inside outlines the field. If nothing highlights, markers are missing — sidebar-editable ≠ visual-editable.
         → [Array editing](visual-editing-reference.md#array-editing)
 - [ ] **Nested editables in array items**: Every array item has nested `data-editable="text"` / `data-editable="image"` (or `<editable-text>` / `<editable-image>`) on its visible fields.
       → [Array editing](visual-editing-reference.md#array-editing)
@@ -145,8 +145,8 @@ Run through these after setup, before starting on editable regions:
       → [Component editables backed by data files](visual-editing-reference.md#component-editables-backed-by-data-files)
 - [ ] **Cross-collection select wiring**: Every `select` input that references another data file (`author`, `category`, `team_member`) renders through a **registered component** that does the slug lookup _internally_, wrapped in `<editable-component data-component="..." data-prop="<slug-field>">`.
       → [Cross-collection select inputs](visual-editing-reference.md#cross-collection-select-inputs)
-- [ ] **`_inputs` presence audit:** grep `data-prop=` in every template; grep `_inputs:` in the collection config; diff the keys. Every `data-editable` region must have a matching `_inputs` entry — missing entry → visual-editor errors on entries whose frontmatter has the field populated. (Lesson 19 is the type-pairing audit; this is the presence audit — both apply.) _(L45)_
-- [ ] **Schema-file seed audit:** every field the template wires must appear in `.cloudcannon/schemas/<collection>.md` default frontmatter with a sensible placeholder. Otherwise "Add new" creates pages missing half their editable regions. _(L45)_
+- [ ] **`_inputs` presence audit:** grep `data-prop=` in every template; grep `_inputs:` in the collection config; diff the keys. Every `data-editable` region must have a matching `_inputs` entry — missing entry → visual-editor errors on entries whose frontmatter has the field populated.
+- [ ] **Schema-file seed audit:** every field the template wires must appear in `.cloudcannon/schemas/<collection>.md` default frontmatter with a sensible placeholder. Otherwise "Add new" creates pages missing half their editable regions.
 - [ ] **Markdown body content**: Pages rendering markdown body (via `<Content />`, `entry.render()`, or `<slot />` in layouts) have `data-editable="text" data-type="block" data-prop="@content"` on the wrapper element
       → [Content body editing](visual-editing-reference.md#content-body-editing)
 - [ ] **Slot content hosts**: Editable slot content uses a concrete DOM host (`<editable-text>`, `<span>`) not `<Fragment>`

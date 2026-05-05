@@ -48,16 +48,39 @@ Each SSG guide walks through these in order. Phases that delegate to standalone 
 
 Not every site needs all phases. Small sites may skip Phase 3 if content is already well-structured. Phase 4 is optional but high-value.
 
-### Phase discipline
+### Per-phase workflow — MUST follow
 
-**MUST:** read each phase doc's checklist before starting the phase, then verify every item before marking it complete.
-**Why:** checklists catch things you will otherwise miss — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page builder blocks, arrays not linked to structures.
+For each phase, in order:
 
-**Phases are sequential, not siloed.** When a later-phase concern (e.g. a missing frontmatter field) blocks the current phase from producing the right result, make the targeted fix now. Small, mechanical fixes (adding a missing field, normalizing a value) are fine in any phase. Structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
+1. **Read** the phase doc end-to-end before touching any files.
+2. **TaskCreate** one task per checklist item in that phase doc. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
+3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
+4. **Write** `migration/<phase>.md` documenting decisions, findings, and anything the user should review.
+5. **Check the handoff readiness row below.** If it's met, the phase is safe to hand off to a fresh conversation. Whether you actually open a fresh conversation is a judgment call (see [Chunking](#chunking-large-migrations) below) — within one conversation, just continue.
 
-## Sectioning large migrations
+**Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. TaskCreate makes the skim visible.
 
-After the audit, count from `migration/audit.md`:
+### Phase handoff readiness
+
+These rows define what must be true for a phase to be safely picked up by a fresh conversation. They are **not** walls inside one conversation — cross-phase fixes (per step 3 above) are still fine. They exist so a chunked migration's later runs have a clean starting point.
+
+| After phase           | Ready for handoff when…                                                                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1. Audit**          | `migration/audit.md` exists, contains the census table, and lists every collection + every page route. Sectioning thresholds (below) have been evaluated; if tripped, `migration/plan.md` exists.                                                                  |
+| **2. Configuration**  | `cloudcannon.config.yml` validates against the published JSON schema (no IDE red squigglies). Every collection in the audit has a `collections_config` entry; every referenced data file has a `data_config` entry. `migration/configuration.md` written.          |
+| **3. Content**        | All structural content changes from Phase 2 are reflected in the files. `npm run build` (or project equivalent) succeeds. `migration/content.md` written.                                                                                                          |
+| **4. Visual editing** | Every section flagged in the audit census as "needs editable region" has been wired or has a documented justification for not being wired. `registerComponents.ts` registers every component used inside a wrapped section. `migration/visual-editing.md` written. |
+| **5. Build and test** | Production build succeeds locally. User has run their CloudCannon-side verification (preview, inline edit, save-to-git). `migration/build.md` written.                                                                                                             |
+
+## Chunking large migrations
+
+Migrations can run end-to-end in one conversation, but on larger sites context fills up — quality drops in later phases (especially Phase 4 visual editing) when the agent is recalling decisions from earlier phases through a long backscroll. Chunking into fresh conversations is a way to avoid that.
+
+**Chunking is a suggestion, not a wall.** The agent doesn't _halt_ between phases — it tells the user "context is heavy; consider opening a fresh conversation for Phase N" and lets the user choose. If the user keeps going in the same conversation, that's fine.
+
+### When to suggest a fresh conversation
+
+At the end of Phase 1, evaluate the sizing thresholds against `migration/audit.md`:
 
 | Signal                                | Threshold | Source                                                                       |
 | ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
@@ -65,14 +88,50 @@ After the audit, count from `migration/audit.md`:
 | Hardcoded `.astro` → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
 | Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
 
-**If any 2 thresholds are tripped, pause before Phase 2 and propose a sectioning plan to the user.** Single-pass migrations erode agent context and miss helper-script opportunities.
+If any 2 thresholds are tripped, write `migration/plan.md` using the template below, then suggest to the user that later phases run in fresh conversations. Phase 4 (visual editing) is the most context-hungry — it's the most likely candidate for a fresh start.
 
 | Shape                         | When                                                                                                            |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | **Vertical (per-collection)** | Page-builder pages or unique-shape collections dominate — each unit has its own schema/visual-editing decisions |
 | **Horizontal (per-phase)**    | Collections are mostly uniform — repetitive per-collection work benefits from one mental model at a time        |
 
-Present as: _"Audit shows N pages / M hardcoded conversions / K collections. Recommend breaking into X sessions: [proposed split]. One pass is faster wall-clock; sectioning trades that for fresher context and fewer repeat mistakes. One pass, or break it up?"_
+### `migration/plan.md` template
+
+```markdown
+# Migration plan
+
+## Sizing
+
+- Total pages: <n> (threshold >30: <tripped|ok>)
+- Hardcoded → YAML conversions: <n> (threshold >15: <tripped|ok>)
+- Distinct collections: <n> (threshold >5: <tripped|ok>)
+- Tripped: <count>/3 → <chunked recommended|single-pass fine>
+
+## Shape (if chunking)
+
+<vertical|horizontal> — because: <one-line reason>
+
+## Chunks
+
+Each chunk is intended as a single agent run, ideally in a fresh conversation
+once context is heavy. The agent reads `migration/audit.md` + this file + the
+listed phase doc, then works the listed scope.
+
+| #   | Scope                            | Phase(s) | Inputs                     | Output artefact                           |
+| --- | -------------------------------- | -------- | -------------------------- | ----------------------------------------- |
+| 1   | <e.g. all collections — config>  | 2        | audit.md                   | cloudcannon.config.yml + configuration.md |
+| 2   | <e.g. blog collection — content> | 3        | audit.md, configuration.md | content.md (blog section)                 |
+| 3   | <...>                            | ...      | ...                        | ...                                       |
+
+## Global decisions locked in chunk 1 (do not revisit)
+
+- Collection URL patterns
+- Shared structures (`_structures`)
+- Snippet configs (if MDX/inline HTML)
+- `registerComponents.ts` setup
+```
+
+**Resumption brief** (paste into a fresh conversation): "Read `migration/audit.md`, `migration/plan.md`, and the phase doc(s) listed for chunk N. Work chunk N's scope. Write the output artefact and stop."
 
 **Repetition → script rule:** After migrating 2 entries of the same shape, write a throwaway script for the rest. 23 hand-conversions of the same article shape is wasted tokens and an error multiplier.
 
@@ -82,7 +141,7 @@ Deterministic migration steps are automated as scripts in [scripts/](scripts/). 
 
 ## Migration notes
 
-Create a `migration/` directory at the project root with one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`). Document decisions, findings, and anything the user should review as work progresses.
+All written to `migration/` at the project root: one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`), plus `plan.md` if the migration is sectioned. See the per-phase workflow above for the gates that consume each file.
 
 ## Handoff and verification
 
@@ -142,11 +201,11 @@ Follow existing project conventions when present. Otherwise:
 
 For migration process and architecture mistakes, see the phase docs:
 
-| Topic                                                                                                                      | Owner                                                                                                                                                                                                                                                         |
-| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Classifying static pages (source-editable vs page-builder vs collection)                                                   | [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection)                                                                                                                                   |
-| `home.md` vs `index.md`, collection-of-one                                                                                 | [astro/page-building.md § Common mistakes](astro/page-building.md#common-mistakes)                                                                                                                                                                            |
-| Shared UI (CTA banners, footers, share blocks)                                                                             | [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table)                                                                                                                                    |
-| Multi-schema collections (`pages` with `z.union`)                                                                          | [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas)                                                                                                                                  |
-| Config-syntax hallucinations (wrong keys/types)                                                                            | [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys)                                                                                                                                                |
-| Markdown body renders as unstyled text — no heading sizes, list bullets, or link colour — despite `prose prose-lg` classes | `@tailwindcss/typography` not installed or not registered. Tailwind 4 needs `@plugin "@tailwindcss/typography";` in the main CSS (after `@import "tailwindcss";`). Two-line fix: `npm install @tailwindcss/typography` + add the `@plugin` directive. _(L47)_ |
+| Topic                                                                                                                      | Owner                                                                                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Classifying static pages (source-editable vs page-builder vs collection)                                                   | [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection)                                                                                                                           |
+| `home.md` vs `index.md`, collection-of-one                                                                                 | [astro/page-building.md § Common mistakes](astro/page-building.md#common-mistakes)                                                                                                                                                                    |
+| Shared UI (CTA banners, footers, share blocks)                                                                             | [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table)                                                                                                                            |
+| Multi-schema collections (`pages` with `z.union`)                                                                          | [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas)                                                                                                                          |
+| Config-syntax hallucinations (wrong keys/types)                                                                            | [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys)                                                                                                                                        |
+| Markdown body renders as unstyled text — no heading sizes, list bullets, or link colour — despite `prose prose-lg` classes | `@tailwindcss/typography` not installed or not registered. Tailwind 4 needs `@plugin "@tailwindcss/typography";` in the main CSS (after `@import "tailwindcss";`). Two-line fix: `npm install @tailwindcss/typography` + add the `@plugin` directive. |
