@@ -6,10 +6,10 @@ Reference for `@cloudcannon/editable-regions` v0.1.x — the client-side system 
 
 ### Primitive vs component regions
 
-| Kind          | Types                                    | Behaviour                                                                                               | Use when                                                                                  |
-| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| **Primitive** | `text`, `image`, `array`, `array-item`, `source` | Updates its own slice of the live DOM directly. No registered renderer needed.                          | Inline on-canvas editing of a single value or list.                                       |
-| **Component** | `component`, `snippet` (extends component) | Re-renders from structured data so the whole template slice stays in sync — text, images, styles, derived markup. | The section has conditional elements, style/class bindings, or computed content. Nest primitives inside for inline editing. |
+| Kind          | Types                                            | Behaviour                                                                                                         | Use when                                                                                                                    |
+| ------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Primitive** | `text`, `image`, `array`, `array-item`, `source` | Updates its own slice of the live DOM directly. No registered renderer needed.                                    | Inline on-canvas editing of a single value or list.                                                                         |
+| **Component** | `component`, `snippet` (extends component)       | Re-renders from structured data so the whole template slice stays in sync — text, images, styles, derived markup. | The section has conditional elements, style/class bindings, or computed content. Nest primitives inside for inline editing. |
 
 **Precedence:** a primitive that binds a `data-prop` to a subtree wins for that subtree's live value — updates follow frontmatter through the region and override any component-level transform. With no primitive on that markup, the component re-render owns value derivation. Typical split: an `array` region for CRUD plus nested `text`/`image` primitives on the fields you want on-canvas.
 
@@ -46,11 +46,11 @@ Extends `EditableComponent` for editing snippets within rich text content. Manag
 **MUST:** wrap a section in a component when it has conditional elements, style/class bindings, or computed/derived content.
 **Why:** primitive editables update their own DOM slice but can't re-render the surrounding template. Without a component region, data-driven changes to conditional or computed markup don't reflect live.
 
-| Signal                        | Example                                                              |
-| ----------------------------- | -------------------------------------------------------------------- |
-| Conditional elements          | A button that appears/disappears based on a boolean                  |
-| Style or class bindings       | Alternating background colours, layout order driven by index         |
-| Computed/derived content      | A badge or label that changes based on another field                 |
+| Signal                   | Example                                                      |
+| ------------------------ | ------------------------------------------------------------ |
+| Conditional elements     | A button that appears/disappears based on a boolean          |
+| Style or class bindings  | Alternating background colours, layout order driven by index |
+| Computed/derived content | A badge or label that changes based on another field         |
 
 **When in doubt, prefer a component.** Cost: one registration call + a wrapper element. Benefit: every data-driven change live-updates.
 
@@ -101,10 +101,10 @@ For when to add HTML `<template>` children on the array wrapper versus relying o
 
 Both forms produce identical behaviour. Custom elements self-hydrate via `connectedCallback`.
 
-| Host                                                 | Preferred form                       |
-| ---------------------------------------------------- | ------------------------------------ |
+| Host                                                        | Preferred form                                                                                  |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Wrapper-only (markup whose only job is to carry the region) | Custom element (`<editable-text>`, `<editable-image>`) — less likely to collide with layout CSS |
-| Semantic or layout element (`<h1>`, `<p>`, `<section>`) | Keep `data-editable` on the semantic element |
-| Stylesheet or third-party targets `span`/`div`       | Explicit `<span data-editable="...">` / `<div data-editable="...">` |
+| Semantic or layout element (`<h1>`, `<p>`, `<section>`)     | Keep `data-editable` on the semantic element                                                    |
+| Stylesheet or third-party targets `span`/`div`              | Explicit `<span data-editable="...">` / `<div data-editable="...">`                             |
 
 Astro-specific patterns (slots, links, templates) are in [astro/visual-editing.md](astro/visual-editing.md).

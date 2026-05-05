@@ -104,6 +104,12 @@ Check for:
 
 ### Handling styled HTML in frontmatter
 
+**Rule — markdown fields:** Markdown content fields (`type: markdown` inputs) must be plain markdown or plain HTML without class attributes. Class attributes, inline styles, and arbitrary attributed HTML collapse into uneditable snippet chips in CloudCannon's rich-text editor — authors can't click into the element to edit link text or URLs.
+
+❌ `<a href="/x" class="text-primary font-medium">text</a>` (becomes an uneditable chip)
+✅ `<a href="/x">text</a>` with styling in CSS targeting the rendered prose container
+✅ `[text](/x)` plain markdown link
+
 **MUST NOT:** Preserve inline HTML with CSS classes, entities, or responsive markup in frontmatter verbatim.
 **Why:** CloudCannon's visual editor renders unknown HTML classes with red outlines and can't interact with them.
 **Rule:** Frontmatter stores content; components own presentation.
@@ -245,12 +251,12 @@ When the folder structure encodes meaningful grouping beyond the slug, keep fold
 **MUST:** extract editor-facing settings (navigation, social links, colors, CTAs) from TS config files to JSON data files in `src/data/`.
 **Why:** CloudCannon can't edit TypeScript — editors lose access to settings locked inside `.ts` files.
 
-| Keep in TS config                                      | Move to JSON data file                       |
-| ------------------------------------------------------ | -------------------------------------------- |
-| Asset imports (`import logo from '...'`)               | Navigation, social links, CTAs               |
-| Computed values                                        | Label text, icon names, color scheme names   |
-| Framework-specific settings (CSS var mappings, flags)  | Any value an editor should control           |
-| Anything referencing other TS modules                  |                                              |
+| Keep in TS config                                     | Move to JSON data file                     |
+| ----------------------------------------------------- | ------------------------------------------ |
+| Asset imports (`import logo from '...'`)              | Navigation, social links, CTAs             |
+| Computed values                                       | Label text, icon names, color scheme names |
+| Framework-specific settings (CSS var mappings, flags) | Any value an editor should control         |
+| Anything referencing other TS modules                 |                                            |
 
 **Steps:**
 
@@ -267,11 +273,11 @@ When the folder structure encodes meaningful grouping beyond the slug, keep fold
 
 Data collections hold content that doesn't build its own page. They can live inside `src/content/` (Astro content collections) or outside it (standalone JSON/YAML files exposed via `data_config`). The deciding factor is purpose, not location:
 
-| Content usage                                                               | Pattern                                           |
-| --------------------------------------------------------------------------- | ------------------------------------------------- |
-| Builds its own page (blog post, service page)                               | Page collection with a `url` pattern              |
-| Used on one page only (homepage hero)                                       | That page's frontmatter — no separate collection  |
-| Used across multiple pages (navigation, social links, testimonials, tags)   | Data collection                                   |
+| Content usage                                                             | Pattern                                          |
+| ------------------------------------------------------------------------- | ------------------------------------------------ |
+| Builds its own page (blog post, service page)                             | Page collection with a `url` pattern             |
+| Used on one page only (homepage hero)                                     | That page's frontmatter — no separate collection |
+| Used across multiple pages (navigation, social links, testimonials, tags) | Data collection                                  |
 
 **MUST:** set `disable_url: true` on data collections.
 **Why:** they don't produce pages; without this, CC attempts a URL and breaks the Visual Editor.

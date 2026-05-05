@@ -214,11 +214,11 @@ _inputs:
 
 ### Reference blocks vs inline blocks
 
-| Kind            | Shape                                                                                 | Use for                                                              |
-| --------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Inline block    | Full data lives on the block instance in the page array                               | One-off content unique to this page (hero copy, page-specific CTA)   |
-| Reference block | Block in the page array is just a `_type` marker; page imports global JSON from Data  | Shared content reused across pages (CTA banner, testimonial list)    |
-| Combined        | Reference block + per-instance props                                                  | Shared body copy from JSON + per-instance `background`/`textColor`   |
+| Kind            | Shape                                                                                | Use for                                                            |
+| --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Inline block    | Full data lives on the block instance in the page array                              | One-off content unique to this page (hero copy, page-specific CTA) |
+| Reference block | Block in the page array is just a `_type` marker; page imports global JSON from Data | Shared content reused across pages (CTA banner, testimonial list)  |
+| Combined        | Reference block + per-instance props                                                 | Shared body copy from JSON + per-instance `background`/`textColor` |
 
 Editors get visual editing on reference blocks via `@data[key]` regions.
 
@@ -254,3 +254,7 @@ Original templates often pass CSS class overrides to visually join adjacent bloc
 Accept minor visual diffs (~3-5%) for adjacent block spacing rather than leaking CSS into content. If spacing is critical, handle it in the component with a prop like `compact: true` (boolean, editor-friendly) instead of raw class strings.
 
 For the full visual editing setup (three-layer pattern, nested editables, sub-arrays, component registration), see [visual-editing.md](../../cloudcannon-visual-editing/astro/visual-editing.md).
+
+> Frontmatter that feeds any computation (ternary, lookup, `iconPaths[x]`, `set:html`) must flow through a registered component — see [golden rule](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#golden-rule--computed-content-needs-a-component-wrapper).
+> Statically-placed registered components must be wrapped with `<editable-component>` at the call site, not self-marked on the section root — see [standalone-wrapper rule](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
+> Each registered component's fields should be nested under one frontmatter key — see [frontmatter co-location](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#scattered-fields-feeding-a-registered-component--nest-the-frontmatter).
