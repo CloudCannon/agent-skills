@@ -37,7 +37,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
 
 Also check for data files outside collections (JSON, YAML in `src/config/` or similar) that contain editable site configuration.
 
-> **Data file shape — anti-pattern:** If a data file holds like-shaped items (team members, products, FAQs), it must be a **top-level array** with a `slug`/`id` field on each item — not an object keyed by slug (`{ "office-a": {...}, "office-b": {...} }`). Object-of-records locks editors to existing keys and breaks the "Add" button. *(L42)*
+> **Data file shape — anti-pattern:** If a data file holds like-shaped items (team members, products, FAQs), it must be a **top-level array** with a `slug`/`id` field on each item — not an object keyed by slug (`{ "office-a": {...}, "office-b": {...} }`). Object-of-records locks editors to existing keys and breaks the "Add" button. _(L42)_
 
 ## 3. Pages and routing
 
@@ -80,16 +80,16 @@ Also flag **hardcoded text in page templates**, but classify it through the cens
 
 Use this decision table for every `.astro` page that isn't already in a collection. **Page builder is the default for unique-layout pages** -- source-editable is the exception, reserved for long-form prose.
 
-| Page characteristics                                                                                                            | Pattern                                                                                                                                                                               | Why                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Many entries, identical shape (blog posts, team profiles, products, articles)                                                   | **Fixed-schema collection**                                                                                                                                                           | Consistency matters; editors fill fields, not layout                                                       |
-| Multiple "sibling" pages that share most structure (services, locations, specialties)                                           | **Fixed-schema collection**                                                                                                                                                           | Shared shape benefits all entries; one template change updates all                                         |
-| Unique layout per page, but multiple such pages exist (homepage, about, our-team, contact, landing pages, FAQ, marketing pages) | **Page builder `pages` collection** ← DEFAULT                                                                                                                                         | Editors compose from blocks. New pages addable from CMS. Multiple schemas in the same collection are fine. |
-| Long-form prose with minimal structure (legal, policy docs, terms)                                                              | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal                                                                  |
-| Truly one-shot, never edited by content team (404, system pages)                                                                | **Hardcoded `.astro`**                                                                                                                                                                | No editor value                                                                                            |
-| "Only n=2 pages — small enough to be a data file" | ❌ Data file because count is low | ✅ Collection — if a route renders frontmatter-shaped content for ONE entity (its own URL, hero, body, sections), it's a collection even at n=2. Data files are for shared lookups. *(L20)* |
-| Page re-declares an array that overlaps with a data file (`services`, `team`, `faq`) | ❌ Local const array + data file both maintained | Delete the local array, read from the data file via `import`. Editors change the data file, the page stays stale. *(L16)* |
-| Cross-collection membership (category ↔ posts) with both sides storing the list | ❌ Both sides own the list — drifts when one is updated | ✅ One canonical side owns the list (per-entity collection). Other side reverse-looks-up: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`. Add a CMS comment: "X is pulled automatically — edit Y to add/remove". *(L49)* |
+| Page characteristics                                                                                                            | Pattern                                                                                                                                                                               | Why                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Many entries, identical shape (blog posts, team profiles, products, articles)                                                   | **Fixed-schema collection**                                                                                                                                                           | Consistency matters; editors fill fields, not layout                                                                                                                                                                                      |
+| Multiple "sibling" pages that share most structure (services, locations, specialties)                                           | **Fixed-schema collection**                                                                                                                                                           | Shared shape benefits all entries; one template change updates all                                                                                                                                                                        |
+| Unique layout per page, but multiple such pages exist (homepage, about, our-team, contact, landing pages, FAQ, marketing pages) | **Page builder `pages` collection** ← DEFAULT                                                                                                                                         | Editors compose from blocks. New pages addable from CMS. Multiple schemas in the same collection are fine.                                                                                                                                |
+| Long-form prose with minimal structure (legal, policy docs, terms)                                                              | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal                                                                                                                                                                                                 |
+| Truly one-shot, never edited by content team (404, system pages)                                                                | **Hardcoded `.astro`**                                                                                                                                                                | No editor value                                                                                                                                                                                                                           |
+| "Only n=2 pages — small enough to be a data file"                                                                               | ❌ Data file because count is low                                                                                                                                                     | ✅ Collection — if a route renders frontmatter-shaped content for ONE entity (its own URL, hero, body, sections), it's a collection even at n=2. Data files are for shared lookups. _(L20)_                                               |
+| Page re-declares an array that overlaps with a data file (`services`, `team`, `faq`)                                            | ❌ Local const array + data file both maintained                                                                                                                                      | Delete the local array, read from the data file via `import`. Editors change the data file, the page stays stale. _(L16)_                                                                                                                 |
+| Cross-collection membership (category ↔ posts) with both sides storing the list                                                 | ❌ Both sides own the list — drifts when one is updated                                                                                                                               | ✅ One canonical side owns the list (per-entity collection). Other side reverse-looks-up: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`. Add a CMS comment: "X is pulled automatically — edit Y to add/remove". _(L49)_ |
 
 Then produce this **mandatory census table** in `migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
 
@@ -110,22 +110,22 @@ This classification feeds directly into the configuration phase. For census rows
 
 - [ ] **Primitive-vs-computed census** — for every page template / route file with ≥3 `{data.x}` interpolations, fill out:
 
-  | Interpolation | Kind | Action |
-  |---|---|---|
-  | `{data.name}` | primitive text | ✅ keep — primitive editable OK |
-  | `{data.inStock ? "In stock" : "Out of stock"}` | computed (ternary) | ❌ extract to registered component |
-  | `{locations[data.location].street}` | computed (lookup) | ❌ extract or use `@data[key]` |
-  | `{site.phone}` | computed (shared-data) | ❌ extract or use `@data[key]` |
+  | Interpolation                                  | Kind                   | Action                             |
+  | ---------------------------------------------- | ---------------------- | ---------------------------------- |
+  | `{data.name}`                                  | primitive text         | ✅ keep — primitive editable OK    |
+  | `{data.inStock ? "In stock" : "Out of stock"}` | computed (ternary)     | ❌ extract to registered component |
+  | `{locations[data.location].street}`            | computed (lookup)      | ❌ extract or use `@data[key]`     |
+  | `{site.phone}`                                 | computed (shared-data) | ❌ extract or use `@data[key]`     |
 
-  Target: zero computed interpolations in route files. *(L21)*
+  Target: zero computed interpolations in route files. _(L21)_
 
 - [ ] **Frontmatter co-location census** — for every registered component in `src/cloudcannon/componentMap.ts`:
 
-  | Component file | Used from page template? | Fields nested under one frontmatter key? | Action |
-  |---|---|---|---|
-  | (list every registered component) | | | |
+  | Component file                    | Used from page template? | Fields nested under one frontmatter key? | Action |
+  | --------------------------------- | ------------------------ | ---------------------------------------- | ------ |
+  | (list every registered component) |                          |                                          |        |
 
-  Refactor before shipping. Do not ship `propPrefix=""` / conditional wrappers / `Astro.props ?? {}` workarounds. *(L32)*
+  Refactor before shipping. Do not ship `propPrefix=""` / conditional wrappers / `Astro.props ?? {}` workarounds. _(L32)_
 
 ## 5. Build pipeline
 
@@ -167,4 +167,4 @@ Once the census table and collection inventory are filled in, record:
 - Rows in the census table recommending page-builder or fixed-schema collection (the hardcoded `.astro`→YAML conversions)
 - Distinct collections (existing + proposed in census)
 
-If any 2 of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet.** Read [SKILL.md § Sectioning large migrations](../SKILL.md#sectioning-large-migrations), draft a proposed sectioning, and present it to the user for a one-pass-vs-sectioned decision before continuing. *(L41)*
+If any 2 of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet.** Read [SKILL.md § Sectioning large migrations](../SKILL.md#sectioning-large-migrations), draft a proposed sectioning, and present it to the user for a one-pass-vs-sectioned decision before continuing. _(L41)_

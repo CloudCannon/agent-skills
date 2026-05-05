@@ -125,8 +125,8 @@ Run through these after setup, before starting on editable regions:
   - [ ] each iterated row has `data-editable="array-item"`
   - [ ] each text field inside the row has `data-editable="text" data-prop="<rowKey>"`
   - [ ] each image inside the row has `data-editable="image" data-prop="<rowKey>"`
-  - [ ] **Verify**: in visual mode, clicking a row outlines the row; clicking a field inside outlines the field. If nothing highlights, markers are missing — sidebar-editable ≠ visual-editable. *(L52)*
-      → [Array editing](visual-editing-reference.md#array-editing)
+  - [ ] **Verify**: in visual mode, clicking a row outlines the row; clicking a field inside outlines the field. If nothing highlights, markers are missing — sidebar-editable ≠ visual-editable. _(L52)_
+        → [Array editing](visual-editing-reference.md#array-editing)
 - [ ] **Nested editables in array items**: Every array item has nested `data-editable="text"` / `data-editable="image"` (or `<editable-text>` / `<editable-image>`) on its visible fields.
       → [Array editing](visual-editing-reference.md#array-editing)
 - [ ] **Array path scope**: Inside `data-editable="array-item"`, every nested `data-prop` is **relative** to the item (`data-prop="heading"`, `data-prop="links"`).
@@ -145,8 +145,8 @@ Run through these after setup, before starting on editable regions:
       → [Component editables backed by data files](visual-editing-reference.md#component-editables-backed-by-data-files)
 - [ ] **Cross-collection select wiring**: Every `select` input that references another data file (`author`, `category`, `team_member`) renders through a **registered component** that does the slug lookup _internally_, wrapped in `<editable-component data-component="..." data-prop="<slug-field>">`.
       → [Cross-collection select inputs](visual-editing-reference.md#cross-collection-select-inputs)
-- [ ] **`_inputs` presence audit:** grep `data-prop=` in every template; grep `_inputs:` in the collection config; diff the keys. Every `data-editable` region must have a matching `_inputs` entry — missing entry → visual-editor errors on entries whose frontmatter has the field populated. (Lesson 19 is the type-pairing audit; this is the presence audit — both apply.) *(L45)*
-- [ ] **Schema-file seed audit:** every field the template wires must appear in `.cloudcannon/schemas/<collection>.md` default frontmatter with a sensible placeholder. Otherwise "Add new" creates pages missing half their editable regions. *(L45)*
+- [ ] **`_inputs` presence audit:** grep `data-prop=` in every template; grep `_inputs:` in the collection config; diff the keys. Every `data-editable` region must have a matching `_inputs` entry — missing entry → visual-editor errors on entries whose frontmatter has the field populated. (Lesson 19 is the type-pairing audit; this is the presence audit — both apply.) _(L45)_
+- [ ] **Schema-file seed audit:** every field the template wires must appear in `.cloudcannon/schemas/<collection>.md` default frontmatter with a sensible placeholder. Otherwise "Add new" creates pages missing half their editable regions. _(L45)_
 - [ ] **Markdown body content**: Pages rendering markdown body (via `<Content />`, `entry.render()`, or `<slot />` in layouts) have `data-editable="text" data-type="block" data-prop="@content"` on the wrapper element
       → [Content body editing](visual-editing-reference.md#content-body-editing)
 - [ ] **Slot content hosts**: Editable slot content uses a concrete DOM host (`<editable-text>`, `<span>`) not `<Fragment>`
@@ -200,10 +200,10 @@ Use grep counts, not line counts (`grep -oE`, not `grep -c`), when verifying —
 
 Answer each question. Every "No" is a blocker.
 
-| Check | Cross-link |
-|---|---|
+| Check                                                                                              | Cross-link                                                                                                                   |
+| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Every registered-component field-group nested under a single frontmatter key (no `propPrefix=""`)? | [Frontmatter co-location](visual-editing-reference.md#scattered-fields-feeding-a-registered-component--nest-the-frontmatter) |
-| Every content file backfilled after a schema default changed? | [L24 — schema defaults vs backfill](visual-editing-reference.md) |
-| Every multiselect/select backed by a data file uses `values: data.*`? | [L3/L25 — data-backed selects](../../cloudcannon-configuration/SKILL.md#common-mistakes) |
-| Every standalone-placed registered component wrapped with `<editable-component>` at the call site? | [Standalone-wrapper rule](visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site) |
-| Every button gate uses `label?.trim() &&`, not multi-field `&&` chains? | [L11/L17 — button conditionals](visual-editing-reference.md) |
+| Every content file backfilled after a schema default changed?                                      | [L24 — schema defaults vs backfill](visual-editing-reference.md)                                                             |
+| Every multiselect/select backed by a data file uses `values: data.*`?                              | [L3/L25 — data-backed selects](../../cloudcannon-configuration/SKILL.md#common-mistakes)                                     |
+| Every standalone-placed registered component wrapped with `<editable-component>` at the call site? | [Standalone-wrapper rule](visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site)           |
+| Every button gate uses `label?.trim() &&`, not multi-field `&&` chains?                            | [L11/L17 — button conditionals](visual-editing-reference.md)                                                                 |

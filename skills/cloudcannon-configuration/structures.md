@@ -144,11 +144,11 @@ A structure's `preview` applies wherever the structure is used — a shared `_na
 
 ❌ Forking `_nav_items` into `_nav_items_primary` / `_nav_items_footer` just to vary the icon — clutters `_structures` with near-duplicates.
 ❌ Adding `[*]` overrides on the array per-consumer to "override" the preview — silently ignored when `structures:` is defined (see [configuration-gotchas.md § Array item previews](astro/configuration-gotchas.md#array-item-previews--vs-structure-value)).
-✅ One structure, one preview. If two consumers truly need different previews, they need different structures. *(L39)*
+✅ One structure, one preview. If two consumers truly need different previews, they need different structures. _(L39)_
 
 ### Duplicated select values across structure-value files
 
-If two structure-value files define the same color palette or icon enum, the third will drift. Move shared enums to `_select_data.<name>` at the root of `cloudcannon.config.yml` and reference with `values: _select_data.<name>`. *(L5)*
+If two structure-value files define the same color palette or icon enum, the third will drift. Move shared enums to `_select_data.<name>` at the root of `cloudcannon.config.yml` and reference with `values: _select_data.<name>`. _(L5)_
 
 **MUST:** Only share when all consumers render the same fields. If one component needs fields the others don't, create a separate structure (e.g. `timeline_items`) rather than a union. Union structures clutter the editor with inputs that do nothing — editors fill them in and nothing appears on the page.
 
@@ -200,7 +200,7 @@ The same applies to nested arrays inside shared sub-structures (e.g. if `prices`
 
 ## Previews
 
-Previews go on **every** structure value — co-located `*.cloudcannon.structure-value.yml` files, inline `_structures` entries in the main config, AND inline structures defined inside `file_config._inputs` for data files. If an array has `structures:`, its item previews live here, **not** on the array's `[*]` path — see [configuration-gotchas.md § Array item previews](astro/configuration-gotchas.md#array-item-previews--vs-structure-value). *(L38)*
+Previews go on **every** structure value — co-located `*.cloudcannon.structure-value.yml` files, inline `_structures` entries in the main config, AND inline structures defined inside `file_config._inputs` for data files. If an array has `structures:`, its item previews live here, **not** on the array's `[*]` path — see [configuration-gotchas.md § Array item previews](astro/configuration-gotchas.md#array-item-previews--vs-structure-value). _(L38)_
 
 Every structure value should include both `picker_preview` and `preview`:
 
@@ -358,29 +358,31 @@ When a component defines default values in its destructuring (e.g. `columns = 3`
 
 ## Common mistakes
 
-| Symptom / mistake | Fix |
-|---|---|
-| Structure-value has `value:` with multiple fields but no `_inputs` | Editor falls back to CC's type inference — free-text for every field. Add a per-value `_inputs` block. Use `style: modal` on the structure so the editor opens a proper form. Applies equally to inline array structures, `_structures` entries, and array fields in `file_config._inputs`. *(L14)* |
-| "One item in an array data file has a different icon/preview from its siblings, despite declaring the same structure" | The divergent item's top-level key set doesn't exactly match the structure's `value:` shape — CC fell back to inferred preview. Fix in the data: grep each item's top-level keys, compare, drop dead keys or add empty defaults until shapes match. Don't tweak the structure config first. *(L43)* |
+| Symptom / mistake                                                                                                     | Fix                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structure-value has `value:` with multiple fields but no `_inputs`                                                    | Editor falls back to CC's type inference — free-text for every field. Add a per-value `_inputs` block. Use `style: modal` on the structure so the editor opens a proper form. Applies equally to inline array structures, `_structures` entries, and array fields in `file_config._inputs`. _(L14)_ |
+| "One item in an array data file has a different icon/preview from its siblings, despite declaring the same structure" | The divergent item's top-level key set doesn't exactly match the structure's `value:` shape — CC fell back to inferred preview. Fix in the data: grep each item's top-level keys, compare, drop dead keys or add empty defaults until shapes match. Don't tweak the structure config first. _(L43)_ |
 
-> **Diagnostic — icon mismatch between sibling items:** cause is almost always divergent top-level keys, not a structures config bug. List each item's keys, find the odd one out, fix the data. Common culprits: stray field from a hand-edit, or an optional field present on some items and absent on others (add `field: ""` to all items so the shape matches). *(L43)*
+> **Diagnostic — icon mismatch between sibling items:** cause is almost always divergent top-level keys, not a structures config bug. List each item's keys, find the odd one out, fix the data. Common culprits: stray field from a hand-edit, or an optional field present on some items and absent on others (add `field: ""` to all items so the shape matches). _(L43)_
 
-### Omit empty optional fields in structure-value defaults *(L51)*
+### Omit empty optional fields in structure-value defaults _(L51)_
 
 ❌ Seeding empty strings for optional fields — they persist into frontmatter, satisfy `z.string().optional()` validators (the field looks "set"), and surface as visible empty editable regions:
+
 ```yaml
 value:
   heading: Ready to Begin Your Journey?
   primaryLabel: Schedule a Consultation
-  secondaryLabel: ""   # ← persists, breaks ?.trim() button conditionals
+  secondaryLabel: "" # ← persists, breaks ?.trim() button conditionals
   secondaryHref: ""
 ```
 
 ✅ Omit optional fields entirely — editor "Add" produces clean frontmatter; the optional secondary button only appears when an editor explicitly fills both fields:
+
 ```yaml
 value:
   heading: Ready to Begin Your Journey?
   primaryLabel: Schedule a Consultation
 ```
 
-- [ ] Audit all three default-value locations — `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — for `: ""` on optional fields. Each hit is either required (keep, fill with a real default) or optional (delete the key). No empty-string defaults survive. *(Cross-links: L11 button conditionals, L17 hero-CTA census)*
+- [ ] Audit all three default-value locations — `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — for `: ""` on optional fields. Each hit is either required (keep, fill with a real default) or optional (delete the key). No empty-string defaults survive. _(Cross-links: L11 button conditionals, L17 hero-CTA census)_

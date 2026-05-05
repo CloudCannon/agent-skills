@@ -14,7 +14,7 @@ Guidance for validating an Astro migration works end-to-end.
 
 5. **Prompt user to test in CloudCannon** -- agents should not attempt this. Use the checklist and handoff guidance in [SKILL.md § Handoff and verification](../SKILL.md#handoff-and-verification) (including what to ask them to verify and what to send back).
 
-6. **`prose`-class typography audit.** Grep `class=".*\bprose\b"` across `src/**`. If any match, verify both: (a) `@tailwindcss/typography` is in `package.json` dependencies; (b) the project's main CSS file has `@plugin "@tailwindcss/typography";` directly after `@import "tailwindcss";`. Tailwind 4 is CSS-first — JS-config plugin registration does not work. Symptom of the bug: markdown body renders as unstyled text (no heading sizes, list bullets, link colour). *(L47)*
+6. **`prose`-class typography audit.** Grep `class=".*\bprose\b"` across `src/**`. If any match, verify both: (a) `@tailwindcss/typography` is in `package.json` dependencies; (b) the project's main CSS file has `@plugin "@tailwindcss/typography";` directly after `@import "tailwindcss";`. Tailwind 4 is CSS-first — JS-config plugin registration does not work. Symptom of the bug: markdown body renders as unstyled text (no heading sizes, list bullets, link colour). _(L47)_
 
 ## CloudCannon build command
 

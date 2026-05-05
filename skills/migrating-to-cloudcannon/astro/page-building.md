@@ -214,11 +214,11 @@ _inputs:
 
 ### Reference blocks vs inline blocks
 
-| Kind            | Shape                                                                                 | Use for                                                              |
-| --------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Inline block    | Full data lives on the block instance in the page array                               | One-off content unique to this page (hero copy, page-specific CTA)   |
-| Reference block | Block in the page array is just a `_type` marker; page imports global JSON from Data  | Shared content reused across pages (CTA banner, testimonial list)    |
-| Combined        | Reference block + per-instance props                                                  | Shared body copy from JSON + per-instance `background`/`textColor`   |
+| Kind            | Shape                                                                                | Use for                                                            |
+| --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Inline block    | Full data lives on the block instance in the page array                              | One-off content unique to this page (hero copy, page-specific CTA) |
+| Reference block | Block in the page array is just a `_type` marker; page imports global JSON from Data | Shared content reused across pages (CTA banner, testimonial list)  |
+| Combined        | Reference block + per-instance props                                                 | Shared body copy from JSON + per-instance `background`/`textColor` |
 
 Editors get visual editing on reference blocks via `@data[key]` regions.
 
