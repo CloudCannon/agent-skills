@@ -37,7 +37,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
 
 Also check for data files outside collections (JSON, YAML in `src/config/` or similar) that contain editable site configuration.
 
-> **Data file shape — anti-pattern:** If a data file holds like-shaped items (offices, locations, team members), it must be a **top-level array** with a `slug`/`id` field on each item — not an object keyed by slug (`{ roswell: {...}, marietta: {...} }`). Object-of-records locks editors to existing keys and breaks the "Add" button. *(L42)*
+> **Data file shape — anti-pattern:** If a data file holds like-shaped items (team members, products, FAQs), it must be a **top-level array** with a `slug`/`id` field on each item — not an object keyed by slug (`{ "office-a": {...}, "office-b": {...} }`). Object-of-records locks editors to existing keys and breaks the "Add" button. *(L42)*
 
 ## 3. Pages and routing
 
@@ -88,8 +88,8 @@ Use this decision table for every `.astro` page that isn't already in a collecti
 | Long-form prose with minimal structure (legal, policy docs, terms)                                                              | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal                                                                  |
 | Truly one-shot, never edited by content team (404, system pages)                                                                | **Hardcoded `.astro`**                                                                                                                                                                | No editor value                                                                                            |
 | "Only n=2 pages — small enough to be a data file" | ❌ Data file because count is low | ✅ Collection — if a route renders frontmatter-shaped content for ONE entity (its own URL, hero, body, sections), it's a collection even at n=2. Data files are for shared lookups. *(L20)* |
-| Page re-declares an array that overlaps with a data file (`services`, `therapists`, `faq`) | ❌ Local const array + data file both maintained | Delete the local array, read from the data file via `import`. Editors change the data file, the page stays stale. *(L16)* |
-| Cross-collection membership (location ↔ therapists) with both sides storing the list | ❌ Both sides own the list — drifts when one is updated | ✅ One canonical side owns the list (per-entity collection). Other side reverse-looks-up: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`. Add a CMS comment: "X is pulled automatically — edit Y to add/remove". *(L49)* |
+| Page re-declares an array that overlaps with a data file (`services`, `team`, `faq`) | ❌ Local const array + data file both maintained | Delete the local array, read from the data file via `import`. Editors change the data file, the page stays stale. *(L16)* |
+| Cross-collection membership (category ↔ posts) with both sides storing the list | ❌ Both sides own the list — drifts when one is updated | ✅ One canonical side owns the list (per-entity collection). Other side reverse-looks-up: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`. Add a CMS comment: "X is pulled automatically — edit Y to add/remove". *(L49)* |
 
 Then produce this **mandatory census table** in `migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
 
@@ -113,7 +113,7 @@ This classification feeds directly into the configuration phase. For census rows
   | Interpolation | Kind | Action |
   |---|---|---|
   | `{data.name}` | primitive text | ✅ keep — primitive editable OK |
-  | `{data.accepting ? "Open" : "Waitlist"}` | computed (ternary) | ❌ extract to registered component |
+  | `{data.inStock ? "In stock" : "Out of stock"}` | computed (ternary) | ❌ extract to registered component |
   | `{locations[data.location].street}` | computed (lookup) | ❌ extract or use `@data[key]` |
   | `{site.phone}` | computed (shared-data) | ❌ extract or use `@data[key]` |
 

@@ -18,10 +18,10 @@ If a frontmatter field contributes to rendering and the rendering involves any t
 
 | Trigger | Example | Why a primitive fails |
 |---|---|---|
-| Conditional / ternary text | `{accepting ? "Open" : "Waitlist"}` | Primitive swaps text, not the branch |
+| Conditional / ternary text | `{inStock ? "In stock" : "Out of stock"}` | Primitive swaps text, not the branch |
 | Data-file lookup | `{locations[slug].street}` | Lookup runs at build; never re-resolves |
 | Icon / asset-path index | `{iconPaths[t.icon]}` | Text swap leaves the looked-up path stale |
-| Computed class / `class:list` branch | `class:list={[accepting ? "bg-green" : "bg-grey"]}` | Text swap doesn't change classes |
+| Computed class / `class:list` branch | `class:list={[inStock ? "bg-green" : "bg-grey"]}` | Text swap doesn't change classes |
 | `set:html` of a derived string | `<div set:html={md(body)} />` | Text swap doesn't re-run the renderer |
 
 ### Where does the registration go — component root or call site?
@@ -35,39 +35,39 @@ If a frontmatter field contributes to rendering and the rendering involves any t
 
 ```astro
 <!-- page template -->
-<TherapistHero {...hero} />
-<!-- TherapistHero.astro — WRONG -->
-<section data-editable="component" data-component="therapist_hero" data-prop="hero">…</section>
+<Hero {...hero} />
+<!-- Hero.astro — WRONG -->
+<section data-editable="component" data-component="hero" data-prop="hero">…</section>
 ```
 
 ✅ Standalone hero with `<editable-component>` wrapper at the call site:
 
 ```astro
 <!-- page template -->
-<editable-component data-component="therapist_hero" data-prop="hero">
-  <TherapistHero {...hero} />
+<editable-component data-component="hero" data-prop="hero">
+  <Hero {...hero} />
 </editable-component>
-<!-- TherapistHero.astro — plain markup, no data-editable on root -->
+<!-- Hero.astro — plain markup, no data-editable on root -->
 <section>…</section>
 ```
 
 ❌ Dynamic `data-prop` swap for a boolean branch — class-list ternaries don't toggle live:
 
 ```astro
-<span data-editable="text" data-prop={accepting ? "acceptingLabel" : "waitlistLabel"}>
-  {accepting ? acceptingLabel : "Waitlist"}
+<span data-editable="text" data-prop={inStock ? "inStockLabel" : "outOfStockLabel"}>
+  {inStock ? inStockLabel : "Out of stock"}
 </span>
 ```
 
 ✅ Two complete branches gated on the boolean — each with its own static `data-prop`:
 
 ```astro
-{accepting ? (
-  <p class="bg-canopy-green/15">
-    <span data-editable="text" data-prop="acceptingLabel">{acceptingLabel}</span>
+{inStock ? (
+  <p class="bg-green-100">
+    <span data-editable="text" data-prop="inStockLabel">{inStockLabel}</span>
   </p>
 ) : (
-  <p class="bg-mist-grey/40"><span>Waitlist</span></p>
+  <p class="bg-gray-200"><span>Out of stock</span></p>
 )}
 ```
 
@@ -553,7 +553,7 @@ When a page template fetches items from a different collection (team members on 
 ))}
 ```
 
-Note: `entry.id` behavior depends on the content collection type. **Legacy collections** (`type: "content"` in `src/content/config.ts`) include the file extension (e.g. `janette-lynch.md`). **Glob loader** (`glob()` in `src/content.config.ts`) strips the extension (e.g. `janette-lynch`), so you must append `.md` when building `@file` paths. Check which loader the collection uses before constructing paths.
+Note: `entry.id` behavior depends on the content collection type. **Legacy collections** (`type: "content"` in `src/content/config.ts`) include the file extension (e.g. `jane-doe.md`). **Glob loader** (`glob()` in `src/content.config.ts`) strips the extension (e.g. `jane-doe`), so you must append `.md` when building `@file` paths. Check which loader the collection uses before constructing paths.
 
 ### Shared-data / computed-content handling
 
