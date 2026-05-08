@@ -18,23 +18,22 @@ Many templates have **no content-backed pages** -- all page data is hardcoded di
 
 ### When to reach for page builder
 
-> **Page builder is the default for unique-layout pages.** If a site has any of: homepage, about, our-team, contact, FAQ, landing pages, marketing pages, or any other one-off pages with 2+ content sections -- they belong in a single `pages` content collection driven by a page-builder schema. Source editables and hardcoded `.astro` files are the exception, not the alternative. See [audit.md § Classifying static pages](audit.md#classifying-static-pages-source-editables-vs-content-collection) for the classification census.
+Default to a page-builder `pages` collection for unique-layout pages (homepage, about, our-team, contact, FAQ, landing, marketing). Source editables and hardcoded `.astro` files are brittle for structured content — editors can't reorder or duplicate sections, and adding new pages of the same shape requires engineering.
+**See:** [audit.md § Classifying static pages](audit.md#classifying-static-pages-source-editables-vs-content-collection) for the classification census.
 
-**Reach for page builder when...**
+#### Pick an approach
 
-- [ ] The page has 2 or more distinct content sections (hero, features, testimonials, CTA, etc.)
-- [ ] Sections from this page reappear on other pages (or could)
-- [ ] Editors might want to reorder, add, or remove sections without engineering
-- [ ] The site has more than one unique-layout page (homepage + about + contact ≠ three single-entry collections)
-- [ ] You catch yourself thinking "single-entry collection" -- that's the signal to use a page-builder `pages` collection instead
+| Signal                                                                    | Use                                     | Why                                                                       |
+| ------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------- |
+| Page has 2+ distinct content sections (hero, features, testimonials, CTA) | Page builder                            | Sections are the editing unit; editors need CRUD over them.               |
+| Sections reappear on other pages (or could)                               | Page builder                            | Shared blocks only pay off when they're addressable by editors.           |
+| Editors need to reorder/add/remove sections without engineering           | Page builder                            | The only option that supports array-level CRUD in the editor.             |
+| Site has >1 unique-layout page                                            | Page builder (one `pages` collection)   | One collection + `z.union` scales; many single-entry collections do not.  |
+| Page is structurally unique **and** mostly free prose (long-form article) | `default` schema in `pages`             | Page builder is overkill; plain markdown body is enough.                  |
+| 5+ separate strings would need `data-editable="source"` on one page       | Page builder                            | That many source editables is the signal the page is actually structured. |
+| Tiny marketing page with a single headline + paragraph and no variants    | Source editable on a hardcoded `.astro` | Honest exception — no benefit to collection overhead.                     |
 
-**Don't fall back to source-editable when...**
-
-- [ ] The page is unique-layout but has structured sections -- that's a page-builder page, not source-editable
-- [ ] You're tempted to add `data-editable="source"` to 5+ separate strings on one page -- that's a sign the page should be a `pages` collection entry instead
-- [ ] The user wants to add new pages of similar shape -- source-editable can't do that as well as page builder can.
-
-> ❌ **Single-entry collection per unique page** (`homepage` collection with one entry, `our-team` collection with one entry). ✅ One `pages` collection containing `index.md`, `our-team.md`, `groups.md`, etc. Use `z.union` in Astro and multiple `schemas:` entries in `cloudcannon.config.yml` when the pages need different fields. See [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas) for the worked multi-schema example.
+Create a single-entry collection per unique page (`homepage` collection with one entry, `our-team` collection with one entry). One `pages` collection with `index.md`, `our-team.md`, etc. plus `z.union` + multiple `schemas:` entries gives editors a unified sidebar without the config bloat. See [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas).
 
 ### Steps
 
@@ -148,8 +147,9 @@ Only creatable page types appear in `add_options`. One-off pages with dedicated 
 
 ### Common mistakes
 
-- ❌ **Naming the homepage `home.md`** with `url: "/[slug]/"` → CloudCannon resolves it to `/home/`, the dedicated `src/pages/index.astro` serves `/`, and the visual editor targets the wrong URL. ✓ Use `src/content/pages/index.md` so the slug collapses to root. Even when you also have a dedicated `src/pages/index.astro` that `getEntry`s the file, the collection slug must still be `index`.
-- ❌ Promoting a file named anything other than `index.md` into root position via ad-hoc logic (custom route code, redirects). ✓ Use the Astro-native collapse: filename `index.md` → URL `/`.
+Name the homepage file `src/content/pages/index.md`. With `url: "/[slug]/"`, CloudCannon collapses the `index` slug to `/`. Any other filename (e.g. `home.md`) resolves to `/home/` and the visual editor targets the wrong URL — even when `src/pages/index.astro` `getEntry`s the file.
+
+Promote a non-`index.md` file to root via custom route code, redirects, or ad-hoc logic. The Astro-native slug collapse (`index.md` → `/`) is the only mechanism the visual editor can follow. Custom routing desynchronises the built URL from the editor's target URL.
 
 ## Array-based page builder
 
@@ -210,7 +210,13 @@ _inputs:
 
 ### Reference blocks vs inline blocks
 
-**Reference blocks** (e.g. CTA, Testimonial) point at **global JSON** in the Data section: the block in the page array is usually just a `_type` marker, and the Astro page imports that shared data and passes it into the component. Editors still get visual editing where those values are bound with `@data[key]` regions. You can **combine** shared data with per-instance props—for example, body copy from a JSON file reused everywhere, plus `background` and `textColor` on each block instance in the page builder.
+| Kind            | Shape                                                                                | Use for                                                            |
+| --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Inline block    | Full data lives on the block instance in the page array                              | One-off content unique to this page (hero copy, page-specific CTA) |
+| Reference block | Block in the page array is just a `_type` marker; page imports global JSON from Data | Shared content reused across pages (CTA banner, testimonial list)  |
+| Combined        | Reference block + per-instance props                                                 | Shared body copy from JSON + per-instance `background`/`textColor` |
+
+Editors get visual editing on reference blocks via `@data[key]` regions.
 
 ### BlockRenderer
 
@@ -244,3 +250,7 @@ Original templates often pass CSS class overrides to visually join adjacent bloc
 Accept minor visual diffs (~3-5%) for adjacent block spacing rather than leaking CSS into content. If spacing is critical, handle it in the component with a prop like `compact: true` (boolean, editor-friendly) instead of raw class strings.
 
 For the full visual editing setup (three-layer pattern, nested editables, sub-arrays, component registration), see [visual-editing.md](../../cloudcannon-visual-editing/astro/visual-editing.md).
+
+> Frontmatter that feeds any computation (ternary, lookup, `iconPaths[x]`, `set:html`) must flow through a registered component — see [golden rule](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#golden-rule--computed-content-needs-a-component-wrapper).
+> Statically-placed registered components must be wrapped with `<editable-component>` at the call site, not self-marked on the section root — see [standalone-wrapper rule](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
+> Each registered component's fields should be nested under one frontmatter key — see [frontmatter co-location](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#scattered-fields-feeding-a-registered-component--nest-the-frontmatter).

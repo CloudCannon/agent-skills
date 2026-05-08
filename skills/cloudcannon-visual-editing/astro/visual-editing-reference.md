@@ -4,21 +4,116 @@ Pattern reference for editable region types, data paths, component re-rendering,
 
 For the full editable regions API (region types, path syntax, API actions), see [../editable-regions.md](../editable-regions.md).
 
-## Guard optional fields
+## Quick rules — read before editing this page
 
-The primary defence against `undefined` errors is ensuring all fields exist in the content frontmatter via structure definitions (see [structures.md](../../cloudcannon-configuration/structures.md) — field completeness rule). Conditional guards are the safety net for cases where a field is legitimately optional even when the structure defines it.
+1. **Golden rule** — computed content needs an `<editable-component>` wrapper: [§Golden rule](#golden-rule--computed-content-needs-a-component-wrapper)
+2. **Standalone wrapper placement** — `<editable-component>` at the call site, not self-marking on the section root: [§Registration placement](#where-does-the-registration-go--component-root-or-call-site)
+3. **Frontmatter co-location** — one object key per registered component; no scattered root fields: [§Nested frontmatter](#scattered-fields-feeding-a-registered-component--nest-the-frontmatter)
+4. **Editable-region completeness** — every `data-editable` region needs a matching `_inputs` entry: [visual-editing.md completeness checklist](visual-editing.md#completeness-checklist)
+5. **Shared-data handling** — `@data[key]` prop path, not `data-editable="source"`: [§Shared-data table](#shared-data--computed-content-handling)
 
-Every element with a `data-editable` attribute must be conditionally rendered if its field can be undefined or null. CloudCannon's editable regions actively inspect the resolved value — rendering an element with `data-prop="subtitle"` when `subtitle` is undefined causes a runtime error, even if the original template rendered unconditionally.
+## Golden rule — computed content needs a component wrapper
+
+If a frontmatter field contributes to rendering and the rendering involves any trigger below, extract the section into a registered component and wrap with `<editable-component data-component="<name>" data-prop="<prefix>">`. Primitive `data-editable="text"` updates DOM text only — it cannot re-run an expression.
+
+| Trigger                              | Example                                           | Why a primitive fails                     |
+| ------------------------------------ | ------------------------------------------------- | ----------------------------------------- |
+| Conditional / ternary text           | `{inStock ? "In stock" : "Out of stock"}`         | Primitive swaps text, not the branch      |
+| Data-file lookup                     | `{locations[slug].street}`                        | Lookup runs at build; never re-resolves   |
+| Icon / asset-path index              | `{iconPaths[t.icon]}`                             | Text swap leaves the looked-up path stale |
+| Computed class / `class:list` branch | `class:list={[inStock ? "bg-green" : "bg-grey"]}` | Text swap doesn't change classes          |
+| `set:html` of a derived string       | `<div set:html={md(body)} />`                     | Text swap doesn't re-run the renderer     |
+
+### Where does the registration go — component root or call site?
+
+| Component is rendered…                         | Emit registration as                                                                                                                        | Why                                                                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Inside `BlockRenderer` (page-builder array)    | `data-editable="component"` on the component's own root element                                                                             | The `<div data-editable="array-item">` wrapper provides the parent editable `setupListeners` needs                          |
+| Directly from a page template (`[slug].astro`) | `<editable-component data-component="<name>" data-prop="<key>">…</editable-component>` **at the call site**, component root as plain markup | No array-item ancestor exists; without the wrapper, sidebar-only changes (switches, dropdowns) don't propagate to re-render |
+
+❌ Standalone hero with self-marking — sidebar boolean toggles don't update live:
 
 ```astro
-<!-- Bad: errors if subtitle is undefined -->
-<p set:html={subtitle} data-editable="text" data-prop="subtitle" />
-
-<!-- Good: only renders when subtitle exists -->
-{subtitle && <p set:html={subtitle} data-editable="text" data-prop="subtitle" />}
+<!-- page template -->
+<Hero {...hero} />
+<!-- Hero.astro — WRONG -->
+<section data-editable="component" data-component="hero" data-prop="hero">…</section>
 ```
 
-This applies to text, image, and any other editable type. When a shared sub-component like `Headline.astro` renders the editable elements, the guards belong in that sub-component.
+✅ Standalone hero with `<editable-component>` wrapper at the call site:
+
+```astro
+<!-- page template -->
+<editable-component data-component="hero" data-prop="hero">
+  <Hero {...hero} />
+</editable-component>
+<!-- Hero.astro — plain markup, no data-editable on root -->
+<section>…</section>
+```
+
+❌ Dynamic `data-prop` swap for a boolean branch — class-list ternaries don't toggle live:
+
+```astro
+<span data-editable="text" data-prop={inStock ? "inStockLabel" : "outOfStockLabel"}>
+  {inStock ? inStockLabel : "Out of stock"}
+</span>
+```
+
+✅ Two complete branches gated on the boolean — each with its own static `data-prop`:
+
+```astro
+{inStock ? (
+  <p class="bg-green-100">
+    <span data-editable="text" data-prop="inStockLabel">{inStockLabel}</span>
+  </p>
+) : (
+  <p class="bg-gray-200"><span>Out of stock</span></p>
+)}
+```
+
+## Editable type — pick one
+
+| Field shape                                                                         | Editable type                                                                           | Section                                                                             |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Single string/text (frontmatter or body)                                            | `data-editable="text"` or `<editable-text>`                                             | [Text editing](#text-editing)                                                       |
+| Single image                                                                        | `data-editable="image"` / `<editable-image>`                                            | [Image editing](#image-editing)                                                     |
+| Array of items (uniform)                                                            | `data-editable="array"` + `array-item` children                                         | [Array editing](#array-editing)                                                     |
+| Page builder (heterogeneous blocks)                                                 | `array` + per-item `data-component` + CRUD                                              | [Page builder blocks](#page-builder-blocks)                                         |
+| Conditional/computed output, style bindings                                         | Register the component; wrap with `<editable-component>`                                | [When to use a component editable region](#when-to-use-a-component-editable-region) |
+| Hardcoded string in `.astro` template                                               | `data-editable="source"` (last resort — prefer page-builder)                            | [Source editables for hardcoded content](#source-editables-for-hardcoded-content)   |
+| React island (`client:*`) that fetches, submits forms, or loads third-party scripts | Gate with `window.inEditorMode`; render same markup but skip API calls and script loads | [Editing fallbacks](#editing-fallbacks-vue-svelte-solid-or-complex-components)      |
+
+## Data-prop paths — pick one
+
+| Context                              | Syntax                    | Example                                           | Where it works                                                                                                             |
+| ------------------------------------ | ------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Same file, frontmatter               | Relative key              | `data-prop="title"`, `data-prop="banner.title"`   | Default case.                                                                                                              |
+| Same file, markdown body             | `@content`                | `data-prop="@content"` (with `data-type="block"`) | Blog bodies, rich-text body regions.                                                                                       |
+| Shared data file (via `data_config`) | `@data[key].path`         | `data-prop="@data[call-to-action].title"`         | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
+| Another content file by path         | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane].name"`  | Cross-collection items on a listing page. Path must start with `/`.                                                        |
+| Inside an `array-item`               | Relative (scope = item)   | `data-prop="title"` resolves to `items[N].title`  | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
+| Pass-through scope                   | Empty string              | `data-prop=""`                                    | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
+
+## Anti-patterns — MUST NOT
+
+| Anti-pattern                                                                           | What breaks                                                                                      | Fix / see                                                                                         |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Mix array items with non-array siblings under the same `data-editable="array"` wrapper | CloudCannon includes the siblings in the array and CRUD controls attach to the wrong elements    | [Don't mix array items with non-array siblings](#dont-mix-array-items-with-non-array-siblings)    |
+| Pass `data-prop=""` (empty string) to `<editable-component>`                           | Web component treats empty string as falsy and silently skips binding                            | [Empty `data-prop` pass-through](#empty-data-prop-pass-through)                                   |
+| Omit `data-component` on nested sub-arrays inside a registered component               | The parent component doesn't re-render when editors change sub-array items                       | [Sub-arrays within widget components](#sub-arrays-within-widget-components)                       |
+| Hardcode section titles / buttons inside child components                              | Text isn't editable; editors have nowhere to change it                                           | [Section titles and buttons in child components](#section-titles-and-buttons-in-child-components) |
+| Attach `data-editable` directly to a third-party component's output                    | The third-party component's rendered HTML may not accept `data-*` attributes where you need them | [Third-party component fields](#third-party-component-fields)                                     |
+| Use build-time cross-collection lookups with a static child component                  | Sidebar changes don't trigger a re-render                                                        | [Component editables backed by data files](#component-editables-backed-by-data-files)             |
+| Repeat the parent's `@data[...]` prefix on descendants                                 | Path resolves incorrectly                                                                        | [Arrays inside data files](#arrays-inside-data-files)                                             |
+| Use indexed paths on nested array-item editables (`@data[footer].columns[0].heading`)  | Path escapes the item's scope; edits don't round-trip                                            | [Arrays inside data files](#arrays-inside-data-files)                                             |
+
+## Guard optional fields
+
+Every `data-editable` element must be conditionally rendered when its field can be null/undefined — CloudCannon inspects the resolved value at region initialization. Guards belong in the component that renders the element (including shared sub-components). See [structures.md § field completeness](../../cloudcannon-configuration/structures.md) for the upstream fix.
+
+```astro
+{subtitle && <p set:html={subtitle} data-editable="text" data-prop="subtitle" />}
+```
 
 ### Shared sub-component editables inside page builders
 
@@ -417,88 +512,34 @@ Since the sub-array lives inside a registered component (e.g. Features3 rendered
 
 **Watch for inline array rendering.** Adding editability to shared UI components (e.g. `ItemGrid`, `Timeline`) cascades to all widgets that delegate to them, but some widgets render arrays directly in their own template without using a shared component. These are easy to miss. After wiring up shared components, grep for `.map(` across widget files to catch any inline array rendering that still needs editability attributes added directly to the widget template.
 
-## Data path patterns
+## Data path patterns — rules
 
-### Empty data-prop (pass-through scope)
+Syntax for each form is in the [Data-prop paths table](#data-prop-paths--pick-one) at the top. The rules below apply on top of the syntax.
 
-An empty `data-prop=""` passes the current data scope through without navigating deeper. This works for primitive regions (text, image, array) but **does not work for `<editable-component>`** — the component controls UI treats the empty string as falsy and won't render the edit button. Use it when the parent's data IS the value the child needs — for example, an array editable inside an array-bound component:
+### Empty `data-prop` pass-through
+
+Don't use `data-prop=""` on `<editable-component>` — the component controls UI treats empty string as falsy and won't render the edit button.
+
+**Use when:** The parent's data IS the value the child needs (e.g. an `array` editable inside an array-bound component). Without it, `data-prop="plans"` would resolve to `plans.plans`.
 
 ```astro
-<!-- Component data-prop points to an array -->
 <editable-component data-component="pricing" data-prop="plans">
   <PricingSection {...plans} />
 </editable-component>
 
-<!-- Inside PricingSection.astro: data-prop="" passes the array through -->
+<!-- Inside PricingSection.astro -->
 <div data-editable="array" data-prop="">
-  {plans.map((plan) => (
-    <div data-editable="array-item">...</div>
-  ))}
+  {plans.map((plan) => (<div data-editable="array-item">...</div>))}
 </div>
 ```
-
-Without `data-prop=""`, using `data-prop="plans"` here would resolve to `plans.plans` (looking up `plans` on the array), which doesn't exist.
-
-### Relative paths (same file)
-
-When the editable region is on the same page as the file being edited, use simple relative paths:
-
-```
-data-prop="title"           -> frontmatter.title
-data-prop="banner.title"    -> frontmatter.banner.title
-data-prop="@content"        -> file content body (markdown)
-```
-
-### Data file paths (shared data editing)
-
-When a section's data comes from a data file configured in `data_config` (e.g. a shared CTA or testimonial section), use `@data[key].path` syntax:
-
-```
-data-prop="@data[call-to-action].title"
-data-prop="@data[call-to-action].description"
-data-prop-src="@data[call-to-action].image"
-data-prop="@data[testimonial].title"
-```
-
-The key matches the `data_config` entry name in `cloudcannon.config.yml`. This is the recommended approach for reusable data that appears on multiple pages or is shared across components.
-
-### Absolute file paths (cross-file editing)
-
-Use `@file[/path]` for editing data in a specific file. Paths must have a leading `/` and are relative to the repository root:
-
-```
-data-prop="@file[/src/content/sections/cta.md].title"
-```
-
-### Content body editing
-
-Use `@content` to make the markdown body of a content file editable as rich text:
-
-```astro
-<div class="content" data-editable="text" data-type="block" data-prop="@content">
-  <Content />
-</div>
-```
-
-This works on any page backed by a content collection file -- about pages, blog posts, `[regular].astro` catch-all pages, etc.
 
 ### Non-source editables for hardcoded pages
 
-When a page template (e.g. `contact.astro`) has its own rendering logic but reads data from a `.md` file in the pages collection, the editable regions still use relative paths since the collection file provides the data context. The `_enabled_editors` and `_schema` settings in CloudCannon ensure editors see the right fields.
-
-### Nested relative paths (inside arrays)
-
-Within an `EditableArrayItem`, paths are relative to the current array element:
-
-```
-data-prop="title"    -> features[N].title
-data-prop="image"    -> features[N].image
-data-prop="content"  -> features[N].content
-```
+When a page template (e.g. `contact.astro`) has its own rendering logic but reads data from a `.md` file in the pages collection, editable regions still use **relative paths** — the collection file provides the data context. `_enabled_editors` and `_schema` settings ensure editors see the right fields.
 
 ### Cross-collection items on a page
 
-When a page template fetches and renders items from a different collection (e.g. team members on an about page, testimonials on a landing page), add `@file` editables so those items are editable inline:
+When a page template fetches items from a different collection (team members on an About page, testimonials on a landing page), add `@file` editables so those items are editable inline:
 
 ```astro
 {teamMembers.map((member) => (
@@ -513,65 +554,68 @@ When a page template fetches and renders items from a different collection (e.g.
 ))}
 ```
 
-Note: `entry.id` behavior depends on the content collection type. **Legacy collections** (`type: "content"` in `src/content/config.ts`) include the file extension (e.g. `janette-lynch.md`). **Glob loader** (`glob()` in `src/content.config.ts`) strips the extension (e.g. `janette-lynch`), so you must append `.md` when building `@file` paths. Check which loader the collection uses before constructing paths.
+Note: `entry.id` behavior depends on the content collection type. **Legacy collections** (`type: "content"` in `src/content/config.ts`) include the file extension (e.g. `jane-doe.md`). **Glob loader** (`glob()` in `src/content.config.ts`) strips the extension (e.g. `jane-doe`), so you must append `.md` when building `@file` paths. Check which loader the collection uses before constructing paths.
 
-## When to use a component editable region
+### Shared-data / computed-content handling
 
-Primitive editables (text, image, array, source) handle their own DOM updates but can't trigger re-rendering of the surrounding template. This matters when a section contains data-driven behaviour beyond simple content — see [editable-regions.md > When to use component editable regions](../editable-regions.md#when-to-use-a-component-editable-region) for the general principle.
+| Trigger                                                                                  | Approach                                                                                                                                       | When not to                                                                                                                                  |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Value from shared data file (`site.json`, `locations.json`) — rendered on multiple pages | Use `data-prop="@data[<key>]..."` (`<key>` registered in `data_config`). Scopes the edit to the data file.                                     | Don't use `data-editable="source"` (wrong semantics). Don't use a bare frontmatter-relative prop — mutates shared state from the wrong page. |
+| Lookup result that doesn't live-update (`locations[slug].street`, `site.phone`)          | Read the lookup inside a registered component wrapped in `<editable-component>` so the whole block re-renders on slug change.                  | Don't put a primitive `data-editable="text"` on the rendered value — lookup bakes at build time.                                             |
+| Computation/expression won't re-run (ternary, `iconPaths[x]`, `set:html`)                | Wrap section root with `<editable-component>` at the call site. CC re-renders the block on any child-field change, so expressions re-evaluate. | Don't use primitive `data-editable` on computed outputs — it updates DOM text only.                                                          |
+| Multiple pages share a data-file value; editor should be able to change it               | `data-prop="@data[<key>].dotted.path"` routes through `data_config` and is explicitly data-file-scoped.                                        | Don't allow inline editing of shared data via page-frontmatter-relative paths.                                                               |
 
-**Use a component when the section has any of:**
+## When to use `data-editable="component"`
 
-- Conditional elements — `{feature.button.enable && (<a>...</a>)}` won't show/hide live without a re-render
-- Style/class bindings — `class={index % 2 === 0 && "bg-gradient"}` won't toggle live
-- Computed content — a label derived from another field won't update live
+For the decision triggers, see [Golden rule](#golden-rule--computed-content-needs-a-component-wrapper).
 
-**Example: features array with conditional buttons**
-
-A features section where each item has an optional button controlled by `button.enable`. As a plain array with primitive editables, toggling the button in the sidebar does nothing visually. Wrapping the section as a registered component means the entire features block re-renders on any change:
+1. Does the rendering involve a ternary/conditional, a lookup against another data file, an icon-path index, or a `set:html`? → **Yes:** extract into a registered component; wrap with `<editable-component>` at the call site.
+2. Is the value a literal text/image pulled directly from a field? → **No component needed:** a primitive `data-editable="text"` / `data-editable="image"` is sufficient.
+3. Does the section contain both primitive-ok fields and computed fields? → Use the component wrapper anyway — primitive edits still work inside, and computed parts re-render.
 
 ```astro
+<!-- Component wrapper + nested primitives inside the component -->
 <editable-component data-component="features" data-prop="features">
   <Features {...features} />
 </editable-component>
+<!-- Inside Features.astro: array + text/image primitives still work inline -->
 ```
 
-Inside `Features.astro`, the array editables and text/image editables still work for inline editing and CRUD. The component handles the re-rendering.
+**Component prop contract:** When `<editable-component>` re-renders, it passes the value at `data-prop` as spread props — destructure field names directly from `Astro.props`, not a named wrapper. For array-bound components, recover with `Object.values(Astro.props)`.
 
-### Component prop contract
+**Object-bound:** `<editable-component data-prop="banner"><Hero {...banner} /></editable-component>` → `const { title, image } = Astro.props` in Hero.astro.
 
-When `editable-component` re-renders a component, it passes the value at `data-prop` directly as the component's props. The component **must accept spread props, not a named wrapper prop**. If the component expects `const { banner } = Astro.props` but the re-renderer passes `{ title, description, image }`, `banner` will be `undefined`.
+**Array-bound:** `<editable-component data-prop="plans"><PricingSection {...plans} /></editable-component>` → `const plans = Object.values(Astro.props)` in PricingSection.astro.
 
-**Object-bound components** (where `data-prop` points to an object in the frontmatter):
+### Scattered fields feeding a registered component — nest the frontmatter
 
-```astro
-<!-- Page template: spread the object -->
-<editable-component data-component="hero" data-prop="banner">
-  <Hero {...banner} />
-</editable-component>
+**Symptom:** `Cannot destructure property 'x' of 'n.props' as it is undefined` in `registerComponents.*.js`. Or: you're about to write `propPrefix=""` / conditional `data-editable="component"` / `Astro.props ?? {}` workarounds.
 
-<!-- Hero.astro: destructure the object's fields directly -->
-const { title, description, image, buttons } = Astro.props;
+All three template-level workarounds are wrong:
+
+❌ Unconditional wrapper with empty prop path — throws on re-render: `<section data-editable="component" data-component="x" data-prop="">`
+
+❌ Conditional emission — silently disables computed-content re-render: `{propPrefix && <section data-editable="component" ...>}`
+
+❌ Defensive destructure — hides the broken wrapper: `const { x } = Astro.props ?? {};`
+
+✅ Reshape the schema. Nest the scattered fields under a single object key matching the component:
+
+```ts
+// ❌ flat root fields
+treatmentHeading: z.string().default("How We Help"),
+treatments: z.array(treatmentEntry).default([]),
+
+// ✅ nested object
+treatments: z.object({
+  heading: z.string().default("How We Help"),
+  items: z.array(treatmentEntry).default([]),
+}).default({ heading: "How We Help", items: [] }),
 ```
 
-**Array-bound components** (where `data-prop` points to an array):
+Then: `<TreatmentBlocks {...data.treatments} />` inside `<editable-component data-component="treatment_blocks" data-prop="treatments">`. No template conditionals or destructure guards.
 
-The client-side renderer passes the array directly as props. Astro's template syntax can't pass a raw array, so spread the array and use `Object.values()` — this works identically for both SSR and client re-render:
-
-```astro
-<!-- Page template: spread the array -->
-<editable-component data-component="pricing" data-prop="plans">
-  <PricingSection {...plans} />
-</editable-component>
-
-<!-- PricingSection.astro: recover the array from spread indices -->
-const plans = Object.values(Astro.props);
-```
-
-**Parent-wrapped array:** With `<editable-component data-prop="features">` (or whatever field holds the array) around the whole list, the registered component's renderer outputs every row. Inner `data-editable="array"` / `array-item` still provide CRUD and nested text/image; they do not become separate component re-render roots. One place owns cross-item concerns (alternating layouts, index-based classes).
-
-**Per-item `data-component`:** Each `array-item` can carry its own `data-component` and registration instead (or as well) — see [Page builder blocks](#page-builder-blocks). That fits heterogeneous blocks and independent per-row re-rendering. Mix parent and per-item boundaries when the template genuinely needs both.
-
-**When in doubt, add a component boundary** — parent wrap is often the smallest step for a uniform section; per-item scales when types differ.
+> For components used at exactly one call site, hardcode the `data-prop` on the `<editable-component>` wrapper — removes `propPrefix` indirection entirely.
 
 ### Blog post detail pages
 
@@ -721,130 +765,84 @@ Keep separate files and `@file` when one file would be unwieldy, you need rich p
 
 ## What to make editable vs. what to leave for the sidebar
 
-Not everything benefits from visual editing. Guidelines:
+| Good for visual editing (inline)                                             | Better for sidebar / data editor                |
+| ---------------------------------------------------------------------------- | ----------------------------------------------- |
+| Page titles, headings, descriptions                                          | Navigation menus (nested structures)            |
+| Hero/banner content (frontmatter via `data-prop`, or hardcoded via `source`) | Social links                                    |
+| Images (hero, feature, author avatar)                                        | Theme settings (colors, fonts)                  |
+| Content body (`@content`)                                                    | SEO metadata (`meta_title`, `meta_description`) |
+| CTA copy                                                                     | Boolean toggles (`draft`, `enable`)             |
+| Hardcoded text in page templates                                             | URL/link fields                                 |
+| Blog metadata visible on the page (author name, publish date)                | Taxonomy arrays (categories, tags)              |
 
-**Good for visual editing (inline text/image/source):**
+**MDX bodies and snippets:** MDX snippets don't render as their live-site output in the content or visual editor — editing a page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon's snippet UI. This is a preview limitation, not a reason to avoid visual editing for MDX.
 
-- Page titles, headings, descriptions
-- Hero/banner content (from frontmatter via `data-prop`, or hardcoded via `data-editable="source"`)
-- Images (hero, feature, author avatar)
-- Content body (`@content`)
-- CTA copy
-- Hardcoded text in page templates
-- Blog metadata visible on the page (author name, publish date)
+### Use `ENV_CLIENT` editing fallbacks when
 
-**MDX bodies and CloudCannon snippets:** Snippets in MDX do not render as their live-site output in the content editor or in the visual editor — editing page body in the visual editor opens the content editor in an iframe, so the experience is the same. Snippet instances are still editable via CloudCannon's snippet UI (often a clickable box). Treat that as a preview limitation, not a reason to avoid visual editing for MDX.
+- **Vue, Svelte, Solid components** — these frameworks throw runtime errors in editable regions, even nested inside supported wrappers. Prefer converting to `.astro` (or React if state-heavy). If conversion isn't practical, guard with `import.meta.env.ENV_CLIENT` to render a simplified `.astro` editing fallback.
+- **Components with complex DOM management** (Swiper carousels, etc.) — their JS conflicts with editable region DOM manipulation.
+- **Server-only APIs** (`getImage` from `astro:assets` for image processing, `fetch` to external APIs at render time) — guard with `ENV_CLIENT` for a simplified client-side path that skips optimization.
 
-**Better for sidebar/data editor:**
+Note: `import.meta.glob` resolves eagerly at build time and works fine in registered components. `getCollection`/`getEntry` also work — the integration shims them for the client bundle.
 
-- Navigation menus (complex nested structures)
-- Social links
-- Theme settings (colors, fonts)
-- SEO metadata (meta_title, meta_description)
-- Boolean toggles (draft, enable)
-- URL/link fields
-- Taxonomy arrays (categories, tags)
+## Where does a value belong — frontmatter, structure-value default, or hardcoded?
 
-**Provide editing fallbacks with `ENV_CLIENT`:**
+| Value changes per entry? | Value same across all instances of a type?                                    | Place it in                                                                                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Yes                      | —                                                                             | Collection schema frontmatter. Use `type: html` + editor-style CSS for styled inline spans; decompose multi-semantic values into separate fields.               |
+| No                       | Yes — shared default for all page-builder instances of this type              | Structure-value `value:` default. See [structures.md § Deriving structures](../../cloudcannon-configuration/structures.md#deriving-structures-from-components). |
+| No                       | No — pure presentation (class names, SVG paths, layout `<br>` tags, `&nbsp;`) | Hardcoded in the component template; strip from content. No editable region.                                                                                    |
 
-- **Vue, Svelte, and Solid components** -- these frameworks throw runtime errors in editable regions, even when nested inside supported `.astro` or `.jsx` wrappers. First consider converting the component to `.astro` or React (prefer `.astro` unless it's state-heavy). If conversion isn't practical, guard with `import.meta.env.ENV_CLIENT` to render an editing fallback -- a simplified `.astro` component that visually resembles the real one and supports editable attributes, giving editors a useful preview and editing experience without the unsupported framework.
-- Components with complex DOM management (Swiper carousels, etc.) -- their JavaScript conflicts with editable region DOM manipulation, and often are hard to edit if functioning like they do on prod.
-- Components using genuinely server-only APIs (`getImage` from `astro:assets` for image processing, `fetch` to external APIs at render time) -- guard with `import.meta.env.ENV_CLIENT` to provide a simplified client-side path that skips optimization and renders plain HTML. Note: `import.meta.glob` resolves eagerly at build time and works fine in registered components. `getCollection`/`getEntry` from `astro:content` also work because the integration shims them for the client bundle.
-
-## Content vs presentation in frontmatter fields
-
-Frontmatter fields that contain inline HTML with CSS classes, `<br>` tags, or HTML entities (`&nbsp;`) are uneditable in the visual editor — custom HTML renders with red outlines. This applies to ALL fields (title, subtitle, description, content), not just rich text `content` fields. The principle: **frontmatter stores content, components own presentation.**
-
-### Option 1: Editor styles (preferred for inline styling)
-
-When the styled HTML is inline emphasis or branding (e.g. highlighted/accented text), use `type: html` input with an **editor styles CSS** file. This lets editors apply semantic styling through the rich text toolbar. Pattern from [Jetstream](https://github.com/CloudCannon/jetstream-astro-template):
-
-1. Create `.cloudcannon/styles/editor.css` with semantic classes:
-
-```css
-span.highlight-text {
-  color: var(--color-brand);
-}
-```
-
-2. Configure the input as `type: html` referencing the stylesheet. **Important:** adding `styles` (or any toolbar option) causes CC to treat omitted toolbar keys as `false`, so you must re-declare the inline formatting defaults you want to keep (see [configuration-gotchas.md § Rich text input toolbar options](../../cloudcannon-configuration/astro/configuration-gotchas.md#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables)):
+**Row 1 — styled inline span via editor-style CSS** (preferred for branding/emphasis):
 
 ```yaml
+# cloudcannon.config.yml
 _inputs:
   title:
     type: html
     options:
       styles: .cloudcannon/styles/editor.css
-      allow_custom_markup: true
       bold: true
       italic: true
-      underline: true
-      strike: true
       link: true
-      removeformat: true
-      undo: true
-      redo: true
 ```
 
-3. The component renders with `set:html` and has matching CSS:
-
-```astro
-<h1 set:html={title} data-editable="text" data-prop="title" />
-
-<style is:global>
-  .highlight-text { color: var(--color-accent); }
-</style>
-```
-
-4. Content uses the semantic class instead of Tailwind utilities:
-
-```yaml
-title: 'Free template for <span class="highlight-text">Astro 5.0</span> + Tailwind CSS'
-```
-
-Editors see the accent color in the toolbar and can toggle it on text selections. This is the preferred approach for any styling expressible as a CSS class. See [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter) for the full decision tree.
-
-### Option 2: Decompose into explicit props (for structured data)
-
-When a field packs multiple semantic values into one string with HTML structure — e.g. a `content` field mixing plain text, a link with classes, and a CTA — decompose into explicit props and let the component own the markup.
-
-Before (single rich text field):
-
-```json
-{
-  "content": "<span class='text-center block'>Enjoying our project? <a class='underline' href='...'>Star on GitHub</a></span>"
+```css
+/* .cloudcannon/styles/editor.css */
+span.highlight-text {
+  color: var(--color-brand);
 }
 ```
 
-After (explicit props):
+**Row 1 — decompose multi-semantic value** (when pieces have distinct semantic meaning):
 
 ```json
-{
-  "text": "Enjoying our project?",
-  "link_text": "Star on GitHub",
-  "link_url": "https://github.com/example/project"
-}
+// ❌ mixed HTML in one field
+{ "content": "<span class='text-center'>Star us on <a class='underline' href='...'>GitHub</a></span>" }
+
+// ✅ separate fields; component owns the HTML structure
+{ "text": "Star us on", "link_text": "GitHub", "link_url": "https://github.com/..." }
 ```
-
-The component templates the values into the correct HTML:
-
-```astro
-<p class="text-center">
-  {text} <a class="underline" href={link_url} target="_blank" rel="noopener">{link_text}</a>
-</p>
-```
-
-Use this when each piece of the HTML has distinct semantic meaning (text vs link vs URL) and the structure is fixed. Also use this for multi-part text like job titles (`job_title`, `company`, `date_range`) where each segment needs different formatting.
-
-### Option 3: Strip layout HTML
-
-Responsive layout HTML (`<br class="block sm:hidden" />`, `&nbsp;` for spacing, `<span class="sm:whitespace-nowrap">`) are layout concerns that don't belong in content. Store plain text and handle responsiveness in the component or CSS.
 
 ## Section titles and buttons in child components
 
 When a component renders a section title or button text from props (e.g. `FeaturedProjects` rendering "Featured projects" and "View all projects"), register the component and wrap with `<editable-component>` so `data-prop` paths inside the component resolve relative to the component's data scope. Use `data-editable="text"` on the heading and `<editable-text>` on the button text inside the component.
 
 `getCollection`/`getEntry` work inside registered components because `astro:content` is shimmed by the integration. This means self-contained components that fetch their own data (e.g. a FeaturedPosts component that calls `getCollection('blog')`) work correctly in the visual editor — you don't need to pass fetched data as props.
+
+**Button/link render gates**
+
+❌ Multi-field `&&` chain — partial fill or whitespace-only strings produce visible empty editable regions:
+
+```astro
+{label && href && <a href={href}>{label}</a>}
+```
+
+✅ Gate on the single user-visible field; trim whitespace; fall the URL back to a safe default:
+
+```astro
+{label?.trim() && <a href={href || "/#contact"}>{label}</a>}
+```
 
 ## Third-party component fields
 
@@ -862,7 +860,7 @@ For sections with third-party components that don't expose attributes, extract t
 
 ## Component editables backed by data files
 
-Use `<editable-component data-component="..." data-prop="@data[key]">` to make a component backed by a data file re-render live. The component prop names must match the data file's key names — for example, if `cta.json` has `link_text`, the component must accept `link_text` (not `linkText`), because the re-renderer passes data file values directly as props.
+Use `data-prop="@data[key]"` on `<editable-component>` for components backed by data files. See [Shared-data / computed-content handling](#shared-data--computed-content-handling) for the full pattern table. Component prop names must match the data file's key names exactly (case-sensitive) — the re-renderer passes data file values directly as props.
 
 ```astro
 <editable-component data-component="call-to-action" data-prop="@data[cta]">
@@ -941,6 +939,28 @@ const author = authors[post.data.author]
 The frontmatter still updates when the editor changes the select, but the displayed object was computed at build time from the _previous_ slug. Nothing re-renders. Sidebar feels broken — change occurs but the page doesn't reflect it. Move the lookup into the registered component.
 
 **When the call site is a shared component (e.g. PageHeader).** Mirror the optional-prop pattern from titleProp/subtitleProp/imageProp: accept `authorSlug` and `authorProp`, and only render the `<editable-component>` wrapper when both are passed. Pages that don't have an author omit both props.
+
+**`reference()` fields are objects, not strings.**
+
+❌ String-vs-object comparison silently fails:
+
+```ts
+locations.map((id) => allLocations.find((entry) => entry.id === id)?.data);
+// `id` is actually {collection, id} → never matches → empty array
+```
+
+✅ Resolve refs with `getEntry`:
+
+```ts
+const resolved = await Promise.all(locations.map((ref) => getEntry(ref)));
+const data = resolved.filter(Boolean).map((e) => e.data);
+```
+
+✅ Membership test on a ref array:
+
+```ts
+entry.data.locations.some((ref) => ref.id === currentLocationId);
+```
 
 ## Conditional editable-image on shared components
 
@@ -1093,6 +1113,66 @@ Without this, Astro components that import from `astro:content` or `astro:assets
 
 The wrapper is stored in `window.cc_components[key]` where `EditableComponent` can find it.
 
+## Schema file gates prop forwarding on re-render
+
+When `@cloudcannon/editable-regions` re-renders a registered component inside the visual editor, the **schema file** (`.cloudcannon/schemas/<collection>.md`) determines which frontmatter fields are forwarded as props. Fields that exist in the entry's frontmatter and parse cleanly through the Astro/Zod content schema are still **stripped from props on re-render** if they are not declared in the CC schema's frontmatter shape. This applies to nested fields too — declaring a key at the top level of the schema is not enough if the section reads it from a nested object.
+
+Don't add a hidden `_input` in `cloudcannon.config.yml` and expect the field to flow through — `_inputs` control how fields render in the sidebar UI; they have no effect on which fields are forwarded to a re-rendered editable-region component. The schema file is the gate.
+
+### Symptom → diagnosis
+
+The component renders correctly in `astro build` output but is missing data inside the visual editor:
+
+1. Log `Object.keys(Astro.props)` from inside the component frontmatter and view it in the editor preview (console logs aren't reachable from inside the iframe).
+2. Compare the surviving keys against the section's frontmatter on disk. Stripped keys are the diagnostic.
+3. Open the relevant schema file in `.cloudcannon/schemas/`. The stripped keys will be absent from the schema's frontmatter shape (or absent from the relevant nested object).
+4. Add the missing keys with sensible default values. Reload the editor — they appear in props immediately, no save/rebuild required.
+
+### Concrete example
+
+Entry `src/content/pages/home.md`:
+
+```yaml
+postsSection:
+  categorySlug: news # used by the component to filter posts
+  heading: Latest News
+  intro: ...
+```
+
+Component `PostsListing.astro` reads `categorySlug` from `Astro.props`. In the visual editor, `Astro.props` contained only `heading` and `intro`; `categorySlug` was missing.
+
+- ❌ Did not help: declaring `postsSection.categorySlug` as a hidden `_input` in `cloudcannon.config.yml`.
+- ✅ Fixed it: adding `categorySlug: ""` inside the `postsSection:` block in `.cloudcannon/schemas/page.md`.
+
+### Debug snippet
+
+Drop this at the top of a section component, reload the editor, and read off which keys survived:
+
+```astro
+---
+const debug = { allPropKeys: Object.keys(Astro.props), allProps: Astro.props };
+---
+<pre style="background:#fffbe6;border:2px solid #f59e0b;padding:12px;font-size:12px;white-space:pre-wrap;word-break:break-all;">
+{JSON.stringify(debug, null, 2)}
+</pre>
+```
+
+If a key is missing, the schema file is the place to fix it.
+
+## Troubleshooting — why isn't my field live-updating?
+
+| Symptom                                                                                                                                                                             | Diagnosis & fix                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| React island shows error state in editor                                                                                                                                            | Open editor iframe dev tools → console. Errors are almost always: (a) `fetch` failing because there's no server, (b) missing required field, (c) hydration mismatch.                                                                                                                                                                                                                                                                                                                                                           |
+| Slug change in a `reference()`-backed array doesn't update the card's name/image in the editor                                                                                      | `await getEntry(ref)` resolves at build time — CC can't re-resolve refs client-side. Mitigations: (a) wrap parent section in `<editable-component>` to re-render on array change; (b) restructure items to carry inline-editable fields alongside the ref.                                                                                                                                                                                                                                                                     |
+| Field's rendered output is a template expression (icon SVG lookup, conditional class, `set:html` result)                                                                            | Primitive `data-editable="text"` updates DOM text only — it can't re-run the expression. Wrap the section root in `<editable-component>`.                                                                                                                                                                                                                                                                                                                                                                                      |
+| Value comes from a shared data file via an import or lookup                                                                                                                         | Lookups bake at build time. Fix: (a) read the lookup inside a registered component with `<editable-component>` wrapper; or (b) use `data-prop="@data[<key>].dotted.path"`. Do not use `data-editable="source"`.                                                                                                                                                                                                                                                                                                                |
+| `data-prop` not resolving / shows blank in editor / data-driven re-render doesn't fire                                                                                              | `data-prop` paths resolve via `CloudCannon.currentFile()` against the markdown source mapped through the collection's `url` config — not against `Astro.props`. Check: (a) route `url` in `cloudcannon.config.yml` matches the collection; (b) field path exists in the markdown frontmatter; (c) a parent `data-editable` ancestor exists; (d) `data-component` value exactly matches the key in `componentMap.ts`.                                                                                                           |
+| Sidebar field (switch/dropdown) doesn't trigger a re-render OR `Cannot destructure property 'x' of 'n.props' as it is undefined` — text editables on the same component update fine | Two possible causes: (1) **Schema flat-fields** — scattered fields with `propPrefix=""`. Fix by nesting under one frontmatter key (see [§Nested frontmatter](#scattered-fields-feeding-a-registered-component--nest-the-frontmatter)). (2) **Standalone self-marking** — component rendered directly from a page template has `data-editable="component"` on its own root. Fix by using `<editable-component>` at the call site (see [§Registration placement](#where-does-the-registration-go--component-root-or-call-site)). |
+| Multiselect of refs renders nothing or all — selection appears not to work                                                                                                          | `reference()` fields are `{collection, id}` objects at runtime, not strings. Comparing `entry.id === ref` is string-vs-object → always false. Fix: use `getEntry(ref)` for one ref, or `entry.data.x.some(r => r.id === currentId)` for membership. Type Props as `{collection: string; id: string}[]`, never `string[]`.                                                                                                                                                                                                      |
+| Multiselect appears to work but selection is ignored — same output regardless of what's selected                                                                                    | Component has an `if (length === 0) showAll` fallback. Combined with a ref-comparison bug, the filtered array always empties and the fallback always fires. Remove the fallback. Empty array = render nothing. Seed defaults in `.cloudcannon/schemas/<collection>.md`.                                                                                                                                                                                                                                                        |
+| Component renders correctly in `astro build` but a field is missing from `Astro.props` in the visual editor                                                                         | The CC schema file (`.cloudcannon/schemas/<collection>.md`) gates which frontmatter fields are forwarded on re-render. Fields absent from the schema shape are stripped from props, even if they parse cleanly through the Zod content schema. A hidden `_input` in `cloudcannon.config.yml` does NOT fix this. Add the missing key (with a sensible default) inside the correct nested object in the schema file. See [§Schema file gates prop forwarding](#schema-file-gates-prop-forwarding-l53).                           |
+
 ## Scroll-reveal and entrance animations
 
 Many templates start elements hidden (`opacity: 0`, `transform: translateY(...)`, `visibility: hidden`) and reveal them with JS (IntersectionObserver, scroll listeners) or CSS animation classes. Common class names: `reveal`, `animate-on-scroll`, `aos-*`, `fade-in`, `scroll-fade`.
@@ -1136,13 +1216,7 @@ if (window.inEditorMode) {
 }
 ```
 
-**Summary of detection mechanisms** ([CC docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
-
-| Mechanism                        | Context           | Use for                                                                                       |
-| -------------------------------- | ----------------- | --------------------------------------------------------------------------------------------- |
-| `.cms-editor-active` on `<body>` | CSS               | Overriding animation/visibility styles (primary fix)                                          |
-| `window.inEditorMode`            | Runtime JS        | Inline `<script>` logic, conditional imports                                                  |
-| `import.meta.env.ENV_CLIENT`     | Build-time (Vite) | Astro component template expressions, module scripts (only in editable-regions client bundle) |
+For the full detection-mechanism reference, see [editable-regions-internals.md § Detecting the Visual Editor](../editable-regions-internals.md#detecting-the-visual-editor).
 
 **Audit flag:** During the audit phase, flag any scroll-reveal or entrance animation patterns. Search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and common class names like `reveal`, `aos`, `animate-on-scroll`. Note the file(s) responsible so they can be patched in the visual editing phase.
 

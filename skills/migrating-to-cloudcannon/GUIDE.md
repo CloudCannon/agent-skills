@@ -4,7 +4,7 @@ How to navigate the migration skill and its companion skills — for humans revi
 
 ## Before you start
 
-**Use a high-reasoning model.** This skill involves multi-file architectural decisions across five phases. Fast/lightweight models will miss context and make poor judgment calls. Select a capable reasoning model before starting the migration.
+See [SKILL.md](SKILL.md) for the model-selection rule.
 
 ## Skill Architecture
 

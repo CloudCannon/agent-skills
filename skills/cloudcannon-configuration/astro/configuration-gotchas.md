@@ -2,18 +2,27 @@
 
 Common patterns and pitfalls discovered during Astro migrations.
 
+**Quick reference for the four most-missed rules:**
+
+1. Array item previews: `[*]` only for plain arrays — structured arrays need preview on the structure value ([§ Array item previews](#array-item-previews--vs-structure-value))
+2. Every `type: markdown` needs explicit `options:` ([SKILL.md common mistakes](../SKILL.md#common-mistakes))
+3. Data files that hold like-shaped items must be arrays, not objects keyed by slug ([configuration.md § Content specifics](configuration.md#content-specifics))
+4. Divergent top-level keys break structure matching ([structures.md § Common mistakes](../structures.md#common-mistakes))
+
 ## Configure icon fields as select inputs
 
 When a template uses an icon library (e.g. `astro-icon` with Iconify sets like `tabler:*` and `flat-color-icons:*`), configure the `icon` input as a `select` with `allow_create: true` rather than a plain `text` field. Non-technical editors can't guess icon names, but they can pick from a curated list with friendly display names.
 
-1. Grep the content files for every unique `icon:` value used in the template.
-2. Add them as object values with `name` (human-readable label) and `id` (the actual Iconify value).
+### Setup steps
+
+1. Grep content files for every unique `icon:` value used in the template.
+2. Add them as object values with `name` (human-readable label) and `id` (the Iconify value).
 3. Set `value_key: id` so the stored value is the Iconify ID, not the whole object.
 4. Set `preview.text` to show the friendly name in the dropdown.
 5. Set `allow_create: true` so developers can still type custom icon names.
 6. Add a `comment` linking to the icon set's browser (e.g. Iconify) so developers know where to find new names.
 
-Derive friendly names from the icon ID: strip the collection prefix (`tabler:`, `flat-color-icons:`), replace hyphens with spaces, title-case. For icons from secondary collections, add a suffix to distinguish them (e.g. "Template (Color)" for `flat-color-icons:template` vs "Template" for `tabler:template`).
+**Deriving friendly names:** strip the collection prefix (`tabler:`, `flat-color-icons:`), replace hyphens with spaces, title-case. For icons from secondary collections, add a suffix (e.g. "Template (Color)" for `flat-color-icons:template` vs "Template" for `tabler:template`).
 
 ### Inline values (fewer than ~20 icons)
 
@@ -90,9 +99,9 @@ _inputs:
 
 The rest of the input config (`allow_create`, `value_key`, `preview`) stays the same as the inline approach.
 
-**Common mistake:** Do NOT use `values: data.icons[*].id` — this extracts only the raw ID strings (e.g. `tabler:rocket`), losing the `name` field entirely. Editors see cryptic Iconify IDs in the dropdown instead of friendly names like "Rocket". Use `values: data.icons` (the full objects) with `value_key: id` so the stored value is the ID but the dropdown displays the name via `preview.text`.
-
 A single global `icon` input definition covers all fields that accept icon names.
+
+**Common miss:** Do NOT use `values: data.icons[*].id` — this extracts only the raw ID strings (e.g. `tabler:rocket`), losing the `name` field entirely. Editors see cryptic Iconify IDs in the dropdown instead of friendly names like "Rocket". Use `values: data.icons` (the full objects) with `value_key: id` so the stored value is the ID but the dropdown displays the name via `preview.text`.
 
 ## Configure CSS class fields as select inputs
 
@@ -121,6 +130,87 @@ _inputs:
 ```
 
 Common candidates: `iconClass`, `badgeClass`, `variant`, `colorScheme`, `theme` — any field where the template uses CSS classes to control visual styling. Grep content files for the field to collect the distinct values, then create friendly labels.
+
+## Configure variant / enum-like fields as select inputs
+
+When a frontmatter field has a small, closed set of valid values (`variant: primary | secondary | tertiary | link`, `target: _self | _blank`, `size: sm | md | lg`, `align: left | center | right`, `theme: light | dark`, `position: left | center | right`, etc.), configure it as a `select` input. Plain `type: text` lets editors type "main" or "Primary " (trailing space) and silently break the rendered output — components branch on exact string equality.
+
+Identifying these fields:
+
+- Anything the component code uses inside a switch/ternary/`class:list` against literal values (`variant === 'primary'`, `target === '_blank'`, etc.).
+- Component prop types declared as `'a' | 'b' | 'c'` unions in TypeScript.
+- Tailwind-style "pick a treatment" props that aren't an arbitrary class string (those go in the CSS-class section above) but a named option that the component then maps to classes internally.
+
+If the option set is shared across more than one structure (variants, link targets), put it in `_select_data` once and reference it.
+
+```yaml
+_select_data:
+  variants:
+    - name: Primary
+      id: primary
+    - name: Secondary
+      id: secondary
+    - name: Tertiary
+      id: tertiary
+    - name: Link
+      id: link
+  link_targets:
+    - name: Same window
+      id: _self
+    - name: New window
+      id: _blank
+
+_structures:
+  _actions:
+    style: modal
+    values:
+      - label: Action
+        value:
+          variant: primary
+          text: Action
+          href: "#"
+          target: _self
+        _inputs:
+          variant:
+            type: select
+            options:
+              value_key: id
+              preview:
+                text:
+                  - key: name
+              values: _select_data.variants
+          target:
+            type: select
+            options:
+              allow_empty: true
+              value_key: id
+              preview:
+                text:
+                  - key: name
+              values: _select_data.link_targets
+```
+
+If the option set is local to one structure (e.g. a `columns: 2 | 3 | 4` field on a Features widget), inline the values:
+
+```yaml
+_inputs:
+  columns:
+    type: select
+    options:
+      value_key: id
+      preview:
+        text:
+          - key: name
+      values:
+        - name: Two columns
+          id: 2
+        - name: Three columns
+          id: 3
+        - name: Four columns
+          id: 4
+```
+
+`allow_create: true` is appropriate for icon fields (developers may want a custom Iconify name). For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug.
 
 ## Quote numeric values that map to text inputs
 
@@ -172,7 +262,9 @@ When content uses a folder-per-post structure (e.g. `blog/01-getting-started/ind
 
 ## Set `markdown.options.table` when content has Markdown tables
 
-CloudCannon defaults `markdown.options.table` to `false`, meaning the rich text editor outputs `<table>` HTML. If the site's content files already use Markdown table syntax (`| col | col |`), set this to `true` so tables survive round-tripping through the editor. Grep content directories for the pipe-delimited pattern:
+CloudCannon defaults `markdown.options.table` to `false`, meaning the rich text editor outputs `<table>` HTML. If the site's content files already use Markdown table syntax (`| col | col |`), set this to `true` so tables survive round-tripping through the editor.
+
+Grep content directories for the pipe-delimited pattern:
 
 ```bash
 rg '^\|.*\|' src/content/
@@ -207,7 +299,7 @@ _editables:
 
 ## Rich text input toolbar options follow the same "omitted = false" rule as `_editables`
 
-The "define one key, all omitted keys become false" behavior applies not just to `_editables.content` but also to individual `_inputs.*.options` on `type: html` and `type: markdown` inputs. This means adding `styles` (or any other toolbar option) to an input strips the default inline formatting toolbar unless you re-declare the options you want.
+The "define one key, all omitted keys become false" behavior applies not just to `_editables.content` but also to individual `_inputs.*.options` on `type: html` and `type: markdown` inputs. Adding `styles` (or any other toolbar option) to an input strips the default inline formatting toolbar unless you re-declare the options you want.
 
 When configuring `type: html` inputs with `options.styles` for editor CSS, always include the inline formatting defaults alongside it:
 
@@ -234,11 +326,11 @@ For heading-level fields (title, subtitle), intentionally omit block-level optio
 
 ## `_enabled_editors` order is the default editor
 
-The first item in `_enabled_editors` is the editor that opens by default when a user clicks a file. `[data, visual]` opens the data editor; `[visual, data]` opens the visual editor. Page builder collections should almost always have `visual` first. See [configuration.md § \_enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).
+See [configuration.md § \_enabled_editors order](configuration.md#_enabled_editors-order-determines-the-default).
 
 ## Data references require three connected pieces
 
-Exposing a data file (icons, site settings, etc.) to editors requires three things, and missing any one silently breaks:
+Exposing a data file (icons, site settings, etc.) to editors requires three things, and missing any one silently breaks (no error in the editor, but the data either never appears or can't be edited):
 
 1. **The file** — e.g. `src/data/icons.json`
 2. **`data_config` entry** — registers it as a data set CC can read: `icons: { path: src/data/icons.json }`
@@ -250,31 +342,17 @@ If the data file should appear in the sidebar, it also needs a `collections_conf
 
 ## `collection_groups` requires matching `collections_config` entries
 
-`collection_groups` only organizes collections that are already defined in `collections_config` -- it does not create them. If you reference a collection name in `collection_groups` that has no `collections_config` entry, it silently does nothing. A common case: data files handled via `data_config` still need to belong to a collection configured in `collections_config` if you want them to appear as a browsable group in the sidebar. Group related data files into the same collection where it makes sense.
+`collection_groups` only organizes collections that are already defined in `collections_config` — it does not create them. If you reference a collection name in `collection_groups` that has no `collections_config` entry, it silently does nothing.
+
+A common case: data files handled via `data_config` still need to belong to a collection configured in `collections_config` if you want them to appear as a browsable group in the sidebar. Group related data files into the same collection where it makes sense.
 
 ## Always link arrays to structures explicitly
 
-Don't rely on CC's naming-convention heuristic (where an array key `foo` auto-matches `_structures.foo`). Use `type: array` with `options.structures` to make the link visible and intentional. **Use the full `_structures.<name>` path, not the bare name:**
-
-```yaml
-# ❌ Wrong — bare name, relies on naming-convention fallback
-_inputs:
-  content_blocks:
-    type: array
-    options:
-      structures: content_blocks
-
-# ✓ Right — full path
-_inputs:
-  content_blocks:
-    type: array
-    options:
-      structures: _structures.content_blocks
-```
+See [structures.md § Mandatory rules](../structures.md#mandatory-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name).
 
 ## Add preview icon fallbacks on structures
 
-When a structure preview uses `image` from a field that may be empty (e.g. `avatar`), add an `icon` entry so CC shows a meaningful fallback:
+When a structure preview uses `image` from a field that may be empty (e.g. `avatar`), add an `icon` entry so CC shows a meaningful fallback. Without it, editors see a blank preview.
 
 ```yaml
 preview:
@@ -292,11 +370,21 @@ See [configuration.md § Object inputs need preview icons](configuration.md#obje
 
 **Key collisions:** A key like `image` may be a string path (`type: image`) in some contexts and an object (`{ src, alt }`) in others. Keep the simpler/more common definition globally and use `file_config` or scoped keys for the other.
 
-## Array item previews go on `[*]`, not on the array
+## Array item previews — `[*]` vs structure value
 
-Target `arrayName[*]` (the item), not `arrayName` (the array itself). Do **not** add `type: object` to `arrayName[*]` for snippet array items — the repeating parser already defines the item shape.
+Where the preview lives depends on whether the array has `structures:`.
+
+| Array shape                                                                                        | Preview location                                                                    |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Plain array — no `structures:`                                                                     | `arrayName[*]` in `_inputs`                                                         |
+| Structured array — `structures: _structures._foo` OR inline `structures: { style, values: [...] }` | Inside the structure value itself, alongside `label` / `icon` / `value` / `_inputs` |
+
+`[*]` previews on a structured array validate clean and silently do nothing. If you see arrays with `structures:` and a matching `[*]` preview block, the `[*]` is dead weight — delete it and move the config onto the structure value. See [structures.md § Previews](../structures.md#previews).
+
+Do **not** add `type: object` to `arrayName[*]` for snippet array items — the repeating parser already defines the item shape.
 
 ```yaml
+# ✓ Plain array — [*] preview is correct here
 _inputs:
   tab_items:
     type: array
@@ -306,11 +394,23 @@ _inputs:
         text:
           - key: name
         icon: tab
+
+# ✓ Structured array — preview goes on the structure value
+_structures:
+  _nav_items:
+    style: modal
+    values:
+      - label: Nav link
+        icon: link
+        preview:
+          text: [{ key: name }, Nav link]
+          icon: [link]
+        value: { name: Link label, href: / }
 ```
 
 ## Data-only markdown collections
 
-When `.md` files don't build to a page (team members, testimonials, authors used purely as data), set `_enabled_editors: [data]` to restrict editing to the data editor. Alternatively, convert these files to `.yml` or `.json`. Note that a `.md` file can still have editable body content and be data-only — what matters is whether Astro builds a page from it, not whether the body is used.
+When `.md` files don't build to a page (team members, testimonials, authors used purely as data), set `_enabled_editors: [data]` to restrict editing to the data editor. Alternatively, convert these files to `.yml` or `.json`. A `.md` file can still have editable body content and be data-only — what matters is whether Astro builds a page from it, not whether the body is used.
 
 ## `_inputs` key collision across nesting levels
 
@@ -326,7 +426,7 @@ _inputs:
 
 ## TypeScript config files are not CC-editable
 
-Some Astro templates store site configuration in TypeScript files with `as const` objects. These cannot be edited in CloudCannon's data editor.
+Some Astro templates store site configuration in TypeScript files with `as const` objects. CloudCannon reads data from `.json`, `.yml`, `.toml`, and frontmatter — not from `.ts` sources, so these can't be edited in CloudCannon's data editor without conversion.
 
 Options, in order of preference:
 
@@ -338,12 +438,10 @@ Options, in order of preference:
 
 ## Pages collection: including `.astro` pages
 
-There are two distinct approaches for pages in CloudCannon:
+There are two distinct approaches for pages in CloudCannon. Pick based on the audit classification — picking the wrong one either forces unnecessary refactoring or leaves pages unreachable to editors:
 
 - **`src/content/pages/` collection**: For templates with structured data that should become content collection entries. See [page-building.md](page-building.md).
 - **`src/pages/` collection**: For templates where static pages stay as `.astro` files with source editables. Simpler, but no Zod validation and limited to source editables for `.astro` pages.
-
-Choose based on the audit classification. Templates with many structured pages typically need the content collection approach. Blog-focused templates with a few static pages use this simpler approach.
 
 ```yaml
 pages:
@@ -362,7 +460,7 @@ Only include `.astro` pages that actually have editable regions. The `[slug]` pa
 
 ### Prefer one unified pages collection
 
-When a site has both content collection pages (`src/content/pages/*.md`) and source-editable `.astro` pages (`src/pages/contact.astro`), **default to including both in a single `pages` collection** rather than creating a separate `static_pages` collection. A unified collection avoids confusing editors with two "pages" buckets in the sidebar.
+When a site has both content collection pages (`src/content/pages/*.md`) and source-editable `.astro` pages (`src/pages/contact.astro`), default to including both in a single `pages` collection rather than creating a separate `static_pages` collection. A unified collection avoids confusing editors with two "pages" buckets in the sidebar.
 
 Use `_enabled_editors` and schemas to differentiate behavior within the collection:
 
@@ -373,49 +471,43 @@ Only split into separate collections when there's a genuine UX reason — for ex
 
 ### Deciding whether to enable page creation
 
-**Disable page creation (`disable_add: true`)** when:
+| Setting             | When                                                                                                                                                 |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_add: true` | Template is blog-focused and standalone pages are one-offs with hardcoded layouts; enabling creation would give editors a broken or unstyled result. |
+| Default (allow add) | Template has a generic page layout that works for arbitrary content; new `.md` pages render correctly with the existing layout and navigation.       |
 
-- The template is blog-focused and standalone pages are one-offs with hardcoded layouts
-- Enabling creation would give editors a broken or unstyled result
-
-**Enable page creation** when:
-
-- The template has a generic page layout that works for arbitrary content
-- New `.md` pages would render correctly with the existing layout and navigation
-
-Use `disable_add: true` to hide the Add button. Do not use `add_options: []` for this purpose -- it has no effect.
+Use `disable_add: true` to hide the Add button — `add_options: []` has no effect.
 
 ### Source editables vs. refactoring to `.md`
 
-**Source editables:** Add `data-editable="source"` attributes directly. Low effort, no structural changes needed. **Reserved for long-form prose only** -- not the default for any one-off hardcoded string. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#when-to-use-source-editables).
+| Approach                                        | When                                                                                                                                         | Effort                             |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| **Source editables** (`data-editable="source"`) | Long-form prose only. 1–2 inline string edits on a page whose layout _is_ the body.                                                          | Low — no structural changes.       |
+| **Refactor to `.md`**                           | Default for unique-layout pages with 2+ content sections. Extract into `pages` collection with structured frontmatter + page-builder schema. | Medium — move content, add schema. |
 
-**Refactor to `.md`:** The default for unique-layout pages with 2+ content sections. Extract the content into a `.md` entry in the `pages` collection with structured frontmatter and a page-builder schema.
-
-**Decision rule:** Run the page through the [audit.md classification census](../../migrating-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection). Page builder is the default; source-editable is the exception for long-form prose. See [page-building.md § When to reach for page builder](../../migrating-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder).
+**Decision rule:** Page builder is the default; source-editable is the exception. Run the page through the [audit.md classification census](../../migrating-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) and [page-building.md § When to reach for page builder](../../migrating-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder).
 
 ## `z.union` silently matches the wrong schema when fields have defaults
 
-When combining multiple page schemas with `z.union`, schemas with many `.default()` and `.nullish()` fields validate successfully against data intended for a different variant. For example, a contact page with `_schema: contact` and `show_form: true` might be parsed by `pageBuilderSchema` (which doesn't have `show_form`) because `pageBuilderSchema` validates first — all its fields have defaults and `show_form` is simply ignored.
+When combining multiple page schemas with `z.union`, schemas with many `.default()` and `.nullish()` fields validate successfully against data intended for a different variant. An earlier schema in the union "wins" because all its fields validate; fields from the correct schema are silently absent at runtime (`data.show_form === undefined`), conditional rendering breaks, and blocks of the page disappear.
 
-Symptoms: fields from the correct schema are silently absent at runtime (`data.show_form === undefined`), conditional rendering breaks, and blocks of the page disappear.
-
-**Fix:** Use `z.discriminatedUnion("_schema", [...])` with a literal `_schema` field in each schema. This forces Zod to match on the `_schema` value rather than validating fields. Requires every content file to declare `_schema` explicitly. See [configuration.md § Fallback](configuration.md#fallback-merge-unique-pages-into-pages-with-a-zunion).
+**Fix:** Use `z.discriminatedUnion("_schema", [...])` with a literal `_schema` field in each schema. This forces Zod to match on the `_schema` value rather than validating fields. Every content file must declare `_schema` explicitly. See the [decision table in configuration.md § Schemas](configuration.md#zod-zunion-vs-zdiscriminatedunion).
 
 ## Data inputs must follow the JSON, not a template
 
-Before finalizing `file_config` for a data file, grep the actual JSON keys and ensure every key has a matching input. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the JSON actually has those keys. Mismatches fail silently in both directions:
+Before finalizing `file_config` for a data file, grep the actual JSON keys and ensure every key has a matching input. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the JSON actually has those keys. Mismatches fail silently in both directions — "the editor works but a few fields aren't styled right" is easy to miss on a fast visual pass.
 
-- **Dead input on a missing key** → silently ignored. No warning, no editor UI, no-op at build.
-- **Missing input on an existing key** → falls through to a plain text field. Editors see a raw text box where a color picker / switch / image uploader should be.
+| Mismatch                       | Symptom                                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Input defined, key not in JSON | Input is silently ignored. No warning, no editor UI, no-op at build.                                                      |
+| Key in JSON, no input defined  | Falls through to a plain text field. Editors see a raw text box where a color picker / switch / image uploader should be. |
 
-The failure mode is "the editor works but a few fields aren't styled right," which is easy to miss on a fast visual pass.
-
-**Recipe:** before committing `file_config`, list every leaf key path in each JSON file and cross-reference the `_inputs` scope:
+**Recipe:** before committing `file_config`, list every leaf key path in each JSON file and cross-reference against the `_inputs` scope:
 
 ```bash
 jq -r 'paths(scalars) | join(".")' src/data/*.json | sort -u
 ```
 
-Every path in the output should either have a corresponding `_inputs` entry (scoped via `file_config` or matched by global `_inputs`) or be intentionally left untyped. Keys in `_inputs` that do NOT appear in the output are dead config — remove them.
+Every path in the output should either have a corresponding `_inputs` entry (scoped via `file_config` or matched by global `_inputs`) or be intentionally left untyped. Keys in `_inputs` that do NOT appear in the JSON are dead config — remove them.
 
-Applies equally when the template changes: if you remove a color key from the JSON, remove the matching input in the same commit.
+**Applies equally when the template changes:** removing a color key from JSON means removing the matching input in the same commit.

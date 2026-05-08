@@ -81,12 +81,16 @@ For each component used in MDX content:
 1. **Find the component source** — check the auto-import config or shortcodes directory
 2. **Read its props** — look at the TypeScript interface or function parameters
 3. **Check how it's used in content** — self-closing or wrapping content? Uses `client:load`?
-4. **Choose the approach**:
-   - No `client:load` + self-closing → `mdx_component` template
-   - No `client:load` + wraps content → `mdx_paired_component` template
-   - Has `client:load` → raw snippet syntax (template-based can't output directives)
+4. **Choose the approach** — see table below
 5. **Write the snippet config** — map props to named_args/models, add `_inputs` for good editor UX
 6. **Add `_inputs` for constrained values** — use `select` for props with known options, `url` for links, etc.
+
+| Content shape                             | Approach                                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| No `client:load` + self-closing           | `mdx_component` template                                                                                    |
+| No `client:load` + wraps content          | `mdx_paired_component` template                                                                             |
+| Has `client:load` (any directive)         | Raw snippet — templates can't output directives                                                             |
+| Nested tree (`<Tabs><Tab>…</Tab></Tabs>`) | Single raw snippet with `repeating` parser. See [§ Nested components](#nested-components-repeating-parser). |
 
 ## Handling `client:load` directives
 

@@ -35,9 +35,11 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 
 ## Quick decision
 
-- **Template-based** → component syntax matches a built-in template exactly. See [template-based.md](template-based.md).
-- **Raw** → extra syntax, SSG-specific directives, or fine-grained parsing control. See [raw.md](raw.md).
-- **Inline HTML in `.md`** → `<figure>`, `<video>`, `<details>` etc. Use raw snippets. See [snippets.md § Raw snippets for inline HTML](snippets.md#raw-snippets-for-inline-html-in-md-files).
+| Case                                         | Approach                                                                                                              |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Component syntax matches a built-in template | Template-based — see [template-based.md](template-based.md)                                                           |
+| Extra syntax, SSG directives, custom parsing | Raw — see [raw.md](raw.md)                                                                                            |
+| Inline HTML in `.md` (`<figure>`, `<video>`) | Raw snippets — see [snippets.md § Raw snippets for inline HTML](snippets.md#raw-snippets-for-inline-html-in-md-files) |
 
 Most setups use template-based for simple components and raw for anything with SSG-specific directives.
 

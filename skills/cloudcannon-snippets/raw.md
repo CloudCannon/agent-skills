@@ -33,7 +33,19 @@ Text outside `[[placeholders]]` is literal — it appears as-is in the output an
 
 ## Parser types
 
-Each `params.*` entry has a `parser` key. Available parsers:
+Each `params.*` entry has a `parser` key. Pick from the table below, then read the matching section for options.
+
+| Parser              | Purpose                                                   | Use when                                                                                                         | See                                                                       |
+| ------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `key_values`        | Key=value attribute pairs                                 | `<Component prop="val" other={expr} />` — the most common case                                                   | [§ key_values](#key_values--keyvalue-pairs)                               |
+| `content`           | Rich multiline content between paired tags                | `<Component>inner body</Component>` — paired components with rich inner content                                  | [§ content](#content--rich-multiline-content)                             |
+| `argument`          | Single positional value (shortcode-style)                 | `{{<figure image.png>}}` — positional args. Don't use for HTML attribute values (`src="..."`); use `key_values`. | [§ argument](#argument--single-positional-argument)                       |
+| `argument_list`     | Multiple positional values in order                       | Shortcodes with ordered args like `{{<video src.mp4 640 480>}}`                                                  | [§ argument_list](#argument_list--multiple-distinct-positional-arguments) |
+| `literal`           | Exact fixed string                                        | Inside custom templates, to lock a literal value via `ref`                                                       | [§ literal](#literal--exact-fixed-value)                                  |
+| `optional`          | Higher-order wrapper making another parser optional       | Zero-or-one wrap around another parser                                                                           | [§ optional](#optional--higher-order-wrapper)                             |
+| `repeating_literal` | A single character repeated N+ times                      | Variable-length fences like ` ``` ` / ` ```` `                                                                   | [§ repeating_literal](#repeating_literal--repeated-literal-character)     |
+| `repeating`         | Repeat a child inline template as array items             | Parent/child patterns like `<Tabs><Tab>…</Tab></Tabs>`. Don't define the child as a separate `_snippets` entry.  | [§ repeating](#repeating--repeat-a-child-pattern-as-array-items)          |
+| `wrapper`           | Embed one inline pattern inside another (single instance) | Like `repeating` but produces one instance, not an array                                                         | [§ wrapper](#wrapper--embed-one-inline-pattern-inside-another)            |
 
 ### `key_values` — key=value pairs
 

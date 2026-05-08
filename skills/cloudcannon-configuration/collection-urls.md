@@ -46,19 +46,18 @@ Common filters for URLs:
 
 ## Content in subdirectories within a collection
 
-When a collection has subdirectories (e.g. `blog/examples/`, `blog/releases/`) and the SSG routing preserves the subdirectory in the output URL (e.g. `/posts/examples/my-post/`), the `{slug}` placeholder alone won't match — it only contains the slug portion, not the directory prefix.
+**Symptom:** A post's output URL is `/posts/examples/my-post/` but the `{slug}` placeholder resolves to just `my-post` — the subdirectory is missing from the rendered URL and the Visual Editor can't open the page.
 
-**How to detect this:** Compare the build output paths in `dist/` against the `{slug}` values. If a post's output URL is `/posts/examples/my-post/` but `{slug}` resolves to just `my-post`, there's a mismatch. Check any SSG routing utilities that construct URLs from both file paths and entry IDs — these often prepend the subdirectory.
+**Detect:** Compare build output paths in `dist/` against the `{slug}` values. If they diverge, the SSG's routing utility is prepending the subdirectory.
 
-**Two fixes:**
+### Fix options
 
-1. **Prefix the frontmatter `slug`** — include the subdirectory in the slug value (e.g. `slug: examples/my-post` instead of `slug: my-post`). This keeps the collection unified and the `{slug}` URL template working. Check that the SSG's routing utility still produces the correct output — many routing helpers take the last segment of the entry ID as the slug and derive the directory from the file path, so prefixing the slug doesn't double up the directory.
+| Fix                             | How                                                                                                                                     | Use when                                                                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prefix the frontmatter `slug`   | Include the subdirectory in the slug value (`slug: examples/my-post`). Check the SSG's routing utility doesn't double-up the directory. | Small subdirectories within a content collection (example posts, archived posts). Keeps the collection unified.                                      |
+| Split into separate collections | Give the subdirectory its own CC collection with a URL pattern that includes the prefix (`url: "/posts/examples/{slug}/"`).             | The subdirectory represents a genuinely different content type with its own editorial workflow, or is large enough to warrant its own sidebar entry. |
 
-2. **Split into separate collections** — give the subdirectory its own CC collection with a URL pattern that includes the prefix (e.g. `url: "/posts/examples/{slug}/"`). Better when the subdirectory represents a genuinely different content type with its own editorial workflow.
-
-Prefer option 1 for small subdirectories within a content collection (example posts, archived posts). Prefer option 2 when the subdirectory is large enough to warrant its own sidebar entry.
-
-Note: directories prefixed with `_` (e.g. `_releases/`) are often excluded from routing by the SSG — their posts get URLs without the directory prefix. These work fine with plain `{slug}`. Check the SSG's path utility for `_`-prefix filtering before deciding.
+**Note:** Directories prefixed with `_` (e.g. `_releases/`) are often excluded from SSG routing — their posts get URLs without the directory prefix and work fine with plain `{slug}`. Check the SSG's path utility for `_`-prefix filtering before applying either fix.
 
 ## Troubleshooting
 

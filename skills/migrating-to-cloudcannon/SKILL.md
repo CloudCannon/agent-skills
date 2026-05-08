@@ -10,7 +10,7 @@ description: >-
 
 This skill orchestrates a full migration of an existing SSG site to CloudCannon. It coordinates five phases, delegating domain-specific work to standalone skills that can also be used independently.
 
-> **Model recommendation:** This migration involves multi-file architectural decisions across five phases. Use a high-reasoning model (not a fast/lightweight one) for best results.
+> **Model recommendation:** Migrations involve multi-file architectural decisions across five phases. Use a high-reasoning model (not a fast/lightweight one) for best results.
 
 ## Supported SSGs
 
@@ -20,112 +20,206 @@ This skill orchestrates a full migration of an existing SSG site to CloudCannon.
 
 ## Chaining with upstream skills
 
-If the Astro site is being **generated** as part of this task (e.g. converting from WordPress or another platform), read [astro/cc-friendly-conventions.md](astro/cc-friendly-conventions.md) before scaffolding. It summarizes the structural choices that make the CloudCannon migration smooth — output mode, content collection layout, image handling, component framework, and page structure. Following those conventions upfront avoids refactoring work in the migration phases.
-
-Once the site is scaffolded, return here and run the migration phases as normal.
+If the site is being **generated** as part of this task (e.g. converting from WordPress), read [astro/cc-friendly-conventions.md](astro/cc-friendly-conventions.md) before scaffolding — it covers the structural choices that make the migration smooth. Once scaffolded, return here and run the migration phases.
 
 ## Step 1: Detect the SSG
 
-Before starting, identify the SSG. Run from the project root:
+Run from the project root:
 
 ```bash
 npx @cloudcannon/cli configure detect-ssg
 ```
 
-This returns the detected SSG and confidence scores. Use the result to select the correct SSG guide above.
+Use the detected SSG to pick the correct guide above.
 
 ## Migration phases
 
-Each SSG guide walks through these phases in order with SSG-specific instructions. Phases that delegate to standalone skills are marked below — read the skill when you reach that phase.
+Each SSG guide walks through these in order. Phases that delegate to standalone skills are marked below.
 
-1. **Audit** — Analyze the site's content structure, components, routing, and build pipeline before making changes.
+1. **Audit** — Analyze content structure, components, routing, and build pipeline before changing anything.
 2. **Configuration** — Generate and customize CloudCannon config files.
-   - **Read the `cloudcannon-configuration` skill** for CloudCannon CLI usage, structures, collection URLs, inputs, and SSG-specific configuration guidance.
-   - If the site uses MDX components or inline HTML in content, also **read the `cloudcannon-snippets` skill** for snippet configuration.
+   - Read the `cloudcannon-configuration` skill.
+   - If the site uses MDX components or inline HTML in content, also read the `cloudcannon-snippets` skill.
 3. **Content** — Restructure content files if needed so they're CMS-friendly.
-4. **Visual editing** — Add support for CloudCannon's Visual Editor with editable regions.
-   - **Read the `cloudcannon-visual-editing` skill** for editable regions API, setup workflow, and SSG-specific patterns.
-5. **Build and test** — Validate the migration works end-to-end.
+4. **Visual editing** — Add editable regions for CloudCannon's Visual Editor.
+   - Read the `cloudcannon-visual-editing` skill.
+5. **Build and test** — Validate the migration end-to-end.
 
-Not every site needs all phases. Small sites may skip Phase 3 if content is already well-structured. Visual editing (Phase 4) is optional but high-value.
+Not every site needs all phases. Small sites may skip Phase 3 if content is already well-structured. Phase 4 is optional but high-value.
 
-### Phase discipline
+### Per-phase workflow
 
-**Read the phase checklist BEFORE and AFTER each phase.** Every phase doc ends with a verification checklist. Read it before starting the phase so you know what to aim for, then work through every item before marking the phase complete. This is the single most important discipline in the migration — the checklists catch things you will otherwise miss.
+For each phase, in order:
 
-Common misses that checklists prevent: data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page builder blocks, arrays not linked to structures.
+1. **Read** the phase doc end-to-end before touching any files.
+2. **TaskCreate** one task per checklist item in that phase doc. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
+3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
+4. **Write** `migration/<phase>.md` documenting decisions, findings, and anything the user should review.
+5. **Check the handoff readiness row below.** If it's met, the phase is safe to hand off to a fresh conversation. Whether you actually open a fresh conversation is a judgment call (see [Chunking](#chunking-large-migrations) below) — within one conversation, just continue.
 
-**You are not done with a phase until every checklist item is verified.** Don't move on with unchecked items.
+**Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. TaskCreate makes the skim visible.
 
-**Phases are sequential, not siloed.** When a later-phase concern (e.g. a missing frontmatter field) blocks the current phase from producing the right result, make the targeted fix now rather than settling for a worse outcome. Small, mechanical fixes (adding a missing field, normalizing a value) are fine in any phase. Structural changes (moving files, reorganizing collections, altering rendering) should still wait for their proper phase.
+### Phase handoff readiness
+
+These rows define what must be true for a phase to be safely picked up by a fresh conversation. They are **not** walls inside one conversation — cross-phase fixes (per step 3 above) are still fine. They exist so a chunked migration's later runs have a clean starting point.
+
+| After phase           | Ready for handoff when…                                                                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1. Audit**          | `migration/audit.md` exists, contains the census table, and lists every collection + every page route. Sectioning thresholds (below) have been evaluated; if tripped, `migration/plan.md` exists.                                                                  |
+| **2. Configuration**  | `cloudcannon.config.yml` validates against the published JSON schema (no IDE red squigglies). Every collection in the audit has a `collections_config` entry; every referenced data file has a `data_config` entry. `migration/configuration.md` written.          |
+| **3. Content**        | All structural content changes from Phase 2 are reflected in the files. `npm run build` (or project equivalent) succeeds. `migration/content.md` written.                                                                                                          |
+| **4. Visual editing** | Every section flagged in the audit census as "needs editable region" has been wired or has a documented justification for not being wired. `registerComponents.ts` registers every component used inside a wrapped section. `migration/visual-editing.md` written. |
+| **5. Build and test** | Production build succeeds locally. User has run their CloudCannon-side verification (preview, inline edit, save-to-git). `migration/build.md` written.                                                                                                             |
+
+## Chunking large migrations
+
+Migrations can run end-to-end in one conversation, but on larger sites context fills up — quality drops in later phases (especially Phase 4 visual editing) when the agent is recalling decisions from earlier phases through a long backscroll. Chunking into fresh conversations is a way to avoid that.
+
+**Chunking is a suggestion, not a wall.** The agent doesn't _halt_ between phases — it tells the user "context is heavy; consider opening a fresh conversation for Phase N" and lets the user choose. If the user keeps going in the same conversation, that's fine.
+
+### When to suggest a fresh conversation
+
+At the end of Phase 1, evaluate the sizing thresholds against `migration/audit.md`:
+
+| Signal                                | Threshold | Source                                                                       |
+| ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| Total pages                           | > 30      | Audit § Pages and routing                                                    |
+| Hardcoded `.astro` → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
+| Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
+
+If any 2 thresholds are tripped, write `migration/plan.md` using the template below, then suggest to the user that later phases run in fresh conversations. Phase 4 (visual editing) is the most context-hungry — it's the most likely candidate for a fresh start.
+
+| Shape                         | When                                                                                                            |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Vertical (per-collection)** | Page-builder pages or unique-shape collections dominate — each unit has its own schema/visual-editing decisions |
+| **Horizontal (per-phase)**    | Collections are mostly uniform — repetitive per-collection work benefits from one mental model at a time        |
+
+### `migration/plan.md` template
+
+```markdown
+# Migration plan
+
+## Sizing
+
+- Total pages: <n> (threshold >30: <tripped|ok>)
+- Hardcoded → YAML conversions: <n> (threshold >15: <tripped|ok>)
+- Distinct collections: <n> (threshold >5: <tripped|ok>)
+- Tripped: <count>/3 → <chunked recommended|single-pass fine>
+
+## Shape (if chunking)
+
+<vertical|horizontal> — because: <one-line reason>
+
+## Chunks
+
+Each chunk is intended as a single agent run, ideally in a fresh conversation
+once context is heavy. The agent reads `migration/audit.md` + this file + the
+listed phase doc, then works the listed scope.
+
+| #   | Scope                            | Phase(s) | Inputs                     | Output artefact                           |
+| --- | -------------------------------- | -------- | -------------------------- | ----------------------------------------- |
+| 1   | <e.g. all collections — config>  | 2        | audit.md                   | cloudcannon.config.yml + configuration.md |
+| 2   | <e.g. blog collection — content> | 3        | audit.md, configuration.md | content.md (blog section)                 |
+| 3   | <...>                            | ...      | ...                        | ...                                       |
+
+## Global decisions locked in chunk 1 (do not revisit)
+
+- Collection URL patterns
+- Shared structures (`_structures`)
+- Snippet configs (if MDX/inline HTML)
+- `registerComponents.ts` setup
+```
+
+**Resumption brief** (paste into a fresh conversation): "Read `migration/audit.md`, `migration/plan.md`, and the phase doc(s) listed for chunk N. Work chunk N's scope. Write the output artefact and stop."
+
+**Repetition → script rule:** After migrating 2 entries of the same shape, write a throwaway script for the rest. 23 hand-conversions of the same article shape is wasted tokens and an error multiplier.
 
 ## Scripts
 
-Deterministic migration steps are automated as scripts in [scripts/](scripts/). Run these before or during the relevant phase to save time and repetition.
+Deterministic migration steps are automated as scripts in [scripts/](scripts/). Run these before or during the relevant phase.
 
 ## Migration notes
 
-Create a `migration/` directory at the project root with one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`). Use these to document decisions, findings, and anything the user should review. The agent writes to them as work progresses; the user can read them to understand what changed and why.
+All written to `migration/` at the project root: one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`), plus `plan.md` if the migration is sectioned. See the per-phase workflow above for the gates that consume each file.
 
 ## Handoff and verification
 
-### Testing boundaries (agents vs humans)
+### Testing boundaries
 
-- **CloudCannon and the visual editor** — Fidelity checks inside the real product (preview, inline edit, save-to-git) are **human** tasks. Do not assume you can fully replicate CloudCannon in the local environment.
-- **After a substantive pass** — Prefer asking the user to run verification (build, CloudCannon) rather than starting a long-lived dev server or heavy end-to-end testing in the agent session.
-- **Light automation** — Builds, greps, small scripts, and checks described in SSG phase docs (e.g. inspecting `dist/`) are appropriate; keep them proportional.
-- **Deeper agent testing** — When the task truly requires it, more advanced automated checks are fine; keep them proportional to the task.
+| Check                                                              | Owner |
+| ------------------------------------------------------------------ | ----- |
+| Local build (`npm run build` or whatever `package.json` defines)   | Agent |
+| Builds, greps, small scripts, `dist/` inspection                   | Agent |
+| Fidelity checks in CloudCannon (preview, inline edit, save-to-git) | Human |
+
+Prefer asking the user to run CloudCannon verification over spinning up long-lived dev servers or heavy end-to-end testing in the agent session.
 
 ### When to close with the user
 
-Do this after a **meaningful chunk** of work, not after every tiny edit. At minimum: when **Build and test** is done for a first full migration pass. If the user stops earlier (e.g. after configuration only), hand off at that milestone instead.
+Close after a **meaningful chunk**, not every tiny edit. At minimum: when Phase 5 (Build and test) is done for a first full migration pass. If the user stops earlier (e.g. after configuration only), hand off at that milestone instead.
 
 ### What to say
 
-Be direct and brief: a short summary of what changed, then a **checklist** the user can run, then **one clear ask** for feedback. Skip empty phrases ("let me know if you need anything"). Thanking them once for checking is fine.
+Be direct and brief:
+
+1. A short summary of what changed.
+2. A checklist the user can run.
+3. One clear ask for feedback.
+
+Skip empty phrases ("let me know if you need anything"). Thanking them once for checking is fine.
 
 ### What to ask the user to verify
 
-1. **Local build** — The project's real build entrypoint (usually `npm run build` or whatever `package.json` defines), not a partial command. If it failed, they should paste the **full** error output (or at least the command, exit code, and the last ~30 lines of stderr).
-2. **Checks you already ran** — If you ran SSG-specific checks from the build doc (e.g. grep `dist/` for editable attributes), say so in one line so they do not duplicate work.
-3. **CloudCannon (human)** — They should confirm in the hosted environment:
-   - Inline text regions can be edited in the preview on representative pages
-   - Image regions open the image picker
-   - Array regions show add/remove/reorder controls where arrays were wired
-   - Cross-file editables (`@file`, shared partials, etc.) update the intended source file—not always the page being viewed
-   - Saved changes land in the expected files in git
-
-SSG-specific build and `dist/` checks stay in each SSG's build phase doc.
+- **Local build** — the project's real build entrypoint, not a partial command. If it fails, paste the full error output (command, exit code, last ~30 lines of stderr).
+- **Checks you already ran** — state them in one line so the user doesn't duplicate work.
+- **CloudCannon (human)** — confirm in the hosted environment:
+  - Inline text regions can be edited in the preview on representative pages
+  - Image regions open the image picker
+  - Array regions show add/remove/reorder controls where arrays were wired
+  - Cross-file editables (`@file`, shared partials) update the intended source file
+  - Saved changes land in the expected files in git
 
 ### What to ask the user to send back
 
-So the next turn is actionable, ask for **concrete** signals: the exact command they ran, CloudCannon build log snippets if the remote build failed, the page URL and what they clicked if the editor misbehaved, or a short description of what differs from what they expected.
+Concrete signals: the exact command run, CloudCannon build log snippets if the remote build failed, the page URL and what they clicked if the editor misbehaved, or a short description of what differs from expected.
 
 ### Iteration
 
-End with one line that invites the next pass on their reply—for example: when they have run those checks, they should reply with any failures or odd behavior so you can adjust in a follow-up.
+End with one line that invites the next pass — when they've run those checks, reply with any failures or odd behavior.
 
 ## Naming conventions
 
-Follow the project's existing conventions when present. Otherwise:
+Follow existing project conventions when present. Otherwise:
 
 - `kebab-case` for files
 - `camelCase` for JavaScript and JSON
-- Markdown frontmatter and YAML: match the existing component prop names so frontmatter keys pass through without translation. When creating new fields with no existing convention, prefer `snake_case`.
+- Markdown frontmatter and YAML: match existing component prop names so frontmatter keys pass through without translation
+- New fields with no existing convention: prefer `snake_case`
+
+## Cross-references for known pitfalls
+
+For specific architectural decisions and config-syntax mistakes, see:
+
+| Topic                                                                                                                      | Owner                                                                                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Classifying static pages (source-editable vs page-builder vs collection)                                                   | [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection)                                                                                                                           |
+| `home.md` vs `index.md`, collection-of-one                                                                                 | [astro/page-building.md § Common mistakes](astro/page-building.md#common-mistakes)                                                                                                                                                                    |
+| Shared UI (CTA banners, footers, share blocks)                                                                             | [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table)                                                                                                                            |
+| Multi-schema collections (`pages` with `z.union`)                                                                          | [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas)                                                                                                                          |
+| Config-syntax hallucinations (wrong keys/types)                                                                            | [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys)                                                                                                                                        |
+| Markdown body renders as unstyled text — no heading sizes, list bullets, or link colour — despite `prose prose-lg` classes | `@tailwindcss/typography` not installed or not registered. Tailwind 4 needs `@plugin "@tailwindcss/typography";` in the main CSS (after `@import "tailwindcss";`). Two-line fix: `npm install @tailwindcss/typography` + add the `@plugin` directive. |
 
 ## Common mistakes
 
-This table covers migration process and architecture mistakes. For config-syntax hallucinations (wrong key names, wrong types — e.g. `disable_url_preview`, `type: hidden`, `options.collections`, `paths.collections`), see [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys).
-
-| Excuse                                                          | Reality                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "This site is simple enough to skip the audit"                  | The audit catches structural issues early. Skipping it means discovering problems mid-configuration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| "I'll do the checklist at the end"                              | Read checklists BEFORE starting each phase. They tell you what to aim for.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| "Content restructuring can wait"                                | If a missing field blocks configuration, add it now. Phases are sequential, not siloed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| "Visual editing is optional so I'll skip it"                    | It's the highest-value phase for editors. Only skip if the user explicitly says so.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| "The build passes so we're done"                                | A passing build doesn't mean the editor works. The user must verify in CloudCannon.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| "I'll call the homepage file `home.md` — it's more descriptive" | CloudCannon resolves the URL from the slug; `home.md` with `url: "/[slug]/"` → `/home/`. Use `index.md` so Astro collapses the slug to `/`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| "It's hardcoded, so it's developer-only"                        | If an editor can see it on the page, they must be able to edit it. The mechanism depends on the page: shared UI (CTA banners, footers, share blocks, author cards) → data file; unique-layout pages with 2+ sections → page-builder `pages` collection entry; long-form prose page → fixed-schema collection with markdown body. `data-editable="source"` is for long-form prose only -- not the default for any one-off string. See [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table) and [astro/page-building.md § When to reach for page builder](astro/page-building.md#when-to-reach-for-page-builder). |
-| "This page is unique so it should be source-editable"           | Unique-layout pages with 2+ sections belong in a `pages` collection with a page-builder schema. Source-editable is for long-form prose only. See [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection).                                                                                                                                                                                                                                                                                                                                                                                                         |
-| "I'll make a single-entry `homepage` collection"                | Use one `pages` collection with `index.md` as one entry. Add `our-team.md`, `about.md`, etc. as more entries. CloudCannon collections support multiple schemas per collection -- both via `schemas:` config and via Zod `z.union` in Astro content config. See [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas).                                                                                                                                                                                                                                                                                          |
-| "Page builder is overkill for these few pages"                  | Page builder is the default for any site with more than one unique-layout page. The cost is a `[...slug].astro` catch-all + a `BlockRenderer` -- both are mechanical. The benefit is editors can add new pages without engineering.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Excuse                                                          | Reality                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "This site is simple enough to skip the audit"                  | The audit catches structural issues early. Skipping it means discovering problems mid-configuration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| "I'll do the checklist at the end"                              | Read checklists BEFORE starting each phase. They tell you what to aim for.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| "Content restructuring can wait"                                | If a missing field blocks configuration, add it now. Phases are sequential, not siloed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| "Visual editing is optional so I'll skip it"                    | It's the highest-value phase for editors. Only skip if the user explicitly says so.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| "The build passes so we're done"                                | A passing build doesn't mean the editor works. The user must verify in CloudCannon.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| "I'll call the homepage file `home.md` — it's more descriptive" | CloudCannon resolves the URL from the slug; `home.md` with `url: "/[slug]/"` → `/home/`. Use `index.md` so Astro collapses the slug to `/`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| "It's hardcoded, so it's developer-only"                        | If an editor can see it on the page, they must be able to edit it. The mechanism depends on the page: shared UI (CTA banners, footers, share blocks, author cards) → data file; unique-layout pages with 2+ sections → page-builder `pages` collection entry; long-form prose page → fixed-schema collection with markdown body. `data-editable="source"` is for long-form prose only — not the default for any one-off string. See [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table) and [astro/page-building.md § When to reach for page builder](astro/page-building.md#when-to-reach-for-page-builder). |
+| "This page is unique so it should be source-editable"           | Unique-layout pages with 2+ sections belong in a `pages` collection with a page-builder schema. Source-editable is for long-form prose only. See [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection).                                                                                                                                                                                                                                                                                                                                                                                                        |
+| "I'll make a single-entry `homepage` collection"                | Use one `pages` collection with `index.md` as one entry. Add `our-team.md`, `about.md`, etc. as more entries. CloudCannon collections support multiple schemas per collection — both via `schemas:` config and via Zod `z.union` in Astro content config. See [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas).                                                                                                                                                                                                                                                                                          |
+| "Page builder is overkill for these few pages"                  | Page builder is the default for any site with more than one unique-layout page. The cost is a `[...slug].astro` catch-all + a `BlockRenderer` — both are mechanical. The benefit is editors can add new pages without engineering.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |

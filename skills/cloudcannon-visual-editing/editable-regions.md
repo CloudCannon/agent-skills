@@ -1,25 +1,19 @@
 # Editable Regions — Overview
 
-> Documented against `@cloudcannon/editable-regions` v0.1.x. If the package has had a major version bump, these docs may need refreshing.
-
-`@cloudcannon/editable-regions` is a client-side system that makes elements on a page interactive within CloudCannon's Visual Editor. It scans the DOM for specially-annotated elements and connects them to CloudCannon's JavaScript API for live editing.
-
-For SSG-specific integration details, see the visual-editing doc in the relevant SSG directory (e.g. [astro/visual-editing.md](astro/visual-editing.md)).
-For deep internals, lifecycle traces, and the JavaScript API reference, see [editable-regions-internals.md](editable-regions-internals.md) — only needed when debugging unexpected behavior.
-
----
+Reference for `@cloudcannon/editable-regions` v0.1.x — the client-side system that makes DOM elements interactive inside CloudCannon's Visual Editor. SSG-specific integration lives in [astro/visual-editing.md](astro/visual-editing.md) (or the equivalent for your SSG). Internals, lifecycle traces, and the JavaScript API reference live in [editable-regions-internals.md](editable-regions-internals.md).
 
 ## Region Types
 
 ### Primitive vs component regions
 
-**Primitive** region types (`text`, `image`, `array`, `array-item`, `source`) each target a specific kind of value or control. They update their own slice of the live DOM directly and do not need a registered component renderer.
+| Kind          | Types                                            | Behaviour                                                                                                         | Use when                                                                                                                    |
+| ------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Primitive** | `text`, `image`, `array`, `array-item`, `source` | Updates its own slice of the live DOM directly. No registered renderer needed.                                    | Inline on-canvas editing of a single value or list.                                                                         |
+| **Component** | `component`, `snippet` (extends component)       | Re-renders from structured data so the whole template slice stays in sync — text, images, styles, derived markup. | The section has conditional elements, style/class bindings, or computed content. Nest primitives inside for inline editing. |
 
-**Component** regions (and **snippet**, which extends component) re-render from structured data so the whole template slice can stay in sync—text, images, arrays, styles, and derived markup. That broad catch-all is not a substitute for primitives in the markup: nest **text**, **array**, **image**, and so on inside a component when you want **inline on-canvas** editing (e.g. rich text on the page, array CRUD on the page). Authors can still change the same fields from the **data panel or modal**; matching region types are what add direct on-page controls. Nesting primitives inside components is normal—the component handles data-driven re-renders while nested regions supply the inline editors.
+**Precedence:** a primitive that binds a `data-prop` to a subtree wins for that subtree's live value — updates follow frontmatter through the region and override any component-level transform. With no primitive on that markup, the component re-render owns value derivation. Typical split: an `array` region for CRUD plus nested `text`/`image` primitives on the fields you want on-canvas.
 
-**Precedence:** A primitive that binds a `data-prop` (or equivalent) to a subtree usually **wins** for that subtree’s live value: updates follow frontmatter through the region and can override what a component-level transform would show on the same node. With **no** primitive on that markup, the component re-render owns how the value is derived. A typical split is an **array** region for list CRUD plus nested **text** (or other primitives) on the fields you want on the canvas; rows can still rely on the component template for anything without its own primitive.
-
-For when to wrap a section in a component at all, see [When to Use a Component Editable Region](#when-to-use-a-component-editable-region).
+For when to wrap a section in a component, see [When to Use a Component Editable Region](#when-to-use-a-component-editable-region).
 
 ### EditableText
 
@@ -49,13 +43,15 @@ Extends `EditableComponent` for editing snippets within rich text content. Manag
 
 ## When to Use a Component Editable Region
 
-Primitive editables (text, image, array, source) handle their own DOM updates but can't trigger re-rendering of the surrounding template. Use a component when a section has:
+Primitive editables update their own DOM slice but can't re-render the surrounding template. Wrap a section in a component when it has any of the signals below — without a component region, data-driven changes to conditional or computed markup don't reflect live.
 
-- **Conditional elements** — a button that appears/disappears based on a boolean
-- **Style or class bindings** — alternating background colours, layout order driven by index
-- **Computed/derived content** — a badge or label that changes based on another field
+| Signal                   | Example                                                      |
+| ------------------------ | ------------------------------------------------------------ |
+| Conditional elements     | A button that appears/disappears based on a boolean          |
+| Style or class bindings  | Alternating background colours, layout order driven by index |
+| Computed/derived content | A badge or label that changes based on another field         |
 
-**When in doubt, prefer a component.** The cost is one registration call and a wrapper element. The benefit is that every data-driven change live-updates.
+**When in doubt, prefer a component.** Cost: one registration call + a wrapper element. Benefit: every data-driven change live-updates.
 
 ---
 
@@ -76,7 +72,8 @@ Primitive editables (text, image, array, source) handle their own DOM updates bu
 | `data-defer-mount`        | _(presence)_                                                  | Lazy initialization — editor mounts on first click                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `data-cloudcannon-ignore` | _(presence)_                                                  | Exclude element from scanning                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-Use `data-prop-*` when the main `data-prop` value would be the wrong shape (e.g. string path for `src` while `alt` lives in another field) or when only one facet of a composite value should be wired to data. Prefer a single `data-prop` when the stored value is already one object the editor understands.
+**Use `data-prop-*`** when the main `data-prop` value would be the wrong shape (string path for `src` while `alt` lives in another field) or when only one facet of a composite value should be wired to data.
+**Use `data-prop`** when the stored value is already one object the editor understands.
 
 ### Complex array attributes (wrapper vs item)
 
@@ -103,4 +100,10 @@ For when to add HTML `<template>` children on the array wrapper versus relying o
 
 Both forms produce identical behaviour. Custom elements self-hydrate via `connectedCallback`.
 
-**Authoring preference:** For **wrapper-only** hosts (markup whose only job is to carry the region), prefer the custom elements in this table over a bare `<span data-editable="text">` or `<div data-editable="image">` — same behaviour, and the tag is less likely to collide with layout CSS. When a **semantic or layout element** is already the right host (`<h1>`, `<p>`, `<section>`, etc.), keep `data-editable` on that element instead. Use explicit `span`/`div` primitives when a stylesheet or third-party component already targets those tags, or when a one-off constraint makes that clearer. Astro-specific patterns (slots, links, templates) are worked through in [astro/visual-editing.md](astro/visual-editing.md).
+| Host                                                        | Preferred form                                                                                  |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Wrapper-only (markup whose only job is to carry the region) | Custom element (`<editable-text>`, `<editable-image>`) — less likely to collide with layout CSS |
+| Semantic or layout element (`<h1>`, `<p>`, `<section>`)     | Keep `data-editable` on the semantic element                                                    |
+| Stylesheet or third-party targets `span`/`div`              | Explicit `<span data-editable="...">` / `<div data-editable="...">`                             |
+
+Astro-specific patterns (slots, links, templates) are in [astro/visual-editing.md](astro/visual-editing.md).
