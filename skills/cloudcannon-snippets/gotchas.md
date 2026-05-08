@@ -4,15 +4,14 @@ Common pitfalls when configuring CloudCannon snippets.
 
 ---
 
-## Set `root_value_delimiter` and `string_boundary` on raw `key_values`
+### Raw `key_values`: set `root_value_delimiter` and `string_boundary`
 
-**MUST:** Set both fields in `format:` for any raw `key_values` parser handling `key="value"` syntax.
-**Why:** The schema marks them optional, but the parser's defaults don't produce MDX/HTML-style parsing. Without `root_value_delimiter`, you get `Expected delimiter` (unless all values are implied via `allow_implied_values`). Without `string_boundary` including your quote character, quoted values aren't parsed as strings. Template-based snippets set this internally — raw snippets don't.
+For typical `key="value"` attribute syntax, both belong in `format:`. The schema treats `format` and these fields as optional, but the parser’s defaults do not give you MDX/HTML-style parsing: without `root_value_delimiter` you get **Expected delimiter** (unless everything is implied via `allow_implied_values`). Without `string_boundary` including your quote character, quoted values are not parsed as strings. Template-based snippets set format internally; this applies to raw snippets.
 
 ```yaml
 # Works
 format:
-  root_value_delimiter: "="
+  root_value_delimiter: '='
   string_boundary:
     - '"'
 
@@ -24,10 +23,9 @@ format:
 
 ---
 
-## `key_values` models must be an array, not a map
+### `key_values` models must be an array
 
-**MUST:** Use array syntax for `models:` (same format as template-based `named_args`).
-**Why:** Some CC docs examples show `models` as an object keyed by source key, but the runtime validates it as an array and rejects the map form.
+Despite some CC docs examples showing `models` as an object (with source keys as map keys), the runtime validates `models` as an **array**. Use the same array format as template-based `named_args`:
 
 ```yaml
 # Correct
@@ -44,17 +42,17 @@ models:
 
 ---
 
-## Do not use `_snippets_imports` during migrations
+### `_snippets_imports` can match unintended content
 
-**MUST NOT:** Rely on `_snippets_imports` when migrating a site.
-**Why:** It can match unintended content. See [snippets.md § Configuration hierarchy](snippets.md#configuration-hierarchy) for the full rationale.
+Don't use `_snippets_imports` during migrations — see [snippets.md § Configuration hierarchy](snippets.md#configuration-hierarchy) for the full rationale.
 
 ---
 
-## Enable `escape_snippets_in_code_blocks` whenever snippets are configured
+### Snippets matching inside code blocks
 
-**MUST:** Set `markdown.options.escape_snippets_in_code_blocks: true` as part of snippet setup.
-**Why:** Custom snippets otherwise match inside fenced code blocks. A documentation post showing `:::note` admonition syntax in a ` ```md ` block will be parsed as real snippets.
+Custom snippets can also match inside fenced code blocks. If content files contain code examples that use the same syntax as a snippet (e.g. a documentation post showing `:::note` admonition syntax in a ` ```md ` block), the snippet parser will treat those as real snippets.
+
+Fix: set `escape_snippets_in_code_blocks: true` in the markdown options. This should be enabled whenever snippets are configured:
 
 ```yaml
 markdown:
@@ -64,35 +62,29 @@ markdown:
 
 ---
 
-## Keep `import` statements out of content files
+### Import statements in content
 
-**MUST NOT:** Leave `import` lines in content files that editors open.
-**Why:** Rich text editors show the file contents verbatim. Non-technical editors see the raw imports and get confused.
-**How:** Use the SSG's auto-import mechanism — e.g. `astro-auto-import` for Astro. See [astro.md § MDX setup pipeline](astro.md#mdx-setup-pipeline-must-complete-all-four).
+Rich text editors show everything in the file. Import statements (`import X from 'y'`) will be visible to non-technical editors. Use your SSG's auto-import mechanism to avoid import statements in content files. See SSG-specific docs for details (e.g. `astro-auto-import` for Astro).
 
 ---
 
-## Use the `repeating` parser for parent/child patterns
+### Nested component children must use the `repeating` parser
 
-**MUST:** Configure parent/child patterns like `<Tabs><Tab>…</Tab></Tabs>` as a single snippet with `repeating` and an inline template.
-**MUST NOT:** Define the child (`Tab`) as a separate `_snippets` entry.
-**Why:** The content parser matches the child standalone before the parent's `repeating` parser runs, which empties the parent and breaks the match.
-**See:** [raw.md § repeating](raw.md#repeating--repeat-a-child-pattern-as-array-items) for the reference and a working example.
+For parent/child patterns like `<Tabs><Tab>...</Tab></Tabs>`, use the `repeating` parser with an **inline template** for the child — do NOT define the child as a separate `_snippets` entry. If you do, the content parser matches the child standalone before the parent's repeating parser runs, which empties the parent and breaks the match. See [raw.md](raw.md) for the `repeating` parser reference and a working example.
 
 ---
 
-## Fix snippet config ambiguity when round-trip throws "unparseable"
+### Round-trip safety throws on unparseable stringify output
 
-**MUST:** Resolve the underlying ambiguity rather than working around the error.
-**Why:** CloudCannon re-parses its own serialized output to verify round-trip safety. When re-parsing produces a different snippet sequence, it throws `Stringified content would be unparseable`. This means two snippets match overlapping syntax, or a format issue causes re-parse divergence — workarounds hide the parser bug that will resurface elsewhere.
+When CloudCannon serializes snippet data back to source text, it re-parses the output and compares the result. If re-parsing produces a different snippet sequence, it throws `"Stringified content would be unparseable"`. This usually means two snippets match overlapping syntax, or a format issue causes the re-parse to match differently. Fix the snippet config ambiguity rather than working around it.
 
 ---
 
-## Do not use `argument` for HTML attribute values
+### Don't use `argument` for HTML attribute values
 
-**MUST NOT:** Use the `argument` parser to parse values inside HTML `key="value"` syntax.
-**MUST:** Use `key_values` for HTML attributes. Pull variable attributes into a single `[[placeholder]]`; leave fixed attributes in the literal text.
-**Why:** `argument` is designed for positional shortcode arguments like `{{<figure image.png>}}`. It doesn't work inside HTML attribute context — not even with `forbidden_tokens` or `string_boundary`.
+The `argument` parser is designed for positional shortcode arguments (e.g. `{{<figure image.png>}}`). It does not work for values inside HTML `key="value"` attribute syntax — not even with `forbidden_tokens` or `string_boundary` in the format. The parser simply isn't built for that context.
+
+**Always use `key_values`** for HTML attribute values. Pull the variable attributes into a single `[[placeholder]]` and leave fixed attributes in the literal text:
 
 ```yaml
 # Correct — key_values for multiple variable attributes
@@ -141,7 +133,6 @@ params:
 
 ---
 
-## `_cc_` snippets are deprioritized in matching (FYI)
+### `_cc_` snippets are deprioritized in matching
 
-**FYI:** Snippet types starting with `_cc_` are sorted after all user-defined snippets in the matching loop.
-**Why this matters:** Your custom `_snippets` entries always get first chance to match. No need to worry about hidden catchall patterns (`_cc_*_unknown`) stealing matches from explicit configs — migrations without `_snippets_imports` typically never load them anyway.
+Snippet types starting with `_cc_` are sorted after all user-defined snippets in the matching loop. This means your custom `_snippets` entries always get first chance to match. You don't need to worry about hidden catchall patterns (`_cc_*_unknown`) stealing matches from your explicit snippet configs — whenever those `_cc_*` snippets exist in config, they still lose to your explicit entries first (migrations without `_snippets_imports` typically never load those catchalls).

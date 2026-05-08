@@ -43,8 +43,7 @@ Extends `EditableComponent` for editing snippets within rich text content. Manag
 
 ## When to Use a Component Editable Region
 
-**MUST:** wrap a section in a component when it has conditional elements, style/class bindings, or computed/derived content.
-**Why:** primitive editables update their own DOM slice but can't re-render the surrounding template. Without a component region, data-driven changes to conditional or computed markup don't reflect live.
+Primitive editables update their own DOM slice but can't re-render the surrounding template. Wrap a section in a component when it has any of the signals below — without a component region, data-driven changes to conditional or computed markup don't reflect live.
 
 | Signal                   | Example                                                      |
 | ------------------------ | ------------------------------------------------------------ |

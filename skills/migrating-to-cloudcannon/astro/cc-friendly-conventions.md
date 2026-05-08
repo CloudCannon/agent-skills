@@ -75,17 +75,15 @@ Every site has most of these. For each row, the default treatment is non-negotia
 
 ### Footer
 
-**MUST:** use simple `{heading, links[]}` arrays for columns. Tip text, credits, and image credits go in the same file. Use `@data[footer]` editables in the component.
-**Why:** the columns array editable wraps **only the mapped columns** — static siblings (logo, tagline) sit _outside_ the `data-editable="array"` wrapper. Wrap with `class="contents"` so the array container stays layout-neutral and the surrounding grid still flows. Child editables inside each `data-editable="array-item"` use **relative paths** (`data-prop="heading"`, `data-prop="links"`, `data-prop="label"`) — never the indexed form `data-prop="@data[footer].columns[N].heading"`. See [visual-editing-reference.md § Arrays inside data files](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#arrays-inside-data-files).
+Use simple `{heading, links[]}` arrays for columns. Tip text, credits, and image credits go in the same file. Use `@data[footer]` editables in the component. the columns array editable wraps **only the mapped columns** — static siblings (logo, tagline) sit _outside_ the `data-editable="array"` wrapper. Wrap with `class="contents"` so the array container stays layout-neutral and the surrounding grid still flows. Child editables inside each `data-editable="array-item"` use **relative paths** (`data-prop="heading"`, `data-prop="links"`, `data-prop="label"`) — never the indexed form `data-prop="@data[footer].columns[N].heading"`. See [visual-editing-reference.md § Arrays inside data files](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#arrays-inside-data-files).
 
 ### CTA
 
-**MUST:** extract CTA content to a data file if the section is rendered on multiple pages via a shared component or layout.
-**Why:** "CTA" here means the shared promotional section that typically appears above the footer across pages (e.g. "Contact us today", "Get started free") — not individual buttons or links. The test is whether the same content appears on multiple built pages, not how many files import the component directly.
+Extract CTA content to a data file if the section is rendered on multiple pages via a shared component or layout. "CTA" here means the shared promotional section that typically appears above the footer across pages (e.g. "Contact us today", "Get started free") — not individual buttons or links. The test is whether the same content appears on multiple built pages, not how many files import the component directly.
 
 ### Author strategy
 
-**MUST:** treat authors as a data relationship, not a free-text field. Decide treatment by reuse pattern:
+Treat authors as a data relationship, not a free-text field. Decide treatment by reuse pattern:
 
 | Situation                                         | Treatment                                                                                                       | Rationale                                         |
 | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
@@ -97,8 +95,7 @@ Every site has most of these. For each row, the default treatment is non-negotia
 
 ### Live-preview wiring requirement
 
-**MUST:** wire live-preview for `select` inputs that reference another data file, otherwise the rendered card won't update on change.
-**Why:** the sidebar edit updates frontmatter, but without a registered component bound to the slug, the displayed card stays stale until rebuild.
+Wire live-preview for `select` inputs that reference another data file, otherwise the rendered card won't update on change. The sidebar edit updates frontmatter, but without a registered component bound to the slug, the displayed card stays stale until rebuild.
 
 Required pieces:
 
@@ -111,8 +108,7 @@ Required pieces:
 
 ## Image galleries in MDX content
 
-**MUST:** create a self-closing `Gallery` component that takes an `images` array prop and renders images internally when content has inline image grids.
-**Why:** this avoids paired/markdown-content snippets where editors could insert arbitrary content. Constants (width, height, class) live in the component; only `src` and `alt` are in the data.
+Create a self-closing `Gallery` component that takes an `images` array prop and renders images internally when content has inline image grids. This avoids paired/markdown-content snippets where editors could insert arbitrary content. Constants (width, height, class) live in the component; only `src` and `alt` are in the data.
 
 ```astro
 ---

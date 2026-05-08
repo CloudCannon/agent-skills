@@ -24,11 +24,9 @@ This installs the package (falling back to `--legacy-peer-deps` if needed), adds
 
 `window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration code out of the production bundle entirely — it only loads when the page is being edited.
 
-**MUST:** Use a relative path for the `import()` (not `@cloudcannon/...`).
-**Why:** `@cloudcannon/...` looks like an npm scope and will resolve to the package, not your local file.
+Use a relative path for the `import()` — `@cloudcannon/...` looks like an npm scope and will resolve to the package, not your local file.
 
-**MUST:** Use Astro 5+ for the integration.
-**Why:** Astro 4 can still use `data-editable` HTML attributes, but component re-rendering is unavailable. See [visual-editing-reference.md § How the Astro integration works](visual-editing-reference.md#how-the-astro-integration-works).
+**Astro 4 compatibility:** The integration requires Astro 5+. For Astro 4, skip the integration — `data-editable` HTML attributes still work but component re-rendering is not available. See [visual-editing-reference.md § How the Astro integration works](visual-editing-reference.md#how-the-astro-integration-works).
 
 When the site uses a page builder with a `BlockRenderer`, create a shared `src/cloudcannon/componentMap.ts` — see [visual-editing-reference.md § Component re-rendering](visual-editing-reference.md#component-re-rendering).
 
@@ -74,12 +72,11 @@ Before writing any editable attributes, produce a census of every visible sectio
 
 #### Rules for `sidebar-only` justification
 
-**MUST NOT:** Use "uses third-party npm components" as a justification on its own.
-**Why:** Most third-party components can still be wrapped in `<editable-component>` for sidebar-triggered re-rendering. See [visual-editing-reference.md § Third-party component fields](visual-editing-reference.md#third-party-component-fields).
+"Uses third-party npm components" is NOT sufficient on its own — most third-party components can still be wrapped in `<editable-component>` for sidebar-triggered re-rendering. See [visual-editing-reference.md § Third-party component fields](visual-editing-reference.md#third-party-component-fields).
 
 **Valid reasons:** The component genuinely can't be wrapped (shadow DOM, framework incompatibility after attempting conversion) AND the section is still wrapped in `<editable-component>` for re-rendering.
 
-**MUST:** Every `sidebar-only` section that renders a list still has array editables for CRUD.
+Every `sidebar-only` section that renders a list still needs array editables for CRUD.
 
 **Example census:**
 
@@ -110,8 +107,9 @@ Run through these after setup, before starting on editable regions:
 
 ## Completeness checklist
 
-**MUST:** If an editor can see it on the page, an editor must be able to edit it. A section is either editable or has a written exception in `migration/visual-editing.md`.
-**Why:** Hardcoded headings, labels, or paragraphs are not "developer-only" — they are an unfinished migration.
+> **Rule:** if an editor can see it on the page, an editor must be able to edit it. Every item below enforces this rule. Hardcoded headings, labels, or paragraphs are not "developer-only" — they are an unfinished migration. A section is either editable or has a written exception in `migration/visual-editing.md`.
+
+Work through every item after implementing editable regions. Each item links to the relevant pattern documentation.
 
 ### Universal (every migration)
 

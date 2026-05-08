@@ -1,40 +1,34 @@
 # Structures
 
-Templates that define the complete shape of data in CloudCannon. They populate new array items and empty objects, and tell the visual editor what fields to expect so existing items don't render with `undefined` errors.
+Structures are templates that define the complete shape of data in CloudCannon. They serve two purposes:
 
-## Mandatory rules (read first)
+1. **Array items** — when an editor adds a new item to an array (e.g. a `content_blocks` page builder), the structure populates the item with all required fields.
+2. **Object inputs** — when an object input is empty, a structure tells CloudCannon what fields to offer when the editor populates it.
 
-| #   | Rule                                                                                                                                                                                  | Failure mode if skipped                                                                 |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 1   | Every field in a structure `value` MUST be present in the content frontmatter, even if empty.                                                                                         | `undefined` errors in the visual editor. Most common migration bug.                     |
-| 2   | Every array and object input MUST have an `_inputs` entry with `type: array`/`type: object` and an explicit `options.structures: _structures.<name>` link (full path, not bare name). | Editors cannot add items — the Add button won't appear or offers the wrong structure.   |
-| 3   | Every structure value MUST include a `preview` block with a meaningful `text` key lookup.                                                                                             | Sidebar cards show only the generic label ("Item", "Action") instead of a useful value. |
-| 4   | Every nested object field editors see MUST have `type: object` + `options.preview.icon`.                                                                                              | Generic icon in the data editor; visual clutter.                                        |
+Without structures, CloudCannon can't populate new array items or empty objects, and existing items may have `undefined` fields that break editable regions in the visual editor.
+
+## The four rules (read first)
+
+These are non-optional. Each gets expanded later in this doc, but the table is the quick reference.
+
+| #   | Rule                                                                                                                                                          | Failure mode if skipped                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1   | Every field in a structure `value` is present in the content frontmatter, even if empty.                                                                     | `undefined` errors in the visual editor. Most common migration bug.                     |
+| 2   | Every array and object input has an `_inputs` entry with `type: array`/`type: object` and an explicit `options.structures: _structures.<name>` (full path).  | Editors cannot add items — the Add button won't appear or offers the wrong structure.   |
+| 3   | Every structure value includes a `preview` block with a meaningful `text` key lookup.                                                                        | Sidebar cards show only the generic label ("Item", "Action") instead of a useful value. |
+| 4   | Every nested object field editors see has `type: object` + `options.preview.icon`.                                                                            | Generic icon in the data editor; visual clutter.                                        |
 
 These apply in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Define structures during the configuration phase and use them as the blueprint when creating content files in the content phase — not as a backfill step.
 
-## Verification
+## Field completeness rule (rule #1)
 
-**MUST:** after editing content files, cross-reference every block against its structure definition for field completeness.
-**Why:** field omissions are the single most common source of CloudCannon editor errors. Rule #1 covers any field that appears on any item — rare (1 of 10), conditional (only populated when `type: dropdown`), or purely decorative. Commonly-forgotten: `tagline`, `content`, `subtitle`, and nested object fields like `callToAction.variant`, `callToAction.icon`, `callToAction.target`.
+For each content block in a page's `content_blocks` array, open the structure definition and verify that **every single key** appears in the content. The rule covers any field that appears on any item — rare (1 of 10 items), conditional (only populated when `type: dropdown`), or purely decorative. Commonly forgotten: `tagline`, `content`, `subtitle`, and nested object fields like `callToAction.variant`, `callToAction.icon`, `callToAction.target`.
 
-### Handling null values from empty YAML fields
-
-In YAML, a bare key with no value (`tagline:`) parses as `null`, not as an empty string or `undefined`. Zod's `.optional()` accepts `undefined` but rejects `null`, so content files with empty fields can silently fail validation. Use one of the two approaches below (either works):
-
-| Approach         | How                                                                                                      | When to use                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Zod `.nullish()` | Replace `.optional()` with `.nullish()` on optional fields. Accepts `T \| null \| undefined`.            | Default — no per-field CC configuration needed.                                          |
-| CC `empty_type`  | Set `empty_type: string` (or appropriate type) on the input in `_inputs`. Writes `""` instead of `null`. | When downstream code distinguishes `null` from `""`, or the Zod schema must stay strict. |
-
-When using `.nullish()`, component templates should still use truthiness checks (`{title && ...}`) — both `null` and `""` are falsy.
+After creating or editing content files, cross-reference every block in every content file against its structure definition. Field omissions are the single most common source of CloudCannon editor errors.
 
 ### Optional fields — common mistake
 
-**MUST NOT:** Leave an optional field out of the structure `value` because "only some items use it".
-**MUST:** Include every field that appears on any item with a sensible default (`""`, `false`, `0`, `[]`).
-
-Omitting a field means:
+Don't leave an optional field out of the structure `value` because "only some items use it." Every field that appears on any item must be in the value template with a sensible default (`""`, `false`, `0`, `[]`). Omitting it means:
 
 - CloudCannon can't match an existing item that _does_ have the field to the structure
 - Editors can't add the field to new items from the sidebar
@@ -43,14 +37,14 @@ Omitting a field means:
 Example — a `nav_items` structure where only the GitHub link has an `icon`:
 
 ```yaml
-# Wrong — no icon field in the value template
+# ❌ Wrong — no icon field in the value template
 value:
   type: link
   label: Label
   href: /
   external: false
 
-# Right — icon present as empty default
+# ✓ Right — icon present as empty default
 value:
   type: link
   label: Label
@@ -58,6 +52,37 @@ value:
   icon: ""
   external: false
 ```
+
+### Don't seed empty strings for genuinely-optional fields
+
+There's a tension with rule #1: every field that appears on any item must be in the value, but an `""` default for a field no item should have **on creation** persists into frontmatter and breaks downstream conditionals.
+
+```yaml
+# ❌ Wrong — empty string persists, satisfies z.string().optional(), surfaces as a visible empty editable region
+value:
+  heading: Ready to Begin Your Journey?
+  primaryLabel: Schedule a Consultation
+  secondaryLabel: ""   # breaks ?.trim() button conditionals
+  secondaryHref: ""
+
+# ✓ Right — omit optional fields the editor adds explicitly
+value:
+  heading: Ready to Begin Your Journey?
+  primaryLabel: Schedule a Consultation
+```
+
+Reconcile: rule #1 means "if any **existing** item has the field, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
+
+### Handling null values from empty YAML fields
+
+In YAML, a bare key with no value (`tagline:`) parses as `null`, not as an empty string or `undefined`. Zod's `.optional()` accepts `undefined` but rejects `null`, so content files with empty fields can silently fail validation. Use one of the two approaches below:
+
+| Approach         | How                                                                                                      | When to use                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Zod `.nullish()` | Replace `.optional()` with `.nullish()` on optional fields. Accepts `T \| null \| undefined`.            | Default — no per-field CC configuration needed.                                          |
+| CC `empty_type`  | Set `empty_type: string` (or appropriate type) on the input in `_inputs`. Writes `""` instead of `null`. | When downstream code distinguishes `null` from `""`, or the Zod schema must stay strict. |
+
+When using `.nullish()`, component templates should still use truthiness checks (`{title && ...}`) — both `null` and `""` are falsy.
 
 ## Inline approach (small sites)
 
@@ -89,14 +114,14 @@ _inputs:
       structures: _structures.content_blocks
 ```
 
-**MUST:** Use the full `_structures.<name>` path, not the bare name. Naming-convention fallback is unreliable.
+Use the full `_structures.<name>` path, not the bare name. Naming-convention fallback is unreliable.
 
 ```yaml
-# Wrong — bare name
+# ❌ Wrong — bare name, relies on naming-convention fallback
 options:
   structures: content_blocks
 
-# Right — full path
+# ✓ Right — full path
 options:
   structures: _structures.content_blocks
 ```
@@ -136,7 +161,9 @@ _inputs:
 
 ## Shared sub-structures
 
-Structures used by multiple block types (`actions`, `items`, `stats`, `prices`, `testimonials`) stay in the main `cloudcannon.config.yml` under `_structures` and are referenced by name from structure-value files and the config.
+Structures used by multiple block types — like `actions` (button arrays), `items` (feature/step lists), `stats`, `prices`, `testimonials` — stay in the main `cloudcannon.config.yml` under `_structures`. They're referenced by name from within the structure-value files and from the config.
+
+**Only share when all consumers render the same fields.** If one component renders fields the others don't, create a separate structure for it instead of a union. A Timeline component rendering `job_title`, `company`, and `date_range` shouldn't share an `items` structure with an ItemGrid that only renders `title`, `description`, `icon` — create a `timeline_items` structure. Union structures clutter the editor with inputs that do nothing; editors fill them in expecting results on the page and get confused when nothing appears.
 
 ### Shared structure → shared preview
 
@@ -144,13 +171,11 @@ A structure's `preview` applies wherever the structure is used — a shared `_na
 
 ❌ Forking `_nav_items` into `_nav_items_primary` / `_nav_items_footer` just to vary the icon — clutters `_structures` with near-duplicates.
 ❌ Adding `[*]` overrides on the array per-consumer to "override" the preview — silently ignored when `structures:` is defined (see [configuration-gotchas.md § Array item previews](astro/configuration-gotchas.md#array-item-previews--vs-structure-value)).
-✅ One structure, one preview. If two consumers truly need different previews, they need different structures.
+✓ One structure, one preview. If two consumers truly need different previews, they need different structures.
 
 ### Duplicated select values across structure-value files
 
-If two structure-value files define the same color palette or icon enum, the third will drift. Move shared enums to `_select_data.<name>` at the root of `cloudcannon.config.yml` and reference with `values: _select_data.<name>`.
-
-**MUST:** Only share when all consumers render the same fields. If one component needs fields the others don't, create a separate structure (e.g. `timeline_items`) rather than a union. Union structures clutter the editor with inputs that do nothing — editors fill them in and nothing appears on the page.
+If two structure-value files define the same color palette or icon enum, a third will drift. Move shared enums to `_select_data.<name>` at the root of `cloudcannon.config.yml` and reference with `values: _select_data.<name>`.
 
 ```yaml
 _structures:
@@ -186,7 +211,7 @@ _structures:
 
 Shared sub-structures need `preview` blocks like any other structure — inline location is not an excuse to omit them.
 
-**Linking sub-structures from co-located files:** Every co-located structure-value file that contains an array field (`items: []`, `actions: []`, etc.) MUST include an `_inputs` entry linking that array to the shared sub-structure:
+**Linking sub-structures from co-located files:** Every co-located structure-value file that contains an array field (`items: []`, `actions: []`, etc.) must include an `_inputs` entry linking that array to the shared sub-structure:
 
 ```yaml
 _inputs:
@@ -296,7 +321,7 @@ Every structure value must include a discriminator key so CloudCannon can match 
 
 Field type configuration inside a structure-value file is scoped to that component. Only include fields that need non-default types — strings, arrays, and objects work without explicit configuration.
 
-**MUST:** Nested object inputs inside structures need `type: object` + `options.preview.icon`. This applies to co-located structure-value files AND inline `_structures` entries (e.g. `prices`, `testimonials`, `items`):
+**Nested object inputs need preview icons too.** Object fields within a structure (e.g. `callToAction`, `image`) show a generic icon in the data editor without explicit `type: object` + `options.preview.icon`. This applies to **both** co-located structure-value files **and** inline `_structures` entries in `cloudcannon.config.yml` (e.g. `prices`, `testimonials`, `items`):
 
 ```yaml
 _inputs:
@@ -318,14 +343,14 @@ See [configuration.md § Object inputs need preview icons](astro/configuration.m
 
 1. Read the component's Props interface (or destructuring) for all fields
 2. Write each field into the structure `value` with the correct default
-3. Exclude internal-only props (see table below)
+3. Exclude internal-only props (see table)
 4. Wire up field-type mapping
 
 ### Field-to-YAML mapping
 
 | Prop type | YAML default                                     | Notes                                                                                                                                                  |
 | --------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| String    | bare key (`title:`)                              | Parses as `null`.                                                                                                                                      |
+| String    | bare key (`title:`)                              | Parses as `null`. If the field has a closed value set (variants, sizes, alignment), the input should be `type: select` — see [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](astro/configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs). |
 | Boolean   | `false`                                          |                                                                                                                                                        |
 | Number    | `0` or the component default (e.g. `columns: 3`) | Input must be `type: number`. If input is `type: text`, quote as string (`price: "29"`) — bare numbers with text inputs cause a "misconfigured" error. |
 | Array     | `[]`                                             |                                                                                                                                                        |
@@ -354,35 +379,11 @@ Check and update these guards during the visual-editing phase when wiring up edi
 
 ## Default values from components
 
-When a component defines default values in its destructuring (e.g. `columns = 3`, `isReversed = false`), use those same defaults in the structure value. This ensures new blocks added via CloudCannon match the component's expected defaults.
+When a component defines default values in its destructuring (e.g. `columns = 3`, `isReversed = false`), use those same defaults in the structure value. New blocks added via CloudCannon will then match the component's expected defaults.
 
 ## Common mistakes
 
-| Symptom / mistake                                                                                                     | Fix                                                                                                                                                                                                                                                                                         |
-| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Structure-value has `value:` with multiple fields but no `_inputs`                                                    | Editor falls back to CC's type inference — free-text for every field. Add a per-value `_inputs` block. Use `style: modal` on the structure so the editor opens a proper form. Applies equally to inline array structures, `_structures` entries, and array fields in `file_config._inputs`. |
-| "One item in an array data file has a different icon/preview from its siblings, despite declaring the same structure" | The divergent item's top-level key set doesn't exactly match the structure's `value:` shape — CC fell back to inferred preview. Fix in the data: grep each item's top-level keys, compare, drop dead keys or add empty defaults until shapes match. Don't tweak the structure config first. |
-
-> **Diagnostic — icon mismatch between sibling items:** cause is almost always divergent top-level keys, not a structures config bug. List each item's keys, find the odd one out, fix the data. Common culprits: stray field from a hand-edit, or an optional field present on some items and absent on others (add `field: ""` to all items so the shape matches).
-
-### Omit empty optional fields in structure-value defaults
-
-❌ Seeding empty strings for optional fields — they persist into frontmatter, satisfy `z.string().optional()` validators (the field looks "set"), and surface as visible empty editable regions:
-
-```yaml
-value:
-  heading: Ready to Begin Your Journey?
-  primaryLabel: Schedule a Consultation
-  secondaryLabel: "" # ← persists, breaks ?.trim() button conditionals
-  secondaryHref: ""
-```
-
-✅ Omit optional fields entirely — editor "Add" produces clean frontmatter; the optional secondary button only appears when an editor explicitly fills both fields:
-
-```yaml
-value:
-  heading: Ready to Begin Your Journey?
-  primaryLabel: Schedule a Consultation
-```
-
-- [ ] Audit all three default-value locations — `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — for `: ""` on optional fields. Each hit is either required (keep, fill with a real default) or optional (delete the key). No empty-string defaults survive.
+| Symptom / mistake                                                                                                  | Fix                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structure-value has `value:` with multiple fields but no `_inputs`                                                 | Editor falls back to CC's type inference — free-text for every field. Add a per-value `_inputs` block. Use `style: modal` on the structure so the editor opens a proper form. Applies equally to inline array structures, `_structures` entries, and array fields in `file_config._inputs`. |
+| One item in an array data file has a different icon/preview from its siblings, despite declaring the same structure | The divergent item's top-level key set doesn't exactly match the structure's `value:` shape — CC fell back to inferred preview. Grep each item's top-level keys, compare, drop dead keys or add empty defaults until shapes match. **Don't tweak the structure config first** — fix the data. |

@@ -518,7 +518,8 @@ Syntax for each form is in the [Data-prop paths table](#data-prop-paths--pick-on
 
 ### Empty `data-prop` pass-through
 
-**MUST NOT:** Use `data-prop=""` on `<editable-component>` — the component controls UI treats empty string as falsy and won't render the edit button.
+Don't use `data-prop=""` on `<editable-component>` — the component controls UI treats empty string as falsy and won't render the edit button.
+
 **Use when:** The parent's data IS the value the child needs (e.g. an `array` editable inside an array-bound component). Without it, `data-prop="plans"` would resolve to `plans.plans`.
 
 ```astro
@@ -1116,7 +1117,7 @@ The wrapper is stored in `window.cc_components[key]` where `EditableComponent` c
 
 When `@cloudcannon/editable-regions` re-renders a registered component inside the visual editor, the **schema file** (`.cloudcannon/schemas/<collection>.md`) determines which frontmatter fields are forwarded as props. Fields that exist in the entry's frontmatter and parse cleanly through the Astro/Zod content schema are still **stripped from props on re-render** if they are not declared in the CC schema's frontmatter shape. This applies to nested fields too — declaring a key at the top level of the schema is not enough if the section reads it from a nested object.
 
-**MUST NOT:** add a hidden `_input` in `cloudcannon.config.yml` and expect the field to flow through. `_inputs` control how fields render in the sidebar UI; they have no effect on which fields are forwarded to a re-rendered editable-region component. The schema file is the gate.
+Don't add a hidden `_input` in `cloudcannon.config.yml` and expect the field to flow through — `_inputs` control how fields render in the sidebar UI; they have no effect on which fields are forwarded to a re-rendered editable-region component. The schema file is the gate.
 
 ### Symptom → diagnosis
 

@@ -100,11 +100,9 @@ Then produce this **mandatory census table** in `migration/audit.md` for every `
 | `src/pages/privacy-policy.astro` | title, long markdown body   | Yes (terms, etc.)               | No                             | Fixed-schema `legal` collection |
 | ...                              | ...                         | ...                             | ...                            | ...                             |
 
-**MUST NOT:** classify a unique-layout page as source-editable just because it's "the only one of its kind."
-**Why:** the right question is whether it has 2+ distinct content sections. If yes, page builder. Source-editable is for long-form prose where the layout _is_ the body.
+Don't classify a unique-layout page as source-editable just because it's "the only one of its kind." The right question is whether it has 2+ distinct content sections. If yes, page builder. Source-editable is for long-form prose where the layout _is_ the body.
 
-**MUST NOT:** propose a CloudCannon "collection of one" (a `homepage` collection with one entry, an `about` collection with one entry, etc.).
-**Why:** one `pages` collection holds homepage, about, contact, landing pages, etc. -- possibly with multiple schemas. The only exception is when the site genuinely has a single landmark page plus one repeating section (e.g. homepage + blog).
+Don't propose a CloudCannon "collection of one" (a `homepage` collection with one entry, an `about` collection with one entry, etc.). One `pages` collection holds homepage, about, contact, landing pages, etc. -- possibly with multiple schemas. The only exception is when the site genuinely has a single landmark page plus one repeating section (e.g. homepage + blog).
 
 This classification feeds directly into the configuration phase. For census rows that say "Page builder", go straight to [page-building.md § When to reach for page builder](page-building.md#when-to-reach-for-page-builder).
 

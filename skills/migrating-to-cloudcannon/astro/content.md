@@ -22,27 +22,22 @@ For each collection, compare content files against the Zod schema in `content.co
 
 #### Required fields present in every file
 
-**MUST:** Every required field in the Zod schema appears in every content file.
-**Why:** Missing required fields fail schema validation and break the build.
+Every required field in the Zod schema appears in every content file. Missing required fields fail schema validation and break the build.
 **Fix:** Add the field to content files, or make the schema `.optional()` / `.nullish()`. Prefer matching what the schema expects.
 
 #### Optional fields with defaults
 
-**MUST:** If a field has `z.default(...)` and is commonly used, add it explicitly to content files.
-**Why:** Astro fills in defaults at runtime. CloudCannon editors see what's in the file, not the runtime default — an editor opening a file with no default sees an empty input.
+If a field has `z.default(...)` and is commonly used, add it explicitly to content files. Astro fills in defaults at runtime. CloudCannon editors see what's in the file, not the runtime default — an editor opening a file with no default sees an empty input.
 
 #### `draft` field
 
-**MUST:** If the site filters on `draft`, include `draft: false` explicitly on published content.
-**Why:** `!data.draft` treats missing as `false` (safe at runtime), but CloudCannon's UI benefits from a visible toggle.
+If the site filters on `draft`, include `draft: false` explicitly on published content. `!data.draft` treats missing as `false` (safe at runtime), but CloudCannon's UI benefits from a visible toggle.
 
-**MUST:** Collections with a `draft` field default to the content editor — `editor: content` on add options, or `_enabled_editors` starting with `content`.
-**Why:** Draft pages aren't built, so the visual editor has no page to preview. The content editor doesn't require a built page.
+Collections with a `draft` field default to the content editor — `editor: content` on add options, or `_enabled_editors` starting with `content`. Draft pages aren't built, so the visual editor has no page to preview. The content editor doesn't require a built page.
 
 #### Date formats
 
-**MUST:** Use ISO 8601 (`2022-04-04T05:00:00Z`).
-**Why:** Astro's `z.coerce.date()` handles both Date objects and ISO strings, but CloudCannon expects consistent formatting.
+Use ISO 8601 (`2022-04-04T05:00:00Z`). Astro's `z.coerce.date()` handles both Date objects and ISO strings, but CloudCannon expects consistent formatting.
 
 #### Image paths
 
@@ -51,7 +46,7 @@ For each collection, compare content files against the Zod schema in `content.co
 | `public/` (static)        | Relative to public root: `/images/banner.png`     | Served as-is via plain `<img>`.                  |
 | `src/assets/` (optimized) | Full repo-relative: `/src/assets/images/hero.jpg` | So `import.meta.glob` can resolve at build time. |
 
-**MUST NOT:** Move optimized images from `src/assets/` to `public/`. See [configuration.md § Image path configuration](../../cloudcannon-configuration/astro/configuration.md#image-path-configuration) for the full upload path setup.
+Don't move optimized images from `src/assets/` to `public/`. See [configuration.md § Image path configuration](../../cloudcannon-configuration/astro/configuration.md#image-path-configuration) for the full upload path setup.
 
 ### Field naming
 
@@ -110,8 +105,7 @@ Check for:
 ✅ `<a href="/x">text</a>` with styling in CSS targeting the rendered prose container
 ✅ `[text](/x)` plain markdown link
 
-**MUST NOT:** Preserve inline HTML with CSS classes, entities, or responsive markup in frontmatter verbatim.
-**Why:** CloudCannon's visual editor renders unknown HTML classes with red outlines and can't interact with them.
+Preserve inline HTML with CSS classes, entities, or responsive markup in frontmatter verbatim. CloudCannon's visual editor renders unknown HTML classes with red outlines and can't interact with them.
 **Rule:** Frontmatter stores content; components own presentation.
 
 Pick the option that matches the source pattern (preference order top → bottom):
@@ -125,8 +119,7 @@ Pick the option that matches the source pattern (preference order top → bottom
 
 ### Page-builder content migration
 
-**MUST:** Every field from a block's structure `value` appears in content frontmatter, even if empty. See [structures.md § Mandatory rules](../../cloudcannon-configuration/structures.md#mandatory-rules-read-first).
-**Why:** The visual editor throws `undefined` errors when editable regions reference fields missing from frontmatter. Getting this right now avoids a backfill step later.
+Every field from a block's structure `value` appears in content frontmatter, even if empty. See [structures.md § Mandatory rules](../../cloudcannon-configuration/structures.md#mandatory-rules-read-first). The visual editor throws `undefined` errors when editable regions reference fields missing from frontmatter. Getting this right now avoids a backfill step later.
 
 #### Extraction pattern (per block)
 
@@ -138,24 +131,20 @@ Pick the option that matches the source pattern (preference order top → bottom
 
 #### YAML quoting
 
-**MUST:** Quote strings containing HTML (`<span class="...">`, `<br />`) or YAML special characters (`:`, `#`, `{`).
-**Why:** Unquoted strings with `:` or `#` parse as mappings or comments, corrupting the value.
+Quote strings containing HTML (`<span class="...">`, `<br />`) or YAML special characters (`:`, `#`, `{`). Unquoted strings with `:` or `#` parse as mappings or comments, corrupting the value.
 **How:** Use `>-` for multiline strings, or double quotes with escaped inner quotes.
 
 #### Field completeness at scale
 
-**MUST:** Cross-reference each block against its structure definition systematically — don't work from memory.
-**Why:** With 15+ block types, it's trivial to forget fields on one or two blocks, and the failure mode (`undefined` in the visual editor) only surfaces when editors open that specific block.
+Cross-reference each block against its structure definition systematically — don't work from memory. With 15+ block types, it's trivial to forget fields on one or two blocks, and the failure mode (`undefined` in the visual editor) only surfaces when editors open that specific block.
 
 #### Build early, build often
 
-**MUST NOT:** Extract all pages before running a build.
-**Why:** Schema mismatches and guard issues compound as pages accumulate. Extracting a few representative pages first, building, fixing errors, then extracting the rest catches problems once instead of repeatedly.
+Don't extract all pages before running a build. Schema mismatches and guard issues compound as pages accumulate. Extracting a few representative pages first, building, fixing errors, then extracting the rest catches problems once instead of repeatedly.
 
 #### Null values in YAML
 
-**MUST:** Use `.nullish()` on optional Zod fields, not `.optional()`.
-**Why:** Bare YAML keys (`tagline:`) parse as `null`. `.optional()` accepts `undefined` but rejects `null`, so content files with empty fields fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data.
+Use `.nullish()` on optional Zod fields, not `.optional()`. Bare YAML keys (`tagline:`) parse as `null`. `.optional()` accepts `undefined` but rejects `null`, so content files with empty fields fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data.
 **See:** [structures.md § Handling null values from empty YAML fields](../../cloudcannon-configuration/structures.md#handling-null-values-from-empty-yaml-fields).
 
 ### Astro slot content → frontmatter field
@@ -215,8 +204,7 @@ When migrating a component that originally used `import` statements for images (
 
 ### Flattening folder-per-post content
 
-**MUST:** flatten folder-per-post content (`blog/my-post/index.md`) to flat files (`blog/my-post.md`) unless the folder structure encodes meaningful grouping beyond the slug.
-**Why:** CC's `[slug]` placeholder resolves to an empty string when the filename is `index`, forcing `slug` frontmatter + `{slug}` data placeholder workarounds. Flat files let Astro auto-generate slugs from the filename and CC's `[slug]` works natively.
+Flatten folder-per-post content (`blog/my-post/index.md`) to flat files (`blog/my-post.md`) unless the folder structure encodes meaningful grouping beyond the slug. CC's `[slug]` placeholder resolves to an empty string when the filename is `index`, forcing `slug` frontmatter + `{slug}` data placeholder workarounds. Flat files let Astro auto-generate slugs from the filename and CC's `[slug]` works natively.
 
 **Checklist before flattening:**
 
@@ -230,8 +218,7 @@ When the folder structure encodes meaningful grouping beyond the slug, keep fold
 
 ### Converting API-driven content to local collections
 
-**MUST:** convert build-time API fetches (JSONPlaceholder, headless CMS, REST endpoints) to a local content collection during migration.
-**Why:** API-fetched content is invisible to CloudCannon — editors can't manage it.
+Convert build-time API fetches (JSONPlaceholder, headless CMS, REST endpoints) to a local content collection during migration. API-fetched content is invisible to CloudCannon — editors can't manage it.
 
 **Steps:**
 
@@ -243,13 +230,11 @@ When the folder structure encodes meaningful grouping beyond the slug, keep fold
 
 **Sample content:** 6+ posts for a typical blog with `pageSize: 6`, enough to test pagination and listing pages. Thematically appropriate beats lorem ipsum for demos.
 
-**MUST:** ensure route params match content collection IDs (`params: { post: post.id }`).
-**Why:** API-driven pages often have custom slug logic (truncation, transliteration) that differs from filename-derived IDs. Mismatched params produce 404s on migrated routes.
+Ensure route params match content collection IDs (`params: { post: post.id }`). API-driven pages often have custom slug logic (truncation, transliteration) that differs from filename-derived IDs. Mismatched params produce 404s on migrated routes.
 
 ### Extracting TypeScript config to JSON data files
 
-**MUST:** extract editor-facing settings (navigation, social links, colors, CTAs) from TS config files to JSON data files in `src/data/`.
-**Why:** CloudCannon can't edit TypeScript — editors lose access to settings locked inside `.ts` files.
+Extract editor-facing settings (navigation, social links, colors, CTAs) from TS config files to JSON data files in `src/data/`. CloudCannon can't edit TypeScript — editors lose access to settings locked inside `.ts` files.
 
 | Keep in TS config                                     | Move to JSON data file                     |
 | ----------------------------------------------------- | ------------------------------------------ |
@@ -266,8 +251,7 @@ When the folder structure encodes meaningful grouping beyond the slug, keep fold
 4. Strip extracted values from the TS config (set to empty defaults)
 5. Add `data_config` entries and `file_config` with appropriate `_inputs` and `_structures` in the CC config
 
-**MUST:** after extraction, audit the consuming component template for hardcoded values (icons like `lucide:rocket`, colors, link targets, label text, image paths) and move those into the data file too.
-**Why:** editors lose access to any visible value the template hardcodes, even if the original TS config didn't expose it. Extraction is the opportunity to fix this — if an editor can see it and it could reasonably vary, it belongs in the data file.
+After extraction, audit the consuming component template for hardcoded values (icons like `lucide:rocket`, colors, link targets, label text, image paths) and move those into the data file too. Editors lose access to any visible value the template hardcodes, even if the original TS config didn't expose it. Extraction is the opportunity to fix this — if an editor can see it and it could reasonably vary, it belongs in the data file.
 
 ### Data collections
 
@@ -279,8 +263,7 @@ Data collections hold content that doesn't build its own page. They can live ins
 | Used on one page only (homepage hero)                                     | That page's frontmatter — no separate collection |
 | Used across multiple pages (navigation, social links, testimonials, tags) | Data collection                                  |
 
-**MUST:** set `disable_url: true` on data collections.
-**Why:** they don't produce pages; without this, CC attempts a URL and breaks the Visual Editor.
+Set `disable_url: true` on data collections. They don't produce pages; without this, CC attempts a URL and breaks the Visual Editor.
 
 **Verify the data files:**
 
@@ -290,7 +273,7 @@ Data collections hold content that doesn't build its own page. They can live ins
 
 ## Review checklist addendum
 
-**MUST:** Run this checklist on every content file before marking the content phase complete.
+Run this checklist on every content file before marking the content phase complete.
 
 - [ ] **Field completeness (CRITICAL):** Every block in `content_blocks` includes ALL fields from its structure definition — cross-reference field-by-field against [structures.md § Mandatory rules](../../cloudcannon-configuration/structures.md#mandatory-rules-read-first). Common misses: `tagline`, `content`, `subtitle`, and nested sub-keys like `callToAction.variant`.
 - [ ] Fields not present in the original page are set to empty/default values (strings empty, booleans `false`, arrays `[]`).

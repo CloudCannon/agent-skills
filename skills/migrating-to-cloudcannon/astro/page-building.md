@@ -18,8 +18,7 @@ Many templates have **no content-backed pages** -- all page data is hardcoded di
 
 ### When to reach for page builder
 
-**MUST:** Default to a page-builder `pages` collection for unique-layout pages (homepage, about, our-team, contact, FAQ, landing, marketing).
-**Why:** Source editables and hardcoded `.astro` files are brittle for structured content — editors can't reorder or duplicate sections, and adding new pages of the same shape requires engineering.
+Default to a page-builder `pages` collection for unique-layout pages (homepage, about, our-team, contact, FAQ, landing, marketing). Source editables and hardcoded `.astro` files are brittle for structured content — editors can't reorder or duplicate sections, and adding new pages of the same shape requires engineering.
 **See:** [audit.md § Classifying static pages](audit.md#classifying-static-pages-source-editables-vs-content-collection) for the classification census.
 
 #### Pick an approach
@@ -34,8 +33,7 @@ Many templates have **no content-backed pages** -- all page data is hardcoded di
 | 5+ separate strings would need `data-editable="source"` on one page       | Page builder                            | That many source editables is the signal the page is actually structured. |
 | Tiny marketing page with a single headline + paragraph and no variants    | Source editable on a hardcoded `.astro` | Honest exception — no benefit to collection overhead.                     |
 
-**MUST NOT:** Create a single-entry collection per unique page (`homepage` collection with one entry, `our-team` collection with one entry).
-**Why:** One `pages` collection with `index.md`, `our-team.md`, etc. plus `z.union` + multiple `schemas:` entries gives editors a unified sidebar without the config bloat. See [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas).
+Create a single-entry collection per unique page (`homepage` collection with one entry, `our-team` collection with one entry). One `pages` collection with `index.md`, `our-team.md`, etc. plus `z.union` + multiple `schemas:` entries gives editors a unified sidebar without the config bloat. See [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas).
 
 ### Steps
 
@@ -149,11 +147,9 @@ Only creatable page types appear in `add_options`. One-off pages with dedicated 
 
 ### Common mistakes
 
-**MUST:** Name the homepage file `src/content/pages/index.md`.
-**Why:** With `url: "/[slug]/"`, CloudCannon collapses the `index` slug to `/`. Any other filename (e.g. `home.md`) resolves to `/home/` and the visual editor targets the wrong URL — even when `src/pages/index.astro` `getEntry`s the file.
+Name the homepage file `src/content/pages/index.md`. With `url: "/[slug]/"`, CloudCannon collapses the `index` slug to `/`. Any other filename (e.g. `home.md`) resolves to `/home/` and the visual editor targets the wrong URL — even when `src/pages/index.astro` `getEntry`s the file.
 
-**MUST NOT:** Promote a non-`index.md` file to root via custom route code, redirects, or ad-hoc logic.
-**Why:** The Astro-native slug collapse (`index.md` → `/`) is the only mechanism the visual editor can follow. Custom routing desynchronises the built URL from the editor's target URL.
+Promote a non-`index.md` file to root via custom route code, redirects, or ad-hoc logic. The Astro-native slug collapse (`index.md` → `/`) is the only mechanism the visual editor can follow. Custom routing desynchronises the built URL from the editor's target URL.
 
 ## Array-based page builder
 

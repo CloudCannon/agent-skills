@@ -26,7 +26,7 @@ After generation, check `cloudcannon.config.yml` against this table:
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
-**MUST:** Build settings are nested under a `build` key. The old flat format (`build_command`/`output_path` at the root) is defunct.
+Build settings must be nested under a `build` key. The old flat format (`build_command`/`output_path` at the root) is defunct.
 
 **Structure:** `ssg` at the root; `install_command`, `build_command`, `output_path`, `node_version` nested under `build`.
 
@@ -54,7 +54,7 @@ The decision rule: if skipping the change means the config is wrong or fragile, 
 
 The CloudCannon CLI produces a structural baseline. The following customizations are almost always needed, informed by the Phase 1 audit:
 
-- **`_inputs`** -- configure how fields appear in the editor (dropdowns, date pickers, image uploaders, comments, hidden fields). Map these from the Zod schemas discovered in the audit. When a frontmatter field contains markdown (e.g. a hero description with `**bold**` text), use `type: markdown`, not `type: textarea`. The same goes for fields that contain html elements (e.g. a hero description with `<strong>bold</strong>` text) - they should use `type: html`, instead of `type: textarea`. Use scoped input keys (e.g. `hero.description`) when the general input should stay as `textarea` but a specific context needs `markdown`.
+- **`_inputs`** -- configure how fields appear in the editor (dropdowns, date pickers, image uploaders, comments, hidden fields). Map these from the Zod schemas discovered in the audit. When a frontmatter field contains markdown (e.g. a hero description with `**bold**` text), use `type: markdown`, not `type: textarea`. The same goes for fields that contain html elements (e.g. a hero description with `<strong>bold</strong>` text) - they should use `type: html`, instead of `type: textarea`. Use scoped input keys (e.g. `hero.description`) when the general input should stay as `textarea` but a specific context needs `markdown`. Fields whose value is one of a fixed set (`variant`, `target`, `size`, `align`, `theme`, `columns`, etc.) must be `type: select` — never `type: text`. See [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs).
 - **`_structures`** -- MANDATORY for every array and object input on the site. See [../structures.md § Mandatory rules](../structures.md#mandatory-rules-read-first) for the full requirement (structure definition + explicit `_inputs` linkage with full path).
 - **`icon`** -- every collection should have an `icon` key so it gets a meaningful icon in the CloudCannon sidebar instead of a generic default. Pick icons that reflect the collection's purpose (e.g. `wysiwyg` for pages, `post_add` for blog posts, `home` for homepages, `settings` for data/config). CloudCannon's icon set is a **fixed curated subset** of Material Symbols — invalid names silently fall back to the default. When unsure, grep [`src/icon.ts`](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/src/icon.ts) for the exact name. Common gotcha: `place` is not in the enum — use `location_on`.
 - **All schema fields mapped** -- cross-reference every field in the Zod schema against the `_inputs` config. Every user-facing field needs an appropriate input type (`textarea` for multi-line strings like excerpts/descriptions, `datetime` for dates, `image` for image paths, etc.). Missing fields fall back to CC's type inference, which is often wrong. When unsure whether a field is user-facing or developer-only, check whether its value is rendered as visible text on the built page. If it appears on the page, it should be editable with an appropriate input type. Only fields undergoing heavy programmatic transformation (e.g. used purely as a build-time lookup key) should be hidden.
@@ -172,7 +172,7 @@ collections_config:
         editor: content
 ```
 
-**MUST:** Add `_schema: <key>` to each content file's frontmatter so CloudCannon matches it explicitly rather than guessing from the frontmatter shape.
+Add `_schema: <key>` to each content file's frontmatter so CloudCannon matches it explicitly rather than guessing from the frontmatter shape.
 
 #### Zod: `z.union` vs `z.discriminatedUnion`
 
@@ -239,7 +239,7 @@ const pagesCollection = defineCollection({
 
 **In templates**, narrow the union with an `in` check before accessing schema-specific fields: `if (!("banner" in data)) throw new Error(...)`. The page still uses its own rendering template in `src/pages/` — routing is independent of collection structure.
 
-**MUST:** Every Zod schema in the union has a matching CC schema in `.cloudcannon/schemas/` and a corresponding entry under the collection's `schemas` key in `cloudcannon.config.yml`.
+Every Zod schema in the union needs a matching CC schema in `.cloudcannon/schemas/` and a corresponding entry under the collection's `schemas` key in `cloudcannon.config.yml`.
 
 ## Splitting nested subdirectories into their own collections
 
@@ -351,8 +351,9 @@ Split into per-file collections only when:
 | Static     | `public/`     | Plain `<img>`, served as-is                             | Relative to public root (`images/photo.jpg` or `/images/photo.jpg`) — NOT `public/...` | Global `paths.uploads`.               |
 | Optimized  | `src/assets/` | Astro pipeline (`<Image>`, `<Picture>`, `astro:assets`) | Full repo-relative (`/src/assets/images/hero.jpg`)                                     | Per-input override with `static: ""`. |
 
-**MUST NOT:** Move images out of `src/assets/` into `public/`. If images are in `src/assets/`, the developer intended optimization.
-**MUST:** Set per-input `static: ""` (empty string) on optimized image inputs. Without it, CC strips the path prefix and `import.meta.glob` can't resolve the image.
+Don't move images out of `src/assets/` into `public/` — if images are in `src/assets/`, the developer intended optimization.
+
+Optimized image inputs need a per-input `static: ""` (empty string). Without it, CC strips the path prefix and `import.meta.glob` can't resolve the image.
 
 ### Global vs per-input paths
 

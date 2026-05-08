@@ -246,7 +246,7 @@ Three keys work together:
 
 Use `picker_preview` to override the gallery for the snippet picker modal (where you choose which snippet to insert). The picker doesn't have image data yet, so disable the gallery image and show a static icon instead — see the `<figure>` example above for the exact YAML shape.
 
-**MUST:** apply this pattern to every snippet that has an image `editor_key` — not just `<figure>`. If the snippet has an image field, give it a gallery preview.
+Apply this pattern to every snippet that has an image `editor_key` — not just `<figure>`. If the snippet has an image field, give it a gallery preview.
 
 ---
 
