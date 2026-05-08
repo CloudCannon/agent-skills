@@ -1,0 +1,6 @@
+{
+  "name": "cloudcannon-agent-skills",
+  "description": "Agent skills for migrating SSG sites to CloudCannon and configuring CloudCannon features (configuration, snippets, visual editing).",
+  "version": "0.1.0",
+  "author": "CloudCannon"
+}

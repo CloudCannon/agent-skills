@@ -32,9 +32,25 @@ For a full migration, start with `migrating-to-cloudcannon` -- it orchestrates t
 
 ## Getting started
 
+Pick whichever install path matches your agent.
+
+### Any agent that supports skills (recommended)
+
 1. Run `npx skills add CloudCannon/agent-skills` in the root of your project
 2. Open your project in your AI coding agent
 3. Ask the agent to migrate your site to CloudCannon
+
+This uses the [Vercel `skills` CLI](https://vercel.com/docs/agent-resources/skills) to copy the skills into your project so any agent that supports skills can pick them up.
+
+### Claude Code (plugin)
+
+If you're using [Claude Code](https://claude.com/claude-code), you can install the skills as a plugin so they're available across all your projects without copying files in:
+
+```sh
+/plugin install CloudCannon/agent-skills
+```
+
+Skills installed this way are namespaced (e.g. `cloudcannon-agent-skills:cloudcannon-configuration`) and update with `/plugin update`.
 
 The agent picks up skills automatically based on their trigger descriptions in `SKILL.md`. For a full migration, something like "migrate this site to CloudCannon" is enough to get started.
 
@@ -69,6 +85,7 @@ skills/
 
 - **Living documents** -- Skills are actively maintained. When an agent uncovers a new pattern or edge case during a migration, update the relevant skill as part of the same task rather than leaving it as a follow-up.
 - **Just-in-time reading** -- Agents read docs as needed during each phase rather than loading everything upfront. The skills are structured to support this.
+- **Writing style** -- Skills are read by AI agents with limited context. Front-load rules, prefer tables and checklists over prose, and keep one canonical source per rule. See [STYLE.md](STYLE.md).
 
 For a detailed walkthrough of how agents traverse the skill files, see [GUIDE.md](skills/migrating-to-cloudcannon/GUIDE.md).
 
