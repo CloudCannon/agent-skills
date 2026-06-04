@@ -1,12 +1,32 @@
 # CloudCannon Agent Skills
 
-Agent skills that help AI coding agents migrate existing SSG sites to [CloudCannon](https://cloudcannon.com) -- a git-based CMS. Copy the skills into your project, open it in your AI coding agent, and ask it to migrate your site.
+Agent skills that help AI coding agents migrate existing SSG sites to [CloudCannon](https://cloudcannon.com). Copy the skills into your project, open it in your AI coding agent, and ask it to migrate your site.
 
 ## Prerequisites
 
 - An AI coding agent that supports skills (e.g. an agent mode in your IDE)
 - An existing SSG site (see [supported SSGs](#supported-ssgs))
 - A [CloudCannon](https://cloudcannon.com) account (for final verification)
+
+## Getting started
+
+1. Run `npx skills add CloudCannon/agent-skills` in the root of your project
+2. Open your project in your AI coding agent
+3. Ask the agent to migrate your site to CloudCannon, following a suggested prompt:
+
+   For a full migration:
+
+   > Migrate this site to CloudCannon using the migrating-to-cloudcannon skill. If the skill is not found, look in .agents/, otherwise do not continue.
+
+   Or, for creating configuration:
+
+   > Create CloudCannon configuration files using the cloudcannon-configuration skill. If the skill is not found, look in .agents/, otherwise do not continue.
+
+   Or, for setting up Visual Editing:
+
+   > Configure Visual Editing for CloudCannon using the cloudcannon-visual-editing skill. If the skill is not found, look in .agents/, otherwise do not continue.
+
+The agent should pick up skills automatically based on their trigger descriptions in `SKILL.md`.
 
 ## Supported SSGs
 
@@ -29,14 +49,6 @@ The tooling is split across composable skills that can be used together or indep
 | `brainstorming`              | Structured design exploration | Exploring intent, requirements, and tradeoffs before implementation                           |
 
 For a full migration, start with `migrating-to-cloudcannon` -- it orchestrates the other skills at the right time. The standalone skills (`cloudcannon-configuration`, `cloudcannon-snippets`, `cloudcannon-visual-editing`) are useful when you only need one piece, e.g. "add visual editing to my existing CloudCannon site".
-
-## Getting started
-
-1. Run `npx skills add CloudCannon/agent-skills` in the root of your project
-2. Open your project in your AI coding agent
-3. Ask the agent to migrate your site to CloudCannon
-
-The agent picks up skills automatically based on their trigger descriptions in `SKILL.md`. For a full migration, something like "migrate this site to CloudCannon" is enough to get started.
 
 ## How it works
 
