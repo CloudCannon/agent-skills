@@ -24,7 +24,7 @@ This generates:
 
 ## Step-by-Step Setup (More Control)
 
-For more control, run each detection step independently. All subcommands output JSON to stdout.
+For more control, run each detection step independently.
 
 ### 1. Detect the Static Site Generator
 
@@ -75,15 +75,46 @@ Returns build command suggestions with attributions explaining why each was sugg
 
 ### 5. Generate Everything
 
+The `generate` subcommand will create the files in place:
+
 ```bash
 npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg astro
 ```
 
-Or get raw JSON for programmatic processing:
+Adding the `--dry-run` flag prints the file output instead:
 
 ```bash
-npx @cloudcannon/cli configure generate --auto --json
+npx @cloudcannon/cli configure generate --auto --dry-run
 ```
+
+## Validating Configuration
+
+Run after generating the baseline and after each round of customization.
+
+```bash
+npx @cloudcannon/cli validate
+```
+
+Checks `cloudcannon.config.yml` (and any split config files referenced via `*_from_glob` keys), `.cloudcannon/initial-site-settings.json`, and `.cloudcannon/routing.json` if present. Exit code `0` = all valid, `1` = one or more invalid.
+
+```
+✓ valid: cloudcannon.config.yml
+✗ invalid: .cloudcannon/initial-site-settings.json
+  $.build: unexpected property 'install_command'
+```
+
+Errors use JSONPath notation. Fix the flagged key and re-run.
+
+**Flags:**
+
+| Flag                          | Effect                                                  |
+| ----------------------------- | ------------------------------------------------------- |
+| `--configuration`             | Validate `cloudcannon.config.yml` only                  |
+| `--initial-site-settings`     | Validate `.cloudcannon/initial-site-settings.json` only |
+| `--configuration-path=<path>` | Override the config file path                           |
+| `--stdin`                     | Read from stdin instead of disk                         |
+
+Validation catches unknown keys, wrong value types, and missing required fields. It does **not** catch semantic errors (e.g. a `url` pattern that doesn't match your output paths, or a `_structures` reference to a non-existent key).
 
 ## Customizing After Generation
 
@@ -101,15 +132,15 @@ The CLI generates a baseline. These keys are the common customization targets:
 | `_select_data`       | Shared dropdown options                                                                                            | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                                 |
 | `file_config`        | Per-file input overrides (array format only)                                                                       | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                                 |
 
-The full key reference is in the [CloudCannon Configuration JSON Schema](https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json). For IDE autocomplete and validation, use JSON Schema Store (see below) — **do not** add ad-hoc schema comments in YAML.
+The full set of configuration keys is defined in the CloudCannon Configuration JSON Schema, see [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details. For IDE autocomplete and validation, use an LSP that supports validating against JSON Schemas (see below) — **do not** add ad-hoc schema comments in YAML.
 
 ## JSON Schemas
 
-CloudCannon’s config schemas are published on the [JSON Schema Store](https://www.schemastore.org/). Editors that use Schema Store map filenames such as `cloudcannon.config.yml`, `cloudcannon.config.json`, and `.cloudcannon/initial-site-settings.json` to the right schema automatically.
+CloudCannon’s configuration schemas are published on the [JSON Schema Store](https://www.schemastore.org/). Editor LSPs map filenames such as `cloudcannon.config.yml`, `cloudcannon.config.json`, and `.cloudcannon/initial-site-settings.json` to the right schema automatically.
 
 **Do not** add or keep a first-line `# yaml-language-server: $schema=...` comment in `cloudcannon.config.yml`. That directive overrides the Schema Store association and forces a specific URL instead of the catalogued schema.
 
-**VS Code-compatible editors:** Recommend extensions via `.vscode/extensions.json` so YAML and JSON pick up Schema Store. A minimal set used in CloudCannon’s Astro templates includes [`redhat.vscode-yaml`](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) plus Astro/Tailwind helpers—for example the same recommendations as [sendit-astro-template’s `.vscode/extensions.json`](https://github.com/CloudCannon/sendit-astro-template/blob/main/.vscode/extensions.json):
+**VS Code-compatible editors:** Recommend extensions via `.vscode/extensions.json` so YAML and JSON files use an LSP to validate. A minimal set used in CloudCannon’s Astro templates includes [`redhat.vscode-yaml`](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) plus Astro/Tailwind helpers—for example the same recommendations as [sendit-astro-template’s `.vscode/extensions.json`](https://github.com/CloudCannon/sendit-astro-template/blob/main/.vscode/extensions.json):
 
 ```json
 {
@@ -122,7 +153,7 @@ CloudCannon’s config schemas are published on the [JSON Schema Store](https://
 }
 ```
 
-Use the schema URLs above (and CloudCannon’s docs) when you need the raw key reference outside the IDE.
+When working outside an IDE (e.g. as an AI agent), download the schema and query it with `jq`. See [SKILL.md § JSON Schemas](SKILL.md#json-schemas) for the download command and query patterns. The schema is saved to `migration/cloudcannon-config.latest.schema.json` in the project root so it persists across agent turns.
 
 ## File Placement
 
@@ -131,12 +162,14 @@ Use the schema URLs above (and CloudCannon’s docs) when you need the raw key r
 ## Example Skill File Workflow
 
 ```
-1. Run `npx @cloudcannon/cli configure detect-ssg` to identify the SSG
-2. Parse the JSON output to get the SSG key
-3. Run `npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg <key>`
-4. Read the generated cloudcannon.config.yml
-5. Add any project-specific customizations (_inputs, _structures, etc.)
-6. Write the updated config back to disk
+1. Download the JSON schema (one curl command, follows redirects):
+   mkdir -p migration && curl -sL "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.latest.schema.json" -o migration/cloudcannon-config.latest.schema.json
+2. Run `npx @cloudcannon/cli configure detect-ssg` to identify the SSG
+3. Parse the JSON output to get the SSG key
+4. Run `npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg <key>`
+5. Read the generated cloudcannon.config.yml
+6. Before adding each customisation key, query the schema: jq '.definitions["<section>"].properties | keys' migration/cloudcannon-config.latest.schema.json
+7. Write the updated config back to disk
 ```
 
 ## Reference Links
