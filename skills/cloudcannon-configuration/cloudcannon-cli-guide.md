@@ -132,7 +132,7 @@ The CLI generates a baseline. These keys are the common customization targets:
 | `_select_data`       | Shared dropdown options                                                                                            | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                                 |
 | `file_config`        | Per-file input overrides (array format only)                                                                       | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                                 |
 
-The full set of configuration keys is defined in the CloudCannon Configuration JSON Schema, see [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details. For IDE autocomplete and validation, use an LSP that supports validating against JSON Schemas (see below) — **do not** add ad-hoc schema comments in YAML.
+The full set of configuration keys is defined in the CloudCannon Configuration JSON Schema, see [SKILL.md § Do this before writing any configuration](SKILL.md#do-this-before-writing-any-configuration) for schema details. For IDE autocomplete and validation, use an LSP that supports validating against JSON Schemas (see below) — **do not** add ad-hoc schema comments in YAML.
 
 ## JSON Schemas
 

@@ -478,7 +478,7 @@ Note that `editor: content` on add options only controls the editor for _new_ fi
 
 ## Page building patterns
 
-See [page-building.md](page-building.md) for the full guide on creating content-backed pages and array-based page builders, including the pages collection setup, catch-all route, BlockRenderer, and CC collection config.
+See [page-building.md](../../migrating-to-cloudcannon/astro/page-building.md) for the full guide on creating content-backed pages and array-based page builders, including the pages collection setup, catch-all route, BlockRenderer, and CC collection config.
 
 For the structures reference (inline vs split, field completeness, previews, deriving from components), see [../structures.md](../structures.md).
 
@@ -585,6 +585,6 @@ Work through these before moving to the next phase. One check per line.
 - [ ] Collections where editors should not create new files use `disable_add: true`
 - [ ] Schemas for creatable page types have `new_preview_url` OR `editor: content` on add options
 - [ ] Collections with a `draft` field use `editor: content` on add options (drafts aren't built)
-- [ ] Sites with 3+ reusable block components have a page builder schema — see [page-building.md](page-building.md)
+- [ ] Sites with 3+ reusable block components have a page builder schema — see [page-building.md](../../migrating-to-cloudcannon/astro/page-building.md)
 
 For common pitfalls and patterns, see [configuration-gotchas.md](configuration-gotchas.md).

@@ -240,7 +240,7 @@ CC's `slugify` replaces non-alphanumeric characters with hyphens and collapses t
 
 When content uses a folder-per-post structure (e.g. `blog/01-getting-started/index.md`), CC's `[slug]` placeholder resolves to an empty string (because the filename is `index`). This means `url: "/blog/[slug]/"` produces `/blog/` for every post — wrong.
 
-**Preferred fix:** Flatten to flat files (`blog/01-getting-started.md`). This lets Astro auto-generate slugs from filenames and CC's `[slug]` works natively. See [content.md § Flattening folder-per-post content](content.md#flattening-folder-per-post-content) for the full checklist.
+**Preferred fix:** Flatten to flat files (`blog/01-getting-started.md`). This lets Astro auto-generate slugs from filenames and CC's `[slug]` works natively. See [content.md § Flattening folder-per-post content](../../migrating-to-cloudcannon/astro/content.md#flattening-folder-per-post-content) for the full checklist.
 
 **Fallback (when flattening isn't practical):** Add a `slug` field to each content file's frontmatter matching the folder name, then use `{slug}` (data placeholder) in the CC URL pattern. For legacy Astro collections, `slug` in frontmatter overrides the auto-generated slug without needing to be in the Zod schema. Include `slug` in the CC schema template so new posts get the field.
 
@@ -440,7 +440,7 @@ Options, in order of preference:
 
 There are two distinct approaches for pages in CloudCannon. Pick based on the audit classification — picking the wrong one either forces unnecessary refactoring or leaves pages unreachable to editors:
 
-- **`src/content/pages/` collection**: For templates with structured data that should become content collection entries. See [page-building.md](page-building.md).
+- **`src/content/pages/` collection**: For templates with structured data that should become content collection entries. See [page-building.md](../../migrating-to-cloudcannon/astro/page-building.md).
 - **`src/pages/` collection**: For templates where static pages stay as `.astro` files with source editables. Simpler, but no Zod validation and limited to source editables for `.astro` pages.
 
 ```yaml
