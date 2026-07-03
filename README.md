@@ -28,6 +28,17 @@ Agent skills that help AI coding agents migrate existing SSG sites to [CloudCann
 
 The agent should pick up skills automatically based on their trigger descriptions in `SKILL.md`.
 
+## Install as a Claude Code plugin
+
+If you use [Claude Code](https://claude.com/claude-code), you can install all five skills as a plugin instead of copying them in. Add the marketplace, then install the plugin:
+
+```
+/plugin marketplace add CloudCannon/agent-skills
+/plugin install agent-skills@cloudcannon
+```
+
+The skills are then available namespaced as `agent-skills:<skill-name>` (e.g. `agent-skills:migrating-to-cloudcannon`), and Claude picks them up automatically based on their trigger descriptions — same as the copy-in route above.
+
 ## Supported SSGs
 
 | SSG   | Status    |

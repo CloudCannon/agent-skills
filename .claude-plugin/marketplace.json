@@ -1,0 +1,16 @@
+{
+  "name": "cloudcannon",
+  "owner": {
+    "name": "CloudCannon",
+    "email": "support@cloudcannon.com"
+  },
+  "description": "CloudCannon agent skills for migrating SSG sites to CloudCannon and configuring visual editing.",
+  "plugins": [
+    {
+      "name": "agent-skills",
+      "source": ".",
+      "description": "Skills that help AI coding agents migrate SSG sites to CloudCannon — site configuration, visual editing, snippets, and a guided end-to-end migration workflow.",
+      "version": "0.1.0"
+    }
+  ]
+}

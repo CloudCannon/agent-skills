@@ -1,0 +1,12 @@
+{
+  "name": "agent-skills",
+  "description": "Skills that help AI coding agents migrate SSG sites to CloudCannon — site configuration, visual editing, snippets, and a guided end-to-end migration workflow.",
+  "version": "0.1.0",
+  "author": {
+    "name": "CloudCannon",
+    "email": "support@cloudcannon.com"
+  },
+  "homepage": "https://cloudcannon.com",
+  "repository": "https://github.com/CloudCannon/agent-skills",
+  "keywords": ["cloudcannon", "ssg", "migration", "visual-editing", "astro", "cms"]
+}
