@@ -61,7 +61,7 @@ Cross-page content (navigation, CTAs, testimonials, site settings) should live i
 
 ### Shared-UI treatment table
 
-Every site has most of these. For each row, the default treatment is non-negotiable unless you have a written technical reason not to — scan the repo for each one and either implement it or document the exception in `migration/visual-editing.md`.
+Every site has most of these. For each row, the default treatment is non-negotiable unless you have a written technical reason not to — scan the repo for each one and either implement it or document the exception in `.cloudcannon/migration/visual-editing.md`.
 
 | Section                             | Default treatment                           | Data file / approach                                                                |
 | ----------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------- |

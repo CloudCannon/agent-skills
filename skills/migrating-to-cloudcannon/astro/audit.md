@@ -6,7 +6,7 @@ Run the audit script first to gather data automatically:
 bash skills/migrating-to-cloudcannon/scripts/audit-astro.sh .
 ```
 
-Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `migration/audit.md` at the project root.
+Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `.cloudcannon/migration/audit.md`.
 
 ## 1. Astro version and dependencies
 
@@ -91,7 +91,7 @@ Use this decision table for every `.astro` page that isn't already in a collecti
 | Page re-declares an array that overlaps with a data file (`services`, `team`, `faq`)                                            | ❌ Local const array + data file both maintained                                                                                                                                      | Delete the local array, read from the data file via `import`. Editors change the data file, the page stays stale.                                                                                                                 |
 | Cross-collection membership (category ↔ posts) with both sides storing the list                                                 | ❌ Both sides own the list — drifts when one is updated                                                                                                                               | ✅ One canonical side owns the list (per-entity collection). Other side reverse-looks-up: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`. Add a CMS comment: "X is pulled automatically — edit Y to add/remove". |
 
-Then produce this **mandatory census table** in `migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
+Then produce this **mandatory census table** in `.cloudcannon/migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
 
 | Page file                        | Distinct content sections   | Layout repeated on other pages? | Editor will add similar pages? | Recommended pattern             |
 | -------------------------------- | --------------------------- | ------------------------------- | ------------------------------ | ------------------------------- |

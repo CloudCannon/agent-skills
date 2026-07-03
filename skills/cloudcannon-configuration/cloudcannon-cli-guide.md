@@ -153,7 +153,7 @@ CloudCannon’s configuration schemas are published on the [JSON Schema Store](h
 }
 ```
 
-When working outside an IDE (e.g. as an AI agent), download the schema and query it with `jq`. See [SKILL.md § JSON Schemas](SKILL.md#json-schemas) for the download command and query patterns. The schema is saved to `migration/cloudcannon-config.latest.schema.json` in the project root so it persists across agent turns.
+When working outside an IDE (e.g. as an AI agent), download the schema and query it with `jq`. See [SKILL.md § JSON Schemas](SKILL.md#json-schemas) for the download command and query patterns. The schema is saved to `.cloudcannon/migration/cloudcannon-config.latest.schema.json` so it persists across agent turns (kept under `.cloudcannon/` so the CLI doesn't detect the folder as a collection).
 
 ## File Placement
 
@@ -163,12 +163,12 @@ When working outside an IDE (e.g. as an AI agent), download the schema and query
 
 ```
 1. Download the JSON schema (one curl command, follows redirects):
-   mkdir -p migration && curl -sL "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.latest.schema.json" -o migration/cloudcannon-config.latest.schema.json
+   mkdir -p .cloudcannon/migration && curl -sL "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.latest.schema.json" -o .cloudcannon/migration/cloudcannon-config.latest.schema.json
 2. Run `npx @cloudcannon/cli configure detect-ssg` to identify the SSG
 3. Parse the JSON output to get the SSG key
 4. Run `npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg <key>`
 5. Read the generated cloudcannon.config.yml
-6. Before adding each customisation key, query the schema: jq '.definitions["<section>"].properties | keys' migration/cloudcannon-config.latest.schema.json
+6. Before adding each customisation key, query the schema: jq '.definitions["<section>"].properties | keys' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 7. Write the updated config back to disk
 ```
 

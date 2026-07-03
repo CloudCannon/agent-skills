@@ -41,9 +41,9 @@ When the site uses a page builder with a `BlockRenderer`, create a shared `src/c
 
 ## Section census
 
-> **Hard gate.** Do not write a single `data-editable` attribute until a section census exists at `migration/visual-editing.md` and covers every page listed below. An empty or TODO'd census fails this gate — produce the table first, then implement.
+> **Hard gate.** Do not write a single `data-editable` attribute until a section census exists at `.cloudcannon/migration/visual-editing.md` and covers every page listed below. An empty or TODO'd census fails this gate — produce the table first, then implement.
 
-Before writing any editable attributes, produce a census of every visible section on every key page. Document the census in `migration/visual-editing.md`. The census prevents sections from being accidentally skipped — every section must have an explicit treatment decision.
+Before writing any editable attributes, produce a census of every visible section on every key page. Document the census in `.cloudcannon/migration/visual-editing.md`. The census prevents sections from being accidentally skipped — every section must have an explicit treatment decision.
 
 **Key pages to census:** Homepage, blog listing, blog detail, portfolio/project listing, project detail, contact, about, and any other unique page templates. Include shared partials that appear on multiple pages (header, footer, CTA banner, navigation).
 
@@ -107,7 +107,7 @@ Run through these after setup, before starting on editable regions:
 
 ## Completeness checklist
 
-> **Rule:** if an editor can see it on the page, an editor must be able to edit it. Every item below enforces this rule. Hardcoded headings, labels, or paragraphs are not "developer-only" — they are an unfinished migration. A section is either editable or has a written exception in `migration/visual-editing.md`.
+> **Rule:** if an editor can see it on the page, an editor must be able to edit it. Every item below enforces this rule. Hardcoded headings, labels, or paragraphs are not "developer-only" — they are an unfinished migration. A section is either editable or has a written exception in `.cloudcannon/migration/visual-editing.md`.
 
 Work through every item after implementing editable regions. Each item links to the relevant pattern documentation.
 
@@ -188,8 +188,8 @@ Work through every item after implementing editable regions. Each item links to 
 
 Before declaring the migration complete, run these three verifications. This is the net that catches shared sections that slipped through the section census and completeness checklist.
 
-- [ ] **Census walk-through.** Re-open `migration/visual-editing.md` and walk every census row. Each row's treatment is implemented in the repo — not just proposed. Rows with `sidebar-only` justification are written out with a technical reason.
-- [ ] **Shared-UI table walk-through.** Open [../../migrating-to-cloudcannon/astro/cc-friendly-conventions.md § Shared-UI treatment table](../../migrating-to-cloudcannon/astro/cc-friendly-conventions.md#shared-ui-treatment-table) and verify every row against the repo: the named data file exists in `src/data/`, is wired in `data_config` with a `file_config` entry, the component reads from the data file, and editables are in place. If a row doesn't apply (the site has no footer, no CTA, etc.), note it explicitly in `migration/visual-editing.md`.
+- [ ] **Census walk-through.** Re-open `.cloudcannon/migration/visual-editing.md` and walk every census row. Each row's treatment is implemented in the repo — not just proposed. Rows with `sidebar-only` justification are written out with a technical reason.
+- [ ] **Shared-UI table walk-through.** Open [../../migrating-to-cloudcannon/astro/cc-friendly-conventions.md § Shared-UI treatment table](../../migrating-to-cloudcannon/astro/cc-friendly-conventions.md#shared-ui-treatment-table) and verify every row against the repo: the named data file exists in `src/data/`, is wired in `data_config` with a `file_config` entry, the component reads from the data file, and editables are in place. If a row doesn't apply (the site has no footer, no CTA, etc.), note it explicitly in `.cloudcannon/migration/visual-editing.md`.
 - [ ] **Build grep.** Run `grep -rE "data-editable|data-prop" dist/` and confirm matches for every shared section name you expect: footer, cta, share, author, any other shared partials. If a name is missing, the section wasn't wired up.
 
 Use grep counts, not line counts (`grep -oE`, not `grep -c`), when verifying — compressed HTML puts everything on one line, so `grep -c` always returns 1.
