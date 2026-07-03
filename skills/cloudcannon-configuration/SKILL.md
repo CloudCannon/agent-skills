@@ -79,6 +79,7 @@ Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritati
 | `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                       |
 | `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                        |
 | `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                        |
+| `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
 | `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                               |
 | Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                             |
 
