@@ -14,7 +14,7 @@ Gathers audit data for an Astro site. Runs CloudCannon CLI commands (`configure 
 bash audit-astro.sh /path/to/project
 ```
 
-The output is structured text the agent uses as a starting point for `migration/audit.md`. The agent still handles schema field analysis, component hierarchy, visual editing candidates, and flags/gotchas.
+The output is structured text the agent uses as a starting point for `.cloudcannon/migration/audit.md`. The agent still handles schema field analysis, component hierarchy, visual editing candidates, and flags/gotchas.
 
 ### `rename-dash-index.sh` (Phase 3: Content)
 

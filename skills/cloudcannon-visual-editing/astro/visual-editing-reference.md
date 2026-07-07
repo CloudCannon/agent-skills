@@ -232,7 +232,7 @@ Most Astro templates store images as simple string paths, so `data-prop-src` is 
 
 When the user clicks the image in the visual editor, CloudCannon opens the image picker. The `<img>` src is updated live.
 
-**Image location and optimization:** Optimized images belong in `src/assets/`, not `public/`. Frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.webp`). Components use `import.meta.glob` to resolve the string to `ImageMetadata` at build time (see [content.md § Resolving optimized image paths](content.md#resolving-optimized-image-paths-from-frontmatter)). Don't downgrade to `<img>` just because the path comes from frontmatter.
+**Image location and optimization:** Optimized images belong in `src/assets/`, not `public/`. Frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.webp`). Components use `import.meta.glob` to resolve the string to `ImageMetadata` at build time (see [content.md § Resolving optimized image paths](../../migrating-to-cloudcannon/astro/content.md#resolving-optimized-image-paths-from-frontmatter)). Don't downgrade to `<img>` just because the path comes from frontmatter.
 
 **Upload paths:** Configure per-input upload paths so optimized images go to `src/assets/images` while unoptimized use the global `public/` path. The per-input `static: ''` is critical — without it, CloudCannon strips the path prefix and `import.meta.glob` can't resolve the image. See [configuration.md § Image path configuration](../../cloudcannon-configuration/astro/configuration.md#image-path-configuration) for the full setup with YAML examples.
 
@@ -384,7 +384,7 @@ A `data-editable="array"` wrapper treats every direct child as an `array-item` �
 
 ## Page builder blocks
 
-For the structural setup (array wrapper, BlockRenderer, catch-all route, CC config), see [page-building.md](page-building.md). This section covers the **visual editing layers** that go on top of that structure.
+For the structural setup (array wrapper, BlockRenderer, catch-all route, CC config), see [page-building.md](../../migrating-to-cloudcannon/astro/page-building.md). This section covers the **visual editing layers** that go on top of that structure.
 
 Each block needs **three layers**: (1) array wrapper, (2) array items with component behaviour, (3) nested editables. Agents commonly add the array wrapper but miss the component layer or nested editables. See the [CloudCannon complex array docs](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/) for the canonical reference.
 
@@ -997,7 +997,7 @@ registerAstroComponent("call-to-action", CallToAction);
 
 ### Non-Astro framework components
 
-Only `.astro` and React components are supported (see [overview.md § Astro scope](overview.md)).
+Only `.astro` and React components are supported (see [overview.md § Astro scope](../../migrating-to-cloudcannon/astro/overview.md#astro-scope)).
 
 **Decision: convert or provide an editing fallback.** For each unsupported component, decide whether to convert it to a supported framework or keep it and provide a fallback:
 

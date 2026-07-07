@@ -54,7 +54,7 @@ For each phase, in order:
 1. **Read** the phase doc end-to-end before touching any files.
 2. **TaskCreate** one task per checklist item in that phase doc. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
 3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
-4. **Write** `migration/<phase>.md` documenting decisions, findings, and anything the user should review.
+4. **Write** `.cloudcannon/migration/<phase>.md` documenting decisions, findings, and anything the user should review.
 5. **Check the handoff readiness row below.** If it's met, the phase is safe to hand off to a fresh conversation. Whether you actually open a fresh conversation is a judgment call (see [Chunking](#chunking-large-migrations) below) — within one conversation, just continue.
 
 **Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. TaskCreate makes the skim visible.
@@ -63,13 +63,13 @@ For each phase, in order:
 
 These rows define what must be true for a phase to be safely picked up by a fresh conversation. They are **not** walls inside one conversation — cross-phase fixes (per step 3 above) are still fine. They exist so a chunked migration's later runs have a clean starting point.
 
-| After phase           | Ready for handoff when…                                                                                                                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **1. Audit**          | `migration/audit.md` exists, contains the census table, and lists every collection + every page route. Sectioning thresholds (below) have been evaluated; if tripped, `migration/plan.md` exists.                                                                  |
-| **2. Configuration**  | `cloudcannon.config.yml` validates against the published JSON schema (no IDE red squigglies). Every collection in the audit has a `collections_config` entry; every referenced data file has a `data_config` entry. `migration/configuration.md` written.          |
-| **3. Content**        | All structural content changes from Phase 2 are reflected in the files. `npm run build` (or project equivalent) succeeds. `migration/content.md` written.                                                                                                          |
-| **4. Visual editing** | Every section flagged in the audit census as "needs editable region" has been wired or has a documented justification for not being wired. `registerComponents.ts` registers every component used inside a wrapped section. `migration/visual-editing.md` written. |
-| **5. Build and test** | Production build succeeds locally. User has run their CloudCannon-side verification (preview, inline edit, save-to-git). `migration/build.md` written.                                                                                                             |
+| After phase           | Ready for handoff when…                                                                                                                                                                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Audit**          | `.cloudcannon/migration/audit.md` exists, contains the census table, and lists every collection + every page route. Sectioning thresholds (below) have been evaluated; if tripped, `.cloudcannon/migration/plan.md` exists.                                                     |
+| **2. Configuration**  | `cloudcannon.config.yml` validates against the published JSON schema (no IDE red squigglies). Every collection in the audit has a `collections_config` entry; every referenced data file has a `data_config` entry. `.cloudcannon/migration/configuration.md` written.          |
+| **3. Content**        | All structural content changes from Phase 2 are reflected in the files. `npm run build` (or project equivalent) succeeds. `.cloudcannon/migration/content.md` written.                                                                                                          |
+| **4. Visual editing** | Every section flagged in the audit census as "needs editable region" has been wired or has a documented justification for not being wired. `registerComponents.ts` registers every component used inside a wrapped section. `.cloudcannon/migration/visual-editing.md` written. |
+| **5. Build and test** | Production build succeeds locally. User has run their CloudCannon-side verification (preview, inline edit, save-to-git). `.cloudcannon/migration/build.md` written.                                                                                                             |
 
 ## Chunking large migrations
 
@@ -79,7 +79,7 @@ Migrations can run end-to-end in one conversation, but on larger sites context f
 
 ### When to suggest a fresh conversation
 
-At the end of Phase 1, evaluate the sizing thresholds against `migration/audit.md`:
+At the end of Phase 1, evaluate the sizing thresholds against `.cloudcannon/migration/audit.md`:
 
 | Signal                                | Threshold | Source                                                                       |
 | ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
@@ -87,14 +87,14 @@ At the end of Phase 1, evaluate the sizing thresholds against `migration/audit.m
 | Hardcoded `.astro` → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
 | Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
 
-If any 2 thresholds are tripped, write `migration/plan.md` using the template below, then suggest to the user that later phases run in fresh conversations. Phase 4 (visual editing) is the most context-hungry — it's the most likely candidate for a fresh start.
+If any 2 thresholds are tripped, write `.cloudcannon/migration/plan.md` using the template below, then suggest to the user that later phases run in fresh conversations. Phase 4 (visual editing) is the most context-hungry — it's the most likely candidate for a fresh start.
 
 | Shape                         | When                                                                                                            |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | **Vertical (per-collection)** | Page-builder pages or unique-shape collections dominate — each unit has its own schema/visual-editing decisions |
 | **Horizontal (per-phase)**    | Collections are mostly uniform — repetitive per-collection work benefits from one mental model at a time        |
 
-### `migration/plan.md` template
+### `.cloudcannon/migration/plan.md` template
 
 ```markdown
 # Migration plan
@@ -113,7 +113,7 @@ If any 2 thresholds are tripped, write `migration/plan.md` using the template be
 ## Chunks
 
 Each chunk is intended as a single agent run, ideally in a fresh conversation
-once context is heavy. The agent reads `migration/audit.md` + this file + the
+once context is heavy. The agent reads `.cloudcannon/migration/audit.md` + this file + the
 listed phase doc, then works the listed scope.
 
 | #   | Scope                            | Phase(s) | Inputs                     | Output artefact                           |
@@ -130,7 +130,7 @@ listed phase doc, then works the listed scope.
 - `registerComponents.ts` setup
 ```
 
-**Resumption brief** (paste into a fresh conversation): "Read `migration/audit.md`, `migration/plan.md`, and the phase doc(s) listed for chunk N. Work chunk N's scope. Write the output artefact and stop."
+**Resumption brief** (paste into a fresh conversation): "Read `.cloudcannon/migration/audit.md`, `.cloudcannon/migration/plan.md`, and the phase doc(s) listed for chunk N. Work chunk N's scope. Write the output artefact and stop."
 
 **Repetition → script rule:** After migrating 2 entries of the same shape, write a throwaway script for the rest. 23 hand-conversions of the same article shape is wasted tokens and an error multiplier.
 
@@ -140,7 +140,7 @@ Deterministic migration steps are automated as scripts in [scripts/](scripts/). 
 
 ## Migration notes
 
-All written to `migration/` at the project root: one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`), plus `plan.md` if the migration is sectioned. See the per-phase workflow above for the gates that consume each file.
+All written to `.cloudcannon/migration/` (under `.cloudcannon/` so the CLI doesn't detect the folder as a collection): one file per phase (`audit.md`, `configuration.md`, `content.md`, `visual-editing.md`, `build.md`), plus `plan.md` if the migration is sectioned. See the per-phase workflow above for the gates that consume each file.
 
 ## Handoff and verification
 

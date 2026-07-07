@@ -17,38 +17,40 @@ description: >-
 ## Do this before writing any configuration
 
 ```bash
-mkdir -p migration
+mkdir -p .cloudcannon/migration
 curl -sL "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.latest.schema.json" \
-  -o migration/cloudcannon-config.latest.schema.json
+  -o .cloudcannon/migration/cloudcannon-config.latest.schema.json
 curl -sL "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-initial-site-settings.schema.json" \
-  -o migration/cloudcannon-initial-site-settings.schema.json
+  -o .cloudcannon/migration/cloudcannon-initial-site-settings.schema.json
 ```
 
 Do not proceed until both files exist. Training data hallucinates keys — the schemas are the only authoritative source.
+
+These are large generated reference files, not project artefacts — add `.cloudcannon/migration/*.schema.json` to `.gitignore` so they aren't committed. (The migration phase docs in the same folder are intentional and should be kept.)
 
 **Before writing any key, query the schema:**
 
 ```bash
 # List all valid keys for a section (e.g. collections_config entries)
-jq '.definitions["collections_config.*"].properties | keys' migration/cloudcannon-config.latest.schema.json
+jq '.definitions["collections_config.*"].properties | keys' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 
 # Check whether a specific key exists
-jq '.definitions["collections_config.*"].properties.disable_file_actions' migration/cloudcannon-config.latest.schema.json
+jq '.definitions["collections_config.*"].properties.disable_file_actions' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 
 # List all valid input type values
-jq '[.definitions | to_entries[] | select(.key | test("Input$")) | .key]' migration/cloudcannon-config.latest.schema.json
+jq '[.definitions | to_entries[] | select(.key | test("Input$")) | .key]' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 
 # List valid keys for _editables.content (BlockEditable)
-jq '.definitions.BlockEditable.properties | keys' migration/cloudcannon-config.latest.schema.json
+jq '.definitions.BlockEditable.properties | keys' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 
 # List valid keys on a structure value item
-jq '.definitions["type.structure.values.[*]"].properties | keys' migration/cloudcannon-config.latest.schema.json
+jq '.definitions["type.structure.values.[*]"].properties | keys' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 ```
 
 No `jq`? Use Node:
 
 ```bash
-node -e "const s=require('./migration/cloudcannon-config.latest.schema.json'); console.log(Object.keys(s.definitions['collections_config.*'].properties))"
+node -e "const s=require('./.cloudcannon/migration/cloudcannon-config.latest.schema.json'); console.log(Object.keys(s.definitions['collections_config.*'].properties))"
 ```
 
 Do not add a `# yaml-language-server: $schema=...` comment to `cloudcannon.config.yml`.
@@ -67,18 +69,19 @@ This detects your SSG, collections, and build settings, and writes `cloudcannon.
 
 Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritative. Each row specifies the real key for each hallucination. Run `npx @cloudcannon/cli validate` to catch unknown keys automatically — see [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration).
 
-| Wrong                                                               | Correct                                                                                                                                        |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `disable_url_preview: true`                                         | `disable_url: true` (toggles whether the collection has an output URL)                                                                         |
-| `output: false` (legacy Jekyll/Hugo/Eleventy key)                   | Omit `url:` and add `disable_url: true` — or use `data_config` instead of a collection                                                         |
-| `type: hidden` (deprecated value)                                   | `hidden: true` (sibling of `type`, works on any input; also `hidden: "<query>"` for conditional hiding)                                        |
-| `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                |
-| `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`) |
-| `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                       |
-| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                        |
-| `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                        |
-| `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                               |
-| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                             |
+| Wrong                                                               | Correct                                                                                                                                         |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_url_preview: true`                                         | `disable_url: true` (toggles whether the collection has an output URL)                                                                          |
+| `output: false` (legacy Jekyll/Hugo/Eleventy key)                   | Omit `url:` and add `disable_url: true` — or use `data_config` instead of a collection                                                          |
+| `type: hidden` (deprecated value)                                   | `hidden: true` (sibling of `type`, works on any input; also `hidden: "<query>"` for conditional hiding)                                         |
+| `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                 |
+| `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`)  |
+| `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                        |
+| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                         |
+| `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                         |
+| `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
+| `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |
+| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                              |
 
 ## Symptom-driven gotchas
 
