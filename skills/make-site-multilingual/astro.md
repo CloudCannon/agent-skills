@@ -106,6 +106,7 @@ When implementing split-by-directory (Phase 8 of the main skill) in Astro:
 - Use a dynamic `[locale]` route: `src/pages/[locale]/blog/[...slug].astro`, with `getStaticPaths` iterating locale codes and fetching from the matching collection.
 - Suppress auto-derived `data-rosey` on frontmatter fields with `data-rosey={false}`.
 - Use snake_case collection names (`blog_fr`, `blog_de`) — consistent with `data_config` keys like `locales_fr`.
+- **All-languages-prefixed mode:** the default language also needs a prefixed route (`/en/blog/...`) and a matching collection URL (Phase 5e), so include the default locale in `getStaticPaths` and give its collection a `/en/` `url` — don't leave the default-language split pages at root.
 
 ### Rosey-root alignment for locale pages
 
@@ -124,21 +125,24 @@ When implementing the locale picker (Phase 9 of the main skill) in Astro:
 const localeConfig = { fr: "FR", de: "DE" };
 const localeCodes = Object.keys(localeConfig);
 const defaultLocale = "en";
+// Set to false if you built with all-languages-prefixed mode (no --default-language-at-root):
+// then the default language also lives under /en/ and its picker link must be prefixed too.
+const defaultLanguageAtRoot = true;
 const pathname = Astro.url.pathname;
 
 const segments = pathname.split("/").filter(Boolean);
-const isLocalePath = localeCodes.includes(segments[0]);
+const isLocalePath = localeCodes.includes(segments[0]) || segments[0] === defaultLocale;
 const basePath = isLocalePath
   ? "/" + segments.slice(1).join("/") + (segments.slice(1).length ? "/" : "")
   : pathname;
 
 function buildPath(base, locale) {
-  if (locale === defaultLocale) return base || "/";
+  if (locale === defaultLocale && defaultLanguageAtRoot) return base || "/";
   return `/${locale}${base.startsWith("/") ? base : `/${base}`}`;
 }
 ---
 <nav aria-label="Language">
-  <a href={buildPath(basePath, "en")} data-rosey-ignore hreflang="en">EN</a>
+  <a href={buildPath(basePath, defaultLocale)} data-rosey-ignore hreflang={defaultLocale}>EN</a>
   {localeCodes.map((code) => (
     <a href={buildPath(basePath, code)} data-rosey-ignore hreflang={code}>
       {localeConfig[code]}
@@ -271,3 +275,4 @@ Astro's `fallback: { fr: "es" }` swaps whole pages to another locale when a page
 - **Rosey-root alignment for locale pages.** Pass a `roseyRoot` prop that strips the locale prefix; locale route files pass the English-equivalent path.
 - **snake_case collection names** (`blog_fr`, `blog_de`) — consistent with CloudCannon conventions.
 - **RTL `dir` script needs `is:inline`.** Without it Astro defers the script as a module and RTL pages flash LTR.
+- **Locale picker must match the URL-structure mode.** With all-languages-prefixed (no `--default-language-at-root`), the default language lives under `/en/`, so the picker's default-language link is `/en{basePath}` (set `defaultLanguageAtRoot = false` in the snippet above) and path parsing must treat `en` as a locale segment too — otherwise the default-language link points at `/`, which serves the redirect page.

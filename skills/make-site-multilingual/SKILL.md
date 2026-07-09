@@ -60,7 +60,19 @@ Before touching code, understand what needs to be translated.
 
 4. **Confirm the target locales** with the user (e.g., `fr,de,es`) and the default/source language (usually `en`).
 
-5. **Detect Bookshop (most sites don't use it).** Look for `bookshop.config.cjs`, a `_bookshop/` or `component-library/bookshop/` directory, `{% bookshop %}` tags, or `_bookshop_name` in content files. If none are found, **skip all Bookshop-specific notes** throughout this skill. Bookshop is a legacy component framework — most CloudCannon sites use editable regions instead.
+5. **Decide the URL structure — ask the user, don't assume.** Rosey can serve the default language either at the site root or under its own locale prefix. This is the `--default-language-at-root` flag on `rosey build`, and the choice changes URLs, redirects, the locale picker, and CloudCannon collection paths — so settle it before wiring anything up.
+
+   | Mode | `rosey build` flag | Default-language URLs | Root `/` | Other locales |
+   |---|---|---|---|---|
+   | **Default at root** | `--default-language-at-root` **present** | `/about/`, `/blog/my-post/` | The default-language home page | `/fr/about/` |
+   | **All languages prefixed** | flag **omitted** | `/en/about/`, `/en/blog/my-post/` | A generated **redirect page** that sends visitors to their preferred locale | `/fr/about/` |
+
+   - **Default at root** keeps existing URLs stable — good for an established site (no SEO churn, no broken inbound links) — and needs no change to CloudCannon collection `url`s. This is the historical default of this skill.
+   - **All languages prefixed** treats every language equally: the default language lives under `/{defaultLang}/*` just like the others, and `/` becomes a locale-detecting redirect served at `index.html`. Cleaner symmetry, but **every existing default-language URL moves under the prefix** — so set up redirects for inbound links, and **every visitor-facing collection `url` in `cloudcannon.config.yml` must gain the `/{defaultLang}/` prefix** (e.g. `/[slug]/` → `/en/[slug]/`; see Phase 5e).
+
+   Record the choice. It feeds the postbuild command (Phase 4), the CloudCannon collection URLs (Phase 5e), verification (Phase 6), and the locale picker (Phase 9). The rest of this skill uses **`{defaultLang}`** to mean the actual default-language code (e.g. `en`) wherever the prefix appears.
+
+6. **Detect Bookshop (most sites don't use it).** Look for `bookshop.config.cjs`, a `_bookshop/` or `component-library/bookshop/` directory, `{% bookshop %}` tags, or `_bookshop_name` in content files. If none are found, **skip all Bookshop-specific notes** throughout this skill. Bookshop is a legacy component framework — most CloudCannon sites use editable regions instead.
 
 ## Phase 2: Install dependencies
 
@@ -83,6 +95,8 @@ npx rosey-cloudcannon-connector init --yes \
 ```
 
 The manual steps below (Phases 3–4) are still needed for tagging templates. If you ran `init`, the postbuild pipeline (Phase 4) and CloudCannon config (Phase 5) are already done — skip to Phase 3 for tagging, then Phase 6 to verify.
+
+> **Reconcile the URL-structure choice (Phase 1 step 5).** `init` writes a postbuild that serves the default language at root (`--default-language-at-root`). If the user chose **all languages prefixed**, remove that flag from `.cloudcannon/postbuild` and add the `/{defaultLang}/` prefix to collection URLs (Phase 5e) before the first build.
 
 **Interactive mode** (if a human is running it):
 
@@ -238,11 +252,21 @@ mv ./dist ./_untranslated_site
 npx rosey build --source _untranslated_site --dest dist --default-language en --default-language-at-root --exclusions "\.(html?)$"
 ```
 
+**The `--default-language-at-root` flag encodes the Phase 1 step 5 choice:**
+- **Default at root** (flag **present**, as above) — default-language pages stay at `/about/`; other locales build at `/{locale}/about/`.
+- **All languages prefixed** (flag **omitted**) — the last line becomes:
+  ```bash
+  npx rosey build --source _untranslated_site --dest dist --default-language en --exclusions "\.(html?)$"
+  ```
+  Now the default language builds at `/en/about/` alongside `/fr/about/`, and Rosey generates a locale-detecting **redirect page at the root `index.html`**. If you chose this mode, also prefix collection URLs (Phase 5e).
+
+Keep `--default-language en` in both modes — it names the source language regardless of where it's served.
+
 What each step does:
 1. `rosey generate` — scans built HTML and writes `rosey/base.json` (all keys + original text).
 2. `write-locales` — creates/updates `rosey/locales/{code}.json` (preserving existing translations, removing keys no longer in `base.json`). It also writes the locale manifest to `dist/_rcc/locales.json`, which the RCC reads at runtime.
 3. `mv` — moves the untranslated build aside.
-4. `rosey build` — rebuilds the site with translations injected at `/{locale}/` URLs. `--exclusions "\.(html?)$"` overrides Rosey's default (`\.(html?|json)$`) so JSON assets like `_rcc/locales.json` and `_cloudcannon/info.json` flow through.
+4. `rosey build` — rebuilds the site with translations injected at `/{locale}/` URLs (and, without `--default-language-at-root`, moves the default language to `/{defaultLang}/` and writes the root redirect). `--exclusions "\.(html?)$"` overrides Rosey's default (`\.(html?|json)$`) so JSON assets like `_rcc/locales.json` and `_cloudcannon/info.json` flow through.
 
 > `write-locales` also accepts `--keep-unused` to preserve locale keys no longer in `base.json`. Not needed for greenfield setup — it's used during migration (Appendix A/B) to remap old translations before cleanup.
 
@@ -323,6 +347,28 @@ collections_config:
 
 `data_config` exposes data for programmatic use (the RCC's API, select inputs); `collections_config` is what gives editors a browsable sidebar interface. They're independent.
 
+### 5e. Prefix collection URLs (all-languages-prefixed mode only)
+
+> **Skip this entirely if you kept `--default-language-at-root`** — default-language URLs didn't move, so collection URLs are already correct. This applies whenever you omitted the flag (Phase 1 step 5), even without the RCC — it's a plain CloudCannon-config concern.
+
+When every language is prefixed, the default-language pages move from `/about/` to `/{defaultLang}/about/`. CloudCannon resolves each collection's edit/preview URL (and the Visual Editor iframe) from its `url` config, so **every collection that renders visitor-facing pages must gain the `/{defaultLang}/` prefix**. Without it, CloudCannon opens the old root URL — which now serves only the redirect page — and inline editing breaks.
+
+Prepend the literal default-language code to each collection's existing `url` (here `en`):
+
+```yaml
+collections_config:
+  pages:
+    path: src/pages
+    url: '/en/[slug]/'          # was '/[slug]/'
+  blog:
+    path: src/content/blog
+    url: '/en/blog/[full_slug]/' # was '/blog/[full_slug]/'
+```
+
+- Prefix **every** visitor-facing page collection, not just some — mismatched collections send editors to dead URLs.
+- **Leave the `locales` data collection (5d) alone** — it's a data-file browser, not a rendered page, so it has no `url`.
+- Per-locale split-by-directory collections (Phase 8) are already prefixed with their own locale (`/fr/blog/...`); in this mode the **default-language** split collection also needs `/{defaultLang}/blog/...`.
+
 ## Phase 6: Generate and verify
 
 1. **Build locally:** `npm run build`
@@ -333,12 +379,12 @@ collections_config:
    ```
 4. **Verify `rosey/base.json`** — all expected keys with correct namespacing.
 5. **Verify locale files** (`rosey/locales/fr.json`) — keys match `base.json`; `original`/`value` populated.
-6. **Test the full pipeline:**
+6. **Test the full pipeline** (drop `--default-language-at-root` if you chose all-languages-prefixed mode):
    ```bash
    mv ./dist ./_untranslated_site
    npx rosey build --source _untranslated_site --dest dist --default-language en --default-language-at-root --exclusions "\.(html?)$"
    ```
-   Confirm the translated output in `dist/` and that `dist/_rcc/locales.json` exists.
+   Confirm the translated output in `dist/` and that `dist/_rcc/locales.json` exists. **In all-languages-prefixed mode**, also confirm the default language now lives at `dist/{defaultLang}/` (e.g. `dist/en/index.html`) and that the root `dist/index.html` is the generated redirect page, not the home page.
 7. **(RCC layer)** Push to CloudCannon, open a page in the Visual Editor, confirm the locale-switcher FAB appears, switch locale, make an edit, confirm it saves.
 
 ## Phase 7: RTL language support (if applicable)
@@ -407,7 +453,9 @@ The locale collection files themselves get translated with the **`translate-mult
 If they want one, create a picker component that:
 - Parses the current URL to detect the active locale (is the first path segment a known locale code?)
 - Strips the locale prefix to get the base path
-- Renders `/{locale}{basePath}` for non-default locales, `{basePath}` for the default
+- Builds each locale's URL according to the Phase 1 step 5 mode:
+  - **Default at root:** `/{locale}{basePath}` for non-default locales, `{basePath}` for the default.
+  - **All languages prefixed:** `/{locale}{basePath}` for **every** locale, including the default (its links point at `/{defaultLang}{basePath}`, not `/`).
 - Adds **`data-rosey-ignore`** on every `<a>` (critical — prevents Rosey double-prefixing locale URLs)
 - Adds `hreflang` attributes for SEO
 - Includes a small client-side script to fix the active-state highlight on Rosey-generated pages
@@ -418,6 +466,8 @@ Place it in both desktop and mobile nav. **Read the SSG-specific file** for a co
 
 ## Checklist
 
+- [ ] URL structure confirmed with the user (default-at-root vs all-languages-prefixed) and the `rosey build` flag matches
+- [ ] **(all-languages-prefixed)** Collection `url`s prefixed with `/{defaultLang}/`; root redirect page verified
 - [ ] All user-visible text elements have `data-rosey` attributes
 - [ ] Each page/route has a `data-rosey-root` set to a unique slug
 - [ ] Reusable sections / array items use `data-rosey-ns` for namespacing — **placed inside each item's component**, not on the loop element
@@ -546,6 +596,8 @@ npx rosey build --source _untranslated_site --dest dist --default-language en --
 
 Changes: drop `tag` (no more auto-tagger); replace `generate` with `write-locales`; add `--exclusions "\.(html?)$"`; add `--default-language en`; underscore-prefix the untranslated dir. Keep any non-RCC commands (Bookshop, Pagefind) in place.
 
+> **Preserve the existing URL layout.** Match `--default-language-at-root` to whatever the v1 build used — the v1 example above keeps it, so the default language stays at root. Only drop the flag if the user deliberately wants to switch to all-languages-prefixed (Phase 1 step 5), which moves the default language to `/{defaultLang}/*`, adds a root redirect, and requires prefixing every collection `url` (Phase 5e) — a URL change that breaks inbound links, so confirm it first.
+
 > **First migration build only:** add `--keep-unused` to `write-locales` so old translated keys survive long enough to remap (B7). Remove it once remapping is done — otherwise `write-locales` deletes keys not in `base.json` and destroys the old translations before you can copy them.
 
 ### B3. Update CloudCannon config
@@ -633,6 +685,9 @@ Build, run the pipeline, push to CloudCannon, confirm the locale-switcher FAB ap
 ### Universal (framework-agnostic)
 
 - **Rosey operates on built HTML.** It doesn't see source files, markdown, or frontmatter directly — only the rendered output.
+- **`--default-language-at-root` is a decision, not a default — ask.** Present (default at root): existing URLs stay, no collection-URL changes. Omitted (all languages prefixed): the default language moves to `/{defaultLang}/*`, `/` serves a generated redirect page, and every visitor-facing collection `url` needs the `/{defaultLang}/` prefix (Phase 5e). The choice must be identical in `.cloudcannon/postbuild`, Phase 6's manual test, and Appendix B — a mismatch silently builds the wrong URL layout.
+- **All-languages-prefixed: the root `index.html` is a redirect, not a page.** Don't tag it with `data-rosey` or treat it as a content page — Rosey generates it, and it's overwritten each build.
+- **All-languages-prefixed: collection URLs must move too.** CloudCannon reads a collection's `url` to open the Visual Editor; if the pages moved to `/{defaultLang}/` but the `url` still says `/[slug]/`, editing opens the redirect page and breaks.
 - **`data-rosey` must go on the innermost text element.** Otherwise the captured original includes wrapper tags.
 - **Don't translate names.** Author names, person names, designations are identity values — no `data-rosey`.
 - **Key collisions.** Two pages with the same `data-rosey-root` and same element keys collide. Use unique roots (the page slug).

@@ -69,7 +69,7 @@ When implementing split-by-directory (Phase 8 of the main skill) in Eleventy:
 
 ## Visitor-Facing Locale Picker
 
-When implementing the locale picker (Phase 9 of the main skill) in Eleventy, use `page.url | split: "/"` to parse the path and detect the current locale. The first meaningful segment is at index 1 (`path_segments[1]`) since index 0 is empty from the leading `/`. The URL construction logic (parse path, detect locale prefix, strip/prepend) is the same as the main skill — adapt using Liquid filters.
+When implementing the locale picker (Phase 9 of the main skill) in Eleventy, use `page.url | split: "/"` to parse the path and detect the current locale. The first meaningful segment is at index 1 (`path_segments[1]`) since index 0 is empty from the leading `/`. The URL construction logic (parse path, detect locale prefix, strip/prepend) is the same as the main skill — adapt using Liquid filters. Honor the Phase 1 step 5 mode: with all-languages-prefixed (no `--default-language-at-root`), treat the default language code as a locale segment too and prefix its link (`/en{basePath}`), since its pages live under `/en/`, not `/`.
 
 ## Gotchas
 
