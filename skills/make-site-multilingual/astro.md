@@ -150,10 +150,18 @@ function buildPath(base, locale) {
   ))}
 </nav>
 <script>
-  document.querySelectorAll("nav[aria-label='Language'] a").forEach((link) => {
-    const match = link.pathname === window.location.pathname;
-    link.classList.toggle("active", match);
-  });
+  // (RCC layer) Hide the nav picker inside the Visual Editor — the RCC injects its
+  // own floating locale switcher there. Harmless off CloudCannon: inEditorMode is unset.
+  if (window.inEditorMode) {
+    document
+      .querySelectorAll("nav[aria-label='Language']")
+      .forEach((nav) => ((nav as HTMLElement).style.display = "none"));
+  } else {
+    document.querySelectorAll("nav[aria-label='Language'] a").forEach((link) => {
+      const match = link.pathname === window.location.pathname;
+      link.classList.toggle("active", match);
+    });
+  }
 </script>
 ```
 

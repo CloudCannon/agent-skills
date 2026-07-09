@@ -462,6 +462,14 @@ If they want one, create a picker component that:
 
 Place it in both desktop and mobile nav. **Read the SSG-specific file** for a code example.
 
+### Hide the picker inside the editor **(RCC layer)**
+
+> Skip this if the site isn't on CloudCannon / has no RCC layer. The guard is harmless everywhere (`window.inEditorMode` is only ever set by CloudCannon), so you can leave it in regardless.
+
+When the RCC layer is installed, it injects its **own** floating locale switcher into the Visual Editor. A second, nav-based picker in the editor is confusing — and switching locale through the nav picker fights the RCC's snapshot/clone locale mechanism (§5b). So the visitor-facing picker must **hide itself in the editor** by checking `window.inEditorMode` — the same flag used to lazy-load the RCC in Phase 5a.
+
+Add this to the picker's client-side script: the editor branch hides every `nav[aria-label="Language"]`, and the existing active-state highlight logic moves into the `else` branch (visitor pages only). See the SSG-specific file for the exact code.
+
 ---
 
 ## Checklist
@@ -704,6 +712,7 @@ Build, run the pipeline, push to CloudCannon, confirm the locale-switcher FAB ap
 - **Rosey rewrites internal links on generated pages, not pre-existing ones.** Copied pages get `<a href>` values prefixed with the locale; split-by-directory pages (already at the locale URL) keep their links as-is.
 - **Locale picker links need `data-rosey-ignore`** — without it, Rosey rewrites the "switch to default language" link on generated pages and breaks it.
 - **Locale picker active state needs client-side JS** — build-time HTML always reflects the default-language perspective.
+- **Hide the nav locale picker in the editor** *(RCC layer)*. When the RCC layer is on, guard the picker's client script with `window.inEditorMode` and hide it — the RCC's floating picker is the switcher inside the Visual Editor, and a second nav-based switcher both confuses editors and conflicts with the RCC's locale clone.
 - **Mixed text + non-text children.** `data-rosey` captures full `innerHTML` including SVGs/icons; the translation must preserve that markup, or wrap just the text in a `<span data-rosey="...">`.
 - **Split-by-directory Rosey-root alignment.** A page built at `/fr/blog/my-post/` derives root `fr/blog/my-post`, which won't match locale entries keyed `blog/my-post:*`. Pass a `roseyRoot` override that strips the locale prefix.
 - **Suppress `data-rosey` on frontmatter-driven fields in shared split-by-directory templates**, or Rosey overwrites the natively-translated content.
