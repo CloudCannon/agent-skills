@@ -12,12 +12,12 @@ description: >-
 
 Two translation systems can run on the same site, and this skill covers both:
 
-| Part | What it holds | Section |
-|------|---------------|---------|
-| **Rosey locale JSON** (`rosey/locales/{code}.json`) | Shared UI and any page text tagged with `data-rosey` — nav, footer, headings, buttons, breadcrumbs, and (for non-split pages) whole page bodies | **Part 1** |
-| **Content collection files** (`blog_fr/`, `blog_de/` …) | Split-by-directory body content + per-post frontmatter (title, description, alt text) that the SSG renders natively per locale | **Part 2** |
+| Part                                                    | What it holds                                                                                                                                   | Section    |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **Rosey locale JSON** (`rosey/locales/{code}.json`)     | Shared UI and any page text tagged with `data-rosey` — nav, footer, headings, buttons, breadcrumbs, and (for non-split pages) whole page bodies | **Part 1** |
+| **Content collection files** (`blog_fr/`, `blog_de/` …) | Split-by-directory body content + per-post frontmatter (title, description, alt text) that the SSG renders natively per locale                  | **Part 2** |
 
-**Most sites only need Part 1.** Only reach for Part 2 if the project actually has per-locale content directories (split-by-directory, set up in the `make-site-multilingual` skill, Phase 8). A split-by-directory *page* needs both: its body comes from a content collection file (Part 2), its shared UI from the locale JSON (Part 1).
+**Most sites only need Part 1.** Only reach for Part 2 if the project actually has per-locale content directories (split-by-directory, set up in the `make-site-multilingual` skill, Phase 8). A split-by-directory _page_ needs both: its body comes from a content collection file (Part 2), its shared UI from the locale JSON (Part 1).
 
 This skill is written for AI coding agents, but the process works with any AI tool that reads and writes JSON.
 
@@ -29,7 +29,7 @@ Rosey locale files are flat JSON with a predictable three-field structure per en
 2. **Deterministic / idempotent** — running the same pass twice produces the same output. No re-translation of existing work, reviewable `git diff`.
 3. **Context-rich** — keys encode where text appears (`nav:about`, `index:hero:title`, `blog:recent-posts`), which disambiguates short strings ("More", "Back", "Home") without a screenshot.
 
-The data format *is* the state management: read a JSON file, find entries where `value === original`, translate them, write the file.
+The data format _is_ the state management: read a JSON file, find entries where `value === original`, translate them, write the file.
 
 ---
 
@@ -60,10 +60,10 @@ Each file is a flat JSON object keyed by Rosey translation keys:
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `original` | Source text when the translation was last acknowledged |
-| `value` | The translation (or the source original if untranslated) |
+| Field            | Description                                                                 |
+| ---------------- | --------------------------------------------------------------------------- |
+| `original`       | Source text when the translation was last acknowledged                      |
+| `value`          | The translation (or the source original if untranslated)                    |
 | `_base_original` | Current source text from `base.json`, updated by `write-locales` each build |
 
 Classification follows from these three fields:
@@ -89,6 +89,7 @@ node .cursor/skills/translate-multilingual/scripts/prepare-translation.mjs --loc
 ```
 
 The script:
+
 - Classifies every entry as untranslated / stale / current (skip)
 - Builds a **translation memory** from already-translated entries and auto-applies exact matches (e.g. "Recent Posts" appearing 4×, translated once, applied everywhere) — writing those straight back to the locale file
 - Picks tone/register examples from existing translations
@@ -100,6 +101,7 @@ Flags: `--locale <code>` (required), `--source <dir>` (default `rosey`), `--outp
 ### Phase 1.2: Translate
 
 Read the task file. It contains:
+
 - `_meta.tone_examples` — already-translated entries showing the project's tone/register. Match this style.
 - `untranslated` — entries needing full translation. Each has `original`; add a `value`.
 - `stale` — entries where the source changed. Each has `old_original`, `new_original`, `old_value`; add a `value` based on `new_original`.
@@ -138,6 +140,7 @@ node .cursor/skills/translate-multilingual/scripts/merge-translation.mjs --local
 ```
 
 The script:
+
 - Merges `value` fields from the task file into the full locale file
 - For stale entries, sets `original = _base_original` (clears the stale flag)
 - **Validates HTML** — checks tag names/counts match and `<a>` href values are preserved; logs warnings for mismatches but still writes
@@ -210,6 +213,7 @@ node .cursor/skills/translate-multilingual/scripts/prepare-content-translation.m
 ```
 
 The script:
+
 - Compares each locale file against the source file with the same filename
 - Marks files **untranslated** (frontmatter text + body still match source) vs **already translated** (skip)
 - Extracts **translatable frontmatter fields** (title, headings, descriptions, alt text) by dot-notation path
@@ -251,6 +255,7 @@ Translate: `title`, headings (`*.heading`, `*.subheading`), descriptions (`*.des
 ```
 
 Body rules:
+
 - Preserve markdown formatting (bold, italic, links, lists, blockquotes)
 - Keep link URLs unchanged — translate only link text, not `href`
 - Keep code blocks in the source language (code examples, CLI commands, HTML snippets)
@@ -291,7 +296,7 @@ The script patches translated frontmatter into the YAML (preserving structural f
 ### Edge cases
 
 - **Tags/categories as slugs** (`rosey`, `visual-editing`) — used for URLs/filtering; do **not** translate.
-- **Code blocks** (fenced ```` ``` ````) — stay in the source language.
+- **Code blocks** (fenced ` ``` `) — stay in the source language.
 - **Brand names in alt text** — translate the alt text but keep brand names.
 - **Files with no source equivalent** — skip.
 - **Partially translated files** — translate only the untranslated parts.

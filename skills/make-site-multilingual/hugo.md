@@ -19,9 +19,9 @@ The picker's client-side script guards on the editor flag — **(RCC layer)** hi
 ```html
 <script>
   if (window.inEditorMode) {
-    document
-      .querySelectorAll("nav[aria-label='Language']")
-      .forEach(function (nav) { nav.style.display = "none"; });
+    document.querySelectorAll("nav[aria-label='Language']").forEach(function (nav) {
+      nav.style.display = "none";
+    });
   } else {
     document.querySelectorAll("nav[aria-label='Language'] a").forEach(function (link) {
       link.classList.toggle("active", link.pathname === window.location.pathname);
@@ -29,4 +29,3 @@ The picker's client-side script guards on the editor flag — **(RCC layer)** hi
   }
 </script>
 ```
-

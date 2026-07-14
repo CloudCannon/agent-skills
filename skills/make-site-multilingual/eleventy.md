@@ -76,9 +76,9 @@ The picker's client-side script guards on the editor flag — **(RCC layer)** hi
 ```html
 <script>
   if (window.inEditorMode) {
-    document
-      .querySelectorAll("nav[aria-label='Language']")
-      .forEach(function (nav) { nav.style.display = "none"; });
+    document.querySelectorAll("nav[aria-label='Language']").forEach(function (nav) {
+      nav.style.display = "none";
+    });
   } else {
     document.querySelectorAll("nav[aria-label='Language'] a").forEach(function (link) {
       link.classList.toggle("active", link.pathname === window.location.pathname);
@@ -98,4 +98,4 @@ The picker's client-side script guards on the editor flag — **(RCC layer)** hi
 ### Bookshop (skip if site does not use Bookshop)
 
 - **`page.eleventy.liquid` is the ideal block-namespacing point.** Use `{{ block._uuid }}` (from `instance_value: UUID`) for stable keys; fall back to `{% assign block_ns = block._bookshop_name | split: "/" | last | append: "-" | append: forloop.index0 %}` (fragile). One change covers all blocks.
-- **Button `data-rosey` captures SVG icon markup.** On an `<a>`/`<button>` containing both text and a Bookshop icon, Rosey captures the full `innerHTML` including the rendered SVG and live-edit comments. The translation `value` must preserve the icon markup; for cleaner translations wrap just the text in a `<span data-rosey="button_text">` and leave the icon outside (requires restructuring the button).
+- **Button `data-rosey` captures SVG icon markup.** On an `<a>`/`<button>` containing both text and a Bookshop icon, Rosey captures the full `innerHTML` including the rendered SVG and live-edit comments — polluting the source and, on translated pages, injecting the icon twice (once from the stored value, once from the template). Wrap just the text in a `<span data-rosey="button_text">` and leave the icon outside (requires restructuring the button). On an already-translated site, moving the tag also needs a delete-and-reseed of the affected locale keys — see the "Moving a tag on an already-translated site" gotcha in `SKILL.md`.

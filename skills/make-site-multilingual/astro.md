@@ -12,7 +12,7 @@ Use `Astro.url.pathname` directly in the component that renders `<main>`:
 
 Works for any page type and avoids threading a slug prop through the layout chain.
 
-## Content-Block Namespacing — put rosey attributes *inside* the item component
+## Content-Block Namespacing — put rosey attributes _inside_ the item component
 
 > This implements the core rule from §3g of the main skill. On Astro sites it is the **default** pattern for any array/repeater rendered in a loop — not an edge-case fix.
 
@@ -75,6 +75,7 @@ const roseyAttributes = effectiveDataRosey ? { "data-rosey": effectiveDataRosey 
 ```
 
 Key points:
+
 - **Destructure `data-rosey` from props** — prevents it leaking into `...htmlAttributes` and landing on the wrong element
 - **`data-rosey={false}` opts out** — use on instances that should not be translated (proper nouns, names)
 - **`editable={false}` components** need explicit `data-rosey="key"` since auto-derive depends on `data-prop`
@@ -177,17 +178,17 @@ Concrete patterns for replacing Astro's built-in i18n (and/or the official docs 
 
 **Routing infrastructure only** — locale-aware URL routing, `getRelativeLocaleUrl`, `Astro.preferredLocale`, fallback routing. It does **not** provide a translation runtime, `t()`, or dictionary format; those come from a docs recipe users copy in. A typical site has some of:
 
-| Piece | Location |
-|---|---|
-| i18n config | `i18n: { ... }` in `astro.config.mjs` |
-| Dictionary | `src/i18n/ui.ts` — `{ en: {...}, fr: {...} }` |
-| Helpers | `src/i18n/utils.ts` — `getLangFromUrl()`, `useTranslations()`, `useTranslatedPath()` |
-| URL helpers | `getRelativeLocaleUrl()` / `getAbsoluteLocaleUrl()` from `astro:i18n` |
-| Locale detection | `Astro.currentLocale` in components |
-| Duplicated pages | `src/pages/fr/about.astro`, `src/pages/es/about.astro` |
-| Content collections | `src/content/blog/en/`, `.../fr/` with `[locale]` routes |
-| Language picker | uses `getRelativeLocaleUrl()` or manual path construction |
-| Middleware | `src/middleware.ts` with i18n logic |
+| Piece               | Location                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| i18n config         | `i18n: { ... }` in `astro.config.mjs`                                                |
+| Dictionary          | `src/i18n/ui.ts` — `{ en: {...}, fr: {...} }`                                        |
+| Helpers             | `src/i18n/utils.ts` — `getLangFromUrl()`, `useTranslations()`, `useTranslatedPath()` |
+| URL helpers         | `getRelativeLocaleUrl()` / `getAbsoluteLocaleUrl()` from `astro:i18n`                |
+| Locale detection    | `Astro.currentLocale` in components                                                  |
+| Duplicated pages    | `src/pages/fr/about.astro`, `src/pages/es/about.astro`                               |
+| Content collections | `src/content/blog/en/`, `.../fr/` with `[locale]` routes                             |
+| Language picker     | uses `getRelativeLocaleUrl()` or manual path construction                            |
+| Middleware          | `src/middleware.ts` with i18n logic                                                  |
 
 ### Detection (supplements A1)
 
@@ -200,8 +201,8 @@ The recipe stores translations in a TS object:
 ```ts
 // src/i18n/ui.ts
 export const ui = {
-  en: { 'nav.home': 'Home', 'nav.about': 'About', 'hero.title': 'Welcome to our site' },
-  fr: { 'nav.home': 'Accueil', 'nav.about': 'À propos', 'hero.title': 'Bienvenue sur notre site' },
+  en: { "nav.home": "Home", "nav.about": "About", "hero.title": "Welcome to our site" },
+  fr: { "nav.home": "Accueil", "nav.about": "À propos", "hero.title": "Bienvenue sur notre site" },
 } as const;
 ```
 
@@ -209,8 +210,8 @@ Target Rosey format — **and change the separator from `.` to `:`** (CloudCanno
 
 ```json
 {
-  "nav:home":   { "original": "Home",  "value": "Accueil" },
-  "nav:about":  { "original": "About", "value": "À propos" },
+  "nav:home": { "original": "Home", "value": "Accueil" },
+  "nav:about": { "original": "About", "value": "À propos" },
   "hero:title": { "original": "Welcome to our site", "value": "Bienvenue sur notre site" }
 }
 ```
@@ -218,13 +219,13 @@ Target Rosey format — **and change the separator from `.` to `:`** (CloudCanno
 Conversion script:
 
 ```js
-import { ui } from './src/i18n/ui.ts';
-const defaultLang = 'en';
-const locales = Object.keys(ui).filter(l => l !== defaultLang);
+import { ui } from "./src/i18n/ui.ts";
+const defaultLang = "en";
+const locales = Object.keys(ui).filter((l) => l !== defaultLang);
 for (const locale of locales) {
   const result = {};
   for (const [key, enValue] of Object.entries(ui[defaultLang])) {
-    result[key.replace(/\./g, ':')] = { original: enValue, value: ui[locale]?.[key] ?? enValue };
+    result[key.replace(/\./g, ":")] = { original: enValue, value: ui[locale]?.[key] ?? enValue };
   }
   // Write result to rosey/locales/${locale}.json
 }
@@ -254,6 +255,7 @@ Remove the `i18n` block from `astro.config.mjs`. Then:
 ```
 
 Delete `src/i18n/utils.ts` and `src/i18n/ui.ts` and their imports. **Audit `Astro.currentLocale`** across components:
+
 - Date formatting → use the default locale (or move the page to split-by-directory if per-locale formatting matters).
 - Conditional rendering → move to split-by-directory, or use `data-rosey` with per-locale content.
 - `<html lang>` → hardcode the default (`<html lang="en">`); Rosey sets the correct `lang` on generated pages.
