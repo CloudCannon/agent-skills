@@ -1,6 +1,6 @@
 # Setup
 
-Prerequisites, what `cloudcannon dev` actually does, and how to build and serve a site for it.
+Prerequisites, what `cloudcannon dev` does, and how to build and watch a site for it.
 
 ## Prerequisites
 
@@ -14,10 +14,10 @@ install plus `PATH="$PWD/node_modules/.bin:$PATH"`.
 
 ## What `cloudcannon dev` does and does not do
 
-**MUST build the site yourself before serving it.**
-**Why:** `cloudcannon dev <dir>` only serves `<dir>`. It never runs the SSG build and never runs
-`.cloudcannon/postbuild`. Serving a stale directory shows an old site with no indication
-anything is wrong.
+**MUST build the site, and keep rebuilding it, yourself.**
+**Why:** `cloudcannon dev <dir>` serves `<dir>`. It never runs the SSG build and never runs
+`.cloudcannon/postbuild`. Serving a directory nothing is regenerating gives the user an editor
+whose saves reach disk and then appear to vanish.
 
 ```sh
 cloudcannon dev _site --port 10101
@@ -26,7 +26,7 @@ cloudcannon dev _site --port 10101
 | Flag                             | Default     | Notes                                                           |
 | -------------------------------- | ----------- | --------------------------------------------------------------- |
 | `--host`                         | `127.0.0.1` | Bind address only                                               |
-| `--port`                         | `10101`     |                                                                 |
+| `--port`                         | `10101`     | Fails if the port is taken; it never falls back to another      |
 | `--live-sync` / `--no-live-sync` | on          | Push disk changes into the app over SSE                         |
 | `--app-sync` / `--no-app-sync`   | on          | Accept writes from the app. With it off, every POST returns 403 |
 | `--verbose`                      | off         | Log every request — method, path, status, duration              |
@@ -34,52 +34,91 @@ cloudcannon dev _site --port 10101
 The positional output path must resolve **inside** the current directory, and the source root is
 always the working directory — there is no `--source` flag. Run it from the site root.
 
-## Build and serve
+## Build and watch commands
 
-[cc-serve.sh](scripts/cc-serve.sh) does all of it: detects the output directory, builds, runs the
-postbuild chain in a subshell, then serves.
+[cc-serve.sh](scripts/cc-serve.sh) does all of it: resolves the output directory and build
+command, builds, starts the rebuild watcher, then serves.
 
 ```sh
 bash scripts/cc-serve.sh /path/to/site --port 10101
 ```
+
+**MUST detect the build with the CLI rather than by looking for config files.**
+**Why:** `cloudcannon configure detect-build-commands` is the product's own detection, it knows
+every SSG the CLI knows, and it reports why it chose each answer. A second table of config
+filenames maintained here would silently drift from it.
+
+```sh
+cloudcannon configure detect-build-commands
+```
+
+```json
+{
+  "build": [{ "value": "npm run build", "attribution": "found in your `package.json` file" }],
+  "output": [{ "value": "dist", "attribution": "most common for Astro sites" }]
+}
+```
+
+`cc-serve.sh` takes the first suggestion for each. Override either where it guesses wrong:
+
+```sh
+bash scripts/cc-serve.sh . --output build --build-cmd "jekyll build"
+```
+
+**MUST NOT look for the output directory in `cloudcannon.config.yml`.**
+**Why:** `paths` configures asset directories only, and has seven valid keys — `static`,
+`uploads`, `uploads_filename`, `dam_uploads`, `dam_uploads_filename`, `dam_static`,
+`uploads_use_relative_path`. There is no `paths.output`. A config that sets one is not read by
+anything. See [cloudcannon-configuration](../cloudcannon-configuration/SKILL.md).
+
+### Rebuilding on change
+
+`cc-serve.sh` rebuilds by re-running the whole build command through
+[watch-build.mjs](scripts/watch-build.mjs). That is slower per change than an SSG's native watch
+mode, and it is the default because it is the only mechanism every SSG has — Astro, for one, has
+no `astro build --watch`.
+
+Where the SSG does have a native watch build, `--watch-cmd` is faster than rebuilding from
+scratch:
+
+| SSG      | Native watch build           |
+| -------- | ---------------------------- |
+| Eleventy | `npx @11ty/eleventy --watch` |
+| Hugo     | `hugo --watch`               |
+| Jekyll   | `jekyll build --watch`       |
+| Astro    | None — use the default       |
+
+```sh
+bash scripts/cc-serve.sh . --watch-cmd "npx @11ty/eleventy --watch"
+```
+
+**A watch build never cleans the output directory.** A page that is renamed or deleted leaves its
+old file behind, and the server keeps serving it. Restart with a fresh build to clear them.
+
+## The postbuild
+
+**MUST NOT assume the watcher runs `.cloudcannon/postbuild`.**
+**Why:** it re-runs the build command only. On a site whose postbuild rewrites the output — a
+Rosey site moves the build aside and regenerates it — the first rebuild after a save replaces the
+generated output with the plain build, and the `/{locale}/` tree disappears.
+
+`cc-serve.sh` runs the postbuild once at startup, then prints a warning naming this. To keep it
+inside the loop, put it in the build command:
+
+```sh
+bash scripts/cc-serve.sh . --build-cmd "npm run build && bash .cloudcannon/postbuild"
+```
+
+That makes every save cost a full postbuild chain, which on a translated site is seconds to
+minutes. It is the right trade only when the user is editing something the postbuild transforms.
 
 **MUST run the postbuild in a subshell.**
 **Why:** CloudCannon _sources_ that file in production, so options it sets leak into the caller —
 a top-level `set -euo pipefail` inside it kills the run. `cc-serve.sh` already does this; a
 hand-rolled equivalent must too.
 
-### Output directories
-
-`cc-serve.sh` reads `paths.output` from `cloudcannon.config.yml` first, which works for any SSG.
-Failing that, it detects two:
-
-| SSG      | Detected by                            | Output  | Build           |
-| -------- | -------------------------------------- | ------- | --------------- |
-| Astro    | `astro.config.mjs` / `astro.config.ts` | `dist`  | `npm run build` |
-| Eleventy | `.eleventy.js` / `eleventy.config.js`  | `_site` | `npm run build` |
-
-**MUST pass `--output` for any other SSG, and build it yourself.**
-**Why:** detection covers only the two above, and the build step is a hardcoded `npm run build`.
-A Hugo site matches neither, so it exits with `could not determine the output directory` — and
-even given the directory it would run the wrong build command.
-
-```sh
-hugo
-bash scripts/cc-serve.sh . --no-build --output public
-```
-
-Setting `paths.output` in `cloudcannon.config.yml` is the better fix where the site has one, since
-it removes the guesswork for every tool rather than just this script.
-
-For a Rosey site the postbuild rewrites the output in place — `rosey generate` →
-`rosey-cloudcannon-connector write-locales` → (`install-client` for non-bundled SSGs) → `mv` to
-`_untranslated_site` → `rosey build`. Serve the **final** directory, which is still `_site` /
-`dist`. See [make-site-multilingual](../make-site-multilingual/SKILL.md) for the pipeline itself.
-
-**MUST build through `cc-serve.sh` on a Rosey site, not a bare `npm run build`.**
-**Why:** the bare build skips `.cloudcannon/postbuild`, so `/_rcc/locales.json` and the whole
-`/{locale}/` tree are never generated — and because it still writes a _newer_ output directory,
-freshness checks read as clean. See [troubleshooting.md](troubleshooting.md).
+For the Rosey pipeline itself, see
+[make-site-multilingual](../make-site-multilingual/SKILL.md).
 
 ## Ports
 
@@ -87,26 +126,20 @@ freshness checks read as clean. See [troubleshooting.md](troubleshooting.md).
 | ------- | ------------------------------------------------------------------------------------ |
 | `10101` | Dev server: the CMS app, the `/__api` surface, and the built site, all on one origin |
 
-Override with `--port` on both `cc-serve.sh` and the scripts, or set `CC_DEV_PORT`.
+Override with `--port`, or set `CC_DEV_PORT`.
+
+**MUST NOT treat a healthy response on the port as proof the site is yours.**
+**Why:** `/__api/details` answers with `siteName` — the project directory's basename, titleized —
+and a relative `outputDir`. Two projects can answer identically, and a whole session can be spent
+measuring someone else's site. `cc-serve.sh` writes a token into its own output directory and
+reads it back through `/__output/` instead, and refuses the port rather than stopping a server it
+did not start.
 
 ## Running in a container or sandbox
 
-The server itself needs nothing special. Two things are worth knowing:
-
 - **Nothing can be installed globally.** Install the CLI anywhere and run it through `npx`, or
-  prepend `node_modules/.bin` to `PATH` — `cc-serve.sh` execs `cloudcannon dev`, so it has to be
+  prepend `node_modules/.bin` to `PATH` — `cc-serve.sh` calls `cloudcannon dev`, so it has to be
   resolvable.
-- **`dev-status.mjs` compares mtimes on disk**, so it needs `--root <site>` when run from
-  anywhere but the site directory. It reports `UNKNOWN` rather than guessing — that is a prompt
-  to pass `--root`, not a pass.
-
-## Verify the setup
-
-```sh
-bash scripts/cc-serve.sh /path/to/site
-node scripts/dev-status.mjs --root /path/to/site --check /
-```
-
-`dev-status.mjs` should report the served output directory, `build: output is at least as new as
-the sources`, and `ok 200` for each `--check`. Anything else is covered in
-[troubleshooting.md](troubleshooting.md).
+- **The watcher uses recursive `fs.watch`.** On Linux this consumes inotify watches; a large
+  `node_modules` in the watched tree is already excluded, but a low `fs.inotify.max_user_watches`
+  will still bite.

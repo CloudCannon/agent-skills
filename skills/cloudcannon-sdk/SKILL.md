@@ -25,7 +25,7 @@ Reach for it when the work is programmatic. Reach for the CLI when the work is a
 ## When not to use
 
 - **A one-off operation from a shell** — that is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md). If a command already does the job, use it; it resolves site names, prints JSON, and needs no client wiring.
-- **Running or verifying the local dev server** — `cloudcannon dev` is covered end to end by [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md). The SDK has nothing to do with it.
+- **Running the site locally in CloudCannon** — `cloudcannon dev` is covered end to end by [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md). The SDK has nothing to do with it.
 - **Deciding what belongs in `cloudcannon.config.yml`** — that is [`cloudcannon-configuration`](../cloudcannon-configuration/SKILL.md). The SDK reads and writes the file as bytes; it has no opinion on its contents.
 - **Authoring editable regions or snippets** — [`cloudcannon-visual-editing`](../cloudcannon-visual-editing/SKILL.md) and [`cloudcannon-snippets`](../cloudcannon-snippets/SKILL.md).
 

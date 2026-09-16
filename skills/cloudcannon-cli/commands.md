@@ -1,6 +1,6 @@
 # Command surface
 
-As of 0.0.19, 35 commands across eight groups. This file maps them; it does not restate their flags, because those change between releases and the package ships an authoritative machine-readable copy.
+A map of the command tree, grouped by subject. It does not restate the flags, because those change between releases and the package ships an authoritative machine-readable copy.
 
 ## Discovering the exact flags
 
@@ -83,6 +83,14 @@ Errors go to stderr, and a failed command sets a non-zero exit code. Check the c
 **`sites update-build-config` changes the build settings of an existing site.** It takes `--install-command`, `--build-command`, `--output-path`, `--ssg`, `--preserved-paths`, `--environment-variables`, `--preserve-output`, `--include-git`, `--building-locked`, `--default-locale`, and per-runtime versions (`--node-version`, `--hugo-version`, `--ruby-version`, `--deno-version`).
 
 **Why this matters:** `.cloudcannon/initial-site-settings.json` is read only when CloudCannon first provisions the site, so it cannot be used to change an existing site's build. That does not mean the change requires the dashboard — this command does it from the command line.
+
+**MUST NOT treat it as a patch.** It is a replace. The command builds a `build_configuration` object from the flags you passed and `PUT`s it whole; nothing reads the site's current values and merges them in. Every `compile.*` setting you leave out — install command, build command, output path, preserved paths, the runtime versions — is dropped, not kept. Changing one of them means passing all of them, so read the current values first:
+
+```sh
+npx @cloudcannon/cli sites get --site my-site | jq '.build_configuration.compile'
+```
+
+**`--environment-variables` is the one exception.** A literal `...` in the list expands to the site's existing variables, so `--environment-variables "API_KEY=secret,..."` adds to them rather than replacing them. Passing an empty string clears them all. No other flag has this.
 
 **MUST confirm with the user first.** It changes how every subsequent build of a live site runs.
 

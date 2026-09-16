@@ -1,12 +1,13 @@
 # The dev server HTTP API
 
-Everything here is unauthenticated and needs no browser. Exhaust this tier before opening the
-editor — it is faster and far more deterministic than reading the screen.
+`cloudcannon dev` serves the CloudCannon app, the built site and this API on one origin,
+`http://localhost:10101` by default. Everything here is unauthenticated and needs no browser.
 
-All routes are on one origin, `http://localhost:10101` by default.
+## Routes
 
 | Route                  | Method | Returns                                                          |
 | ---------------------- | ------ | ---------------------------------------------------------------- |
+| `/` and `/index.html`  | GET    | The CloudCannon app, **not** the site's homepage                 |
 | `/__api/details`       | GET    | `{ sourceFiles, outputDir, siteName, userName }`                 |
 | `/__api/megafile`      | GET    | NDJSON of every non-binary source file with content, size, mtime |
 | `/__api/file/<path>`   | GET    | `{ content, file_size, last_modified }`                          |
@@ -18,7 +19,13 @@ All routes are on one origin, `http://localhost:10101` by default.
 | `/__output/<path>`     | GET    | A file from the built output                                     |
 | anything else          | GET    | Falls through to the built output                                |
 
+**The built homepage is at `/__output/index.html`.** `/` and `/index.html` are claimed by the app
+before the fall-through applies, so they are the one pair of paths the fall-through does not cover.
+
 The field names are `file_size` and `last_modified` — not `size` / `mtime`.
+
+`siteName` is the project directory's basename, titleized, and `outputDir` is relative. Neither
+identifies a site — see [setup.md § Ports](setup.md#ports).
 
 ## No directory index
 
@@ -27,57 +34,34 @@ The field names are `file_size` and `last_modified` — not `size` / `mtime`.
 as a 500. `/en/` fails, `/en/index.html` succeeds. A 500 here means "that is a directory", not
 "the server is broken".
 
-`fetchOutput()` in [lib/devserver.mjs](scripts/lib/devserver.mjs) retries a trailing-slash path
-as `index.html`, so `dev-status.mjs --check /en/` works.
-
 ## Events
 
-`/__api/events` is a Server-Sent Events stream, debounced by 200ms.
+`/__api/events` is a Server-Sent Events stream, debounced by 200ms per path.
 
 | Event                                       | Fires when                                                            |
 | ------------------------------------------- | --------------------------------------------------------------------- |
 | `file-create` / `file-edit` / `file-delete` | A **source** file changes on disk                                     |
 | `output-change`                             | Files in the output directory change; batched into `{ paths: [...] }` |
 
-**Writes the dev server makes are not echoed back.**
-**Why:** it marks its own writes and suppresses the corresponding watcher event, so neither
-`write-file.mjs` nor a save made in the editor produces a `file-edit`. The stream reports
-external writes only. Verified with a control — one editor edit and one shell write to the same
-file in one capture window; only the shell write appeared.
+The CloudCannon app reloads its preview on `output-change`, which is what makes the loop close
+without a manual refresh.
 
-`/__api/file` does reflect those writes immediately, so persistence has to be proven by reading
-the file back rather than by waiting for an event.
+**A write through `/__api/upload` to a file that already exists produces no `file-edit`.**
+**Why:** the server marks the path before writing and drops the watcher event that comes back, so
+the stream reports external writes only. A save made in the editor takes the same route and is
+equally silent.
 
-## Proving an edit persisted
+**An upload that creates a new file does produce `file-create`.** The mark is only set for a path
+that already exists, so creates and deletes are never suppressed — only edits.
 
-An editor showing new text proves only that the DOM changed. Two things prove the file changed:
+| You want to know                           | Use                                         |
+| ------------------------------------------ | ------------------------------------------- |
+| Whether a file on disk holds an edit       | Read the file                               |
+| Whether the output was regenerated         | `output-change`, or read `/__output/<path>` |
+| What an external tool or build is touching | The event stream                            |
 
-```sh
-# 1. Watch while the edit happens — start it first, the baseline is taken at startup
-node scripts/watch-writes.mjs --timeout 30 --until src/pages/index.md
-
-# 2. Read the file back
-node scripts/read-file.mjs src/pages/index.md
-```
-
-`--until` polls that path and exits 0 as soon as its bytes change, 1 on timeout. Without it the
-script streams the event feed, which is only useful for watching what a build or an external
-tool touches.
-
-**Saving rewrites the whole frontmatter block.**
-**Why:** CloudCannon reserialises the YAML rather than patching the key. A one-field edit came
-back as 14 insertions and 15 deletions. Diff for the value you changed; do not treat surrounding
-churn as a bug. Comments are not part of the parsed data, so they are dropped — keep editor
-guidance in `_inputs[].comment` in `cloudcannon.config.yml`, never in frontmatter comments.
-
-## Locale files
-
-Rosey locale keys are namespaced with a colon and may contain dots, so they are not dotted paths:
-
-```sh
-node scripts/read-file.mjs rosey/locales/fr.json --key "footer:blog"
-# { "original": "Blog", "value": "Blog", "_base_original": "Blog" }
-```
-
-`--key` tries the whole flag as one literal key before falling back to dotted traversal, so both
-styles work.
+**MUST NOT capture the event stream into a file inside the watched directory.**
+**Why:** the watcher sees the capture file grow, emits `file-edit` for it, which grows the capture
+file again. A few hundred events arrive within seconds, none of them about the file under test,
+and the stream reads as though every write is being echoed. Write the capture outside the site
+root.

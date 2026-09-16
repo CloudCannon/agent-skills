@@ -20,7 +20,7 @@ The CLI resolves a session for you on every mutating command. The SDK makes the 
 
 ## Committing
 
-`session.commit()` takes an optional body, and neither half of it is documented in the shipped README.
+`session.commit()` takes an optional body — `{ message?, include? }` — and neither half of it is documented in the shipped README.
 
 ```js
 const session = await client.site(siteUuid).createEditingSession();
@@ -32,7 +32,7 @@ await sessionClient.commit({ message: "Update pricing copy" });
 
 **MUST confirm with the user before committing.** The commit pushes to the site's real git repository and can trigger a build — see [SKILL.md § The rule that costs the most](SKILL.md#the-rule-that-costs-the-most).
 
-**`include` is keyed by editing-session-file UUID, not by path.** To commit a subset, call `session.getFiles()`, map each file's `path` (or `source_path`, for a move) to its `uuid`, and pass `{ [uuid]: true }`:
+**The commit body's `include` is keyed by editing-session-file UUID, not by path.** It is the key that scopes a commit to some of the staged files, and the schema types it as `Record<string, boolean>` — which says nothing about what the keys are. To commit a subset, call `session.getFiles()`, map each file's `path` (or `source_path`, for a move) to its `uuid`, and pass `{ [uuid]: true }`:
 
 ```js
 const files = await sessionClient.getFiles();

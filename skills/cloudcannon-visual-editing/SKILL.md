@@ -55,6 +55,7 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 | Skill                                                        | When to read                                                                                                                                                    |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [make-site-multilingual](../make-site-multilingual/SKILL.md) | The site is multilingual. Translation keys (`data-rosey`) must sit on region hosts rather than inside them, and component regions need explicit key passthrough |
+| [cloudcannon-dev-server](../cloudcannon-dev-server/SKILL.md) | The regions are written and the user needs to try them. Starts a local CloudCannon that rebuilds as they edit                                                   |
 
 ## Quick reference
 

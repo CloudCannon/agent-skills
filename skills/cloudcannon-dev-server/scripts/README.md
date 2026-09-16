@@ -1,91 +1,67 @@
 # Scripts
 
-Node scripts, ESM, with no dependencies at all — nothing here opens a browser.
-Every script supports `--help`.
+One launcher and the watcher it starts. The Node script is ESM with no dependencies, and nothing
+here opens a browser.
 
 Run them from this directory, or with an absolute path.
 
 ## `cc-serve.sh`
 
-Builds a site and serves it under the local CloudCannon. `cloudcannon dev` never builds, so this
-is the entry point.
+Starts the local editing loop: build once, run `.cloudcannon/postbuild` if present, start the
+rebuild watcher, serve the output under `cloudcannon dev`. Ctrl-C stops the watcher and the
+server together.
 
 ```sh
 bash cc-serve.sh /path/to/site --port 10101
 ```
 
-| Flag             | Meaning                                                   |
-| ---------------- | --------------------------------------------------------- |
-| `--port`         | Dev server port (default 10101)                           |
-| `--output`       | Output directory, for an SSG whose layout is not detected |
-| `--no-build`     | Skip the SSG build                                        |
-| `--no-postbuild` | Skip `.cloudcannon/postbuild`                             |
+| Flag             | Meaning                                                                  |
+| ---------------- | ------------------------------------------------------------------------ |
+| `--output`       | Output directory, for an SSG whose layout is not detected                |
+| `--build-cmd`    | Command that builds the site, for an SSG whose build is not detected     |
+| `--watch-cmd`    | Replace the default watcher with the SSG's own watch build               |
+| `--port`         | Dev server port (default 10101, or `CC_DEV_PORT`)                        |
+| `--no-build`     | Skip the initial build                                                   |
+| `--no-postbuild` | Skip `.cloudcannon/postbuild`                                            |
+| `--no-watch`     | Serve without rebuilding — the editor's saves will not reach the preview |
 
-Output detection reads `paths.output` from `cloudcannon.config.yml`, then falls back to
-recognising Astro and Eleventy. Any other SSG needs `--output`, and `--no-build` plus its own
-build command — the build step here is a hardcoded `npm run build`.
+It gets the build command and output directory from
+`cloudcannon configure detect-build-commands`, taking the first suggestion for each, so detection
+covers every SSG the CLI knows and never drifts from it. It does **not** read the output directory
+from `cloudcannon.config.yml`: there is no `paths.output` key.
+
+**Before it trusts a port**, it writes a token into its own output directory and reads it back
+through `/__output/`. A matching token means this site is already served, and it reuses it; a
+mismatch means another project holds the port, and it refuses rather than stopping a server it
+did not start.
 
 Runs the postbuild in a subshell — CloudCannon sources that file in production, so shell options
 set inside it would otherwise leak into the caller.
 
-## `dev-status.mjs`
+## `watch-build.mjs`
 
-What is being served, whether it is stale, and whether given URLs resolve. **Run this before
-trusting anything the server shows you.**
-
-```sh
-node dev-status.mjs --root /path/to/site --check /en/ --check /_rcc/locales.json
-```
-
-| Flag      | Meaning                                                                             |
-| --------- | ----------------------------------------------------------------------------------- |
-| `--check` | URL path that must resolve (repeatable). Trailing-slash paths retry as `index.html` |
-| `--root`  | Site root for the staleness comparison (default cwd)                                |
-| `--port`  | Dev server port                                                                     |
-
-Exits non-zero if unreachable or any check fails.
-
-The staleness comparison resolves the server's source paths under `--root`, so it only works
-when that is the site directory. Pointed anywhere else it prints `UNKNOWN` and says so — it
-never reports a build fresh without having checked.
-
-## `watch-writes.mjs`
-
-Proves an edit reached disk. Start it before making the edit — the baseline is taken at startup.
+Re-runs the build command whenever a source file changes. `cc-serve.sh` starts this; run it
+directly only to rebuild against a server started some other way.
 
 ```sh
-node watch-writes.mjs --timeout 20 --until rosey/locales/fr.json
+node watch-build.mjs --build-cmd "npm run build" --output _site
 ```
 
-| Flag         | Meaning                                                    |
-| ------------ | ---------------------------------------------------------- |
-| `--until`    | Poll this path; exit 0 when its bytes change, 1 on timeout |
-| `--timeout`  | Seconds to watch (default 15)                              |
-| `--interval` | Seconds between polls (default 0.25)                       |
-| `--output`   | Stream mode only: also report `output-change` events       |
+| Flag          | Meaning                                                     |
+| ------------- | ----------------------------------------------------------- |
+| `--build-cmd` | Shell command that builds the site (required)               |
+| `--output`    | Output directory to ignore, relative to `--root` (required) |
+| `--root`      | Directory to watch (default: cwd)                           |
+| `--debounce`  | Quiet period before rebuilding, in ms (default 300)         |
 
-Without `--until` it streams the SSE event feed instead. That feed omits the dev server's own
-writes, so it never shows a save made in the editor; only `--until` sees those.
+It ignores the output directory, `node_modules`, `.git`, `.cache`, `.astro` and `.netlify`.
+Ignoring the output directory is what stops the build's own writes retriggering it.
 
-## `read-file.mjs` / `write-file.mjs`
-
-Read and write source files through the API, as the CMS sees them.
-
-```sh
-node read-file.mjs rosey/locales/fr.json --key "footer:blog"
-node read-file.mjs src/pages/index.md --meta
-node write-file.mjs src/_data/site.json --from ./patched.json
-```
-
-| Flag                               | Meaning                                                    |
-| ---------------------------------- | ---------------------------------------------------------- |
-| `--key`                            | JSON only. Tries the literal key first, then a dotted path |
-| `--meta`                           | Size and modified time instead of contents                 |
-| `--content` / `--from` / `--stdin` | Content source for `write-file.mjs`                        |
+A change arriving mid-build queues one more pass rather than being dropped, so an edit saved
+while a build is running is never missed.
 
 ## `lib/`
 
-| File            | Purpose                                                          |
-| --------------- | ---------------------------------------------------------------- |
-| `args.mjs`      | Flag parsing (repeats accumulate into arrays), `--help`, output  |
-| `devserver.mjs` | The `/__api` client, including SSE and the directory-index retry |
+| File       | Purpose                                                         |
+| ---------- | --------------------------------------------------------------- |
+| `args.mjs` | Flag parsing (repeats accumulate into arrays), `--help`, output |

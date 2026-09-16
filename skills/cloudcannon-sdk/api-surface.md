@@ -32,8 +32,6 @@ To read one method's full entry, take its line number from the `grep` and print 
 sed -n '560,600p' "$SDK/README.md"     # site.updateBuildConfig
 ```
 
-As of 0.0.13 that is 62 documented methods across ten sub-clients, and `site` alone holds 29 of them.
-
 ## The raw escape hatch
 
 `client.fetch` is a typed call onto any CloudCannon API endpoint, including the ones no sub-client wraps. It injects the auth headers, sets `Content-Type: application/json`, and types the URL and body against the OpenAPI schema.
@@ -79,4 +77,4 @@ grep -A 18 "'/api/v0/sites/{site_uuid}/archives'" "$SDK/dist/schema.d.ts"
 
 Each path block lists `get`, `post`, `put`, `patch`, `delete`; a verb set to `never` is not available on that endpoint. The named `operations[…]` entry is the key to look up in the `operations` interface for the request and response types.
 
-As of 0.0.13 the schema describes 168 paths and 240 operations against 62 wrapped methods, so most of the API is reachable only this way. The largest unwrapped groups are site sub-resources, organisation management, users, base domains and projects.
+The schema describes far more endpoints than the sub-clients wrap, so a good deal of the API is reachable only this way. The largest unwrapped groups are site sub-resources, organisation management, users, base domains and projects.

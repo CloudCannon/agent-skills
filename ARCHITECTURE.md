@@ -28,7 +28,7 @@ One CloudCannon feature each. Reference-shaped — delegated to by a journey, or
 | `cloudcannon-configuration`  | `cloudcannon.config.yml`, collections, inputs, structures           | [SKILL.md](skills/cloudcannon-configuration/SKILL.md)  |
 | `cloudcannon-snippets`       | MDX components and inline HTML in the Content Editor                | [SKILL.md](skills/cloudcannon-snippets/SKILL.md)       |
 | `cloudcannon-visual-editing` | Editable regions for the Visual Editor                              | [SKILL.md](skills/cloudcannon-visual-editing/SKILL.md) |
-| `cloudcannon-dev-server`     | Build, serve and verify a site under `cloudcannon dev`              | [SKILL.md](skills/cloudcannon-dev-server/SKILL.md)     |
+| `cloudcannon-dev-server`     | Start the local editing loop under `cloudcannon dev`                | [SKILL.md](skills/cloudcannon-dev-server/SKILL.md)     |
 | `cloudcannon-cli`            | The CloudCannon CLI, and operations on hosted sites                 | [SKILL.md](skills/cloudcannon-cli/SKILL.md)            |
 | `cloudcannon-sdk`            | The CloudCannon API from code, and the surface the CLI cannot reach | [SKILL.md](skills/cloudcannon-sdk/SKILL.md)            |
 
@@ -113,11 +113,12 @@ astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not 
 scripts/setup-editable-regions.sh       Installs package, wires Astro integration
 
 ── cloudcannon-dev-server (capability) ───────────────────────
-SKILL.md                                ENTRY POINT — the build-first rule, quick start, scripts
-setup.md                                Prerequisites, what `cloudcannon dev` does, build/serve, ports
-dev-server-api.md                       The `/__api` surface, events, proving a write landed
+SKILL.md                                ENTRY POINT — the loop, the watcher rule, SSG coverage
+setup.md                                Prerequisites, what `cloudcannon dev` does, build/watch, ports
+dev-server-api.md                       The `/__api` surface and the event stream
 troubleshooting.md                      Symptom → cause → fix for the server itself
-scripts/*.mjs, cc-serve.sh              Build/serve, freshness, read/write, write proof
+scripts/cc-serve.sh                     Build, warn about the postbuild, watch and serve
+scripts/watch-build.mjs                 Rebuild on source change
 
 ── cloudcannon-cli (capability) ──────────────────────────────
 SKILL.md                                ENTRY POINT — local/remote split, the live-site rule
