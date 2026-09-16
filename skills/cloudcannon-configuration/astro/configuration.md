@@ -9,7 +9,7 @@ Guidance for creating and configuring `cloudcannon.config.yml` and `.cloudcannon
 Use the CloudCannon CLI to generate a baseline configuration. Run subcommands individually to cross-reference against the Phase 1 audit. See [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) for the full CLI reference and all available commands.
 
 ```bash
-npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg astro
+npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg astro
 ```
 
 **When the CloudCannon CLI is unavailable** (sandbox network restrictions, version incompatibility, etc.), write the config manually using the audit findings. Follow the same review and customization checklists below — the CloudCannon CLI is a time-saver, not a prerequisite.
@@ -40,7 +40,7 @@ Build settings must be nested under a `build` key. The old flat format (`build_c
 
 Prefer `.cloudcannon/prebuild` for extra setup steps so `build_command` stays a straight build, not a shell chain.
 
-**Only takes effect on first site creation.** For existing CloudCannon sites, change build settings in the CloudCannon UI (**Site Settings > Builds > Configuration**). See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
+**Only takes effect on first site creation.** For existing CloudCannon sites, change build settings with `cloudcannon sites update-build-config` (see [`cloudcannon-cli` § Changing build configuration](../../cloudcannon-cli/commands.md#changing-build-configuration)) or in the CloudCannon UI under **Site Settings > Builds > Configuration**. See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
 
 ## Customize the config
 
@@ -59,7 +59,7 @@ The CloudCannon CLI produces a structural baseline. The following customizations
 - **`icon`** -- every collection should have an `icon` key so it gets a meaningful icon in the CloudCannon sidebar instead of a generic default. Pick icons that reflect the collection's purpose (e.g. `wysiwyg` for pages, `post_add` for blog posts, `home` for homepages, `settings` for data/config). CloudCannon's icon set is a **fixed curated subset** of Material Symbols — invalid names silently fall back to the default. When unsure, see [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details to check for the exact name. Common gotcha: `place` is not in the enum — use `location_on`.
 - **All schema fields mapped** -- cross-reference every field in the Zod schema against the `_inputs` config. Every user-facing field needs an appropriate input type (`textarea` for multi-line strings like excerpts/descriptions, `datetime` for dates, `image` for image paths, etc.). Missing fields fall back to CC's type inference, which is often wrong. When unsure whether a field is user-facing or developer-only, check whether its value is rendered as visible text on the built page. If it appears on the page, it should be editable with an appropriate input type. Only fields undergoing heavy programmatic transformation (e.g. used purely as a build-time lookup key) should be hidden.
 - **`collection_groups`** -- organize collections into sidebar groups for a clean editing experience.
-- **`_editables`** -- configure rich text editor toolbars per collection or globally.
+- **`_editables`** -- toolbars for the **content editor** and editable regions, keyed by region type (`content`, `block`, `text`, `image`, `link`) — in practice `_editables.content` is the one that matters. It does **not** configure `type: markdown` and `type: html` inputs; those take their toolbar from the input's own `options`, under the same "define one key and every omitted key becomes false" rule. See [configuration-gotchas.md § Rich text input toolbar options](configuration-gotchas.md#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables).
 - **Editor styles** -- when the audit flagged styled HTML in content fields (inline spans with CSS classes for accent colors, emphasis, etc.), create `.cloudcannon/styles/editor.css` with semantic class definitions and reference it from `type: html` inputs via `options.styles`. This lets editors apply custom styling (e.g. brand-colored highlight text) through the rich text toolbar without Tailwind utility classes in the content. See [content.md § Handling styled HTML in frontmatter](../../migrate-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter) and the [Jetstream template](https://github.com/CloudCannon/jetstream-astro-template) for the reference pattern.
 - **`markdown`** -- if content files contain Markdown-syntax tables (`| col | col |`), set `markdown.options.table: true`. See [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 - **`_snippets`** -- configure snippets for non-standard markdown amongst markdown content. In Astro this is often MDX components used in rich text content. Built-in templates like `mdx_component` resolve automatically — no `_snippets_imports` needed. See the `cloudcannon-snippets` skill.

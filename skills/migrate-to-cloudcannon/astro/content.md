@@ -127,7 +127,18 @@ Every field from a block's structure `value` appears in content frontmatter, eve
 2. Look up the structure definition (`cloudcannon.config.yml` under `_structures.content_blocks`, or the co-located `*.cloudcannon.structure-value.yml` file).
 3. Copy the full field list from the structure `value`.
 4. Populate fields that have content from the original page.
-5. Leave remaining fields at their default/empty values (strings empty, booleans `false`, arrays `[]`, objects with empty nested fields).
+5. For each remaining field, decide between _empty_ and _absent_:
+
+   | The original page…                                                                                   | Write into the content file                                                |
+   | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+   | passed a value                                                                                       | that value                                                                 |
+   | passed nothing, and no default exists                                                                | the empty value (bare key, `false`, `[]`, nested object with empty fields) |
+   | passed nothing, and the component — **or a sub-component it forwards props to** — supplies a default | that resolved default                                                      |
+
+   **MUST NOT:** write an empty value over a default the original page was rendering.
+   **Why:** migration must not change what the page renders. `button:` on a form whose component declares `button = 'Send'` deletes a visible button, and nothing in the build catches it.
+
+   Read the destructuring of the block component _and_ of any component it forwards props to. Rule #1 requires the **key** to be present, not a fabricated **value** — see [structures.md § Don't seed empty strings](../../cloudcannon-configuration/structures.md#dont-seed-empty-strings-for-genuinely-optional-fields).
 
 #### YAML quoting
 
@@ -146,6 +157,7 @@ Don't extract all pages before running a build. Schema mismatches and guard issu
 
 Use `.nullish()` on optional Zod fields, not `.optional()`. Bare YAML keys (`tagline:`) parse as `null`. `.optional()` accepts `undefined` but rejects `null`, so content files with empty fields fail validation and `z.union` silently falls through to a non-page-builder schema — stripping `content_blocks` from the data.
 **See:** [structures.md § Handling null values from empty YAML fields](../../cloudcannon-configuration/structures.md#handling-null-values-from-empty-yaml-fields).
+Those `null`s then reach every component. Destructuring defaults do not fire on them — see [configuration-gotchas.md § Destructuring defaults never fire on content fields](../../cloudcannon-configuration/astro/configuration-gotchas.md#destructuring-defaults-never-fire-on-content-fields).
 
 ### Astro slot content → frontmatter field
 
@@ -167,7 +179,7 @@ Decide which to keep:
 - If the two fields have no semantic distinction (description is just an alias for subtitle), remove one. Use the name that best describes what the editor sees.
 - If the fallback serves a genuinely different purpose (e.g. `description` is also used for page meta/SEO), keep both but rename to make the distinction obvious: `subtitle` for the visual slot, `meta_description` for SEO. Add a `comment` on the SEO input explaining its purpose.
 
-The goal: every field in the data panel corresponds to exactly one thing on the page, and every inline editable's `data-prop` points to a field that exists in the structure. See [visual-editing-reference.md § Data-prop mismatch](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#page-builder-blocks) for the related visual editing guidance when a shared component renames the prop.
+The goal: every field in the data panel corresponds to exactly one thing on the page, and every inline editable's `data-prop` points to a field that exists in the structure. See [visual-editing-reference.md § Data-prop mismatch](../../cloudcannon-visual-editing/visual-editing-reference.md#page-builder-blocks) for the related visual editing guidance when a shared component renames the prop.
 
 ### Resolving optimized image paths from frontmatter
 
