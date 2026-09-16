@@ -487,6 +487,36 @@ Use `disable_add: true` to hide the Add button — `add_options: []` has no effe
 
 **Decision rule:** Page builder is the default; source-editable is the exception. Run the page through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) and [page-building.md § When to reach for page builder](../../migrate-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder).
 
+## Destructuring defaults never fire on content fields
+
+**MUST NOT:** rely on a destructuring default for a prop fed from content. `const { icon = 'tabler:info' } = Astro.props` does nothing when content supplies `icon: null` — destructuring defaults fire only on `undefined`, and optional content fields arrive as `null`. The component renders `null`, and `<Icon name={null} />` crashes `astro build`.
+
+**Why:** the default is still there in the source, so the failure reads as a component bug rather than a content one. It applies to every optional field on every content-fed component, including props forwarded down to shared sub-components.
+
+Resolve the default in the component body, and pick the operator for what the field can legitimately hold:
+
+| Field                                       | Operator | Why                                                      |
+| ------------------------------------------- | -------- | -------------------------------------------------------- |
+| String                                      | `\|\|`   | Also catches `""`, which is rarely a value worth keeping |
+| Number where `0` is real                    | `??`     | `rating \|\| 5` discards a real `0`                      |
+| Boolean where an explicit `false` must hold | `??`     | `isReversed \|\| false` discards a real `false`          |
+
+```astro
+---
+// ❌ Wrong — both defaults are dead for content-fed props
+const { icon = 'tabler:info-square', variant = 'info' } = Astro.props;
+
+// ✓ Right — resolved where the value is consumed
+const { icon, variant } = Astro.props;
+const activeVariant = variant || 'info';
+const iconName = icon || variants[activeVariant].icon;
+---
+```
+
+**Common miss:** spreading a content object straight into a typed third-party API (SEO metadata, an image component) passes its `null` keys through, and a `null` overrides the library's own default. Pick the keys you mean rather than spreading.
+
+Base rule: [structures.md § Handling null values from empty YAML fields](../structures.md#handling-null-values-from-empty-yaml-fields).
+
 ## `z.union` silently matches the wrong schema when fields have defaults
 
 When combining multiple page schemas with `z.union`, schemas with many `.default()` and `.nullish()` fields validate successfully against data intended for a different variant. An earlier schema in the union "wins" because all its fields validate; fields from the correct schema are silently absent at runtime (`data.show_form === undefined`), conditional rendering breaks, and blocks of the page disappear.

@@ -28,7 +28,7 @@ After creating or editing content files, cross-reference every block in every co
 
 ### Optional fields — common mistake
 
-Don't leave an optional field out of the structure `value` because "only some items use it." Every field that appears on any item must be in the value template with a sensible default (`""`, `false`, `0`, `[]`). Omitting it means:
+Don't leave an optional field out of the structure `value` because "only some items use it." Every field that appears on any item must be in the value template with a sensible default (`""`, `false`, `[]`). Omitting it means:
 
 - CloudCannon can't match an existing item that _does_ have the field to the structure
 - Editors can't add the field to new items from the sidebar
@@ -73,6 +73,8 @@ value:
 
 Reconcile: rule #1 means "if any **existing** item has the field, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
 
+**Migrating an existing page?** A field the original page never passed may still be rendering a component default — write that resolved default, not an empty value. See [content.md § Extraction pattern](../migrate-to-cloudcannon/astro/content.md#extraction-pattern-per-block).
+
 ### Handling null values from empty YAML fields
 
 In YAML, a bare key with no value (`tagline:`) parses as `null`, not as an empty string or `undefined`. Zod's `.optional()` accepts `undefined` but rejects `null`, so content files with empty fields can silently fail validation. Use one of the two approaches below:
@@ -82,7 +84,11 @@ In YAML, a bare key with no value (`tagline:`) parses as `null`, not as an empty
 | Zod `.nullish()` | Replace `.optional()` with `.nullish()` on optional fields. Accepts `T \| null \| undefined`.            | Default — no per-field CC configuration needed.                                          |
 | CC `empty_type`  | Set `empty_type: string` (or appropriate type) on the input in `_inputs`. Writes `""` instead of `null`. | When downstream code distinguishes `null` from `""`, or the Zod schema must stay strict. |
 
-When using `.nullish()`, component templates should still use truthiness checks (`{title && ...}`) — both `null` and `""` are falsy.
+**MUST:** treat `null` as a value, not as absent. Optional fields reach components as `null` — that is what CloudCannon writes for most input types when an editor clears an input, and what a bare key in a hand-authored content file already parses to. `empty_type` changes what one input writes; `.nullish()` changes what the schema accepts. Neither makes the value absent.
+
+A default declared in the component's own signature is therefore not applied to a content field — resolve the default where the value is consumed instead. Guard on the value, not its presence: `{title && ...}` — both `null` and `""` are falsy.
+
+This bites hardest in JS-based SSGs, where a declared default fires only on `undefined` — Astro: [configuration-gotchas.md § Destructuring defaults never fire on content fields](astro/configuration-gotchas.md#destructuring-defaults-never-fire-on-content-fields).
 
 ## Inline approach (small sites)
 
@@ -348,13 +354,13 @@ See [configuration.md § Object inputs need preview icons](astro/configuration.m
 
 ### Field-to-YAML mapping
 
-| Prop type | YAML default                                     | Notes                                                                                                                                                                                                                                                                                               |
-| --------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| String    | bare key (`title:`)                              | Parses as `null`. If the field has a closed value set (variants, sizes, alignment), the input should be `type: select` — see [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](astro/configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs). |
-| Boolean   | `false`                                          |                                                                                                                                                                                                                                                                                                     |
-| Number    | `0` or the component default (e.g. `columns: 3`) | Input must be `type: number`. If input is `type: text`, quote as string (`price: "29"`) — bare numbers with text inputs cause a "misconfigured" error.                                                                                                                                              |
-| Array     | `[]`                                             |                                                                                                                                                                                                                                                                                                     |
-| Object    | nested shape with empty fields                   | E.g. `image:\n  src:\n  alt:`. Gives CC the field structure for the object input.                                                                                                                                                                                                                   |
+| Prop type | YAML default                                                                                                 | Notes                                                                                                                                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| String    | bare key (`title:`)                                                                                          | Parses as `null`. If the field has a closed value set (variants, sizes, alignment), the input should be `type: select` — see [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](astro/configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs). |
+| Boolean   | `false`                                                                                                      |                                                                                                                                                                                                                                                                                                     |
+| Number    | the component default (e.g. `columns: 3`); omit rather than seeding `0` when the field is genuinely optional | Input must be `type: number`. If input is `type: text`, quote as string (`price: "29"`) — bare numbers with text inputs cause a "misconfigured" error.                                                                                                                                              |
+| Array     | `[]`                                                                                                         |                                                                                                                                                                                                                                                                                                     |
+| Object    | nested shape with empty fields                                                                               | E.g. `image:\n  src:\n  alt:`. Gives CC the field structure for the object input.                                                                                                                                                                                                                   |
 
 ### Fields to include vs exclude
 
@@ -372,14 +378,21 @@ In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truth
 
 - Objects: check a meaningful inner field — `image?.src &&` not `image &&`, `(callToAction?.text || callToAction?.icon) &&` not `callToAction &&`.
 - Arrays: check `.length` — `actions?.length > 0 &&` not `actions &&`.
+- Numbers: don't seed `0` as a placeholder for a genuinely-optional numeric field — nothing distinguishes it from a real zero. Where `0` is a legitimate value, guard with an explicit comparison (`rating > 0 &&`), never bare truthiness.
 
 When iterating, filter items that have nothing visible to render: `actions.filter((a) => a?.text || a?.icon).map(...)`.
 
-Check and update these guards during the visual-editing phase when wiring up editable regions. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
+Check and update these guards in the content phase, as the first content file for each block type is created. **Why:** an unguarded null is a build failure, not a cosmetic defect — `<Icon name={null}>` crashes `astro build`. Revisit during the visual-editing phase only to confirm every `data-editable` element is still conditionally rendered. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
 
 ## Default values from components
 
-When a component defines default values in its destructuring (e.g. `columns = 3`, `isReversed = false`), use those same defaults in the structure value. New blocks added via CloudCannon will then match the component's expected defaults.
+When a component resolves a default for a prop (e.g. `columns = 3` in the signature, or `columns ?? 3` in the body), use that same default in the structure value. New blocks added via CloudCannon will then match the component's expected defaults.
+
+**Check sub-components.** A block component often forwards a prop to a shared sub-component, and the default lives there — a contact block may destructure `button` with no default and pass it to a shared form component that declares `button = 'Send'`. A structure derived from the block component alone misses it.
+
+**MUST NOT:** invent placeholder copy for a field that already has a component default. The structure then advertises one value while the page renders another.
+
+Defaults computed from other props or runtime data (`variants[variant].icon`, `getPermalink()`) cannot be expressed in YAML. Leave them out of the structure value and make the component tolerate `null` — see [Handling null values](#handling-null-values-from-empty-yaml-fields).
 
 ## Common mistakes
 

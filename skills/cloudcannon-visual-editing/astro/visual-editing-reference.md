@@ -70,6 +70,8 @@ The [base guard rule](../visual-editing-reference.md#guard-optional-fields) in A
 {subtitle && <p set:html={subtitle} data-editable="text" data-prop="subtitle" />}
 ```
 
+**Falsy numbers render as text.** `{rating && <Stars/>}` with `rating: 0` prints a literal `0` into the page — unlike `null`, `undefined` and `false`, which render as nothing. Use `{rating > 0 ? <Stars/> : null}`. Base rule: [structures.md § Guarding empty objects and arrays](../../cloudcannon-configuration/structures.md#guarding-empty-objects-and-arrays-in-components).
+
 **Dual slot/prop components.** Many Astro widgets accept both slot content (rendered as strings) and structured objects from content collections, branching on `typeof value === 'string'`. When tightening guards per [Content-sourced objects and arrays are never falsy](../visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy), preserve the string branch:
 
 ```astro
