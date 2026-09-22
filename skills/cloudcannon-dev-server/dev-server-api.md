@@ -31,7 +31,7 @@ identifies a site — see [setup.md § Ports](setup.md#ports).
 
 **A request for a directory returns 500, not 404.**
 **Why:** the server opens the path as a file; on a directory that raises EISDIR, which surfaces
-as a 500. `/en/` fails, `/en/index.html` succeeds. A 500 here means "that is a directory", not
+as a 500. `/about/` fails, `/about/index.html` succeeds. A 500 here means "that is a directory", not
 "the server is broken".
 
 ## Events

@@ -8,8 +8,8 @@ export function parseArgs(argv = process.argv.slice(2)) {
 	const flags = {};
 	const positional = [];
 
-	// A repeated flag accumulates into an array rather than overwriting, so
-	// `--check /en/ --check /fr/` keeps both.
+	// A repeated flag accumulates into an array rather than overwriting, so a
+	// caller that passes the same flag twice gets both values.
 	const set = (key, value) => {
 		if (key in flags) {
 			flags[key] = [].concat(flags[key], value);

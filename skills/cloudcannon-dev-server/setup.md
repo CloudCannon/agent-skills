@@ -98,9 +98,10 @@ old file behind, and the server keeps serving it. Restart with a fresh build to 
 ## The postbuild
 
 **MUST NOT assume the watcher runs `.cloudcannon/postbuild`.**
-**Why:** it re-runs the build command only. On a site whose postbuild rewrites the output — a
-Rosey site moves the build aside and regenerates it — the first rebuild after a save replaces the
-generated output with the plain build, and the `/{locale}/` tree disappears.
+**Why:** it re-runs the build command only. On a site whose postbuild rewrites the output rather
+than adding to it — moving the build aside and regenerating it — the first rebuild after a save
+replaces the generated output with the plain build, and everything the postbuild produced
+disappears.
 
 `cc-serve.sh` runs the postbuild once at startup, then prints a warning naming this. To keep it
 inside the loop, put it in the build command:
@@ -109,15 +110,16 @@ inside the loop, put it in the build command:
 bash scripts/cc-serve.sh . --build-cmd "npm run build && bash .cloudcannon/postbuild"
 ```
 
-That makes every save cost a full postbuild chain, which on a translated site is seconds to
-minutes. It is the right trade only when the user is editing something the postbuild transforms.
+That makes every save cost a full postbuild chain, which is seconds to minutes where the
+postbuild rewrites the whole output. It is the right trade only when the user is editing
+something the postbuild transforms.
 
 **MUST run the postbuild in a subshell.**
 **Why:** CloudCannon _sources_ that file in production, so options it sets leak into the caller —
 a top-level `set -euo pipefail` inside it kills the run. `cc-serve.sh` already does this; a
 hand-rolled equivalent must too.
 
-For the Rosey pipeline itself, see
+For the Rosey pipeline — the most common postbuild of this shape — see
 [make-site-multilingual](../make-site-multilingual/SKILL.md).
 
 ## Ports

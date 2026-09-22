@@ -114,7 +114,7 @@ Output from `<Image />` (`astro:assets`) is usually not a plain `<img>` you can 
 
 ```astro
 <editable-image data-prop-src="image">
-  <ImageMod src={image} width={1200} height={600} alt={title} format="webp" />
+  <Image src={image} width={1200} height={600} alt={title} format="webp" />
 </editable-image>
 ```
 
@@ -140,7 +140,7 @@ See [base § Array editing](../visual-editing-reference.md#array-editing) for st
     <section data-editable="array-item">
       <h2 data-editable="text" data-prop="title">{feature.title}</h2>
       <editable-image data-prop-src="image">
-        <ImageMod src={feature.image} ... />
+        <Image src={feature.image} ... />
       </editable-image>
       <p data-editable="text" data-prop="content">{feature.content}</p>
     </section>
@@ -240,17 +240,17 @@ The [base rule](../visual-editing-reference.md#scattered-fields-feeding-a-regist
 
 ```ts
 // ❌ flat root fields
-treatmentHeading: z.string().default("How We Help"),
-treatments: z.array(treatmentEntry).default([]),
+featuresHeading: z.string().default("What We Offer"),
+features: z.array(featureEntry).default([]),
 
 // ✅ nested object
-treatments: z.object({
-  heading: z.string().default("How We Help"),
-  items: z.array(treatmentEntry).default([]),
-}).default({ heading: "How We Help", items: [] }),
+features: z.object({
+  heading: z.string().default("What We Offer"),
+  items: z.array(featureEntry).default([]),
+}).default({ heading: "What We Offer", items: [] }),
 ```
 
-Then `<TreatmentBlocks {...data.treatments} />` inside `<editable-component data-component="treatment_blocks" data-prop="treatments">`.
+Then `<FeatureBlocks {...data.features} />` inside `<editable-component data-component="feature_blocks" data-prop="features">`.
 
 ## Cross-collection items — `entry.id` and the collection loader
 
@@ -481,7 +481,7 @@ To make nested content editable within a React component you may need to refacto
 An editing fallback is a display-only `.astro` component that visually resembles the real one and supports editable attributes. It needs no interactivity. The live site still uses the real component; only the visual editor's renderer is swapped.
 
 ```astro
-<!-- src/layouts/helpers/AnnouncementDisplay.astro -->
+<!-- src/components/AnnouncementDisplay.astro -->
 ---
 const { enable, text, link_text, link_url } = Astro.props;
 ---
@@ -494,7 +494,7 @@ const { enable, text, link_text, link_url } = Astro.props;
 
 ```typescript
 // registerComponents.ts
-import AnnouncementDisplay from "@/layouts/helpers/AnnouncementDisplay.astro";
+import AnnouncementDisplay from "@/components/AnnouncementDisplay.astro";
 registerAstroComponent("announcement", AnnouncementDisplay);
 ```
 
@@ -560,7 +560,7 @@ The wrapper is stored in `window.cc_components[key]`, where the component region
 
 ### Concrete example
 
-Entry `src/content/pages/home.md`:
+Entry `src/content/pages/index.md`:
 
 ```yaml
 postsSection:
@@ -568,10 +568,10 @@ postsSection:
   heading: Latest News
 ```
 
-`PostsListing.astro` reads `categorySlug` from `Astro.props`. In the visual editor, `Astro.props` contained only `heading`.
+A `PostsListing.astro` reads `categorySlug` from `Astro.props`. If the CloudCannon schema file does not declare that key, the editor forwards only `heading`, and the component re-renders with `categorySlug` undefined.
 
-- ❌ Did not help: declaring `postsSection.categorySlug` as a hidden `_input` in `cloudcannon.config.yml`.
-- ✅ Fixed it: adding `categorySlug: ""` inside the `postsSection:` block in `.cloudcannon/schemas/page.md`.
+- ❌ Does not help: declaring `postsSection.categorySlug` as a hidden `_input` in `cloudcannon.config.yml`.
+- ✅ Fixes it: adding `categorySlug: ""` inside the `postsSection:` block in `.cloudcannon/schemas/page.md`.
 
 ### Debug snippet
 

@@ -84,7 +84,7 @@ Override either answer with `--output` and `--build-cmd`. See [setup.md § Build
 | "`cloudcannon dev` is running, so the loop works."         | It serves a directory and nothing else. Without a watcher, nothing regenerates after a save.                                   |
 | "The editor saved but the page did not change."            | Expected without a watcher, and expected for a few seconds with one — the build has to finish. Check the `cc-serve.sh` output. |
 | "I will open `/index.html` to see the built page."         | `/` and `/index.html` both serve the CloudCannon app. The built homepage is at `/__output/index.html`.                         |
-| "`/en/` returns 500, the server is broken."                | The server has no directory index. Request `/en/index.html`.                                                                   |
+| "`/about/` returns 500, the server is broken."             | The server has no directory index. Request `/about/index.html`.                                                                |
 | "Port 10101 answers, so my site is up."                    | It proves a dev server is there, not that it is yours. `cc-serve.sh` probes for its own output before trusting the port.       |
 | "The diff is huge, something corrupted it."                | CloudCannon reserialises the whole frontmatter on save. Diff the field you changed.                                            |
 | "The site built, so the postbuild's output will be there." | A plain build skips `.cloudcannon/postbuild`. See [troubleshooting.md](troubleshooting.md).                                    |

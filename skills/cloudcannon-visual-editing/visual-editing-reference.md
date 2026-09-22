@@ -456,12 +456,14 @@ not one field holding `"<span class='text-center'>Star us on <a class='underline
 
 When a component renders a section title or button text from props, register the component and wrap it with `<editable-component>` so `data-prop` paths inside resolve relative to the component's data scope. Use `data-editable="text"` on the heading and `<editable-text>` on the button label.
 
-**Button/link render gates.** A multi-field `&&` chain produces visible empty editable regions when only some fields are filled, or when a string is whitespace-only. Gate on the single user-visible field, trim whitespace, and fall the URL back to a safe default:
+**Button/link render gates.** A multi-field `&&` chain produces visible empty editable regions when only some fields are filled, or when a string is whitespace-only. Gate on the single user-visible field, trim whitespace, and fall the URL back to a safe default — so a missing URL never suppresses the region, and a whitespace-only label never renders an empty one:
 
 ```html
-<!-- gate on the label, not on label && href -->
-<a href="/#contact">Contact us</a>
+<!-- render only when the trimmed label is non-empty; href falls back to "/" -->
+<a href="/" data-editable="text" data-prop="cta.label">Contact us</a>
 ```
+
+In template terms: gate on `cta.label?.trim()` alone, not on `cta.label && cta.url`, and pass `cta.url || "/"` as the href.
 
 ## Third-party component fields
 

@@ -111,7 +111,7 @@ file_config:
         type: object
         options:
           preview:
-            icon: language
+            icon: list
 ```
 
 ### Object inputs need preview icons
@@ -243,7 +243,7 @@ Every Zod schema in the union needs a matching CC schema in `.cloudcannon/schema
 
 ## Splitting nested subdirectories into their own collections
 
-When the `pages` collection contains subdirectories that represent a distinct group of content with their own URL prefix (e.g. `pages/homes/`, `pages/landing/`), split them into separate CloudCannon collections rather than keeping everything flat under `pages`. This gives each group its own sidebar entry, correct URL pattern, and cleaner editorial experience.
+When the `pages` collection contains subdirectories that represent a distinct group of content with their own URL prefix (e.g. `pages/services/`, `pages/landing/`), split them into separate CloudCannon collections rather than keeping everything flat under `pages`. This gives each group its own sidebar entry, correct URL pattern, and cleaner editorial experience.
 
 1. **Exclude the subdirectories from `pages`** using glob negation:
 
@@ -251,7 +251,7 @@ When the `pages` collection contains subdirectories that represent a distinct gr
 pages:
   path: src/content/pages
   glob:
-    - "!homes/**"
+    - "!services/**"
     - "!landing/**"
   url: "/[slug]/"
 ```
@@ -259,9 +259,9 @@ pages:
 2. **Add a collection for each subdirectory** with its own `path` and `url`:
 
 ```yaml
-homes:
-  path: src/content/pages/homes
-  url: "/homes/[slug]/"
+services:
+  path: src/content/pages/services
+  url: "/services/[slug]/"
 landing:
   path: src/content/pages/landing
   url: "/landing/[slug]/"
@@ -417,7 +417,7 @@ schemas:
   default:
     path: .cloudcannon/schemas/page.md
     name: Page
-    new_preview_url: /elements/
+    new_preview_url: /about/
   page_builder:
     path: .cloudcannon/schemas/page-builder.md
     name: Page Builder
@@ -490,14 +490,14 @@ If the audit identified pre-build scripts (theme generation, JSON generation, se
 #!/usr/bin/env bash
 set -e
 
-node scripts/themeGenerator.js
-node scripts/jsonGenerator.js
+node scripts/generate-theme.js
+node scripts/generate-search-index.js
 ```
 
 This runs before the build command on CloudCannon. Alternatively, chain the scripts in the build command itself:
 
 ```
-node scripts/themeGenerator.js && node scripts/jsonGenerator.js && astro build
+node scripts/generate-theme.js && node scripts/generate-search-index.js && astro build
 ```
 
 ## Editor README
