@@ -130,5 +130,5 @@ Add to AutoImport so content files use it without explicit imports. Configure a 
 - Keep content bodies as clean markdown.
 - Avoid custom remark/rehype plugins that structurally transform content in ways CloudCannon's editor can't reproduce.
 - Inline HTML that editors need to modify (`<figure>`, `<video>`, `<details>`) should follow a consistent structure so it can be configured as a CloudCannon snippet.
-- For MDX sites: auto-import components used in content (via `astro-auto-import` or equivalent) rather than using explicit `import` statements.
+- For MDX sites: resolve components used in content without explicit `import` statements — via `astro-auto-import` (default) or a shared `components` map passed at every render site. See [MDX setup pipeline](../../cloudcannon-snippets/astro/overview.md#mdx-setup-pipeline-must-complete-all-four).
   **Why:** bare imports show as raw text in CloudCannon's content editor.

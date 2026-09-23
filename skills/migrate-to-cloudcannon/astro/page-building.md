@@ -102,6 +102,8 @@ const LayoutComponent = layouts[data.layout || ""] || PageLayout;
 
 Only use layouts that accept a generic props interface (e.g. `metadata`). Specialized layouts like `MarkdownLayout` often expect a different prop shape (e.g. `frontmatter`) and will crash in the catch-all. For markdown pages, use the generic layout and render the prose wrapper directly in the catch-all template.
 
+**Per-page slot overrides become layout props.** Pages that overrode a layout slot (e.g. `<Fragment slot="announcement" />` to hide a banner) need that customisation from frontmatter once one catch-all renders them all. **MUST NOT** translate it to `{hideAnnouncement && <Fragment slot="announcement" />}`: Astro registers the slot whether or not the condition is true, so `Astro.slots.has('announcement')` is true on every page and the layout's default for that slot disappears site-wide. Add a layout prop set from frontmatter instead (`<PageLayout hideAnnouncement={data.hideAnnouncement}>`, `headerVariant`) and branch on it inside the layout. See [§ Common mistakes](#common-mistakes).
+
 ### Identifying reusable page types
 
 Review the audit's component inventory for components used on **multiple pages**. If the same component pattern appears on more than one page, it's a strong candidate for a creatable schema. Editors can then create new pages of that type without developer help.
@@ -150,6 +152,8 @@ Only creatable page types appear in `add_options`. One-off pages with dedicated 
 Name the homepage file `src/content/pages/index.md`. With `url: "/[slug]/"`, CloudCannon collapses the `index` slug to `/`. Any other filename (e.g. `home.md`) resolves to `/home/` and the visual editor targets the wrong URL — even when `src/pages/index.astro` `getEntry`s the file.
 
 Promote a non-`index.md` file to root via custom route code, redirects, or ad-hoc logic. The Astro-native slug collapse (`index.md` → `/`) is the only mechanism the visual editor can follow. Custom routing desynchronises the built URL from the editor's target URL.
+
+Drive layout slots conditionally from the catch-all route (`{flag && <Fragment slot="x" />}`). The slot registers even when `flag` is false, so the layout's default for it vanishes on every page, and the build passes. Convert per-page slot overrides into layout props — see [§ Steps](#steps).
 
 ## Array-based page builder
 

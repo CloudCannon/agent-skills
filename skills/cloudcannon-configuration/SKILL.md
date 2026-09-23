@@ -98,7 +98,7 @@ The SSG-specific configuration docs contain detailed verification checklists. Th
 - **You are not done until every checklist item is verified**
 - **After every round of changes, run `npx @cloudcannon/cli validate`** — fixes unknown keys and type errors before they become hard-to-debug editor issues. See [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration)
 - Cross-reference every Zod schema field against `_inputs` — missing fields get wrong editor types
-- Every Array Input needs both a structure definition AND an `_inputs` entry linking to it
+- Every Array Input needs both a structure definition AND an `_inputs` entry linking to it (arrays of plain strings excepted — see [structures.md § The four rules](structures.md#the-four-rules-read-first))
 
 ## Common invalid keys
 
@@ -112,7 +112,7 @@ Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritati
 | `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                 |
 | `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`)  |
 | `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                        |
-| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                         |
+| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview` — see [what each `value_key` stores](astro/configuration.md#customization-checklist)    |
 | `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                         |
 | `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
 | `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |

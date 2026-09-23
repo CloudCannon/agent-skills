@@ -11,12 +11,14 @@ Without structures, CloudCannon can't populate new array items or empty objects,
 
 These are non-optional. Each gets expanded later in this doc, but the table is the quick reference.
 
-| #   | Rule                                                                                                                                                        | Failure mode if skipped                                                                 |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 1   | Every field in a structure `value` is present in the content frontmatter, even if empty.                                                                    | `undefined` errors in the visual editor. Most common migration bug.                     |
-| 2   | Every array and object input has an `_inputs` entry with `type: array`/`type: object` and an explicit `options.structures: _structures.<name>` (full path). | Editors cannot add items — the Add button won't appear or offers the wrong structure.   |
-| 3   | Every structure value includes a `preview` block with a meaningful `text` key lookup.                                                                       | Sidebar cards show only the generic label ("Item", "Action") instead of a useful value. |
-| 4   | Every nested object field editors see has `type: object` + `options.preview.icon`.                                                                          | Generic icon in the data editor; visual clutter.                                        |
+| #   | Rule                                                                                                                                                                                                               | Failure mode if skipped                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| 1   | Every field in a structure `value` is present in the content frontmatter, even if empty.                                                                                                                           | `undefined` errors in the visual editor. Most common migration bug.                     |
+| 2   | Every array and object input has an `_inputs` entry with `type: array`/`type: object` and an explicit `options.structures: _structures.<name>` (full path). Exception: arrays of primitives — see below the table. | Editors cannot add items — the Add button won't appear or offers the wrong structure.   |
+| 3   | Every structure value includes a `preview` block with a meaningful `text` key lookup.                                                                                                                              | Sidebar cards show only the generic label ("Item", "Action") instead of a useful value. |
+| 4   | Every nested object field editors see has `type: object` + `options.preview.icon`.                                                                                                                                 | Generic icon in the data editor; visual clutter.                                        |
+
+**Arrays of primitives are exempt from rule 2.** A bare `type: array` input with no `options.structures` on a `string[]` field gives a plain list of text items that editors can add to, delete from and drag-reorder. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `allow_create: true` and `values`.
 
 These apply in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Define structures during the configuration phase and use them as the blueprint when creating content files in the content phase — not as a backfill step.
 
@@ -364,19 +366,25 @@ See [configuration.md § Object inputs need preview icons](astro/configuration.m
 
 ### Fields to include vs exclude
 
-| Include                                                           | Exclude                                 |
-| ----------------------------------------------------------------- | --------------------------------------- |
-| Content: `title`, `subtitle`, `tagline`, `content`, `description` | `id` — HTML anchors, not content        |
-| Media: `image`, `images`                                          | `isDark` — theme variant, hardcoded     |
-| Behaviour: `isReversed`, `isAfterContent`, `isBeforeContent`      | `classes` — CSS customization           |
-| Array: `items`, `actions`, `stats`, `prices`, `testimonials`      | `bg` — background slot content          |
-| Configuration: `columns`, `count`                                 | `defaultIcon` — component-level default |
+| Include                                                           | Exclude                                                                       |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Content: `title`, `subtitle`, `tagline`, `content`, `description` | `id` — HTML anchors, not content (unless in-page links target it — see below) |
+| Media: `image`, `images`                                          | `isDark` — theme variant, hardcoded                                           |
+| Behaviour: `isReversed`, `isAfterContent`, `isBeforeContent`      | `classes` — CSS customization                                                 |
+| Array: `items`, `actions`, `stats`, `prices`, `testimonials`      | `bg` — background slot content                                                |
+| Configuration: `columns`, `count`                                 | `defaultIcon` — component-level default                                       |
+
+**Keep `id` when in-page links target it.** If nav, footer or button links point at a block's `id` (`href="#pricing"`), excluding it drops it from the extracted content and breaks those links. Keep `id` in the content and in the structure, and pick per site:
+
+- **Default:** `hidden: true`. Links keep working and editors can't break them — see [astro/configuration.md § Hide developer-only frontmatter fields](astro/configuration.md#hide-developer-only-frontmatter-fields).
+- **Visible:** a `type: text` input labelled "Anchor ID", when editors are expected to add sections they'll link to.
 
 ### Guarding empty objects and arrays in components
 
 In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truthy object. `actions: []` is also truthy. Component conditionals must check for meaningful content, not just the outer value:
 
 - Objects: check a meaningful inner field — `image?.src &&` not `image &&`, `(callToAction?.text || callToAction?.icon) &&` not `callToAction &&`.
+- Images: **MUST** guard every image render with `image?.src &&`, including in components that already default the prop. **Why:** on re-render the Visual Editor passes empty image objects (`{ src: null, alt: null }`) through intact, even where the build path stripped or defaulted them, and `<Image>` throws on the missing `src`/`alt`. Build-only checks never exercise this path.
 - Arrays: check `.length` — `actions?.length > 0 &&` not `actions &&`.
 - Numbers: don't seed `0` as a placeholder for a genuinely-optional numeric field — nothing distinguishes it from a real zero. Where `0` is a legitimate value, guard with an explicit comparison (`rating > 0 &&`), never bare truthiness.
 

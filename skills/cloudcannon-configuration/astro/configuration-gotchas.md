@@ -360,7 +360,7 @@ A common case: data files handled via `data_config` still need to belong to a co
 
 ## Always link arrays to structures explicitly
 
-See [structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name).
+See [structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name). Arrays of primitives (`string[]`) are the exception: a bare `type: array` is enough.
 
 ## Add preview icon fallbacks on structures
 
@@ -447,6 +447,8 @@ Options, in order of preference:
 3. **Hybrid** — move frequently-edited fields to JSON while keeping developer-only settings in TypeScript.
 
 **Imported assets in TypeScript config:** When the config imports images (e.g. `import ogImage from "@/assets/og-image.png"`), these can't be expressed in JSON. Copy the image to `public/` and reference it as a static path string (e.g. `"/og-image.png"`). Components that consume the value (like `Seo.astro`) typically already handle both `ImageMetadata` objects and string paths via `typeof image === "string"` branching. Keep the TypeScript file as a thin re-export wrapper: `import data from "@/data/site-settings.json"; export const siteConfig = data;` — this preserves all existing import paths while making the data CC-editable.
+
+**Literal types:** JSON imports widen literal types (`"ltr" | "rtl"` → `string`, `true` → `boolean`, `"x" | false` → `string`), so the thin wrapper no longer satisfies the original config type and builds that run `astro check` fail. Cast in the wrapper (`config as SiteConfig`) or validate it (zod parse). A cast removes the compile-time guard, so constrain those values in CloudCannon with `select`/`switch` inputs.
 
 ## Pages collection: including `.astro` pages
 

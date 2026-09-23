@@ -27,7 +27,7 @@ When `data-type` is omitted, CloudCannon defaults to `block`/`text` for Source E
 
 ### EditableImage
 
-Image editing via CloudCannon's data panel. The region **host** is either (1) an `<img>` with `data-editable="image"` and path attributes on that same element, or (2) a non-`img` host (`<editable-image>`, `<div data-editable="image">`, layout wrapper, etc.) that contains a descendant `<img>`. The resolved `<img>` is what gets live `src` / `alt` / `title` updates — each facet can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields).
+Image editing via CloudCannon's data panel. The region **host** is either (1) an `<img>` with `data-editable="image"` and path attributes on that same element, or (2) a non-`img` host (`<editable-image>`, `<div data-editable="image">`, layout wrapper, etc.) that contains a descendant `<img>`. The resolved `<img>` is what gets live `src` / `alt` / `title` updates — each facet can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields whose only keys are `src`/`alt`/`title`).
 
 ### EditableComponent
 

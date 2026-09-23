@@ -104,6 +104,7 @@ Run through these after setup, before starting on editable regions:
 - [ ] Base layout conditionally imports `registerComponents` inside `if (window.inEditorMode)`
 - [ ] `src/icons/` directory exists (required by `astro-icon` even if empty)
 - [ ] Every registered component, and everything it renders, has been grepped for `Astro.` reads other than `props`, `slots` and `request` — nothing else exists in a re-render, and the failure is invisible at build time → [Runtime shims](visual-editing-reference.md#how-the-astro-integration-works)
+- [ ] Every registered component, and everything it renders, has been grepped for `.svg` imports — SVG component imports throw `NoMatchingRenderer` in a re-render; use `?raw` + `set:html` → [SVG component imports](visual-editing-reference.md#module-compatibility-in-the-editable-regions-client-bundle)
 - [ ] `astro-icon`, if installed, is ≤ 1.1.5 — or ≥ 1.2.0 with the `Astro.locals` crash addressed → [astro-icon](visual-editing-reference.md#astro-icon)
 - [ ] `astro build` passes cleanly after setup
 

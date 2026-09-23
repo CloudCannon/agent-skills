@@ -30,7 +30,7 @@ npm run build
 
 ### Peer dependency conflicts
 
-Older `@cloudcannon/editable-regions` versions may not list Astro 5+ as a supported peer. Use `--legacy-peer-deps` (npm) or equivalent to bypass.
+Current `@cloudcannon/editable-regions` versions declare no Astro peer. Use `--legacy-peer-deps` (npm) or the equivalent only if install actually reports a conflict. **MUST NOT** add it pre-emptively — it can hide real conflicts.
 
 ### Style injection
 

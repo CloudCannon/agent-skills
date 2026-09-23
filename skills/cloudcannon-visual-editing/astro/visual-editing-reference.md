@@ -126,6 +126,8 @@ For an object image field, bind the whole object:
 </editable-image>
 ```
 
+This only works when the object's keys are limited to `src`, `alt` and `title`. If it has any other key (`width`, `caption`, etc.), the Visual Editor throws `Image editable region received an unexpected value key "<key>"`. Bind the facets instead: `<editable-image data-prop-src="hero_image.src" data-prop-alt="hero_image.alt">`.
+
 **Image location and optimization.** Optimized images belong in `src/assets/`, not `public/`. Frontmatter stores the full repo-relative path (e.g. `/src/assets/images/hero.webp`). Components use `import.meta.glob` to resolve the string to `ImageMetadata` at build time — see [content.md § Resolving optimized image paths](../../migrate-to-cloudcannon/astro/content.md#resolving-optimized-image-paths-from-frontmatter). Don't downgrade to `<img>` just because the path comes from frontmatter.
 
 **Upload paths.** Configure per-input upload paths so optimized images go to `src/assets/images` while unoptimized ones use the global `public/` path. The per-input `static: ''` is critical — without it CloudCannon strips the path prefix and `import.meta.glob` can't resolve the image. See [configuration.md § Image path configuration](../../cloudcannon-configuration/astro/configuration.md#image-path-configuration).
@@ -521,7 +523,7 @@ registerAstroComponent("announcement", AnnouncementDisplay);
 ### Astro-specific caveats on component regions
 
 - Astro components importing `astro:content` or `astro:assets` need the integration's Vite plugin, which shims those modules for client-side rendering.
-- React components inside registered Astro components (e.g. `react-icons`) need the React framework renderer. Add `import "@cloudcannon/editable-regions/astro-react-renderer"` to `registerComponents.ts` — a side-effect import registering a catch-all React renderer. Without it, any React component encountered during re-rendering fails with "NoMatchingRenderer". Its `check` function unconditionally returns `true`, so it acts as a fallback for all unmatched components — import it **after** any other framework renderers.
+- React components inside registered Astro components (e.g. `react-icons`) need the React framework renderer. Add `import "@cloudcannon/editable-regions/astro-react-renderer"` to `registerComponents.ts` — a side-effect import registering a catch-all React renderer. Without it, any React component encountered during re-rendering fails with "NoMatchingRenderer". Its `check` function unconditionally returns `true`, so it acts as a fallback for all unmatched components — import it **after** any other framework renderers. `NoMatchingRenderer` has a second cause the React renderer doesn't fix: SVG files imported as components. See [SVG component imports](#module-compatibility-in-the-editable-regions-client-bundle).
 - The React renderer covers React only. There are no equivalents for Vue, Svelte or Solid; those always error and must be converted or given fallbacks.
 - **Runtime `fetch()` in islands** isn't blocked by editable-regions, but preview iframes often differ from production (CORS, auth cookies, relative URLs). Test in the visual editor if the UI depends on it.
 
@@ -624,6 +626,16 @@ The `editableRegions()` integration builds a client bundle that re-renders regis
 **Third-party virtual modules** — modules like `virtual:astro-icon` aren't intercepted at all, since the resolver only handles `astro:*` prefixed imports. Their own Vite plugins resolve them in the same build pipeline. As long as the emitted module is browser-safe, they work. Most Vite virtual modules emit static data or pure JS at build time, so this is the common case.
 
 **What doesn't work** — components using Node-only APIs at runtime (filesystem access, `process.env`, native binaries) fail in the browser context. Vue, Svelte and Solid have no renderers and need editing fallbacks.
+
+**SVG component imports** — in the site build, `import Icon from './x.svg'` (or `import.meta.glob` over `.svg` files) gives an Astro component that renders `<svg>`. In the client bundle the same import compiles to image metadata (`{src, width, height, format}`), so rendering it throws `NoMatchingRenderer: Unable to render 'Icon'`. `astro build` passes and the `Astro.*` grep doesn't catch it. In registered components, and everything they render, import SVGs as raw strings and inline them:
+
+```astro
+---
+const icons = import.meta.glob('../icons/*.svg', { query: '?raw', import: 'default', eager: true });
+const svg = icons[`../icons/${name}.svg`];
+---
+{svg && <Fragment set:html={svg} />}
+```
 
 ### `astro-icon`
 

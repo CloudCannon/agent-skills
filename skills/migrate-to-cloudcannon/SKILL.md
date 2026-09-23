@@ -75,12 +75,12 @@ Not every site needs all phases. Small sites may skip Phase 3 if content is alre
 For each phase, in order:
 
 1. **Read** the phase doc end-to-end before touching any files.
-2. **TaskCreate** one task per checklist item in that phase doc. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
+2. **Track** one task per checklist item in that phase doc, using the host's task/todo tool. If there is none, keep the checklist in the phase's migration note and tick items off there. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
 3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
 4. **Write** `.cloudcannon/migration/<phase>.md` documenting decisions, findings, and anything the user should review.
 5. **Check the handoff readiness row below.** If it's met, the phase is safe to hand off to a fresh conversation. Whether you actually open a fresh conversation is a judgment call (see [chunking.md](chunking.md)) — within one conversation, just continue.
 
-**Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. TaskCreate makes the skim visible.
+**Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. Per-item tracking makes the skim visible.
 
 ### Phase handoff readiness
 

@@ -97,7 +97,11 @@ When a shared component renders title/subtitle/tagline for many widgets, adding 
 
 ### Content-sourced objects and arrays are never falsy
 
-Content YAML objects with all-null inner fields and empty arrays are truthy in JavaScript. Guard on meaningful inner fields (`image?.src &&`) and array length (`actions?.length > 0 &&`). See [structures.md § Guarding empty objects and arrays](../cloudcannon-configuration/structures.md#guarding-empty-objects-and-arrays-in-components) for the full pattern with examples.
+Content YAML objects with all-null inner fields and empty arrays are truthy in JavaScript. Guard on meaningful inner fields (`image?.src &&`) and array length (`actions?.length > 0 &&`).
+
+**MUST** guard every image render with `image?.src &&`, not `image &&`, including in components that already have a default. **Why:** on re-render the Visual Editor passes empty image objects (`{ src: null, alt: null }`) through intact, even where the build path stripped or defaulted them, and image components throw on the missing `src`/`alt`. Build-only checks never exercise this path.
+
+See [structures.md § Guarding empty objects and arrays](../cloudcannon-configuration/structures.md#guarding-empty-objects-and-arrays-in-components) for the full pattern with examples.
 
 Components that accept both a string and a structured object for the same slot need the string branch preserved when guards are tightened. See your SSG's reference for its own dual-shape idiom.
 
@@ -154,6 +158,14 @@ The same bindings work directly on a plain `<img>` host, which suits hand-author
 
 ```html
 <div data-editable="image" data-prop="hero_image">
+  <img src="…" alt="…" />
+</div>
+```
+
+Whole-object binding only works when the object has **no keys other than** `src`, `alt` and `title`. Any extra key (`width`, `caption`, etc.) makes the Visual Editor throw `Image editable region received an unexpected value key "<key>"`. For those objects, bind the facets with dotted paths instead:
+
+```html
+<div data-editable="image" data-prop-src="hero_image.src" data-prop-alt="hero_image.alt">
   <img src="…" alt="…" />
 </div>
 ```
@@ -240,6 +252,8 @@ Split the layout container from the array container:
   <div><!-- static logo + tagline --></div>
 </div>
 ```
+
+`display: contents` (`class="contents"`) is the right tool for an **array wrapper**: it keeps the grid or flex layout intact when you add a wrapper for array purity. **MUST NOT** use it on `array-item` elements or image hosts. **Why:** the editor draws its hover outline, item controls and drag/drop position from the element's own box, and `display: contents` removes that box, so move/delete controls vanish on items and images lose their outline and controls.
 
 ## Page builder blocks
 
@@ -564,7 +578,9 @@ if (window.inEditorMode) {
 }
 ```
 
-**Audit flag:** flag any scroll-reveal or entrance animation pattern early. Search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and the common class names above, and note the files responsible so they can be patched when regions are wired up.
+**Other scripts that fight editing.** The same rule applies beyond reveal animations. Any script that mutates editable DOM (count-up numbers that rewrite `textContent`, text rotators, typewriter effects) or intercepts clicks on editable elements (lightboxes, video players) **MUST** early-return under `window.inEditorMode`. **Why:** a mutating script overwrites what the editor just wrote, or leaves the region showing a value that isn't the field's, and a click handler steals the click the editor needs to open the region.
+
+**Audit flag:** flag any scroll-reveal or entrance animation pattern, and any script from the paragraph above, early. Search for `opacity: 0` in CSS, `IntersectionObserver`, `textContent =`, `setInterval` and click listeners in JS, and the common class names above, and note the files responsible so they can be patched when regions are wired up.
 
 ## Troubleshooting
 

@@ -221,7 +221,7 @@ Flatten folder-per-post content (`blog/my-post/index.md`) to flat files (`blog/m
 **Checklist before flattening:**
 
 1. **Check for sibling assets** — images or other files co-located in the post's directory. Move images to `src/assets/images/` (preserving Astro's image optimization) and other static files to `public/`. Update references accordingly — imported images use the new `src/assets/images/` path, static files use absolute paths from `public/`.
-2. **Check for relative imports in MDX** — components imported with `./component.astro` paths. Move them to `src/components/` and set up `astro-auto-import` so they're available without explicit imports.
+2. **Check for relative imports in MDX** — components imported with `./component.astro` paths. Move them to `src/components/` and make them available without explicit imports — `astro-auto-import` by default, or the shared `components` map (see [MDX setup pipeline](../../cloudcannon-snippets/astro/overview.md#mdx-setup-pipeline-must-complete-all-four)).
 3. **Rename files** — `dir/index.md` becomes `dir.md`. Remove the now-empty directories.
 4. **Remove `slug` frontmatter** — no longer needed since the filename provides the slug.
 5. **Update CC config** — switch URL patterns from `{slug}` to `[slug]`.
@@ -262,6 +262,8 @@ Extract editor-facing settings (navigation, social links, colors, CTAs) from TS 
 3. Update consuming components to import from the JSON files
 4. Strip extracted values from the TS config (set to empty defaults)
 5. Add `data_config` entries and `file_config` with appropriate `_inputs` and `_structures` in the CC config
+
+JSON imports widen literal types (`"ltr" | "rtl"` → `string`, `true` → `boolean`, `"x" | false` → `string`), so a TS module that re-exports the JSON no longer satisfies the original config type and builds that run `astro check` fail. Cast in the wrapper (`config as SiteConfig`) or validate it (zod parse). A cast removes the compile-time guard, so constrain those values in CloudCannon with `select`/`switch` inputs.
 
 After extraction, audit the consuming component template for hardcoded values (icons like `lucide:rocket`, colors, link targets, label text, image paths) and move those into the data file too. Editors lose access to any visible value the template hardcodes, even if the original TS config didn't expose it. Extraction is the opportunity to fix this — if an editor can see it and it could reasonably vary, it belongs in the data file.
 

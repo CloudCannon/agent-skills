@@ -89,6 +89,8 @@ Adding the `--dry-run` flag prints the file output instead:
 npx @cloudcannon/cli configure generate --auto --dry-run
 ```
 
+Review the output before customizing. In particular, `timezone` is the timezone of the machine that ran the CLI, and `node_version` can be missing even when `.nvmrc` exists — see [astro/configuration.md § Review the generated config](astro/configuration.md#review-the-generated-config).
+
 ## Validating Configuration
 
 Run after generating the baseline and after each round of customization.
