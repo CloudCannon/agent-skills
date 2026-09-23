@@ -99,7 +99,17 @@ _inputs:
 
 The rest of the input config (`allow_create`, `value_key`, `preview`) stays the same as the inline approach.
 
-A single global `icon` input definition covers all fields that accept icon names.
+### Where the input definition goes
+
+**MUST:** define `icon` once, at the root of `cloudcannon.config.yml` — not per structure.
+
+`_inputs` matches by key name regardless of nesting depth (see [§ `_inputs` key collision across nesting levels](#_inputs-key-collision-across-nesting-levels)), and an `_inputs` entry left undefined at a more specific level of the [configuration cascade](https://cloudcannon.com/documentation/articles/using-the-configuration-cascade/) falls back to the configuration file's entry. One root-level `icon` entry therefore reaches every `icon` field on the site, including keys inside structure `value:` blocks and co-located `*.cloudcannon.structure-value.yml` files.
+
+Add a scoped entry only where one context genuinely differs — `hero.icon` for a larger curated set, say. `cascade` defaults to `true`, so that scoped entry merges with the root one rather than replacing it; set `cascade: false` on it to stop the merge.
+
+**Why:** the failure mode is not a wrong entry, it is a missing one. A migration that configures `icon` on the five widget-level fields it happened to look at, and leaves the per-item `icon` inside a dozen structure values undefined, gives editors a free-text box on exactly the fields they use most — and it looks correct in the config, because the entries that exist are right.
+
+**Check:** every structure `value:` key whose values come from a fixed set — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — resolves to an `_inputs` entry at some level of the cascade. Sweep `cloudcannon.config.yml` and the `*.cloudcannon.structure-value.yml` files for those keys and confirm each one; a field with no matching entry anywhere is a text box.
 
 **Common miss:** Do NOT use `values: data.icons[*].id` — this extracts only the raw ID strings (e.g. `tabler:rocket`), losing the `name` field entirely. Editors see cryptic Iconify IDs in the dropdown instead of friendly names like "Rocket". Use `values: data.icons` (the full objects) with `value_key: id` so the stored value is the ID but the dropdown displays the name via `preview.text`.
 
@@ -211,6 +221,8 @@ _inputs:
 ```
 
 `allow_create: true` is appropriate for icon fields (developers may want a custom Iconify name). For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug.
+
+Placement follows the same rule as icons: define the input once at the root of `cloudcannon.config.yml` and let the cascade reach every structure that uses the key. See [§ Where the input definition goes](#where-the-input-definition-goes).
 
 ## Quote numeric values that map to text inputs
 

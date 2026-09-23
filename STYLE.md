@@ -72,7 +72,7 @@ Canonical example: `cloudcannon-configuration/collection-urls.md` owns placehold
 | `cloudcannon-visual-editing` | Yes — component re-rendering is framework-bound | `overview.md`, `visual-editing.md`, `visual-editing-reference.md`           |
 | `cloudcannon-snippets`       | Only if the SSG has its own component syntax    | `overview.md`                                                               |
 | `make-site-multilingual`     | Yes — root derivation and the pipeline differ   | `overview.md`                                                               |
-| `cloudcannon-dev-server`     | No — but teach `cc-serve.sh` its output layout  | —                                                                           |
+| `cloudcannon-dev-server`     | No — the CLI's own detection covers it          | —                                                                           |
 | `cloudcannon-cli`            | No — the CLI's own commands are SSG-agnostic    | —                                                                           |
 | `translate-site`             | No — it operates on files, not templates        | —                                                                           |
 | `brainstorming`              | No                                              | —                                                                           |

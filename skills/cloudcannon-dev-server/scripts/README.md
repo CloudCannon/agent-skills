@@ -1,67 +1,41 @@
 # Scripts
 
-One launcher and the watcher it starts. The Node script is ESM with no dependencies, and nothing
-here opens a browser.
-
-Run them from this directory, or with an absolute path.
-
-## `cc-serve.sh`
-
-Starts the local editing loop: build once, run `.cloudcannon/postbuild` if present, start the
-rebuild watcher, serve the output under `cloudcannon dev`. Ctrl-C stops the watcher and the
-server together.
-
-```sh
-bash cc-serve.sh /path/to/site --port 10101
-```
-
-| Flag             | Meaning                                                                  |
-| ---------------- | ------------------------------------------------------------------------ |
-| `--output`       | Output directory, for an SSG whose layout is not detected                |
-| `--build-cmd`    | Command that builds the site, for an SSG whose build is not detected     |
-| `--watch-cmd`    | Replace the default watcher with the SSG's own watch build               |
-| `--port`         | Dev server port (default 10101, or `CC_DEV_PORT`)                        |
-| `--no-build`     | Skip the initial build                                                   |
-| `--no-postbuild` | Skip `.cloudcannon/postbuild`                                            |
-| `--no-watch`     | Serve without rebuilding — the editor's saves will not reach the preview |
-
-It gets the build command and output directory from
-`cloudcannon configure detect-build-commands`, taking the first suggestion for each, so detection
-covers every SSG the CLI knows and never drifts from it. It does **not** read the output directory
-from `cloudcannon.config.yml`: there is no `paths.output` key.
-
-**Before it trusts a port**, it writes a token into its own output directory and reads it back
-through `/__output/`. A matching token means this site is already served, and it reuses it; a
-mismatch means another project holds the port, and it refuses rather than stopping a server it
-did not start.
-
-Runs the postbuild in a subshell — CloudCannon sources that file in production, so shell options
-set inside it would otherwise leak into the caller.
+One optional script. ESM, no dependencies, nothing here opens a browser.
 
 ## `watch-build.mjs`
 
-Re-runs the build command whenever a source file changes. `cc-serve.sh` starts this; run it
-directly only to rebuild against a server started some other way.
+Re-runs the build when a source file changes, so the directory `cloudcannon dev` serves stays
+current. Optional: rebuilding by hand does the same job, and the preview reloads itself either
+way.
 
 ```sh
-node watch-build.mjs --build-cmd "npm run build" --output _site
+node watch-build.mjs --root /path/to/site \
+  --build-cmd "bash .cloudcannon/prebuild && npm run build && bash .cloudcannon/postbuild"
 ```
 
-| Flag          | Meaning                                                     |
-| ------------- | ----------------------------------------------------------- |
-| `--build-cmd` | Shell command that builds the site (required)               |
-| `--output`    | Output directory to ignore, relative to `--root` (required) |
-| `--root`      | Directory to watch (default: cwd)                           |
-| `--debounce`  | Quiet period before rebuilding, in ms (default 300)         |
+| Flag          | Meaning                                              |
+| ------------- | ---------------------------------------------------- |
+| `--build-cmd` | Shell command that builds the site (required)        |
+| `--watch`     | Extra directory to watch; repeatable                 |
+| `--root`      | Project root (default: cwd)                          |
+| `--debounce`  | Quiet period before rebuilding, in ms (default: 300) |
 
-It ignores the output directory, `node_modules`, `.git`, `.cache`, `.astro` and `.netlify`.
-Ignoring the output directory is what stops the build's own writes retriggering it.
+It builds once at startup, then on every change. It never runs two builds at once, and a change
+that arrives mid-build queues one more pass rather than being dropped. Run it alongside
+`cloudcannon dev` in a second terminal; neither supervises the other.
 
-A change arriving mid-build queues one more pass rather than being dropped, so an edit saved
-while a build is running is never missed.
+**It watches an allowlist of source directories, not the whole project.** `src`, `content`,
+`data`, `layouts`, `_includes`, `_posts` and similar, whichever exist, plus files directly in the
+project root for `cloudcannon.config.yml` and the SSG's own config. It prints the list at startup.
 
-## `lib/`
+**Why:** a build that writes back into the source tree — `cp -r dist/pagefind public/`, a prebuild
+generating into `src/` — retriggers a watcher pointed at its target, forever. Watching only what a
+person edits is what makes that impossible, and it needs no per-site ignore list. Static-asset
+directories are absent for that reason; add one with `--watch public` where the build does not
+write there.
 
-| File       | Purpose                                                         |
-| ---------- | --------------------------------------------------------------- |
-| `args.mjs` | Flag parsing (repeats accumulate into arrays), `--help`, output |
+If a build does feed itself anyway, the script stops after five back-to-back rebuilds and says so,
+rather than looping silently.
+
+`cloudcannon dev` is expected to grow a build-and-watch mode of its own. No flag belongs here that
+a different `--build-cmd` or `--watch` can already express, and this file goes when that ships.

@@ -3,28 +3,57 @@ name: cloudcannon-dev-server
 description: >-
   Use when running a CloudCannon site locally with `cloudcannon dev` — starting
   the local editing loop so the user can edit in the CloudCannon editor and see
-  the site rebuild, choosing the build and watch commands per SSG, and reading
-  the `/__api` surface the server exposes.
+  the site rebuild, choosing the build command per SSG, and reading the
+  `/__api` surface the server exposes.
 ---
 
 # The CloudCannon dev server
 
 `cloudcannon dev` runs the real CloudCannon app against local files, with no login, on one origin. This skill starts the local editing loop and hands it to the user.
 
+## The rule that costs the most sessions
+
+**MUST rebuild the site after every change. `cloudcannon dev` never builds.**
+
+**Why:** the server serves a directory and syncs source files; it does not run the SSG. `--live-sync` carries an editor save to disk, so the field shows the new text — but the preview renders the built output, and nothing regenerated it. The user sees their edit in the field and the old page beside it, with no error anywhere.
+
 ## The loop
 
-One command gives the user both halves of it:
-
 ```sh
-bash scripts/cc-serve.sh /path/to/site
+cloudcannon configure detect-build-commands   # build command and output directory
+<build the site>                              # see The build command, below
+cloudcannon dev <output-dir> --port 10101     # leave running
 ```
 
-| They do this                       | This happens                                             |
-| ---------------------------------- | -------------------------------------------------------- |
-| Change a source file in the editor | The rebuild watcher rebuilds, the preview updates itself |
-| Change a source file on disk       | The same watcher rebuilds, the preview updates itself    |
+Then tell them to open `http://localhost:10101`, and that Ctrl-C stops the server.
 
-Then tell them to open `http://localhost:10101`, and that Ctrl-C stops everything.
+| They do this                       | This happens                                                      |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| Change a source file in the editor | It reaches disk. **Rebuild**, then the preview updates itself     |
+| Change a source file on disk       | Same — the server syncs it into the app. **Rebuild**, same result |
+
+The preview reloads itself whenever the output directory changes, so a rebuild in a second terminal closes the loop with nothing else running. See [dev-server-api.md § Events](dev-server-api.md#events).
+
+**Offer the user both routes and let them pick:**
+
+| Route       | What they do                             | Costs                                           |
+| ----------- | ---------------------------------------- | ----------------------------------------------- |
+| **Manual**  | Re-run the build after a batch of edits  | Nothing. Rebuild when they want a fresh preview |
+| **Watched** | Run [watch-build.mjs](scripts/README.md) | A full build per change, hooks included         |
+
+Default to manual when the build is slow or the site has a postbuild that rewrites the output. Default to watched when the user is editing in the browser and wants the page to follow along.
+
+## The build command
+
+**MUST detect the build with the CLI rather than by looking for config files.** `cloudcannon configure detect-build-commands` is the product's own detection and covers every SSG the CLI knows. **MUST NOT** keep a second detection table anywhere in this skill; it would drift from the CLI's.
+
+**MUST compose `.cloudcannon/prebuild` and `.cloudcannon/postbuild` around the build.** CloudCannon runs them around `build_command`, which is why `build_command` must not invoke them — so locally nothing does, and a site whose postbuild rewrites the output serves a page missing everything that hook produced.
+
+```sh
+bash .cloudcannon/prebuild && npm run build && bash .cloudcannon/postbuild
+```
+
+Skip hooks the site does not have. If the site already has a local-parity script that runs them, use that instead so nothing fires twice — see [setup.md § The postbuild](setup.md#the-postbuild).
 
 ## When to use
 
@@ -40,51 +69,23 @@ Then tell them to open `http://localhost:10101`, and that Ctrl-C stops everythin
 - **Driving the editor in a browser** — clicking regions, dumping inputs, screenshotting. Ask the user to look.
 - **Final sign-off.** Local CloudCannon has no real save-to-git, no build pipeline and no permissions. A human still confirms on the hosted site.
 
-## The rule that costs the most sessions
-
-**MUST start a rebuild watcher alongside `cloudcannon dev`, not `cloudcannon dev` alone.**
-
-**Why:** the server syncs, it does not build. `--live-sync` carries source changes between disk and the app, so an editor save reaches the file and the editor shows the new text — but the preview renders the built output, and nothing regenerated it. The user sees their edit in the field and the old page beside it, with no error anywhere. `cc-serve.sh` starts the watcher; a hand-rolled equivalent must too.
-
-## SSG coverage
-
-`cloudcannon dev` is SSG-agnostic — it serves a directory, and `cc-serve.sh` asks the CLI which directory that is:
-
-```sh
-cloudcannon configure detect-ssg              # which SSG, and the scores behind the guess
-cloudcannon configure detect-build-commands   # build command, output directory, with attribution
-```
-
-That covers every SSG the CLI knows — Astro, Eleventy, Hugo, Jekyll, Next.js, SvelteKit, Gatsby, Nuxt, Docusaurus, Lume, Bridgetown, Hexo, MkDocs, Sphinx. **MUST NOT** keep a second detection table anywhere in this skill; it would drift from the CLI's.
-
-Override either answer with `--output` and `--build-cmd`. See [setup.md § Build and watch commands](setup.md#build-and-watch-commands).
-
 ## Contents
 
-| File                                     | Covers                                                                         |
-| ---------------------------------------- | ------------------------------------------------------------------------------ |
-| [setup.md](setup.md)                     | Prerequisites, what `cloudcannon dev` does and does not do, build/watch, ports |
-| [dev-server-api.md](dev-server-api.md)   | The `/__api` surface — every route and the event stream                        |
-| [troubleshooting.md](troubleshooting.md) | Symptom → cause → fix                                                          |
-| [scripts/README.md](scripts/README.md)   | Every script and its flags                                                     |
-
-## Scripts
-
-**Locate the scripts before running them.** The commands here assume this skill sits at `skills/cloudcannon-dev-server/`. Depending on the install route it may be under `.agents/skills/`, `.cursor/skills/`, or a plugin directory outside the project — adjust the path to wherever this skill's `scripts/` actually sits.
-
-| Script                                     | Purpose                                                      |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| [cc-serve.sh](scripts/cc-serve.sh)         | Build, warn about the postbuild, start the watcher and serve |
-| [watch-build.mjs](scripts/watch-build.mjs) | Rebuild on source change. `cc-serve.sh` starts it            |
+| File                                     | Covers                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| [setup.md](setup.md)                     | Prerequisites, what `cloudcannon dev` does and does not do, hooks, ports |
+| [dev-server-api.md](dev-server-api.md)   | The `/__api` surface — every route and the event stream                  |
+| [troubleshooting.md](troubleshooting.md) | Symptom → cause → fix                                                    |
+| [scripts/README.md](scripts/README.md)   | `watch-build.mjs` and its flags                                          |
 
 ## Common mistakes
 
-| Excuse                                                     | Reality                                                                                                                        |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| "`cloudcannon dev` is running, so the loop works."         | It serves a directory and nothing else. Without a watcher, nothing regenerates after a save.                                   |
-| "The editor saved but the page did not change."            | Expected without a watcher, and expected for a few seconds with one — the build has to finish. Check the `cc-serve.sh` output. |
-| "I will open `/index.html` to see the built page."         | `/` and `/index.html` both serve the CloudCannon app. The built homepage is at `/__output/index.html`.                         |
-| "`/about/` returns 500, the server is broken."             | The server has no directory index. Request `/about/index.html`.                                                                |
-| "Port 10101 answers, so my site is up."                    | It proves a dev server is there, not that it is yours. `cc-serve.sh` probes for its own output before trusting the port.       |
-| "The diff is huge, something corrupted it."                | CloudCannon reserialises the whole frontmatter on save. Diff the field you changed.                                            |
-| "The site built, so the postbuild's output will be there." | A plain build skips `.cloudcannon/postbuild`. See [troubleshooting.md](troubleshooting.md).                                    |
+| Excuse                                                     | Reality                                                                                                   |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| "`cloudcannon dev` is running, so the loop works."         | It serves a directory and nothing else. Until something rebuilds, the preview is whatever was built last. |
+| "The editor saved but the page did not change."            | Expected. Rebuild — and with a watcher, wait for the build to finish.                                     |
+| "I will open `/index.html` to see the built page."         | `/` and `/index.html` both serve the CloudCannon app. The built homepage is at `/__output/index.html`.    |
+| "`/about/` returns 500, the server is broken."             | The server has no directory index. Request `/about/index.html`.                                           |
+| "Port 10101 answers, so my site is up."                    | It proves a dev server is there, not that it is yours. Serve on a port you chose and know is free.        |
+| "The diff is huge, something corrupted it."                | CloudCannon reserialises the whole frontmatter on save. Diff the field you changed.                       |
+| "The site built, so the postbuild's output will be there." | A plain build skips `.cloudcannon/postbuild`. Compose the hooks around it.                                |

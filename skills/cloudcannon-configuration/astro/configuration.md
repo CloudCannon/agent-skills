@@ -34,7 +34,7 @@ Build settings must be nested under a `build` key. The old flat format (`build_c
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ssg`                   | `"astro"`                                                                                                                                                                                                                    |
 | `build.install_command` | From the detected package manager. Omit if none.                                                                                                                                                                             |
-| `build.build_command`   | The script from `package.json` if present, otherwise `"astro build"`.                                                                                                                                                        |
+| `build.build_command`   | The bare build — `npm run build` where that is a straight build, otherwise `"astro build"`. Never a script that invokes a `.cloudcannon/` hook.                                                                              |
 | `build.output_path`     | `"dist"`                                                                                                                                                                                                                     |
 | `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists (CC reads the version from the file automatically). Otherwise the major version from `package.json` `engines.node` (`">=18"` → `"18"`). Otherwise omit — CC uses its default. |
 
@@ -482,23 +482,13 @@ See [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md) for 
 
 For the structures reference (inline vs split, field completeness, previews, deriving from components), see [../structures.md](../structures.md).
 
-## Prebuild script
+## Build hooks
 
-If the audit identified pre-build scripts (theme generation, JSON generation, search indexing), create `.cloudcannon/prebuild`:
+`.cloudcannon/preinstall`, `.cloudcannon/prebuild` and `.cloudcannon/postbuild` run around CloudCannon's build. Which hook a step belongs in — and when it belongs in the build command instead — is in [../build-hooks.md](../build-hooks.md).
 
-```bash
-#!/usr/bin/env bash
-set -e
+Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in `.cloudcannon/prebuild` rather than chaining them into `build_command`, and steps that read the **built** output (Pagefind and similar HTML indexers) in `.cloudcannon/postbuild`. `build_command` stays `npm run build`.
 
-node scripts/generate-theme.js
-node scripts/generate-search-index.js
-```
-
-This runs before the build command on CloudCannon. Alternatively, chain the scripts in the build command itself:
-
-```
-node scripts/generate-theme.js && node scripts/generate-search-index.js && astro build
-```
+**MUST NOT** let `npm run build` invoke a hook — CloudCannon runs the hooks around the build command, so a `build` script that calls them fires each one twice. Compose them in a separately named script (`build:local`) for local parity instead.
 
 ## Editor README
 
@@ -532,6 +522,8 @@ Work through these before moving to the next phase. One check per line.
 - [ ] Build settings nested under `"build"` (`build_command`, `output_path`, `install_command`)
 - [ ] `node_version` set: `"file"` when `.nvmrc`/`.node-version` exists; major version from `package.json` `engines.node` otherwise
 - [ ] `.cloudcannon/prebuild` exists if pre-build steps are needed
+- [ ] `build_command` contains no `.cloudcannon/` hook path, directly or via the script it calls
+- [ ] A separately named parity command (`build:local`) composes every hook the site has
 - [ ] `.cloudcannon/README.md` exists with editor-facing documentation
 
 ### Collections
@@ -549,6 +541,7 @@ Work through these before moving to the next phase. One check per line.
 
 - [ ] `_inputs` configured for common field types (images, dates, dropdowns, hidden fields)
 - [ ] Icon fields use `type: select` with `allow_create: true`, `value_key: id`, and named values (use a data file for 20+ icons)
+- [ ] Enum-like keys inside structure `value:` blocks — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — each resolve to an `_inputs` entry somewhere in the cascade, not just the widget-level fields. Sweep `cloudcannon.config.yml` and every `*.cloudcannon.structure-value.yml` for those keys; one root-level entry covers them all — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes)
 - [ ] Numeric frontmatter values mapped to `text` inputs are quoted as strings
 - [ ] Developer-only fields (`layout`, `_schema`, routing/rendering keys) have `hidden: true`
 - [ ] Every input has explicit config — don't rely on CC type inference from field name alone

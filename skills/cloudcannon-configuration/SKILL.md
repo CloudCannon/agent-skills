@@ -52,24 +52,7 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings
 
 This detects your SSG, collections, and build settings, and writes `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json`. The output likely needs customization — it does not infer input types, structures, select data, or editor toolbars. See [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) for step-by-step control and customization targets.
 
-## Common invalid keys
-
-Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritative. Each row specifies the real key for each hallucination. Run `npx @cloudcannon/cli validate` to catch unknown keys automatically — see [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration).
-
-| Wrong                                                               | Correct                                                                                                                                         |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `disable_url_preview: true`                                         | `disable_url: true` (toggles whether the collection has an output URL)                                                                          |
-| `output: false` (legacy Jekyll/Hugo/Eleventy key)                   | Omit `url:` and add `disable_url: true` — or use `data_config` instead of a collection                                                          |
-| `type: hidden` (deprecated value)                                   | `hidden: true` (sibling of `type`, works on any input; also `hidden: "<query>"` for conditional hiding)                                         |
-| `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                 |
-| `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`)  |
-| `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                        |
-| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                         |
-| `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                         |
-| `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
-| `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |
-| `paths.output` (invented)                                           | No such key. `paths` configures asset directories only. Tell the build tool where the output is; nothing reads it from config                   |
-| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                              |
+Observed hallucinations and their real keys: [§ Common invalid keys](#common-invalid-keys).
 
 ## Contents
 
@@ -79,6 +62,7 @@ Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritati
 | [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating a baseline with `configure`, and `validate`. CLI output **always** needs customization — it infers no input types, structures, select data, or toolbars. The rest of the CLI is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md) |
 | [structures.md](structures.md)                       | **Read early.** Every array and object Input needs a structure or editors cannot add items. Field completeness rule and definition patterns                                                                                                 |
 | [collection-urls.md](collection-urls.md)             | Collections that produce pages need a `url`. A wrong one is the most common reason a page fails to load in the Visual Editor                                                                                                                |
+| [build-hooks.md](build-hooks.md)                     | `.cloudcannon/preinstall`, `prebuild` and `postbuild` — when each runs, and when a step belongs in the build command instead                                                                                                                |
 | [troubleshooting.md](troubleshooting.md)             | Symptom → fix, for when configuration is already wrong                                                                                                                                                                                      |
 
 **SSG-specific:**
@@ -115,6 +99,25 @@ The SSG-specific configuration docs contain detailed verification checklists. Th
 - **After every round of changes, run `npx @cloudcannon/cli validate`** — fixes unknown keys and type errors before they become hard-to-debug editor issues. See [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration)
 - Cross-reference every Zod schema field against `_inputs` — missing fields get wrong editor types
 - Every Array Input needs both a structure definition AND an `_inputs` entry linking to it
+
+## Common invalid keys
+
+Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritative. Each row specifies the real key for each hallucination. Run `npx @cloudcannon/cli validate` to catch unknown keys automatically — see [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration).
+
+| Wrong                                                               | Correct                                                                                                                                         |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_url_preview: true`                                         | `disable_url: true` (toggles whether the collection has an output URL)                                                                          |
+| `output: false` (legacy Jekyll/Hugo/Eleventy key)                   | Omit `url:` and add `disable_url: true` — or use `data_config` instead of a collection                                                          |
+| `type: hidden` (deprecated value)                                   | `hidden: true` (sibling of `type`, works on any input; also `hidden: "<query>"` for conditional hiding)                                         |
+| `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                 |
+| `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`)  |
+| `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                        |
+| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                         |
+| `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                         |
+| `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
+| `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |
+| `paths.output` (invented)                                           | No such key. `paths` configures asset directories only. Tell the build tool where the output is; nothing reads it from config                   |
+| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                              |
 
 ## Common mistakes
 

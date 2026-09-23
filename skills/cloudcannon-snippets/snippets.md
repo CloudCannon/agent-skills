@@ -47,6 +47,8 @@ Most migrations use template-based for simple components and raw for anything wi
 
 For **Astro**, [astro/overview.md](astro/overview.md) connects this choice to the SSG layer: when to adopt the MDX stack (including refactoring from Markdown-only) versus staying on `.md` with more raw parsing work.
 
+Some markup shouldn't be a snippet at all — see [§ When NOT to use a snippet](#when-not-to-use-a-snippet).
+
 ---
 
 ## Snippet properties
@@ -82,12 +84,6 @@ _editables:
     bold: true
     snippet: true
 ```
-
----
-
-## When NOT to use a snippet
-
-If a rich text field contains structured HTML with a fixed layout and only a few changing values (e.g. a banner with specific classes for centering and link styling), don't define it as a snippet. Instead, decompose the HTML into explicit props and let the component own the markup. See [visual-editing-reference.md § Where does a value belong](../cloudcannon-visual-editing/visual-editing-reference.md#where-does-a-value-belong--frontmatter-structure-value-default-or-hardcoded) for the full pattern.
 
 ---
 
@@ -247,6 +243,12 @@ Three keys work together:
 Use `picker_preview` to override the gallery for the snippet picker modal (where you choose which snippet to insert). The picker doesn't have image data yet, so disable the gallery image and show a static icon instead — see the `<figure>` example above for the exact YAML shape.
 
 Apply this pattern to every snippet that has an image `editor_key` — not just `<figure>`. If the snippet has an image field, give it a gallery preview.
+
+---
+
+## When NOT to use a snippet
+
+If a rich text field contains structured HTML with a fixed layout and only a few changing values (e.g. a banner with specific classes for centering and link styling), don't define it as a snippet. Instead, decompose the HTML into explicit props and let the component own the markup. See [visual-editing-reference.md § Where does a value belong](../cloudcannon-visual-editing/visual-editing-reference.md#where-does-a-value-belong--frontmatter-structure-value-default-or-hardcoded) for the full pattern.
 
 ---
 

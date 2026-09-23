@@ -282,16 +282,6 @@ Every component used in MDX content must either have a `_snippets` entry or the 
 
 For files restricted to source/data editor, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
 
-## Common mistakes
-
-| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
-| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |
-| Leaving `import` lines at the top of `.mdx` content files                | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports.                                                      |
-| Registering `AutoImport` after `mdx()` in `astro.config.mjs`             | Order matters — `AutoImport` must come earlier in the `integrations` array                                                         |
-| "I'll configure the common ones now and add the rest later"              | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
-
 ## Component inventory grep (must-run check)
 
 Before declaring snippets done, list every JSX tag used in content and verify each has a `_snippets` entry:
@@ -317,3 +307,13 @@ After adding snippet configs:
 - [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)
 - [ ] `astro build` passes cleanly
 - [ ] Components in existing `.mdx` files should round-trip correctly (CC parses and re-serializes without losing attributes)
+
+## Common mistakes
+
+| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
+| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |
+| Leaving `import` lines at the top of `.mdx` content files                | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports.                                                      |
+| Registering `AutoImport` after `mdx()` in `astro.config.mjs`             | Order matters — `AutoImport` must come earlier in the `integrations` array                                                         |
+| "I'll configure the common ones now and add the rest later"              | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |

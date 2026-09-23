@@ -79,10 +79,9 @@ Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory 
 
 `cloudcannon-cli`, `cloudcannon-sdk`, `translate-site` and `brainstorming` are SSG-agnostic — they work the same everywhere and have no SSG directories.
 
-`cloudcannon-dev-server` has no SSG delta at all: `cc-serve.sh` asks
+`cloudcannon-dev-server` has no SSG delta at all: it asks
 `cloudcannon configure detect-build-commands` for the build command and output directory, so it
-covers whatever the CLI covers. Anything it gets wrong is overridden with `--output` and
-`--build-cmd`.
+covers whatever the CLI covers. Anything it gets wrong, you pass yourself.
 
 "Partial" means the SSG directory exists but does not yet cover the whole workflow; each such file carries its own coverage note. More SSGs are planned — each gets a `<ssg>/` directory inside the skills that need one, never a skill of its own.
 

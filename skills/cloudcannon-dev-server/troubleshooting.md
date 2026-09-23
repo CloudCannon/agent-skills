@@ -6,26 +6,32 @@ but inert belong to [cloudcannon-visual-editing](../cloudcannon-visual-editing/S
 
 ## The loop
 
-| Symptom                                               | Cause                                                                          | Fix                                                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Saved in the editor, the preview never changes        | Nothing is rebuilding — `cloudcannon dev` was started on its own               | Start through `cc-serve.sh`, which runs a watcher alongside it                                       |
-| The editor field shows the edit, the preview does not | Same cause. The save reached the source file; the output was never regenerated | Compare `/__source/<path>` against `/__output/<path>` to confirm, then restart through `cc-serve.sh` |
-| The preview updates, then reverts on the next save    | The build command does not include `.cloudcannon/postbuild`                    | Put it in `--build-cmd`. See [setup.md § The postbuild](setup.md#the-postbuild)                      |
-| Pages the postbuild generated vanished after I saved  | Same — the plain rebuild overwrote what the postbuild had generated            | As above                                                                                             |
-| A renamed or deleted page is still being served       | A watch build never cleans the output directory                                | Restart `cc-serve.sh`, which builds fresh                                                            |
-| Rebuilds stopped but the site still serves            | The watcher exited; `cc-serve.sh` prints a line when it notices                | Restart `cc-serve.sh`                                                                                |
-| Every save takes tens of seconds                      | The whole build command re-runs per change                                     | Pass a native watch build via `--watch-cmd` where the SSG has one                                    |
+**Start by reading the build output.** A build that is still running, a build that failed, and a
+build that was never run look identical from the browser. Run the build in a terminal you can
+read, or redirect it: `<build> > /tmp/cc-build.log 2>&1`.
+
+| Symptom                                               | Cause                                                                     | Fix                                                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Saved in the editor, the preview never changes        | Nothing rebuilt — `cloudcannon dev` never builds                          | Re-run the build, or start [`watch-build.mjs`](scripts/README.md)                            |
+| The editor field shows the edit, the preview does not | Same cause, or the rebuild is still running                               | Read the build output. Wait for it, then the preview reloads itself                          |
+| The build failed and the preview looks stale          | It is showing the last output the build wrote                             | Fix the build. The preview updates on the next successful one                                |
+| Every save takes tens of seconds                      | The whole build re-runs per change, hooks included                        | Expected on a site with a postbuild. Use the manual route, or raise `--debounce`             |
+| Two rebuilds for one save                             | A change arrived mid-build, so it was queued rather than risk dropping it | Expected, and it settles after one extra pass                                                |
+| `the build keeps retriggering itself`                 | The build writes into a watched directory — pagefind into `public/`, say  | Stop passing that directory to `--watch`. The default list excludes static-asset directories |
+| Editing a file changes nothing, not even a rebuild    | It sits outside the watched allowlist                                     | `--watch <dir>`, or rebuild by hand. Startup prints what is watched                          |
+| Pages the postbuild generated vanished after a build  | The build command does not run the hooks                                  | Compose them: `bash .cloudcannon/prebuild && <build> && bash .cloudcannon/postbuild`         |
+| A renamed or deleted page is still being served       | The build's output directory still holds it — most SSGs never clean it    | Delete the output directory and build again                                                  |
 
 ## Serving
 
-| Symptom                                                 | Cause                                                                                 | Fix                                                                                       |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `/` shows the CloudCannon app, not my homepage          | It is meant to. The app owns `/` and `/index.html`                                    | The built homepage is at `/__output/index.html`                                           |
-| `/about/` returns 500                                   | The dev server has no directory index; EISDIR surfaces as a 500                       | Request `/about/index.html`                                                               |
-| `cc-serve.sh` says the port is serving a different site | Another project's dev server holds it. It answers healthily, so probing cannot tell   | Pass `--port` with a free one. Do not stop that server — it may be the user's own         |
-| `could not detect how this site builds`                 | The CLI could not place the site. `cloudcannon configure detect-ssg` shows its scores | Pass `--output` and `--build-cmd`                                                         |
-| `cloudcannon: command not found` from `cc-serve.sh`     | It calls `cloudcannon dev`, so the CLI must be on `PATH`                              | `npm i -g @cloudcannon/cli`, or `PATH="$PWD/node_modules/.bin:$PATH"` for a local install |
-| The output path is rejected as outside the project      | `cloudcannon dev` requires the output path to resolve inside the working directory    | Run it from the site root; there is no `--source` flag                                    |
+| Symptom                                            | Cause                                                                                 | Fix                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `/` shows the CloudCannon app, not my homepage     | It is meant to. The app owns `/` and `/index.html`                                    | The built homepage is at `/__output/index.html`                                           |
+| `/about/` returns 500                              | The dev server has no directory index; EISDIR surfaces as a 500                       | Request `/about/index.html`                                                               |
+| `cloudcannon dev` fails because the port is taken  | Another server holds it. A healthy answer does not prove it is yours                  | Pass `--port` with a free one. Do not stop that server — it may be the user's own         |
+| `detect-build-commands` returns nothing usable     | The CLI could not place the site. `cloudcannon configure detect-ssg` shows its scores | Read the build script out of `package.json` and pass it yourself                          |
+| `cloudcannon: command not found`                   | The CLI is not on `PATH`                                                              | `npm i -g @cloudcannon/cli`, or `PATH="$PWD/node_modules/.bin:$PATH"` for a local install |
+| The output path is rejected as outside the project | `cloudcannon dev` requires the output path to resolve inside the working directory    | Run it from the site root; there is no `--source` flag                                    |
 
 ## Writing
 

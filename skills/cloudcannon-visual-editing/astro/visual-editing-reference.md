@@ -554,6 +554,22 @@ The wrapper is stored in `window.cc_components[key]`, where the component region
 - `Astro.slots` — shimmed with `has()` and `render()` via `renderSlotToString`
 - `Astro.request` — shimmed as `new Request(window.location.href)`, one new instance per `createAstro` call
 
+**That list is exhaustive — every other `Astro.*` global is missing.** `Astro.url`, `Astro.locals`, `Astro.site`, `Astro.params`, `Astro.currentLocale`, `Astro.cookies` and `Astro.response` are not in the re-render context. Reads return `undefined`, or throw `UnavailableAstroGlobal`, depending on the call shape the compiler emitted.
+
+**MUST:** before registering a component, grep it — and everything it renders — for `Astro.` other than `props`, `slots` and `request`.
+
+**Why:** the failure is fatal to the whole component and invisible before the editor opens it. `astro build` renders server-side, where every global is real, so a bare `new URL(Astro.url)` in a header ships green and then fails with `TypeError: Failed to construct 'URL': Invalid URL` on re-render. Third-party components count — see [astro-icon](#astro-icon) for a package that trips this.
+
+Guard with the shimmed request:
+
+```astro
+---
+const url = new URL(Astro.url ?? Astro.request.url);
+---
+```
+
+`Astro.request.url` is `window.location.href` in the editor, so pathname comparisons — active nav links, breadcrumbs — stay correct. It is the preview URL, not the production origin: do not use it to build canonical or Open Graph URLs.
+
 ## Schema file gates prop forwarding — the Astro diagnosis
 
 [Base § Schema file gates prop forwarding](../visual-editing-reference.md#schema-file-gates-prop-forwarding-on-re-render) states the rule. In Astro, fields that parse cleanly through the Zod content schema are still stripped if absent from the CloudCannon schema shape.
@@ -611,9 +627,49 @@ The `editableRegions()` integration builds a client bundle that re-renders regis
 
 ### `astro-icon`
 
-A common example of a third-party virtual module that works. Register components using `<Icon>` normally — no editing fallbacks needed. `virtual:astro-icon`'s Vite plugin emits serialized JSON at build time, `@iconify/utils` is pure JS, and `Astro.request` is shimmed, so the whole chain is browser-safe.
+A common example of a third-party virtual module that works — except for one version-dependent crash. `virtual:astro-icon`'s Vite plugin emits serialized JSON at build time and `@iconify/utils` is pure JS, so the module chain itself is browser-safe. What changes between versions is the `Astro` global `Icon.astro` uses to key its sprite-dedup `WeakMap`. Check the installed version before registering any component that renders an `<Icon>`.
 
-**Sprite dedup quirk:** `Icon.astro` uses `Astro.request` as a `WeakMap` key for sprite deduplication. Since editable-regions creates a new `Request` per component, every icon renders its full `<symbol>` instead of reusing `<use href>`. This affects only the visual editor preview and is cosmetically irrelevant.
+| `astro-icon` | `WeakMap` keyed on           | Effect in the editor                                                                                                                                                                                                                                                    |
+| ------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ≤ 1.1.5      | `Astro.request` — shimmed    | Cosmetic. A new `Request` per `createAstro` call means dedup never hits, so every icon emits its full `<symbol>` instead of reusing `<use href>`. Correct for a re-render anyway — a `<use href>` into an earlier pass's detached document would dangle. Nothing to do. |
+| ≥ 1.2.0      | `Astro.locals` — not shimmed | **Fatal.** `WeakMap.set(undefined, …)` throws, so every registered component containing an `<Icon>` dies with `TypeError: Invalid value used as weak map key`. `astro build` is unaffected.                                                                             |
+
+On ≥ 1.2.0, in this order:
+
+1. **Check whether `@cloudcannon/editable-regions` supplies `Astro.locals` yet.** As of `0.0.21` it does not. A release that does fixes this for every package at once and makes the rest of this section unnecessary — check before adding project plumbing.
+2. **Pin `astro-icon` to `1.1.x`** if nothing on the site needs 1.2.
+3. **Alias astro-icon's cache module in the client environment only.** `Icon.astro` imports `{ cache } from "./cache.js"`, which is a bare `new WeakMap()`. Point that import at a cache that ignores unkeyable keys:
+
+```ts
+// src/cloudcannon/iconCache.ts
+const real = new WeakMap<object, unknown>();
+const keyable = (k: unknown): k is object =>
+  (typeof k === "object" && k !== null) || typeof k === "function";
+
+export const cache = {
+  get: (k: unknown) => (keyable(k) ? real.get(k) : undefined),
+  set(k: unknown, v: unknown) {
+    if (keyable(k)) real.set(k, v);
+    return this;
+  },
+};
+```
+
+```ts
+// astro.config.ts — in vite.plugins, with `import { fileURLToPath } from "node:url"`
+{
+  name: "cc-astro-icon-cache",
+  enforce: "pre",
+  applyToEnvironment: (environment) => environment.name === "client", // Vite 6+
+  resolveId(source, importer) {
+    if (source === "./cache.js" && importer?.includes("astro-icon/components/Icon.astro")) {
+      return fileURLToPath(new URL("./src/cloudcannon/iconCache.ts", import.meta.url));
+    }
+  },
+}
+```
+
+Scoping to the client environment keeps the production build untouched — verify by grepping `dist/` for the shim, which should appear only in the `registerComponents.*.js` chunk. Every icon then emits its own `<symbol>`, which is the ≤ 1.1.5 behaviour above.
 
 **Build-time issues** (astro-icon specific, unrelated to editable-regions):
 

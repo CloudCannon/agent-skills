@@ -6,7 +6,7 @@ Guidance for validating an Astro migration works end-to-end.
 
 1. **Clean the cache first** -- run `rm -rf .astro dist` before building. Astro's `.astro/` directory caches content collection data, and after major restructuring (adding/removing content files, renaming collections) the cache can serve stale entries that mask real errors or generate ghost routes from deleted files.
 
-2. **Run the full build pipeline** -- use whatever `package.json` defines as the `build` script, not just `astro build`. Pre-build scripts (theme generation, search index, JSON data generation) must be included.
+2. **Run the full build pipeline** -- if the site has `.cloudcannon/` build hooks, run the parity command that composes them (`npm run build:local` by convention), not the bare `build` script. Otherwise run whatever `package.json` defines as `build`. Generators, search indexes and data generation must all be included. See [build-hooks.md § How a site with hooks is laid out](../../cloudcannon-configuration/build-hooks.md#how-a-site-with-hooks-is-laid-out).
 
 3. **Verify editable attributes in output HTML** -- spot-check key pages in `dist/` to confirm `data-editable` attributes survived the build. Count occurrences on the homepage (should be the highest) and a content page.
 
@@ -18,15 +18,13 @@ Guidance for validating an Astro migration works end-to-end.
 
 ## CloudCannon build command
 
-The build command CloudCannon runs must match the full pipeline—usually the same sequence as the `build` script in `package.json`. For sites that run generators or other steps before Astro, chain them with `&&` before `astro build`.
-
-**Example only** (replace with your real scripts; many sites need only `astro build` or `npm run build`):
+The build command goes in `.cloudcannon/initial-site-settings.json` as `build_command`. Keep it to the build itself:
 
 ```bash
-node scripts/your-prebuild-step.js && node scripts/another-step.js && astro build
+npm run build
 ```
 
-This goes in `.cloudcannon/initial-site-settings.json` as the `build_command`, or in `.cloudcannon/prebuild` if using the prebuild script approach (see [configuration.md](../../cloudcannon-configuration/astro/configuration.md)).
+**MUST NOT** chain the site's generators into it, and **MUST NOT** point it at a script that invokes a `.cloudcannon/` hook — CloudCannon runs the hooks around this command, so anything that calls them makes them fire twice. Steps that run either side of the build belong in `.cloudcannon/preinstall`, `prebuild` or `postbuild`, with a separately named command for local parity. See [build-hooks.md](../../cloudcannon-configuration/build-hooks.md).
 
 ## Common issues
 

@@ -110,12 +110,16 @@ for (const [name, dir, flagPrefix] of [
   }
 }
 
-/** Flags `cc-serve.sh` defines for itself, parsed from its own option parser. */
+/**
+ * Flags the dev-server script defines for itself, parsed from its own --help
+ * text, so a line documenting them is not read as a claim about the CLI.
+ */
 function readServeFlags() {
-  const path = join(SKILLS, "cloudcannon-dev-server", "scripts", "cc-serve.sh");
+  const path = join(SKILLS, "cloudcannon-dev-server", "scripts", "watch-build.mjs");
   if (!existsSync(path)) return [];
   const src = readFileSync(path, "utf8");
-  return [...src.matchAll(/^\s*--([a-z][a-z0-9-]*)\s*\)/gm)].map((m) => m[1]);
+  const usage = src.match(/const USAGE = `([\s\S]*?)`;/)?.[1] ?? "";
+  return [...usage.matchAll(/^\s*--([a-z][a-z0-9-]*)/gm)].map((m) => m[1]);
 }
 
 const CLI_COMMANDS = readCliCommands(CLI_DIR);
