@@ -26,29 +26,35 @@ description: >-
 
 ## Contents
 
-| Doc                                                            | When to read                                                                    |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [editable-regions.md](editable-regions.md)                     | Start here. Region types, the attribute reference, custom-element equivalents   |
-| [visual-editing-reference.md](visual-editing-reference.md)     | On demand. Data-prop paths, arrays, page builders, components, source editables |
-| [editable-regions-internals.md](editable-regions-internals.md) | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging    |
-| [troubleshooting.md](troubleshooting.md)                       | Symptom → fix, when regions do not appear, update, or write where expected      |
+| Doc                                                            | When to read                                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [editable-regions.md](editable-regions.md)                     | Start here. Region types, the attribute reference, custom-element equivalents         |
+| [visual-editing-reference.md](visual-editing-reference.md)     | On demand. Data-prop paths, arrays, page builders, components, source editables       |
+| [editable-regions-internals.md](editable-regions-internals.md) | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging          |
+| [troubleshooting.md](troubleshooting.md)                       | Symptom → fix, when regions do not appear, update, or write where expected            |
+| [migrating-from-bookshop.md](migrating-from-bookshop.md)       | The site uses Bookshop. Replacing it with editable regions — structures, names, hooks |
 
 **SSG-specific:**
 
 Enter through the SSG's `overview.md`; it gives the reading order for that SSG's files.
 
-| SSG   | Doc                                                                    | Purpose                                                                  |
-| ----- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Astro | [astro/overview.md](astro/overview.md)                                 | **Start here for Astro** — reading order and what each file covers       |
-| Astro | [astro/visual-editing.md](astro/visual-editing.md)                     | Setup workflow, section census, infrastructure + completeness checklists |
-| Astro | [astro/visual-editing-reference.md](astro/visual-editing-reference.md) | Astro's deltas from the generic pattern reference (read on demand)       |
-| Astro | [astro/troubleshooting.md](astro/troubleshooting.md)                   | Astro-specific symptom → fix                                             |
+| SSG   | Doc                                                                    | Purpose                                                                          |
+| ----- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Astro | [astro/overview.md](astro/overview.md)                                 | **Start here for Astro** — reading order and what each file covers               |
+| Astro | [astro/visual-editing.md](astro/visual-editing.md)                     | Setup workflow, section census, infrastructure + completeness checklists         |
+| Astro | [astro/visual-editing-reference.md](astro/visual-editing-reference.md) | Astro's deltas from the generic pattern reference (read on demand)               |
+| Astro | [astro/troubleshooting.md](astro/troubleshooting.md)                   | Astro-specific symptom → fix                                                     |
+| Hugo  | [hugo/overview.md](hugo/overview.md)                                   | **Start here for Hugo** — reading order and what each file covers                |
+| Hugo  | [hugo/visual-editing.md](hugo/visual-editing.md)                       | Module setup, section census, infrastructure + completeness checklists           |
+| Hugo  | [hugo/visual-editing-reference.md](hugo/visual-editing-reference.md)   | Hugo's deltas: partials-only re-render, `ENV_CLIENT`, what the editor's Hugo has |
+| Hugo  | [hugo/troubleshooting.md](hugo/troubleshooting.md)                     | Hugo-specific symptom → fix                                                      |
+| Hugo  | [hugo/migrating-from-bookshop.md](hugo/migrating-from-bookshop.md)     | Hugo's delta for a Bookshop site                                                 |
 
 **Scripts:**
 
-| Script                                                                 | Purpose                                                                         |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [scripts/setup-editable-regions.sh](scripts/setup-editable-regions.sh) | Installs package, wires Astro integration, creates `registerComponents.ts` stub |
+| Script                                                                 | Purpose                                                                                                                                                                      |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [scripts/setup-editable-regions.sh](scripts/setup-editable-regions.sh) | **Astro only.** Installs package, wires Astro integration, creates `registerComponents.ts` stub. Hugo needs no script — see [hugo/visual-editing.md](hugo/visual-editing.md) |
 
 **Other skills:**
 
@@ -72,7 +78,7 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 
 ## Workflow
 
-1. **Setup** — Run the setup script, verify integration, add conditional `registerComponents` import
+1. **Setup** — Install and wire the integration per the SSG's `visual-editing.md` (Astro: setup script + conditional `registerComponents` import; Hugo: module import + `editable-regions` partial)
 2. **Census** — Document every visible section on every key page with treatment decisions
 3. **Implement** — Work through sections, adding editable attributes per the census
 4. **Verify** — Run the completeness checklist in the SSG-specific workflow doc
@@ -94,6 +100,6 @@ The SSG-specific workflow docs contain detailed completeness checklists. These a
 | "This component is too complex for editable regions"        | If it renders data from a content collection, it should be editable. Simplify the component or wrap it in `editable-component` for sidebar re-rendering.                                                                                                                                                     |
 | "The footer/nav doesn't need editables"                     | Shared partials need data-file-backed editables. Every visible section needs a treatment.                                                                                                                                                                                                                    |
 | "Array items just need add/remove controls"                 | Without nested text/image editables on items, editors can't edit field values inline.                                                                                                                                                                                                                        |
-| "I'll register components later"                            | Unregistered components can't re-render. Wire them as you go.                                                                                                                                                                                                                                                |
+| "I'll register components later"                            | Components the integration can't resolve can't re-render. Wire them as you go (Astro: register; Hugo: make it a partial).                                                                                                                                                                                    |
 | "Source editables aren't needed — this text rarely changes" | If it's visible, it should be editable -- but the _mechanism_ depends on the page. Page-builder `pages` collection entry for unique-layout pages with 2+ sections; data file for shared UI; `data-editable="source"` only for long-form prose.                                                               |
 | "I'll source-editable any hardcoded string on a page"       | Source-editable is for long-form prose only. If the page has 2+ structured sections, it belongs in a page-builder `pages` collection. See [migrate-to-cloudcannon/astro/page-building.md § When to reach for page builder](../migrate-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder). |

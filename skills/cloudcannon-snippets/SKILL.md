@@ -2,8 +2,8 @@
 name: cloudcannon-snippets
 description: >-
   Use when adding snippet support to a CloudCannon site, configuring MDX
-  components for the Content Editor, debugging snippet round-trip issues,
-  or setting up inline HTML snippets in markdown content.
+  components or Hugo shortcodes for the Content Editor, debugging snippet
+  round-trip issues, or setting up inline HTML snippets in markdown content.
 ---
 
 # CloudCannon Snippets
@@ -13,7 +13,7 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 ## When to use
 
 - Adding snippet support to a new or existing CloudCannon site
-- Configuring MDX components for the Content Editor
+- Configuring MDX components or Hugo shortcodes for the Content Editor
 - Adding inline HTML snippets (figure, video, details) to markdown content
 - Debugging snippet parsing, round-trip, or toolbar issues
 
@@ -30,15 +30,16 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 | [snippets.md](snippets.md)                     | Start here. Overview of both layers, configuration hierarchy, which approach to use, snippet properties, toolbar setup, raw HTML snippets in `.md` files |
 | [template-based.md](template-based.md)         | Component syntax matches a built-in template (most common path)                                                                                          |
 | [raw.md](raw.md)                               | Component needs custom syntax (e.g. `client:load`, non-standard attributes)                                                                              |
-| [built-in-templates.md](built-in-templates.md) | Understanding built-in MDX templates, the import bundle, parser internals                                                                                |
+| [built-in-templates.md](built-in-templates.md) | Understanding built-in MDX and Hugo templates, the import bundle, parser internals                                                                       |
 | [gotchas.md](gotchas.md)                       | Preventative rules — the pitfalls and their workarounds                                                                                                  |
 | [troubleshooting.md](troubleshooting.md)       | Symptom index — start here when something is already broken, it routes to the rule                                                                       |
 
 **SSG-specific:**
 
-| SSG   | Doc                                                                                             |
-| ----- | ----------------------------------------------------------------------------------------------- |
-| Astro | [astro/overview.md](astro/overview.md) — MDX stack, `astro-auto-import`, when to use MDX vs raw |
+| SSG   | Doc                                                                                                    |
+| ----- | ------------------------------------------------------------------------------------------------------ |
+| Astro | [astro/overview.md](astro/overview.md) — MDX stack, `astro-auto-import`, when to use MDX vs raw        |
+| Hugo  | [hugo/overview.md](hugo/overview.md) — shortcodes, built-in shortcode imports, picking a Hugo template |
 
 ## Quick decision
 
@@ -68,7 +69,7 @@ Read this before starting and verify every item when done.
 | "The built-in templates handle this"           | Verify the round-trip. Built-in templates have known edge cases — see [gotchas.md](gotchas.md).                                                                                                                                                                                                                                                                                                                                           |
 | "I'll configure the snippet toolbar later"     | No toolbar means editors can't insert snippets. Add `snippet: true` to `_editables` now.                                                                                                                                                                                                                                                                                                                                                  |
 | "This component is too niche for a snippet"    | If editors encounter it in content, they need to be able to edit it. Configure it.                                                                                                                                                                                                                                                                                                                                                        |
-| "Import statements in content are fine"        | Use auto-import (Astro: `astro-auto-import`) to keep imports out of content files.                                                                                                                                                                                                                                                                                                                                                        |
-| "I can use `_snippets_imports` for this"       | Don't. It loads catchall matchers that can match incorrectly. Write explicit `_snippets` entries.                                                                                                                                                                                                                                                                                                                                         |
+| "Import statements in content are fine"        | Use auto-import (Astro: `astro-auto-import`) to keep imports out of content files. Hugo shortcodes need no import.                                                                                                                                                                                                                                                                                                                        |
+| "I can use `_snippets_imports` for this"       | Don't. It loads catchall matchers that can match incorrectly. Write explicit `_snippets` entries. Hugo's built-in shortcodes are the exception — `include` them by name.                                                                                                                                                                                                                                                                  |
 | "I configured `_snippets`, snippets are done"  | Without `astro-auto-import` wired in `astro.config.mjs` AND the `import` lines removed from MDX files, editors still see raw `import` statements at the top of MDX content. All four pipeline steps are required — see [astro/overview.md § MDX setup pipeline](astro/overview.md#mdx-setup-pipeline-must-complete-all-four).                                                                                                             |
 | "Inline image grid in MDX is fine as raw HTML" | Editors can't safely edit raw `<div class="grid">` + `<Image>` blocks. Extract to a self-closing `<Gallery images={[{src, alt}, ...]} />` component (auto-imported) with a matching `_snippets` entry — `images` as `type: array` with nested `images[*].src: type: image`. See [cc-friendly-conventions.md § Image galleries in MDX content](../migrate-to-cloudcannon/astro/cc-friendly-conventions.md#image-galleries-in-mdx-content). |

@@ -66,7 +66,12 @@ astro/content.md                        Phase 3: content restructuring
 astro/build.md                          Phase 5: build verification
 astro/page-building.md                  Phase 2/4: pages collection, page builder, BlockRenderer
 astro/cc-friendly-conventions.md        Pre-migration scaffolding conventions
-scripts/*.sh                            Automation (audit, rename)
+hugo/overview.md                        ENTRY POINT for Hugo — phase links (partial — see its coverage note)
+hugo/audit.md                           Phase 1: site analysis
+hugo/content.md                         Phase 3: content restructuring
+hugo/build.md                           Phase 5: build verification
+hugo/page-building.md                   Phase 2/4: pages collection, content_blocks dispatcher
+scripts/*.sh                            Automation (audit-astro, audit-hugo, rename)
 
 ── make-site-multilingual (journey) ──────────────────────────
 SKILL.md                                ENTRY POINT — the two layers, starting point, SSG detection
@@ -88,10 +93,15 @@ cloudcannon-cli-guide.md                Generating and validating config with th
 structures.md                           Inline vs split, previews, field completeness
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
+configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/configuration.md                  Phase 2: config, schemas, inputs, add options
 astro/collection-urls.md                Astro: glob-loader slug, trailingSlash
-astro/configuration-gotchas.md          Astro: icon fields, numeric values, etc.
+astro/configuration-gotchas.md          Astro: .astro pages, TypeScript config, Zod unions
+hugo/overview.md                        ENTRY POINT for Hugo — reading order
+hugo/configuration.md                   Phase 2: CLI baseline fixes, section collections, data, build
+hugo/collection-urls.md                 Hugo: [full_slug], page bundles, _index.md, permalinks
+hugo/configuration-gotchas.md           Hugo: Goldmark, taxonomies, quoted numbers, front matter
 
 ── cloudcannon-snippets (capability) ─────────────────────────
 SKILL.md                                ENTRY POINT — when/why/which approach
@@ -102,16 +112,24 @@ built-in-templates.md                   MDX templates vs import bundle, parser i
 gotchas.md                              Preventative rules — pitfalls and workarounds
 troubleshooting.md                      Symptom index, routing to the rule that owns each fix
 astro/overview.md                       ENTRY POINT for Astro — MDX stack, auto-import
+hugo/overview.md                        ENTRY POINT for Hugo — shortcodes, built-in imports
 
 ── cloudcannon-visual-editing (capability) ───────────────────
 SKILL.md                                ENTRY POINT — region types, workflow, checklist
 editable-regions.md                     Region types, attribute reference, decision tree
 editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, quirks
 troubleshooting.md                      Symptom → fix, when regions misbehave
+migrating-from-bookshop.md              Bookshop → editable regions, cross-SSG mapping
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: workflow, census, checklists
 astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not read front to back
-scripts/setup-editable-regions.sh       Installs package, wires Astro integration
+astro/troubleshooting.md                Astro: symptom → fix
+hugo/overview.md                        ENTRY POINT for Hugo — reading order
+hugo/visual-editing.md                  Phase 4: module setup, census, checklists, local checks
+hugo/visual-editing-reference.md        ON DEMAND — partials-only re-render, ENV_CLIENT, editor's Hugo
+hugo/troubleshooting.md                 Hugo: symptom → fix
+hugo/migrating-from-bookshop.md         Hugo: Bookshop call and module swaps
+scripts/setup-editable-regions.sh       Astro only — installs package, wires Astro integration
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

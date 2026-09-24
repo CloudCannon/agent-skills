@@ -8,7 +8,7 @@ Use square brackets for fixed (filename-based) placeholders:
 
 - `[slug]` -- filename without extension. If the filename is `index`, resolves to an empty string.
 - `[filename]` -- filename with extension.
-- `[relative_base_path]` -- file path without extension, relative to the collection path.
+- `[relative_base_path]` -- the file's directory, relative to the collection path (empty for a file at the collection root).
 - `[full_slug]` -- alias for `[relative_base_path]/[slug]`.
 - `[collection]` -- the collection key name.
 - `[ext]` -- the file extension.
@@ -42,13 +42,13 @@ Common filters for URLs:
 
 **Nested keys and arrays** are supported: `{seo.description}` for nested objects, `{tags[0]}` for specific array items, `{tags[*]}` for all items (joined with `, `).
 
-**When to use data placeholders:** During the audit, check how the SSG generates output URLs. If the routing uses a frontmatter field (e.g. `getStaticPaths` returns `params: { slug: post.data.slug }` rather than using the filename), use `{field}` in the CloudCannon `url`. Compare a few filenames against their build output paths in `dist/` -- if they don't match, the URL is frontmatter-driven.
+**When to use data placeholders:** During the audit, check how the SSG generates output URLs. If the routing uses a frontmatter field (e.g. Astro's `getStaticPaths` returns `params: { slug: post.data.slug }`, or a Hugo page sets `slug:` or `url:` in front matter, rather than using the filename), use `{field}` in the CloudCannon `url`. Compare a few filenames against their paths in the build output (`dist/`, `public/`, `_site/`) -- if they don't match, the URL is frontmatter-driven.
 
 ## Content in subdirectories within a collection
 
 **Symptom:** A post's output URL is `/posts/examples/my-post/` but the `{slug}` placeholder resolves to just `my-post` — the subdirectory is missing from the rendered URL and the Visual Editor can't open the page.
 
-**Detect:** Compare build output paths in `dist/` against the `{slug}` values. If they diverge, the SSG's routing utility is prepending the subdirectory.
+**Detect:** Compare build output paths against the `{slug}` values. If they diverge, the SSG's routing utility is prepending the subdirectory.
 
 ### Fix options
 
@@ -63,11 +63,12 @@ Common filters for URLs:
 
 If a page doesn't load in the visual editor:
 
-1. **Check the `url` pattern** -- compare the configured URL against the actual build output in `dist/`. The most common issues are wrong placeholders (`[slug]` vs `{slug}`) and wrong prefix paths.
-2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the `build.format` setting.
+1. **Check the `url` pattern** -- compare the configured URL against the actual build output (`dist/`, `public/`, `_site/`). The most common issues are wrong placeholders (`[slug]` vs `{slug}`) and wrong prefix paths.
+2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`).
 3. **Check fixed vs data placeholders** -- `[slug]` is the filename; `{slug}` is the frontmatter `slug` field. If the SSG uses a frontmatter field for routing, you need curly braces.
-4. **Build and inspect** -- when in doubt, build the site and inspect the `dist/` directory to see the actual output paths.
+4. **Build and inspect** -- when in doubt, build the site and inspect the output directory to see the actual output paths.
 
 ## SSG-specific details
 
 - **Astro**: [astro/collection-urls.md](astro/collection-urls.md) — glob loader `slug` override, trailing slash rules.
+- **Hugo**: [hugo/collection-urls.md](hugo/collection-urls.md) — `[full_slug]`, `_index.md`, page bundles, overlapping collections.

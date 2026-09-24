@@ -6,11 +6,12 @@ Astro-specific configuration guidance. The cross-SSG rules live one level up: [`
 
 ## Reading order
 
-| Order | File                                                 | Read when                                                            |
-| ----- | ---------------------------------------------------- | -------------------------------------------------------------------- |
-| 1     | [configuration.md](configuration.md)                 | Always — the main Phase 2 workflow, schemas, inputs, add options     |
-| 2     | [collection-urls.md](collection-urls.md)             | Any collection produces pages (the `slug` and `trailingSlash` traps) |
-| 3     | [configuration-gotchas.md](configuration-gotchas.md) | During and after configuration — reference, not a front-to-back read |
+| Order | File                                                       | Read when                                                            |
+| ----- | ---------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1     | [configuration.md](configuration.md)                       | Always — the main Phase 2 workflow, schemas, inputs, add options     |
+| 2     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (the `slug` and `trailingSlash` traps) |
+| 3     | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only  |
+| 4     | [configuration-gotchas.md](configuration-gotchas.md)       | Astro-only pitfalls — `.astro` pages, Zod unions, TypeScript config  |
 
 ## Cross-SSG deep-dives
 

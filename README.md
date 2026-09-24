@@ -70,11 +70,11 @@ Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory 
 
 | Skill                        | Astro | Eleventy | Hugo    |
 | ---------------------------- | ----- | -------- | ------- |
-| `migrate-to-cloudcannon`     | Yes   | —        | —       |
+| `migrate-to-cloudcannon`     | Yes   | —        | Partial |
 | `make-site-multilingual`     | Yes   | Yes      | Partial |
-| `cloudcannon-configuration`  | Yes   | —        | —       |
-| `cloudcannon-snippets`       | Yes   | —        | —       |
-| `cloudcannon-visual-editing` | Yes   | —        | —       |
+| `cloudcannon-configuration`  | Yes   | —        | Yes     |
+| `cloudcannon-snippets`       | Yes   | —        | Yes     |
+| `cloudcannon-visual-editing` | Yes   | —        | Yes     |
 | `cloudcannon-dev-server`     | Yes   | Yes      | Yes     |
 
 `cloudcannon-cli`, `cloudcannon-sdk`, `translate-site` and `brainstorming` are SSG-agnostic — they work the same everywhere and have no SSG directories.

@@ -136,9 +136,10 @@ const CLI_ALL_FLAGS = new Set([
 const NPM_FLAGS = "legacy-peer-deps save-dev no-save no-package-lock global prefix";
 const ROSEY_FLAGS = "yes locales dest exclusions default-language-at-root base-url tag";
 const NODE_FLAGS = "env-file check test";
+const HUGO_FLAGS = "minify destination source config environment";
 
 const OTHER_TOOL_FLAGS = new Set([
-  ...`${NPM_FLAGS} ${ROSEY_FLAGS} ${NODE_FLAGS}`.split(" "),
+  ...`${NPM_FLAGS} ${ROSEY_FLAGS} ${NODE_FLAGS} ${HUGO_FLAGS}`.split(" "),
   ...readServeFlags(),
 ]);
 

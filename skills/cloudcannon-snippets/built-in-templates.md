@@ -6,7 +6,7 @@ Reference for built-in snippet templates shipped with CloudCannon's snippet pars
 
 For how to use templates in migrations, see [template-based.md](template-based.md). For raw snippet syntax, see [raw.md](raw.md).
 
-> Only MDX templates are documented here (the only SSG currently supported). Templates for Hugo, Jekyll, Eleventy, and Markdoc exist in CloudCannon but are not covered until those SSGs are added to this skill.
+> MDX and Hugo templates are documented here. Templates for Jekyll, Eleventy, and Markdoc exist in CloudCannon but are not covered until those SSGs are added to this skill.
 
 ---
 
@@ -66,6 +66,36 @@ Requires `_snippets_imports` to load CloudCannon's MDX defaults. These entries a
 | `_cc_mdx_unknown_export`   | Named exports: `export const x = value;`            |
 
 Without `_snippets_imports` for MDX defaults, none of the rows above are registered — only the explicit `_snippets` entries you define (using built-in templates or raw config) apply.
+
+---
+
+## Hugo shortcodes
+
+Built-in templates for Hugo shortcode syntax. Pick by three questions: does the shortcode wrap content (paired), which delimiters does the content use (`{{< >}}` or `{{% %}}`), and does it take named or positional arguments.
+
+| Template                                         | Pattern                                        |
+| ------------------------------------------------ | ---------------------------------------------- |
+| `hugo_shortcode_named_args`                      | `{{< name key="value" >}}`                     |
+| `hugo_shortcode_positional_args`                 | `{{< name arg1 arg2 >}}`                       |
+| `hugo_markdown_shortcode_named_args`             | `{{% name key="value" %}}`                     |
+| `hugo_markdown_shortcode_positional_args`        | `{{% name arg1 arg2 %}}`                       |
+| `hugo_paired_shortcode_named_args`               | `{{< name key="value" >}}content{{< /name >}}` |
+| `hugo_paired_shortcode_positional_args`          | `{{< name arg1 >}}content{{< /name >}}`        |
+| `hugo_paired_markdown_shortcode_named_args`      | `{{% name key="value" %}}content{{% /name %}}` |
+| `hugo_paired_markdown_shortcode_positional_args` | `{{% name arg1 %}}content{{% /name %}}`        |
+
+Definitions each template takes:
+
+| Definition        | Used by             | Holds                                                                                                                                                         |
+| ----------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shortcode_name`  | All                 | The shortcode's name as written in content                                                                                                                    |
+| `named_args`      | `*_named_args`      | One entry per argument: `editor_key`, `source_key` (defaults to `editor_key`), `type`, and optionally `default`, `optional`, `remove_empty`, `allowed_values` |
+| `positional_args` | `*_positional_args` | One entry per argument, in order: `editor_key`, `type`, and optionally `default`, `optional`, `allowed_values`, `implied_boolean`                             |
+| `content_key`     | `*_paired_*`        | The editor key that holds the inner content                                                                                                                   |
+
+`type` is one of `string`, `boolean`, `number`, `array`. Hugo's own built-in shortcodes are pre-built snippets rather than templates — load them with `_snippets_imports.hugo`, see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes).
+
+Source: [Snippets using Hugo shortcodes](https://cloudcannon.com/documentation/articles/snippets-using-hugo-shortcodes/).
 
 ---
 

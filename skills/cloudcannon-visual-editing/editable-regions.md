@@ -31,7 +31,7 @@ Image editing via CloudCannon's data panel. The region **host** is either (1) an
 
 ### EditableComponent
 
-Re-renders a component when its data changes so the rendered slice updates holistically from that data. Requires a renderer registered through your SSG’s `@cloudcannon/editable-regions` integration (Astro: `registerAstroComponent`). Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
+Re-renders a component when its data changes so the rendered slice updates holistically from that data. Requires a renderer the SSG’s `@cloudcannon/editable-regions` integration can find for the `data-component` key. How it finds one is SSG-specific: Astro registers each component explicitly (`registerAstroComponent`); Hugo resolves the key as a partial path, with no registration step. These docs call a component the integration can render a **registered component**, whichever way it got there. Diffs new HTML into the live DOM rather than replacing wholesale, preserving focused editors and live state.
 
 ### EditableArray & EditableArrayItem
 
@@ -73,7 +73,7 @@ These attributes wire **complex** arrays (e.g. page builders) so the Visual Edit
 
 - **`data-component-key`** (on the **array wrapper**): Name of the field **in each array item’s data object** whose value selects **which client-rendered component** handles that row (e.g. `_type` → `hero`). The editor uses it when the array is empty or when inserting a new row.
 - **`data-id-key`** (on the **array wrapper**): Name of the field used as a **stable identity** for matching DOM nodes to data items across reorder/add/remove. Often the same field as `data-component-key`; when omitted, it defaults to the same value as `data-component-key` (Dec 2025).
-- **`data-component`** (on each **array item**): The **resolved** component key for that row. It must match the string registered for that renderer in your SSG’s editable-regions setup (Astro example: `registerAstroComponent('hero', Hero)` → `data-component="hero"`).
+- **`data-component`** (on each **array item**): The **resolved** component key for that row. It must match the key your SSG’s integration resolves (Astro: `registerAstroComponent('hero', Hero)` → `data-component="hero"`; Hugo: `data-component="blocks/hero"` → `layouts/partials/blocks/hero.html`).
 - **`data-id`** (on each **array item**): The **resolved** stable id for that row, taken from the field named by `data-id-key`. When omitted, it defaults to the same value as `data-component` (Dec 2025).
 
 CloudCannon uses **`data-id` / `data-id-key`**, not a separate `data-component-id` attribute.

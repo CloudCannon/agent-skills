@@ -2,11 +2,9 @@
 
 How to split a migration across several conversations when one would run out of context. Evaluate this at the end of Phase 1, against `.cloudcannon/migration/audit.md`.
 
-**Chunking is a suggestion, not a wall.** Nothing halts between phases — the agent tells the user context is heavy and lets them choose. See [SKILL.md § Per-phase workflow](SKILL.md#per-phase-workflow) for the gates that apply either way.
-
 Migrations can run end-to-end in one conversation, but on larger sites context fills up — quality drops in later phases (especially Phase 4 visual editing) when the agent is recalling decisions from earlier phases through a long backscroll. Chunking into fresh conversations is a way to avoid that.
 
-**Chunking is a suggestion, not a wall.** The agent doesn't _halt_ between phases — it tells the user "context is heavy; consider opening a fresh conversation for Phase N" and lets the user choose. If the user keeps going in the same conversation, that's fine.
+**Chunking is a suggestion, not a wall.** The agent doesn't _halt_ between phases — it tells the user "context is heavy; consider opening a fresh conversation for Phase N" and lets the user choose. If the user keeps going in the same conversation, that's fine. See [SKILL.md § Per-phase workflow](SKILL.md#per-phase-workflow) for the gates that apply either way.
 
 ## When to suggest a fresh conversation
 
@@ -15,7 +13,7 @@ At the end of Phase 1, evaluate the sizing thresholds against `.cloudcannon/migr
 | Signal                                | Threshold | Source                                                                       |
 | ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
 | Total pages                           | > 30      | Audit § Pages and routing                                                    |
-| Hardcoded `.astro` → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
+| Hardcoded template → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
 | Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
 
 If any 2 thresholds are tripped, write `.cloudcannon/migration/plan.md` using the template below, then suggest to the user that later phases run in fresh conversations. Phase 4 (visual editing) is the most context-hungry — it's the most likely candidate for a fresh start.
@@ -57,8 +55,8 @@ listed phase doc, then works the listed scope.
 
 - Collection URL patterns
 - Shared structures (`_structures`)
-- Snippet configs (if MDX/inline HTML)
-- `registerComponents.ts` setup
+- Snippet configs (if MDX components, shortcodes or inline HTML)
+- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial)
 ```
 
 **Resumption brief** (paste into a fresh conversation): "Read `.cloudcannon/migration/audit.md`, `.cloudcannon/migration/plan.md`, and the phase doc(s) listed for chunk N. Work chunk N's scope. Write the output artefact and stop."

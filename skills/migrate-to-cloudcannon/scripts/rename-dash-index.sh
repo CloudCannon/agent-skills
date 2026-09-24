@@ -21,7 +21,8 @@ if [ ! -d "src/content" ]; then
 fi
 
 count=0
-find src/content -name '-index.md' -o -name '-index.mdx' | sort | while read -r f; do
+while read -r f; do
+  [ -n "$f" ] || continue
   dir=$(dirname "$f")
   ext="${f##*.}"
   target="$dir/index.$ext"
@@ -34,7 +35,7 @@ find src/content -name '-index.md' -o -name '-index.mdx' | sort | while read -r 
   mv "$f" "$target"
   echo "RENAMED: $f -> $target"
   count=$((count + 1))
-done
+done < <(find src/content \( -name '-index.md' -o -name '-index.mdx' \) | sort)
 
 if [ "$count" -eq 0 ]; then
   echo "No -index files found to rename."

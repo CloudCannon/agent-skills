@@ -8,15 +8,15 @@ Use this when the site already has an i18n system (astro-i18n, astro-i18next, ne
 
 ## A1. Identify the current method
 
-| Signal                | What to look for                                                                                                             |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **package.json**      | `astro-i18n`, `astro-i18next`, `next-intl`, `i18next`, `vue-i18n`, `react-intl`, `@nuxtjs/i18n`                              |
-| **Framework config**  | `astro.config.mjs` `i18n` block (routing only — no translation runtime), `next.config.js` i18n, `nuxt.config.ts` i18n module |
-| **Recipe helpers**    | `src/i18n/ui.ts` dictionary, `getLangFromUrl()`, `useTranslations()`, `getRelativeLocaleUrl()`                               |
-| **Folder structure**  | Per-locale content folders (`/en/`, `/fr/`), or `locales/` dirs with JSON/YAML                                               |
-| **Routing**           | Locale-prefixed routes (`/fr/about`), locale-detecting middleware, `[locale]` segments                                       |
-| **Translation files** | `.json`, `.yaml`, `.po` key/value pairs                                                                                      |
-| **Template usage**    | `t("key")`, `$t("key")`, `useTranslation()`, `<Trans>`, `Astro.currentLocale`                                                |
+| Signal                | What to look for                                                                                                                                                                             |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **package.json**      | `astro-i18n`, `astro-i18next`, `next-intl`, `i18next`, `vue-i18n`, `react-intl`, `@nuxtjs/i18n`                                                                                              |
+| **Framework config**  | `astro.config.mjs` `i18n` block (routing only — no translation runtime), `next.config.js` i18n, `nuxt.config.ts` i18n module, Hugo `languages` / `defaultContentLanguage` in the site config |
+| **Recipe helpers**    | `src/i18n/ui.ts` dictionary, `getLangFromUrl()`, `useTranslations()`, `getRelativeLocaleUrl()`                                                                                               |
+| **Folder structure**  | Per-locale content folders (`/en/`, `/fr/`), `locales/` dirs with JSON/YAML, or Hugo per-language files (`about.fr.md`) and `contentDir` per language                                        |
+| **Routing**           | Locale-prefixed routes (`/fr/about`), locale-detecting middleware, `[locale]` segments                                                                                                       |
+| **Translation files** | `.json`, `.yaml`, `.po` key/value pairs; Hugo `i18n/*.{toml,yaml,json}`                                                                                                                      |
+| **Template usage**    | `t("key")`, `$t("key")`, `useTranslation()`, `<Trans>`, `Astro.currentLocale`; Hugo `{{ i18n "key" }}` / `{{ T "key" }}`, `.Translations`, `.Lang`                                           |
 
 Document: which locales are supported, where translation files live and their format, how routing works, which components call translation functions.
 

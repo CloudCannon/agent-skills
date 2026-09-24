@@ -7,7 +7,7 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 - **SSG layer**: The component implementation, how it's imported/registered, build directives (`client:load` in Astro, etc.). This is what makes the component work at build time.
 - **CloudCannon layer**: The `_snippets` config that teaches the Content Editor the component's syntax — its name, attributes, whether it wraps content, and what editor inputs to show. This is purely for the editing experience.
 
-Agents must handle both layers during a migration, but keep them conceptually separate. SSG-specific snippet guidance lives in each SSG's `snippets.md` (e.g. `astro/snippets.md`).
+Agents must handle both layers during a migration, but keep them conceptually separate. SSG-specific snippet guidance lives in each SSG's `overview.md` — [Astro](astro/overview.md), [Hugo](hugo/overview.md).
 
 ---
 
@@ -34,7 +34,7 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#_snippets_imports-can-match-unintended-content). Import handling in MDX content is an SSG concern: use `astro-auto-import` (or equivalent) — see [astro/overview.md § Auto-import](astro/overview.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
+`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#_snippets_imports-can-match-unintended-content). The exception is Hugo's built-in shortcodes, which are only available through it — see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes). Import handling in MDX content is an SSG concern: use `astro-auto-import` (or equivalent) — see [astro/overview.md § Auto-import](astro/overview.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
 
 ---
 
@@ -99,7 +99,7 @@ For each HTML block found in the audit, ask: does the tag appear in the first-cl
 
 #### First-class elements
 
-CloudCannon maps these tags to supported editor semantics — **no snippet needed** as long as `markdown.options` align with how the SSG authors them. The toolbar on `_editables.content` surfaces buttons for the supported features (same idea as [Markdown tables in configuration-gotchas](../cloudcannon-configuration/astro/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)).
+CloudCannon maps these tags to supported editor semantics — **no snippet needed** as long as `markdown.options` align with how the SSG authors them. The toolbar on `_editables.content` surfaces buttons for the supported features (same idea as [Markdown tables in configuration-gotchas](../cloudcannon-configuration/configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)).
 
 | Element                                         | Block / inline | `markdown.options` / notes                                                                                                                                                                                                                                                                         |
 | ----------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

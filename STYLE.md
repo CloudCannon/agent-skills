@@ -65,17 +65,17 @@ Canonical example: `cloudcannon-configuration/collection-urls.md` owns placehold
 
 **MUST:** work through this list. Adding an SSG touches five skills; doing it ad hoc is how coverage ends up uneven without anyone noticing.
 
-| Skill                        | Needs a `<ssg>/` directory?                     | Files                                                                       |
-| ---------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
-| `migrate-to-cloudcannon`     | Yes — the phase guides are SSG-specific         | `overview.md`, `audit.md`, `content.md`, `build.md`, `page-building.md`     |
-| `cloudcannon-configuration`  | Yes — schema and URL derivation differ          | `overview.md`, `configuration.md`, `collection-urls.md`, `<ssg>-gotchas.md` |
-| `cloudcannon-visual-editing` | Yes — component re-rendering is framework-bound | `overview.md`, `visual-editing.md`, `visual-editing-reference.md`           |
-| `cloudcannon-snippets`       | Only if the SSG has its own component syntax    | `overview.md`                                                               |
-| `make-site-multilingual`     | Yes — root derivation and the pipeline differ   | `overview.md`                                                               |
-| `cloudcannon-dev-server`     | No — the CLI's own detection covers it          | —                                                                           |
-| `cloudcannon-cli`            | No — the CLI's own commands are SSG-agnostic    | —                                                                           |
-| `translate-site`             | No — it operates on files, not templates        | —                                                                           |
-| `brainstorming`              | No                                              | —                                                                           |
+| Skill                        | Needs a `<ssg>/` directory?                     | Files                                                                                                                                               |
+| ---------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `migrate-to-cloudcannon`     | Yes — the phase guides are SSG-specific         | `overview.md`, `audit.md`, `content.md`, `build.md`, `page-building.md`, plus `scripts/audit-<ssg>.sh`                                              |
+| `cloudcannon-configuration`  | Yes — schema and URL derivation differ          | `overview.md`, `configuration.md`, `collection-urls.md`, `configuration-gotchas.md`                                                                 |
+| `cloudcannon-visual-editing` | Yes — component re-rendering is framework-bound | `overview.md`, `visual-editing.md`, `visual-editing-reference.md`, `troubleshooting.md`; `migrating-from-bookshop.md` if Bookshop supported the SSG |
+| `cloudcannon-snippets`       | Only if the SSG has its own component syntax    | `overview.md`, plus the SSG's section in `built-in-templates.md`                                                                                    |
+| `make-site-multilingual`     | Yes — root derivation and the pipeline differ   | `overview.md`                                                                                                                                       |
+| `cloudcannon-dev-server`     | No — the CLI's own detection covers it          | —                                                                                                                                                   |
+| `cloudcannon-cli`            | No — the CLI's own commands are SSG-agnostic    | —                                                                                                                                                   |
+| `translate-site`             | No — it operates on files, not templates        | —                                                                                                                                                   |
+| `brainstorming`              | No                                              | —                                                                                                                                                   |
 
 Then:
 

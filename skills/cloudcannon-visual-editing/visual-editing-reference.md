@@ -61,14 +61,17 @@ Components that fetch, submit forms, or load third-party scripts need an editor-
 
 `data-prop` paths resolve against the file being edited, not against the template's local variables. This is the grammar.
 
-| Context                              | Syntax                    | Example                                           | Where it works                                                                                                             |
-| ------------------------------------ | ------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Same file, frontmatter               | Relative key              | `data-prop="title"`, `data-prop="banner.title"`   | Default case.                                                                                                              |
-| Same file, markdown body             | `@content`                | `data-prop="@content"` (with `data-type="block"`) | Blog bodies, rich-text body regions.                                                                                       |
-| Shared data file (via `data_config`) | `@data[key].path`         | `data-prop="@data[call-to-action].title"`         | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
-| Another content file by path         | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane].name"`  | Cross-collection items on a listing page. Path must start with `/`.                                                        |
-| Inside an `array-item`               | Relative (scope = item)   | `data-prop="title"` resolves to `items[N].title`  | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
-| Pass-through scope                   | Empty string              | `data-prop=""`                                    | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
+| Context                                | Syntax                    | Example                                          | Where it works                                                                                                             |
+| -------------------------------------- | ------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Same file, frontmatter                 | Relative key              | `data-prop="title"`, `data-prop="banner.title"`  | Default case.                                                                                                              |
+| Same file, markdown body               | `@content`                | `data-prop="@content"`                           | Blog bodies, rich-text body regions. Opens the content editor (`_editables.content`); no `data-type` needed.               |
+| Shared data file (via `data_config`)   | `@data[key].path`         | `data-prop="@data[call-to-action].title"`        | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
+| Another content file by path           | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane].name"` | Cross-collection items on a listing page. Path must start with `/`.                                                        |
+| Inside an `array-item`                 | Relative (scope = item)   | `data-prop="title"` resolves to `items.N.title`  | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
+| A specific array item, no array region | Numeric dot segment       | `data-prop="@data[footer].sections.0.title"`     | Fields of an array whose container can't be an array region. Inline editing, no add/remove/reorder.                        |
+| Pass-through scope                     | Empty string              | `data-prop=""`                                   | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
+
+**Paths are dot-separated, and nothing else.** The runtime splits a path on `.` and looks each segment up as a key, so a numeric segment indexes an array (`sections.0.title`). Brackets belong only to the prefix — `@data[key]`, `@collections[key]`, `@file[path]`. **MUST NOT** write `sections[0].title`: it looks up a literal key named `sections[0]`, finds nothing, and the region silently never mounts — no error card, no console warning.
 
 **`data-prop-*` lowercases its key.** The suffix after `data-prop-` is read as `propName.substring(4).toLowerCase()`, so a camelCase field name does not survive — `data-prop-pubDate` looks for `pubdate`. Bind camelCase fields with `data-prop` on an object, or rename the field.
 
@@ -83,7 +86,8 @@ Components that fetch, submit forms, or load third-party scripts need an editor-
 | Attach `data-editable` directly to a third-party component's output                    | The third-party component's rendered HTML may not accept `data-*` attributes where you need them | [Third-party component fields](#third-party-component-fields)                                     |
 | Use build-time cross-collection lookups with a static child component                  | Sidebar changes don't trigger a re-render                                                        | [Component editables backed by data files](#component-editables-backed-by-data-files)             |
 | Repeat the parent's `@data[...]` prefix on descendants                                 | Path resolves incorrectly                                                                        | [Arrays inside data files](#arrays-inside-data-files)                                             |
-| Use indexed paths on nested array-item editables (`@data[footer].columns[0].heading`)  | Path escapes the item's scope; edits don't round-trip                                            | [Arrays inside data files](#arrays-inside-data-files)                                             |
+| Bracket-index a path (`columns[0].heading`)                                            | Never resolves — the region silently doesn't mount                                               | [Data-prop paths](#data-prop-paths--pick-one)                                                     |
+| Use absolute indexed paths on editables inside an `array-item`                         | Path bypasses the item's scope, so edits no longer follow the item when it moves                 | [Arrays inside data files](#arrays-inside-data-files)                                             |
 
 ## Guard optional fields
 
@@ -113,10 +117,10 @@ Components that accept both a string and a structured object for the same slot n
 - **Wrapper-only** — when extra markup exists only to host editable text, prefer `<editable-text>` over `<span data-editable="text">`: same behaviour, clearer intent, fewer clashes with generic `span` rules. See [editable-regions.md § Custom Element Equivalents](editable-regions.md#custom-element-equivalents).
 - **Stay primitive when needed** — keep `<span data-editable="text">` when CSS or legacy markup already targets `span`.
 
-For block-level rich text (paragraphs, headings, lists), add `data-type="block"`. The `@content` path targets the file's markdown body, not frontmatter:
+For block-level rich text (paragraphs, headings, lists) in a frontmatter field, add `data-type="block"`. The `@content` path targets the file's markdown body, not frontmatter, and always opens the content editor (`_editables.content`), so it needs no `data-type`:
 
 ```html
-<div class="content" data-editable="text" data-type="block" data-prop="@content">…</div>
+<div class="content" data-editable="text" data-prop="@content">…</div>
 ```
 
 **Choosing `data-type` for HTML-rendered fields.** This applies to any field rendered as HTML, whether inserted directly or produced by a markdown parser. Keep the original element and don't add `data-type` unless there's a reason to. Two signals that `data-type="block"` is needed:
@@ -221,7 +225,7 @@ See the [CloudCannon complex array documentation](https://cloudcannon.com/docume
 
 ### Arrays inside data files
 
-When the array lives inside a shared data file, the path on the **parent** array editable is the only place the `@data[key]` prefix appears. Child editables inside each `data-editable="array-item"` use **relative paths** — the same rule as frontmatter-backed arrays. The library uses the array-item context to resolve, so an indexed path such as `@data[footer].columns[0].heading` on a child editable is unrecognised and resolves to undefined.
+When the array lives inside a shared data file, the path on the **parent** array editable is the only place the `@data[key]` prefix appears. Child editables inside each `data-editable="array-item"` use **relative paths** — the same rule as frontmatter-backed arrays. The library uses the array-item context to resolve, so a child needs only its relative key. An absolute path from inside an item (`@data[footer].columns.0.heading`) bypasses that context and stops following the item when it is reordered; the bracketed form (`columns[0]`) never resolves at all.
 
 ```html
 <!-- DO: data-file array, relative paths inside items -->
@@ -241,7 +245,7 @@ Nested data-file arrays follow the same rule: the inner array uses its relative 
 
 A `data-editable="array"` wrapper treats every direct child as an `array-item` — including children that aren't part of the array. Putting a static element (a logo column, a summary block, a "see all" link) as a sibling of the mapped output inside the same array wrapper breaks the array context: the static child has no matching index, and the runtime errors trying to resolve it.
 
-Split the layout container from the array container:
+Split the layout container from the array container. When you can't — the static child is a grid column that must stay a sibling of the items — skip the array region and bind each item's fields by index (`@data[footer].sections.0.title`): inline editing without add/remove/reorder.
 
 ```html
 <!-- RIGHT -->
@@ -282,7 +286,7 @@ When a suitable element exists, add both attributes directly. When none does, us
 
 **Each block type should have its own component file**, owning its section markup and its editable attributes. A dispatcher should be a thin lookup that renders the matching component, never a markup container.
 
-**Every block type must have a matching registration**, and the registered key must match the type value in content exactly — `call_to_action` registers as `call_to_action`, not `call-to-action`.
+**Every block type must resolve to a renderer**, and the key must match the type value in content exactly — `call_to_action` registers (or names a partial) as `call_to_action`, not `call-to-action`.
 
 **Data-prop mismatch when a parent renames fields.** A shared component carries `data-prop="subtitle"`. A widget passes its own `description` field into that `subtitle` slot. CloudCannon resolves `data-prop="subtitle"` against the block's data, looks for `content_blocks[n].subtitle`, and finds nothing — the block has `description`. Result: a "received a value of type 'undefined'" error. Fix options, one per widget:
 
@@ -514,7 +518,7 @@ Add an optional prop naming the image path, and only render the image region whe
 
 ## Component re-rendering
 
-For full live preview — not just text and image updates — components must be registered so the component region can re-render them in the browser when data changes. Every stack registers through its own `@cloudcannon/editable-regions` integration entry point; the registered key is what `data-component` refers to.
+For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro, partial lookup in Hugo; the resolved key is what `data-component` refers to.
 
 **What re-runs and what doesn't.** Registered components re-render in the browser with the props CloudCannon passes. Parent page-level logic does **not** re-run — top-level data loading in a page template, layout-level fetches, and anything else outside the component. If the component needs data its parent normally loads, pass it via props or load it inside the component.
 

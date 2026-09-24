@@ -75,11 +75,11 @@ Editables form a DOM-mirroring tree. Children register as listeners on their nea
 
 CloudCannon provides three mechanisms for detecting the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
 
-| Mechanism                        | Context    | Use for                                                                                                                                                                                                                                                          |
-| -------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.cms-editor-active` on `<body>` | CSS        | Overriding styles (animations, visibility). Most reliable for initial page load                                                                                                                                                                                  |
-| `window.inEditorMode`            | Runtime JS | Inline `<script>` logic, conditional imports                                                                                                                                                                                                                     |
-| `ENV_CLIENT`                     | Build-time | Skipping build-only logic. Defined by each integration in its editable-regions client bundle only, never in the production build. Read as `import.meta.env.ENV_CLIENT` in Astro, as a template global (`{% if ENV_CLIENT %}`) in the Liquid/Eleventy integration |
+| Mechanism                        | Context    | Use for                                                                                                                                                                                                                                                                                               |
+| -------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.cms-editor-active` on `<body>` | CSS        | Overriding styles (animations, visibility). Most reliable for initial page load                                                                                                                                                                                                                       |
+| `window.inEditorMode`            | Runtime JS | Inline `<script>` logic, conditional imports                                                                                                                                                                                                                                                          |
+| `ENV_CLIENT`                     | Build-time | Skipping build-only logic. Defined by each integration in its editable-regions client bundle only, never in the production build. Read as `import.meta.env.ENV_CLIENT` in Astro, as a template global (`{% if ENV_CLIENT %}`) in the Liquid/Eleventy integration, as `site.Params.ENV_CLIENT` in Hugo |
 
 ### Connecting
 
@@ -239,6 +239,12 @@ Guidance:
 │  │ • enables client-side SSR    │  │ • bundles as text strings    │ │
 │  │ • patches astro:build plugin │  │ • imports filters/shortcodes │ │
 │  └──────────────────────────────┘  └──────────────────────────────┘ │
+│  ┌─ Hugo ─────────────────────────────────────────────────────────┐ │
+│  │ Hugo module partial:                                           │ │
+│  │ • bundles partials, shortcodes, render hooks, config, i18n     │ │
+│  │ • fetches the Hugo WASM renderer for the pinned release        │ │
+│  │ • renders partials in-browser; `data-component` = partial path │ │
+│  └────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
                               │
                               ▼
