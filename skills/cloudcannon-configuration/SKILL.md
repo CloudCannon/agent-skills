@@ -62,7 +62,7 @@ Observed hallucinations and their real keys: [§ Common invalid keys](#common-in
 | [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating a baseline with `configure`, and `validate`. CLI output **always** needs customization — it infers no input types, structures, select data, or toolbars. The rest of the CLI is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md) |
 | [structures.md](structures.md)                       | **Read early.** Every array and object Input needs a structure or editors cannot add items. Field completeness rule and definition patterns                                                                                                 |
 | [collection-urls.md](collection-urls.md)             | Collections that produce pages need a `url`. A wrong one is the most common reason a page fails to load in the Visual Editor                                                                                                                |
-| [build-hooks.md](build-hooks.md)                     | `.cloudcannon/preinstall`, `prebuild` and `postbuild` — when each runs, and when a step belongs in the build command instead                                                                                                                |
+| [build-commands.md](build-commands.md)               | Where generators and post-build steps go — the `build` script and `install_command`                                                                                                                                                         |
 | [troubleshooting.md](troubleshooting.md)             | Symptom → fix, for when configuration is already wrong                                                                                                                                                                                      |
 
 **SSG-specific:**
@@ -98,7 +98,7 @@ The SSG-specific configuration docs contain detailed verification checklists. Th
 - **You are not done until every checklist item is verified**
 - **After every round of changes, run `npx @cloudcannon/cli validate`** — fixes unknown keys and type errors before they become hard-to-debug editor issues. See [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration)
 - Cross-reference every Zod schema field against `_inputs` — missing fields get wrong editor types
-- Every Array Input needs both a structure definition AND an `_inputs` entry linking to it (arrays of plain strings excepted — see [structures.md § The four rules](structures.md#the-four-rules-read-first))
+- Every Array Input needs both a structure definition AND an `_inputs` entry linking to it (arrays of primitives instead take a `<field>[*]` input for the item type — see [structures.md § The four rules](structures.md#the-four-rules-read-first))
 
 ## Common invalid keys
 
@@ -117,7 +117,7 @@ Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritati
 | `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
 | `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |
 | `paths.output` (invented)                                           | No such key. `paths` configures asset directories only. Tell the build tool where the output is; nothing reads it from config                   |
-| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                              |
+| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names render as a broken icon — check the schema for names                         |
 
 ## Common mistakes
 

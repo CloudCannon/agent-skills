@@ -101,15 +101,41 @@ The rest of the input config (`allow_create`, `value_key`, `preview`) stays the 
 
 ### Where the input definition goes
 
-**MUST:** define `icon` once, at the root of `cloudcannon.config.yml` — not per structure.
+**MUST:** define `icon` on every structure value that has an `icon` field — in that value's own `_inputs` — rather than relying on one root-level entry to reach it.
 
-`_inputs` matches by key name regardless of nesting depth (see [§ `_inputs` key collision across nesting levels](#_inputs-key-collision-across-nesting-levels)), and an `_inputs` entry left undefined at a more specific level of the [configuration cascade](https://cloudcannon.com/documentation/articles/using-the-configuration-cascade/) falls back to the configuration file's entry. One root-level `icon` entry therefore reaches every `icon` field on the site, including keys inside structure `value:` blocks and co-located `*.cloudcannon.structure-value.yml` files.
+Structures are designed to be portable: a structure value should carry its own input configuration and behave the same wherever it is used, not change based on configuration outside it. A root-level `_inputs.icon` does currently cascade into structure values, but that is behaviour likely to change, so treat the structure value as the place the input lives.
 
-Add a scoped entry only where one context genuinely differs — `hero.icon` for a larger curated set, say. `cascade` defaults to `true`, so that scoped entry merges with the root one rather than replacing it; set `cascade: false` on it to stop the merge.
+To avoid repeating the definition, put it in an input configuration file once and pull it into each structure value with `_inputs_from_glob`. The file must end in `.cloudcannon.inputs.yml`:
+
+```yaml
+# .cloudcannon/inputs/icon.cloudcannon.inputs.yml
+icon:
+  type: select
+  comment: "Pick an icon or type a custom [Iconify](https://icon-sets.iconify.design/) name"
+  options:
+    allow_create: true
+    value_key: id
+    preview:
+      text:
+        - key: name
+    values: data.icons
+```
+
+```yaml
+# in each structure value (inline, or a *.cloudcannon.structure-value.yml file)
+- label: Feature
+  value:
+    title:
+    icon:
+  _inputs_from_glob:
+    - /.cloudcannon/inputs/icon.cloudcannon.inputs.yml
+```
+
+Page-level fields outside any structure (front matter `icon` on a collection's files) still take their input from `collections_config.<name>._inputs` or the root, as usual.
 
 **Why:** the failure mode is not a wrong entry, it is a missing one. A migration that configures `icon` on the five widget-level fields it happened to look at, and leaves the per-item `icon` inside a dozen structure values undefined, gives editors a free-text box on exactly the fields they use most — and it looks correct in the config, because the entries that exist are right.
 
-**Check:** every structure `value:` key whose values come from a fixed set — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — resolves to an `_inputs` entry at some level of the cascade. Sweep `cloudcannon.config.yml` and the `*.cloudcannon.structure-value.yml` files for those keys and confirm each one; a field with no matching entry anywhere is a text box.
+**Check:** every structure value with a key whose values come from a fixed set — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — has an `_inputs` entry for it, directly or via `_inputs_from_glob`. Sweep `cloudcannon.config.yml` and the `*.cloudcannon.structure-value.yml` files for those keys and confirm each one; a field with no matching entry is a text box.
 
 **Common miss:** Do NOT use `values: data.icons[*].id` — this extracts only the raw ID strings (e.g. `tabler:rocket`), losing the `name` field entirely. Editors see cryptic Iconify IDs in the dropdown instead of friendly names like "Rocket". Use `values: data.icons` (the full objects) with `value_key: id` so the stored value is the ID but the dropdown displays the name via `preview.text`.
 
@@ -222,7 +248,7 @@ _inputs:
 
 `allow_create: true` is appropriate for icon fields (developers may want a custom Iconify name). For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug.
 
-Placement follows the same rule as icons: define the input once at the root of `cloudcannon.config.yml` and let the cascade reach every structure that uses the key. See [§ Where the input definition goes](#where-the-input-definition-goes).
+Placement follows the same rule as icons: define the input on each structure value that has the key, and share one definition across them with `_inputs_from_glob`. See [§ Where the input definition goes](#where-the-input-definition-goes).
 
 ## Quote numeric values that map to text inputs
 
@@ -360,7 +386,7 @@ A common case: data files handled via `data_config` still need to belong to a co
 
 ## Always link arrays to structures explicitly
 
-See [structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name). Arrays of primitives (`string[]`) are the exception: a bare `type: array` is enough.
+See [structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name). Arrays of primitives (`string[]`) are the exception: they take no structure, but need a `<field>[*]` input for the item type (e.g. `features[*]: { type: text }`) so the array still works once emptied.
 
 ## Add preview icon fallbacks on structures
 

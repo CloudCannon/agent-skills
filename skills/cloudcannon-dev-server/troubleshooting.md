@@ -15,11 +15,11 @@ read, or redirect it: `<build> > /tmp/cc-build.log 2>&1`.
 | Saved in the editor, the preview never changes        | Nothing rebuilt — `cloudcannon dev` never builds                          | Re-run the build, or start [`watch-build.mjs`](scripts/README.md)                            |
 | The editor field shows the edit, the preview does not | Same cause, or the rebuild is still running                               | Read the build output. Wait for it, then the preview reloads itself                          |
 | The build failed and the preview looks stale          | It is showing the last output the build wrote                             | Fix the build. The preview updates on the next successful one                                |
-| Every save takes tens of seconds                      | The whole build re-runs per change, hooks included                        | Expected on a site with a postbuild. Use the manual route, or raise `--debounce`             |
+| Every save takes tens of seconds                      | The whole build script re-runs per change                                 | Expected with slow post-build steps. Use the manual route, or raise `--debounce`             |
 | Two rebuilds for one save                             | A change arrived mid-build, so it was queued rather than risk dropping it | Expected, and it settles after one extra pass                                                |
 | `the build keeps retriggering itself`                 | The build writes into a watched directory — pagefind into `public/`, say  | Stop passing that directory to `--watch`. The default list excludes static-asset directories |
 | Editing a file changes nothing, not even a rebuild    | It sits outside the watched allowlist                                     | `--watch <dir>`, or rebuild by hand. Startup prints what is watched                          |
-| Pages the postbuild generated vanished after a build  | The build command does not run the hooks                                  | Compose them: `bash .cloudcannon/prebuild && <build> && bash .cloudcannon/postbuild`         |
+| Pages a post-build step generated vanished            | The bare SSG command ran instead of the build script                      | Run `npm run build` — see [setup.md](setup.md#build-commands)                                |
 | A renamed or deleted page is still being served       | The build's output directory still holds it — most SSGs never clean it    | Delete the output directory and build again                                                  |
 
 ## Serving

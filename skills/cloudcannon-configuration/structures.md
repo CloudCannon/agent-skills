@@ -18,7 +18,17 @@ These are non-optional. Each gets expanded later in this doc, but the table is t
 | 3   | Every structure value includes a `preview` block with a meaningful `text` key lookup.                                                                                                                              | Sidebar cards show only the generic label ("Item", "Action") instead of a useful value. |
 | 4   | Every nested object field editors see has `type: object` + `options.preview.icon`.                                                                                                                                 | Generic icon in the data editor; visual clutter.                                        |
 
-**Arrays of primitives are exempt from rule 2.** A bare `type: array` input with no `options.structures` on a `string[]` field gives a plain list of text items that editors can add to, delete from and drag-reorder. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `allow_create: true` and `values`.
+**Arrays of primitives are exempt from rule 2.** A `string[]` (or `number[]`) field needs no structure. Configure the array and its items separately — `type: array` on the field, plus a `<field>[*]` entry giving the item type:
+
+```yaml
+_inputs:
+  features:
+    type: array
+  features[*]:
+    type: text
+```
+
+Editors get a plain list they can add to, delete from and drag-reorder, and it can be emptied: an empty array in content (`features: []`) still offers the right item on Add. **MUST NOT** rely on a bare `type: array` without the `[*]` entry — the Add button clones the previous item, so once the last one is deleted the array loses its item type. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `allow_create: true` and `values`.
 
 These apply in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Define structures during the configuration phase and use them as the blueprint when creating content files in the content phase — not as a backfill step.
 

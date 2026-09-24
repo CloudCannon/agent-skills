@@ -87,7 +87,7 @@ troubleshooting.md                      Symptom → fix, when configuration is a
 cloudcannon-cli-guide.md                Generating and validating config with the CLI
 structures.md                           Inline vs split, previews, field completeness
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
-build-hooks.md                          preinstall/prebuild/postbuild — ordering, hook vs build command
+build-commands.md                       build/install commands — where each build step goes
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/configuration.md                  Phase 2: config, schemas, inputs, add options
 astro/collection-urls.md                Astro: glob-loader slug, trailingSlash
@@ -115,7 +115,7 @@ scripts/setup-editable-regions.sh       Installs package, wires Astro integratio
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command
-setup.md                                Prerequisites, what `cloudcannon dev` does, hooks, ports
+setup.md                                Prerequisites, what `cloudcannon dev` does, the build, ports
 dev-server-api.md                       The `/__api` surface and the event stream
 troubleshooting.md                      Symptom → cause → fix for the server itself
 scripts/watch-build.mjs                 OPTIONAL — rebuild when a source file changes

@@ -48,7 +48,7 @@ The read-only remote commands — every `list`, every `get`, every `print-*` —
 
 ## Requirements
 
-Node 24 or newer, per the CLI's own `engines` field. Install globally with `npm i -g @cloudcannon/cli`, or invoke with `npx @cloudcannon/cli <command>`.
+Node 24 or newer (the current LTS). Install globally with `npm i -g @cloudcannon/cli`, or invoke with `npx @cloudcannon/cli <command>`.
 
 ## Quick start
 

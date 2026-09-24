@@ -6,7 +6,7 @@ Everything else about the CLI — authenticating, operating on hosted sites, fil
 
 ## Prerequisites
 
-- Node.js 24+ installed (the CLI's `engines` field requires it)
+- Node.js 24+ (the current LTS) installed
 - A project with source files (HTML, Markdown, data files, etc.)
 
 ## Quick Setup (One Command)

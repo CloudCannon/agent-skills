@@ -36,11 +36,11 @@ Build settings must be nested under a `build` key. The old flat format (`build_c
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ssg`                   | `"astro"`                                                                                                                                                                                                                    |
 | `build.install_command` | From the detected package manager. Omit if none.                                                                                                                                                                             |
-| `build.build_command`   | The bare build — `npm run build` where that is a straight build, otherwise `"astro build"`. Never a script that invokes a `.cloudcannon/` hook.                                                                              |
+| `build.build_command`   | `npm run build` — the site's full build script, including every generator and post-build step. `"astro build"` only when there is no `build` script.                                                                         |
 | `build.output_path`     | `"dist"`                                                                                                                                                                                                                     |
 | `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists (CC reads the version from the file automatically). Otherwise the major version from `package.json` `engines.node` (`">=18"` → `"18"`). Otherwise omit — CC uses its default. |
 
-Prefer `.cloudcannon/prebuild` for extra setup steps so `build_command` stays a straight build, not a shell chain.
+Put extra steps in the `package.json` `build` script, so `build_command` stays `npm run build` and matches the local build — see [../build-commands.md](../build-commands.md).
 
 **Only takes effect on first site creation.** For existing CloudCannon sites, change build settings with `cloudcannon sites update-build-config` (see [`cloudcannon-cli` § Changing build configuration](../../cloudcannon-cli/commands.md#changing-build-configuration)) or in the CloudCannon UI under **Site Settings > Builds > Configuration**. See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
 
@@ -57,7 +57,7 @@ The decision rule: if skipping the change means the config is wrong or fragile, 
 The CloudCannon CLI produces a structural baseline. The following customizations are almost always needed, informed by the Phase 1 audit:
 
 - **`_inputs`** -- configure how fields appear in the editor (dropdowns, date pickers, image uploaders, comments, hidden fields). Map these from the Zod schemas discovered in the audit. When a frontmatter field contains markdown (e.g. a hero description with `**bold**` text), use `type: markdown`, not `type: textarea`. The same goes for fields that contain html elements (e.g. a hero description with `<strong>bold</strong>` text) - they should use `type: html`, instead of `type: textarea`. Choose the input type from how the template renders the field, not only from what the current content contains: `set:html` → `type: html`, `{x}` → `type: text`/`textarea`. A global `html` input on a field that renders as `{x}` lets editors add markup that prints escaped. If the same key renders differently in different blocks, scope the input per structure — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes). Use scoped input keys (e.g. `hero.description`) when the general input should stay as `textarea` but a specific context needs `markdown`. Fields whose value is one of a fixed set (`variant`, `target`, `size`, `align`, `theme`, `columns`, etc.) must be `type: select` — never `type: text`. See [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs).
-- **`_structures`** -- MANDATORY for every array and object input on the site, except arrays of primitives (`string[]`). See [../structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) for the full requirement (structure definition + explicit `_inputs` linkage with full path).
+- **`_structures`** -- MANDATORY for every array and object input on the site, except arrays of primitives (`string[]`), which take `type: array` plus a `<field>[*]` input for the item type instead. See [../structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) for the full requirement (structure definition + explicit `_inputs` linkage with full path).
 - **`icon`** -- every collection should have an `icon` key so it gets a meaningful icon in the CloudCannon sidebar instead of a generic default. Pick icons that reflect the collection's purpose (e.g. `wysiwyg` for pages, `post_add` for blog posts, `home` for homepages, `settings` for data/config). CloudCannon's icon set is a **fixed curated subset** of Material Symbols — invalid names silently fall back to the default. When unsure, see [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details to check for the exact name. Common gotcha: `place` is not in the enum — use `location_on`.
 - **All schema fields mapped** -- cross-reference every field in the Zod schema against the `_inputs` config. Every user-facing field needs an appropriate input type (`textarea` for multi-line strings like excerpts/descriptions, `datetime` for dates, `image` for image paths, etc.). Missing fields fall back to CC's type inference, which is often wrong. When unsure whether a field is user-facing or developer-only, check whether its value is rendered as visible text on the built page. If it appears on the page, it should be editable with an appropriate input type. Only fields undergoing heavy programmatic transformation (e.g. used purely as a build-time lookup key) should be hidden.
 - **`collection_groups`** -- organize collections into sidebar groups for a clean editing experience.
@@ -101,7 +101,7 @@ When the component looks entries up by Astro entry id or slug, use `value_key: f
 
 - **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit. **Multiple schemas can live in one collection** -- both via `schemas:` config and Zod `z.union`. See [§ Schemas](#schemas) below for the worked multi-schema `pages` example.
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
-- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. `$.key` also works in `collections_config.<name>._inputs` — use it when page-level metadata keys (`title`, `description`) share names with block or structure fields that need a different input type:
+- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. `$.key` also works in `collections_config.<name>._inputs` — use it when root-level keys (`title`, `description`) share names with deeper nested fields that need a different input type:
 
 ```yaml
 collections_config:
@@ -109,10 +109,9 @@ collections_config:
     _inputs:
       $.title:
         type: text
-        label: Page title
 ```
 
-`$.title` applies only to each file's root `title`. Nested block `title` fields keep the global `title` input.
+`$.title` matches each file's root `title` **and** the `title` directly at the root of every structure value, so it does not separate a page title from a block's title — don't give it a page-specific label. Deeper nested `title` fields keep the global `title` input. To give block titles their own input, define `title` in that structure value's `_inputs`.
 
 `file_config` example:
 
@@ -511,13 +510,9 @@ See [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md) for 
 
 For the structures reference (inline vs split, field completeness, previews, deriving from components), see [../structures.md](../structures.md).
 
-## Build hooks
+## Build steps
 
-`.cloudcannon/preinstall`, `.cloudcannon/prebuild` and `.cloudcannon/postbuild` run around CloudCannon's build. Which hook a step belongs in — and when it belongs in the build command instead — is in [../build-hooks.md](../build-hooks.md).
-
-Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in `.cloudcannon/prebuild` rather than chaining them into `build_command`, and steps that read the **built** output (Pagefind and similar HTML indexers) in `.cloudcannon/postbuild`. `build_command` stays `npm run build`.
-
-**MUST NOT** let `npm run build` invoke a hook — CloudCannon runs the hooks around the build command, so a `build` script that calls them fires each one twice. Compose them in a separately named script (`build:local`) for local parity instead.
+Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in the `package.json` `build` script before `astro build`, and steps that read the **built** output (Pagefind and similar HTML indexers) after it. `build_command` stays `npm run build`. See [../build-commands.md](../build-commands.md).
 
 ## Editor README
 
@@ -550,9 +545,8 @@ Work through these before moving to the next phase. One check per line.
 - [ ] `.cloudcannon/initial-site-settings.json` has `"ssg": "astro"`
 - [ ] Build settings nested under `"build"` (`build_command`, `output_path`, `install_command`)
 - [ ] `node_version` set: `"file"` when `.nvmrc`/`.node-version` exists; major version from `package.json` `engines.node` otherwise
-- [ ] `.cloudcannon/prebuild` exists if pre-build steps are needed
-- [ ] `build_command` contains no `.cloudcannon/` hook path, directly or via the script it calls
-- [ ] A separately named parity command (`build:local`) composes every hook the site has
+- [ ] Pre- and post-build steps live in the `package.json` `build` script
+- [ ] `npm run build` alone produces the complete output
 - [ ] `.cloudcannon/README.md` exists with editor-facing documentation
 
 ### Collections
@@ -570,7 +564,7 @@ Work through these before moving to the next phase. One check per line.
 
 - [ ] `_inputs` configured for common field types (images, dates, dropdowns, hidden fields)
 - [ ] Icon fields use `type: select` with `allow_create: true`, `value_key: id`, and named values (use a data file for 20+ icons)
-- [ ] Enum-like keys inside structure `value:` blocks — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — each resolve to an `_inputs` entry somewhere in the cascade, not just the widget-level fields. Sweep `cloudcannon.config.yml` and every `*.cloudcannon.structure-value.yml` for those keys; one root-level entry covers them all — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes)
+- [ ] Enum-like keys inside structure `value:` blocks — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — each have an `_inputs` entry on the structure value itself, not just the widget-level fields. Sweep `cloudcannon.config.yml` and every `*.cloudcannon.structure-value.yml` for those keys; each structure value defines them in its own `_inputs`, sharing one definition via `_inputs_from_glob` — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes)
 - [ ] Numeric frontmatter values mapped to `text` inputs are quoted as strings
 - [ ] Developer-only fields (`layout`, `_schema`, routing/rendering keys) have `hidden: true`
 - [ ] Every input has explicit config — don't rely on CC type inference from field name alone

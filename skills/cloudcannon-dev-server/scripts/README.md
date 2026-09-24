@@ -10,7 +10,7 @@ way.
 
 ```sh
 node watch-build.mjs --root /path/to/site \
-  --build-cmd "bash .cloudcannon/prebuild && npm run build && bash .cloudcannon/postbuild"
+  --build-cmd "npm run build"
 ```
 
 | Flag          | Meaning                                              |
@@ -28,8 +28,8 @@ that arrives mid-build queues one more pass rather than being dropped. Run it al
 `data`, `layouts`, `_includes`, `_posts` and similar, whichever exist, plus files directly in the
 project root for `cloudcannon.config.yml` and the SSG's own config. It prints the list at startup.
 
-**Why:** a build that writes back into the source tree — `cp -r dist/pagefind public/`, a prebuild
-generating into `src/` — retriggers a watcher pointed at its target, forever. Watching only what a
+**Why:** a build that writes back into the source tree — `cp -r dist/pagefind public/`, a generator
+writing into `src/` — retriggers a watcher pointed at its target, forever. Watching only what a
 person edits is what makes that impossible, and it needs no per-site ignore list. Static-asset
 directories are absent for that reason; add one with `--watch public` where the build does not
 write there.

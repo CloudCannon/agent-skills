@@ -6,7 +6,7 @@ Prerequisites, what `cloudcannon dev` does, and how to build a site for it.
 
 | Need            | Install                     | Notes                                             |
 | --------------- | --------------------------- | ------------------------------------------------- |
-| Node            | —                           | 24+, as the CLI requires                          |
+| Node            | —                           | 24+ (the current LTS)                             |
 | CloudCannon CLI | `npm i -g @cloudcannon/cli` | `dev` needs **no** login — it never calls the API |
 
 Where a global install is not possible, `npx @cloudcannon/cli dev` works, as does a local
@@ -15,8 +15,8 @@ install plus `PATH="$PWD/node_modules/.bin:$PATH"`.
 ## What `cloudcannon dev` does and does not do
 
 **MUST build the site yourself, and rebuild it after every change.**
-**Why:** `cloudcannon dev <dir>` serves `<dir>`. It never runs the SSG build and never runs
-`.cloudcannon/prebuild` or `.cloudcannon/postbuild`. Serving a directory nothing is regenerating
+**Why:** `cloudcannon dev <dir>` serves `<dir>`. It never runs the SSG build or any step
+around it. Serving a directory nothing is regenerating
 gives the user an editor whose saves reach disk and then appear to vanish.
 
 ```sh
@@ -57,7 +57,13 @@ cloudcannon configure detect-build-commands
 
 Take the first suggestion for each. Where the site disagrees, `cloudcannon configure detect-ssg`
 shows the scores behind the guess — but the user's own `package.json` script is the better answer
-whenever there is one.
+whenever there is one. Build with that script, not the bare SSG command: generators and
+post-build steps live in it, so it matches what CloudCannon runs. See
+[`cloudcannon-configuration` § Build and install commands](../cloudcannon-configuration/build-commands.md).
+
+If the site has `.cloudcannon/prebuild` or `postbuild` files, a local build skips them. Tell the
+user, and see [build-commands.md § `.cloudcannon/` hook files](../cloudcannon-configuration/build-commands.md#cloudcannon-hook-files)
+for moving them into the build script.
 
 There is no `paths.output` key in `cloudcannon.config.yml`; the output directory is not readable
 from there.
@@ -68,53 +74,24 @@ Two routes, and the user picks:
 
 | Route       | Run                                           | When                                                        |
 | ----------- | --------------------------------------------- | ----------------------------------------------------------- |
-| **Manual**  | The build command again, in a second terminal | Slow builds, or a postbuild that rewrites the whole output  |
+| **Manual**  | The build command again, in a second terminal | Slow builds, or a post-build step that rewrites the output  |
 | **Watched** | [`watch-build.mjs`](scripts/README.md)        | Editing in the browser, wanting the preview to follow along |
 
 Either way the preview reloads itself once the output directory changes — see
 [dev-server-api.md § Events](dev-server-api.md#events). Nothing needs to restart, and the manual
 route needs no script at all.
 
+Every rebuild costs the whole build script, which is seconds to minutes when a post-build step
+rewrites the whole output — the Rosey pipeline from
+[make-site-multilingual](../make-site-multilingual/SKILL.md), say. On those sites, prefer the
+manual route.
+
 **MUST NOT replace the build command with the SSG's own watch build.** Two reasons:
 
 - A watch build never cleans its output directory, so a renamed or deleted page leaves its old
   file behind and the server keeps serving it.
-- A watch build is one long-running process, so a site's hooks would run once at startup and
-  never again — every later save would serve a build with no postbuild applied.
-
-## The postbuild
-
-CloudCannon runs `.cloudcannon/prebuild` and `.cloudcannon/postbuild` around `build_command`,
-which is why `build_command` must not invoke them — see
-[`cloudcannon-configuration` § The build command MUST NOT invoke a hook](../cloudcannon-configuration/build-hooks.md#the-build-command-must-not-invoke-a-hook).
-Locally nothing else runs them, so compose them around the build:
-
-```sh
-bash .cloudcannon/prebuild && npm run build && bash .cloudcannon/postbuild
-```
-
-| Site                                      | Build the site with                        |
-| ----------------------------------------- | ------------------------------------------ |
-| No hooks                                  | The build command alone                    |
-| A local-parity script that runs the hooks | That script, so nothing fires twice        |
-| Hooks present, nothing runs them          | `prebuild && build && postbuild`, composed |
-
-Check `package.json` for a parity script before composing — a site that has one has already
-decided the order.
-
-**MUST NOT assume a bare build command is enough on a site with a postbuild.**
-**Why:** on a site whose postbuild rewrites the output rather than adding to it — moving the
-build aside and regenerating it — a rebuild that skips the hook replaces the generated output
-with the plain build, and everything the postbuild produced disappears.
-
-`.cloudcannon/preinstall` is never run locally: it runs before dependencies install, which no
-build sequence started here can reach. Say so rather than skipping it silently.
-
-Every rebuild then costs a full hook chain, which is seconds to minutes where the postbuild
-rewrites the whole output. On those sites, prefer the manual route.
-
-For the Rosey pipeline — the most common postbuild of this shape — see
-[make-site-multilingual](../make-site-multilingual/SKILL.md).
+- A watch build runs only the SSG, so every step the `build` script chains around it — search
+  indexing, output rewriting — never runs on later saves.
 
 ## Ports
 
