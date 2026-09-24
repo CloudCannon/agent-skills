@@ -9,7 +9,7 @@ Guidance for creating and configuring `cloudcannon.config.yml` and `.cloudcannon
 Use the CloudCannon CLI to generate a baseline configuration. Run subcommands individually to cross-reference against the Phase 1 audit. See [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) for the full CLI reference and all available commands.
 
 ```bash
-npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg astro
+npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg astro
 ```
 
 **When the CloudCannon CLI is unavailable** (sandbox network restrictions, version incompatibility, etc.), write the config manually using the audit findings. Follow the same review and customization checklists below — the CloudCannon CLI is a time-saver, not a prerequisite.
@@ -18,11 +18,13 @@ npx @cloudcannon/cli configure generate --auto --initial-build-settings --ssg as
 
 After generation, check `cloudcannon.config.yml` against this table:
 
-| Key                  | Rule                                                                                                                             | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `source`             | **Omit for typical Astro sites.** Remove it if the CLI wrote one.                                                                | Deployment-specific (monorepos). CC root defaults to repo root, so config can reference paths outside `src`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `collections_config` | All content collections present with paths matching `content.config.ts` `base` directories. **Remove `output: true`** — defunct. | Collections auto-output when they have a `url` pattern. Use `disable_url: true` to prevent output.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `paths`              | `static: public` (unless the site uses a different public directory). `uploads: public/images` (default when no precedent).      | `paths` configures asset directories only. 7 valid keys: `static`, `uploads`, `uploads_filename`, `dam_uploads`, `dam_uploads_filename`, `dam_static`, `uploads_use_relative_path` (See [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details). There is NO `paths.collections` or `paths.data` — collection paths go on each `collections_config.<name>.path`, data paths on each `data_config.<name>.path`. See [Image path configuration](#image-path-configuration) for optimized vs static. |
+| Key                                           | Rule                                                                                                                                       | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source`                                      | **Omit for typical Astro sites.** Remove it if the CLI wrote one.                                                                          | Deployment-specific (monorepos). CC root defaults to repo root, so config can reference paths outside `src`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `collections_config`                          | All content collections present with paths matching `content.config.ts` `base` directories. **Remove `output: true`** — defunct.           | Collections auto-output when they have a `url` pattern. Use `disable_url: true` to prevent output.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `paths`                                       | `static: public` (unless the site uses a different public directory). `uploads: public/images` (default when no precedent).                | `paths` configures asset directories only. 7 valid keys: `static`, `uploads`, `uploads_filename`, `dam_uploads`, `dam_uploads_filename`, `dam_static`, `uploads_use_relative_path` (See [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details). There is NO `paths.collections` or `paths.data` — collection paths go on each `collections_config.<name>.path`, data paths on each `data_config.<name>.path`. See [Image path configuration](#image-path-configuration) for optimized vs static. |
+| `timezone`                                    | The CLI writes the timezone of the machine running it. Replace it with the site's own configured timezone if it has one; otherwise ask.    | Affects how date fields are read and written. Top-level key, IANA name — see [../SKILL.md § Common invalid keys](../SKILL.md#common-invalid-keys).                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `node_version` (`initial-site-settings.json`) | The CLI can omit it even when `.nvmrc` exists. Apply the rule in [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson). | `"file"` when `.nvmrc`/`.node-version` exists.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
@@ -34,13 +36,13 @@ Build settings must be nested under a `build` key. The old flat format (`build_c
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ssg`                   | `"astro"`                                                                                                                                                                                                                    |
 | `build.install_command` | From the detected package manager. Omit if none.                                                                                                                                                                             |
-| `build.build_command`   | The script from `package.json` if present, otherwise `"astro build"`.                                                                                                                                                        |
+| `build.build_command`   | `npm run build` — the site's full build script, including every generator and post-build step. `"astro build"` only when there is no `build` script.                                                                         |
 | `build.output_path`     | `"dist"`                                                                                                                                                                                                                     |
 | `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists (CC reads the version from the file automatically). Otherwise the major version from `package.json` `engines.node` (`">=18"` → `"18"`). Otherwise omit — CC uses its default. |
 
-Prefer `.cloudcannon/prebuild` for extra setup steps so `build_command` stays a straight build, not a shell chain.
+Put extra steps in the `package.json` `build` script, so `build_command` stays `npm run build` and matches the local build — see [../build-commands.md](../build-commands.md).
 
-**Only takes effect on first site creation.** For existing CloudCannon sites, change build settings in the CloudCannon UI (**Site Settings > Builds > Configuration**). See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
+**Only takes effect on first site creation.** For existing CloudCannon sites, change build settings with `cloudcannon sites update-build-config` (see [`cloudcannon-cli` § Changing build configuration](../../cloudcannon-cli/commands.md#changing-build-configuration)) or in the CloudCannon UI under **Site Settings > Builds > Configuration**. See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
 
 ## Customize the config
 
@@ -54,12 +56,12 @@ The decision rule: if skipping the change means the config is wrong or fragile, 
 
 The CloudCannon CLI produces a structural baseline. The following customizations are almost always needed, informed by the Phase 1 audit:
 
-- **`_inputs`** -- configure how fields appear in the editor (dropdowns, date pickers, image uploaders, comments, hidden fields). Map these from the Zod schemas discovered in the audit. When a frontmatter field contains markdown (e.g. a hero description with `**bold**` text), use `type: markdown`, not `type: textarea`. The same goes for fields that contain html elements (e.g. a hero description with `<strong>bold</strong>` text) - they should use `type: html`, instead of `type: textarea`. Use scoped input keys (e.g. `hero.description`) when the general input should stay as `textarea` but a specific context needs `markdown`. Fields whose value is one of a fixed set (`variant`, `target`, `size`, `align`, `theme`, `columns`, etc.) must be `type: select` — never `type: text`. See [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs).
-- **`_structures`** -- MANDATORY for every array and object input on the site. See [../structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) for the full requirement (structure definition + explicit `_inputs` linkage with full path).
+- **`_inputs`** -- configure how fields appear in the editor (dropdowns, date pickers, image uploaders, comments, hidden fields). Map these from the Zod schemas discovered in the audit. When a frontmatter field contains markdown (e.g. a hero description with `**bold**` text), use `type: markdown`, not `type: textarea`. The same goes for fields that contain html elements (e.g. a hero description with `<strong>bold</strong>` text) - they should use `type: html`, instead of `type: textarea`. Choose the input type from how the template renders the field, not only from what the current content contains: `set:html` → `type: html`, `{x}` → `type: text`/`textarea`. A global `html` input on a field that renders as `{x}` lets editors add markup that prints escaped. If the same key renders differently in different blocks, scope the input per structure — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes). Use scoped input keys (e.g. `hero.description`) when the general input should stay as `textarea` but a specific context needs `markdown`. Fields whose value is one of a fixed set (`variant`, `target`, `size`, `align`, `theme`, `columns`, etc.) must be `type: select` — never `type: text`. See [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs).
+- **`_structures`** -- MANDATORY for every array and object input on the site, except arrays of primitives (`string[]`), which take `type: array` plus a `<field>[*]` input for the item type instead. See [../structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) for the full requirement (structure definition + explicit `_inputs` linkage with full path).
 - **`icon`** -- every collection should have an `icon` key so it gets a meaningful icon in the CloudCannon sidebar instead of a generic default. Pick icons that reflect the collection's purpose (e.g. `wysiwyg` for pages, `post_add` for blog posts, `home` for homepages, `settings` for data/config). CloudCannon's icon set is a **fixed curated subset** of Material Symbols — invalid names silently fall back to the default. When unsure, see [../SKILL.md § Do this before writing any configuration](../SKILL.md#do-this-before-writing-any-configuration) for schema details to check for the exact name. Common gotcha: `place` is not in the enum — use `location_on`.
 - **All schema fields mapped** -- cross-reference every field in the Zod schema against the `_inputs` config. Every user-facing field needs an appropriate input type (`textarea` for multi-line strings like excerpts/descriptions, `datetime` for dates, `image` for image paths, etc.). Missing fields fall back to CC's type inference, which is often wrong. When unsure whether a field is user-facing or developer-only, check whether its value is rendered as visible text on the built page. If it appears on the page, it should be editable with an appropriate input type. Only fields undergoing heavy programmatic transformation (e.g. used purely as a build-time lookup key) should be hidden.
 - **`collection_groups`** -- organize collections into sidebar groups for a clean editing experience.
-- **`_editables`** -- configure rich text editor toolbars per collection or globally.
+- **`_editables`** -- toolbars for the **content editor** and editable regions, keyed by region type (`content`, `block`, `text`, `image`, `link`) — in practice `_editables.content` is the one that matters. It does **not** configure `type: markdown` and `type: html` inputs; those take their toolbar from the input's own `options`, under the same "define one key and every omitted key becomes false" rule. See [configuration-gotchas.md § Rich text input toolbar options](configuration-gotchas.md#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables).
 - **Editor styles** -- when the audit flagged styled HTML in content fields (inline spans with CSS classes for accent colors, emphasis, etc.), create `.cloudcannon/styles/editor.css` with semantic class definitions and reference it from `type: html` inputs via `options.styles`. This lets editors apply custom styling (e.g. brand-colored highlight text) through the rich text toolbar without Tailwind utility classes in the content. See [content.md § Handling styled HTML in frontmatter](../../migrate-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter) and the [Jetstream template](https://github.com/CloudCannon/jetstream-astro-template) for the reference pattern.
 - **`markdown`** -- if content files contain Markdown-syntax tables (`| col | col |`), set `markdown.options.table: true`. See [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 - **`_snippets`** -- configure snippets for non-standard markdown amongst markdown content. In Astro this is often MDX components used in rich text content. Built-in templates like `mdx_component` resolve automatically — no `_snippets_imports` needed. See the `cloudcannon-snippets` skill.
@@ -85,9 +87,33 @@ _inputs:
       values: _select_data.icons
 ```
 
+When `values` points at a collection (`values: collections.posts`), `value_key` decides what is stored:
+
+| `value_key`                                 | Stored value                                                                                                                                                       |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| omitted                                     | File path with a leading slash, e.g. `/src/content/posts/my-post.md`. The default checks `id`, `uuid`, `path`, `title`, `name` in that order, so path usually wins |
+| `filename_without_ext`                      | `my-post`                                                                                                                                                          |
+| `filename`                                  | `my-post.md`                                                                                                                                                       |
+| `url`                                       | The file's collection URL                                                                                                                                          |
+| any front matter key (e.g. `title`, `slug`) | That key's value                                                                                                                                                   |
+
+When the component looks entries up by Astro entry id or slug, use `value_key: filename_without_ext`, or a `slug` front matter key.
+
 - **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit. **Multiple schemas can live in one collection** -- both via `schemas:` config and Zod `z.union`. See [§ Schemas](#schemas) below for the worked multi-schema `pages` example.
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
-- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. Example:
+- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. `$.key` also works in `collections_config.<name>._inputs` — use it when root-level keys (`title`, `description`) share names with deeper nested fields that need a different input type:
+
+```yaml
+collections_config:
+  pages:
+    _inputs:
+      $.title:
+        type: text
+```
+
+`$.title` matches each file's root `title` **and** the `title` directly at the root of every structure value, so it does not separate a page title from a block's title — don't give it a page-specific label. Deeper nested `title` fields keep the global `title` input. To give block titles their own input, define `title` in that structure value's `_inputs`.
+
+`file_config` example:
 
 ```yaml
 file_config:
@@ -111,7 +137,7 @@ file_config:
         type: object
         options:
           preview:
-            icon: language
+            icon: list
 ```
 
 ### Object inputs need preview icons
@@ -173,6 +199,8 @@ collections_config:
 ```
 
 Add `_schema: <key>` to each content file's frontmatter so CloudCannon matches it explicitly rather than guessing from the frontmatter shape.
+
+**MUST:** when you add a field to content in a collection that uses `schemas`, add it to the schema file too. **Why:** `remove_extra_inputs` defaults to `true`, so CloudCannon strips any front matter key that isn't in the matched schema before loading the file into an editor. The input never appears and nothing reports an error. If a field must exist only on some files, set `remove_extra_inputs: false` on the schema (check the key against the JSON schema in `.cloudcannon/migration/`).
 
 #### Zod: `z.union` vs `z.discriminatedUnion`
 
@@ -243,7 +271,7 @@ Every Zod schema in the union needs a matching CC schema in `.cloudcannon/schema
 
 ## Splitting nested subdirectories into their own collections
 
-When the `pages` collection contains subdirectories that represent a distinct group of content with their own URL prefix (e.g. `pages/homes/`, `pages/landing/`), split them into separate CloudCannon collections rather than keeping everything flat under `pages`. This gives each group its own sidebar entry, correct URL pattern, and cleaner editorial experience.
+When the `pages` collection contains subdirectories that represent a distinct group of content with their own URL prefix (e.g. `pages/services/`, `pages/landing/`), split them into separate CloudCannon collections rather than keeping everything flat under `pages`. This gives each group its own sidebar entry, correct URL pattern, and cleaner editorial experience.
 
 1. **Exclude the subdirectories from `pages`** using glob negation:
 
@@ -251,7 +279,7 @@ When the `pages` collection contains subdirectories that represent a distinct gr
 pages:
   path: src/content/pages
   glob:
-    - "!homes/**"
+    - "!services/**"
     - "!landing/**"
   url: "/[slug]/"
 ```
@@ -259,9 +287,9 @@ pages:
 2. **Add a collection for each subdirectory** with its own `path` and `url`:
 
 ```yaml
-homes:
-  path: src/content/pages/homes
-  url: "/homes/[slug]/"
+services:
+  path: src/content/pages/services
+  url: "/services/[slug]/"
 landing:
   path: src/content/pages/landing
   url: "/landing/[slug]/"
@@ -417,7 +445,7 @@ schemas:
   default:
     path: .cloudcannon/schemas/page.md
     name: Page
-    new_preview_url: /elements/
+    new_preview_url: /about/
   page_builder:
     path: .cloudcannon/schemas/page-builder.md
     name: Page Builder
@@ -482,23 +510,9 @@ See [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md) for 
 
 For the structures reference (inline vs split, field completeness, previews, deriving from components), see [../structures.md](../structures.md).
 
-## Prebuild script
+## Build steps
 
-If the audit identified pre-build scripts (theme generation, JSON generation, search indexing), create `.cloudcannon/prebuild`:
-
-```bash
-#!/usr/bin/env bash
-set -e
-
-node scripts/themeGenerator.js
-node scripts/jsonGenerator.js
-```
-
-This runs before the build command on CloudCannon. Alternatively, chain the scripts in the build command itself:
-
-```
-node scripts/themeGenerator.js && node scripts/jsonGenerator.js && astro build
-```
+Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in the `package.json` `build` script before `astro build`, and steps that read the **built** output (Pagefind and similar HTML indexers) after it. `build_command` stays `npm run build`. See [../build-commands.md](../build-commands.md).
 
 ## Editor README
 
@@ -522,7 +536,7 @@ Work through these before moving to the next phase. One check per line.
 
 ### Blocking gates
 
-- [ ] **MDX gate:** if any `.mdx` file uses JSX components (`rg '<[A-Z]' -g '*.mdx' src/content`), the [MDX setup pipeline](../../cloudcannon-snippets/astro/overview.md#mdx-setup-pipeline-must-complete-all-four) is fully complete. `_snippets` alone is not enough — auto-import and `import` removal are both required. #1 source of migration regressions.
+- [ ] **MDX gate:** if any `.mdx` file uses JSX components (`rg '<[A-Z]' -g '*.mdx' src/content`), the [MDX setup pipeline](../../cloudcannon-snippets/astro/overview.md#mdx-setup-pipeline-must-complete-all-four) is fully complete. `_snippets` alone is not enough — component resolution without content imports (`astro-auto-import`, or a shared `components` map passed at every render site) and `import` removal are both required. #1 source of migration regressions.
 - [ ] [Structures — mandatory rules](../structures.md#the-four-rules-read-first) all pass (field completeness + array/object structure linkage + preview blocks + nested object preview icons).
 
 ### Files
@@ -531,7 +545,8 @@ Work through these before moving to the next phase. One check per line.
 - [ ] `.cloudcannon/initial-site-settings.json` has `"ssg": "astro"`
 - [ ] Build settings nested under `"build"` (`build_command`, `output_path`, `install_command`)
 - [ ] `node_version` set: `"file"` when `.nvmrc`/`.node-version` exists; major version from `package.json` `engines.node` otherwise
-- [ ] `.cloudcannon/prebuild` exists if pre-build steps are needed
+- [ ] Pre- and post-build steps live in the `package.json` `build` script
+- [ ] `npm run build` alone produces the complete output
 - [ ] `.cloudcannon/README.md` exists with editor-facing documentation
 
 ### Collections
@@ -549,6 +564,7 @@ Work through these before moving to the next phase. One check per line.
 
 - [ ] `_inputs` configured for common field types (images, dates, dropdowns, hidden fields)
 - [ ] Icon fields use `type: select` with `allow_create: true`, `value_key: id`, and named values (use a data file for 20+ icons)
+- [ ] Enum-like keys inside structure `value:` blocks — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — each have an `_inputs` entry on the structure value itself, not just the widget-level fields. Sweep `cloudcannon.config.yml` and every `*.cloudcannon.structure-value.yml` for those keys; each structure value defines them in its own `_inputs`, sharing one definition via `_inputs_from_glob` — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes)
 - [ ] Numeric frontmatter values mapped to `text` inputs are quoted as strings
 - [ ] Developer-only fields (`layout`, `_schema`, routing/rendering keys) have `hidden: true`
 - [ ] Every input has explicit config — don't rely on CC type inference from field name alone
@@ -562,7 +578,7 @@ Work through these before moving to the next phase. One check per line.
 ### Snippets & editors
 
 - [ ] Every MDX component has a `_snippets` entry OR the file uses `_enabled_editors: [source, data]` with rationale in migration notes — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
-- [ ] MDX files with `import` statements set up `astro-auto-import` (or equivalent) so imports are injected at build time and removed from source files — see [astro/overview.md § Auto-import](../../cloudcannon-snippets/astro/overview.md#auto-import-keeping-import-statements-out-of-content)
+- [ ] MDX files with `import` statements have them removed, and components resolve via `astro-auto-import` or a shared `components` map passed at every `<Content />` / `render()` site — see [astro/overview.md § Auto-import](../../cloudcannon-snippets/astro/overview.md#auto-import-keeping-import-statements-out-of-content)
 - [ ] `_enabled_editors` order has the preferred default editor first (`visual` for page collections; `visual` → `content` for blog posts)
 - [ ] Collections of `.md` files that don't build to a page have `_enabled_editors: [data]`
 
@@ -582,6 +598,7 @@ Work through these before moving to the next phase. One check per line.
 ### Schemas & add options
 
 - [ ] `add_options` restricts the Add button to only creatable schemas
+- [ ] Every front matter key used in a schema'd collection exists in its schema file (or the schema sets `remove_extra_inputs: false`)
 - [ ] Collections where editors should not create new files use `disable_add: true`
 - [ ] Schemas for creatable page types have `new_preview_url` OR `editor: content` on add options
 - [ ] Collections with a `draft` field use `editor: content` on add options (drafts aren't built)

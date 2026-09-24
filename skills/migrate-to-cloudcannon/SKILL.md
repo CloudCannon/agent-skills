@@ -75,12 +75,12 @@ Not every site needs all phases. Small sites may skip Phase 3 if content is alre
 For each phase, in order:
 
 1. **Read** the phase doc end-to-end before touching any files.
-2. **TaskCreate** one task per checklist item in that phase doc. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
+2. **Track** one task per checklist item in that phase doc, using the host's task/todo tool. If there is none, keep the checklist in the phase's migration note and tick items off there. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
 3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
 4. **Write** `.cloudcannon/migration/<phase>.md` documenting decisions, findings, and anything the user should review.
 5. **Check the handoff readiness row below.** If it's met, the phase is safe to hand off to a fresh conversation. Whether you actually open a fresh conversation is a judgment call (see [chunking.md](chunking.md)) — within one conversation, just continue.
 
-**Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. TaskCreate makes the skim visible.
+**Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. Per-item tracking makes the skim visible.
 
 ### Phase handoff readiness
 
@@ -115,14 +115,14 @@ Follow existing project conventions when present. Otherwise:
 
 For specific architectural decisions and config-syntax mistakes, see:
 
-| Topic                                                                                                                      | Owner                                                                                                                                                                                                                                                 |
-| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Classifying static pages (source-editable vs page-builder vs collection)                                                   | [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection)                                                                                                                           |
-| `home.md` vs `index.md`, collection-of-one                                                                                 | [astro/page-building.md § Common mistakes](astro/page-building.md#common-mistakes)                                                                                                                                                                    |
-| Shared UI (CTA banners, footers, share blocks)                                                                             | [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table)                                                                                                                            |
-| Multi-schema collections (`pages` with `z.union`)                                                                          | [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas)                                                                                                                          |
-| Config-syntax hallucinations (wrong keys/types)                                                                            | [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys)                                                                                                                                        |
-| Markdown body renders as unstyled text — no heading sizes, list bullets, or link colour — despite `prose prose-lg` classes | `@tailwindcss/typography` not installed or not registered. Tailwind 4 needs `@plugin "@tailwindcss/typography";` in the main CSS (after `@import "tailwindcss";`). Two-line fix: `npm install @tailwindcss/typography` + add the `@plugin` directive. |
+| Topic                                                                    | Owner                                                                                                                        |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Classifying static pages (source-editable vs page-builder vs collection) | [astro/audit.md § Classifying static pages](astro/audit.md#classifying-static-pages-source-editables-vs-content-collection)  |
+| `home.md` vs `index.md`, collection-of-one                               | [astro/page-building.md § Common mistakes](astro/page-building.md#common-mistakes)                                           |
+| Shared UI (CTA banners, footers, share blocks)                           | [astro/cc-friendly-conventions.md § Shared-UI treatment table](astro/cc-friendly-conventions.md#shared-ui-treatment-table)   |
+| Multi-schema collections (`pages` with `z.union`)                        | [../cloudcannon-configuration/astro/configuration.md § Schemas](../cloudcannon-configuration/astro/configuration.md#schemas) |
+| Config-syntax hallucinations (wrong keys/types)                          | [`cloudcannon-configuration` § Common invalid keys](../cloudcannon-configuration/SKILL.md#common-invalid-keys)               |
+| Unstyled markdown body despite `prose` classes (Tailwind typography)     | [astro/build.md § Build verification checklist](astro/build.md#build-verification-checklist)                                 |
 
 ## Common mistakes
 

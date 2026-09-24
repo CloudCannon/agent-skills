@@ -99,7 +99,43 @@ _inputs:
 
 The rest of the input config (`allow_create`, `value_key`, `preview`) stays the same as the inline approach.
 
-A single global `icon` input definition covers all fields that accept icon names.
+### Where the input definition goes
+
+**MUST:** define `icon` on every structure value that has an `icon` field — in that value's own `_inputs` — rather than relying on one root-level entry to reach it.
+
+Structures are designed to be portable: a structure value should carry its own input configuration and behave the same wherever it is used, not change based on configuration outside it. A root-level `_inputs.icon` does currently cascade into structure values, but that is behaviour likely to change, so treat the structure value as the place the input lives.
+
+To avoid repeating the definition, put it in an input configuration file once and pull it into each structure value with `_inputs_from_glob`. The file must end in `.cloudcannon.inputs.yml`:
+
+```yaml
+# .cloudcannon/inputs/icon.cloudcannon.inputs.yml
+icon:
+  type: select
+  comment: "Pick an icon or type a custom [Iconify](https://icon-sets.iconify.design/) name"
+  options:
+    allow_create: true
+    value_key: id
+    preview:
+      text:
+        - key: name
+    values: data.icons
+```
+
+```yaml
+# in each structure value (inline, or a *.cloudcannon.structure-value.yml file)
+- label: Feature
+  value:
+    title:
+    icon:
+  _inputs_from_glob:
+    - /.cloudcannon/inputs/icon.cloudcannon.inputs.yml
+```
+
+Page-level fields outside any structure (front matter `icon` on a collection's files) still take their input from `collections_config.<name>._inputs` or the root, as usual.
+
+**Why:** the failure mode is not a wrong entry, it is a missing one. A migration that configures `icon` on the five widget-level fields it happened to look at, and leaves the per-item `icon` inside a dozen structure values undefined, gives editors a free-text box on exactly the fields they use most — and it looks correct in the config, because the entries that exist are right.
+
+**Check:** every structure value with a key whose values come from a fixed set — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — has an `_inputs` entry for it, directly or via `_inputs_from_glob`. Sweep `cloudcannon.config.yml` and the `*.cloudcannon.structure-value.yml` files for those keys and confirm each one; a field with no matching entry is a text box.
 
 **Common miss:** Do NOT use `values: data.icons[*].id` — this extracts only the raw ID strings (e.g. `tabler:rocket`), losing the `name` field entirely. Editors see cryptic Iconify IDs in the dropdown instead of friendly names like "Rocket". Use `values: data.icons` (the full objects) with `value_key: id` so the stored value is the ID but the dropdown displays the name via `preview.text`.
 
@@ -211,6 +247,8 @@ _inputs:
 ```
 
 `allow_create: true` is appropriate for icon fields (developers may want a custom Iconify name). For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug.
+
+Placement follows the same rule as icons: define the input on each structure value that has the key, and share one definition across them with `_inputs_from_glob`. See [§ Where the input definition goes](#where-the-input-definition-goes).
 
 ## Quote numeric values that map to text inputs
 
@@ -348,7 +386,7 @@ A common case: data files handled via `data_config` still need to belong to a co
 
 ## Always link arrays to structures explicitly
 
-See [structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name).
+See [structures.md § Mandatory rules](../structures.md#the-four-rules-read-first) — every array input needs `type: array` + `options.structures: _structures.<name>` (full path, not bare name). Arrays of primitives (`string[]`) are the exception: they take no structure, but need a `<field>[*]` input for the item type (e.g. `features[*]: { type: text }`) so the array still works once emptied.
 
 ## Add preview icon fallbacks on structures
 
@@ -436,6 +474,8 @@ Options, in order of preference:
 
 **Imported assets in TypeScript config:** When the config imports images (e.g. `import ogImage from "@/assets/og-image.png"`), these can't be expressed in JSON. Copy the image to `public/` and reference it as a static path string (e.g. `"/og-image.png"`). Components that consume the value (like `Seo.astro`) typically already handle both `ImageMetadata` objects and string paths via `typeof image === "string"` branching. Keep the TypeScript file as a thin re-export wrapper: `import data from "@/data/site-settings.json"; export const siteConfig = data;` — this preserves all existing import paths while making the data CC-editable.
 
+**Literal types:** JSON imports widen literal types (`"ltr" | "rtl"` → `string`, `true` → `boolean`, `"x" | false` → `string`), so the thin wrapper no longer satisfies the original config type and builds that run `astro check` fail. Cast in the wrapper (`config as SiteConfig`) or validate it (zod parse). A cast removes the compile-time guard, so constrain those values in CloudCannon with `select`/`switch` inputs.
+
 ## Pages collection: including `.astro` pages
 
 There are two distinct approaches for pages in CloudCannon. Pick based on the audit classification — picking the wrong one either forces unnecessary refactoring or leaves pages unreachable to editors:
@@ -486,6 +526,36 @@ Use `disable_add: true` to hide the Add button — `add_options: []` has no effe
 | **Refactor to `.md`**                           | Default for unique-layout pages with 2+ content sections. Extract into `pages` collection with structured frontmatter + page-builder schema. | Medium — move content, add schema. |
 
 **Decision rule:** Page builder is the default; source-editable is the exception. Run the page through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) and [page-building.md § When to reach for page builder](../../migrate-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder).
+
+## Destructuring defaults never fire on content fields
+
+**MUST NOT:** rely on a destructuring default for a prop fed from content. `const { icon = 'tabler:info' } = Astro.props` does nothing when content supplies `icon: null` — destructuring defaults fire only on `undefined`, and optional content fields arrive as `null`. The component renders `null`, and `<Icon name={null} />` crashes `astro build`.
+
+**Why:** the default is still there in the source, so the failure reads as a component bug rather than a content one. It applies to every optional field on every content-fed component, including props forwarded down to shared sub-components.
+
+Resolve the default in the component body, and pick the operator for what the field can legitimately hold:
+
+| Field                                       | Operator | Why                                                      |
+| ------------------------------------------- | -------- | -------------------------------------------------------- |
+| String                                      | `\|\|`   | Also catches `""`, which is rarely a value worth keeping |
+| Number where `0` is real                    | `??`     | `rating \|\| 5` discards a real `0`                      |
+| Boolean where an explicit `false` must hold | `??`     | `isReversed \|\| false` discards a real `false`          |
+
+```astro
+---
+// ❌ Wrong — both defaults are dead for content-fed props
+const { icon = 'tabler:info-square', variant = 'info' } = Astro.props;
+
+// ✓ Right — resolved where the value is consumed
+const { icon, variant } = Astro.props;
+const activeVariant = variant || 'info';
+const iconName = icon || variants[activeVariant].icon;
+---
+```
+
+**Common miss:** spreading a content object straight into a typed third-party API (SEO metadata, an image component) passes its `null` keys through, and a `null` overrides the library's own default. Pick the keys you mean rather than spreading.
+
+Base rule: [structures.md § Handling null values from empty YAML fields](../structures.md#handling-null-values-from-empty-yaml-fields).
 
 ## `z.union` silently matches the wrong schema when fields have defaults
 

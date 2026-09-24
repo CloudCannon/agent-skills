@@ -6,7 +6,7 @@ Guidance for validating an Astro migration works end-to-end.
 
 1. **Clean the cache first** -- run `rm -rf .astro dist` before building. Astro's `.astro/` directory caches content collection data, and after major restructuring (adding/removing content files, renaming collections) the cache can serve stale entries that mask real errors or generate ghost routes from deleted files.
 
-2. **Run the full build pipeline** -- use whatever `package.json` defines as the `build` script, not just `astro build`. Pre-build scripts (theme generation, search index, JSON data generation) must be included.
+2. **Run the full build pipeline** -- run whatever `package.json` defines as `build`, not just `astro build`. Generators, search indexes and data generation must all be part of that script. See [build-commands.md](../../cloudcannon-configuration/build-commands.md).
 
 3. **Verify editable attributes in output HTML** -- spot-check key pages in `dist/` to confirm `data-editable` attributes survived the build. Count occurrences on the homepage (should be the highest) and a content page.
 
@@ -18,21 +18,19 @@ Guidance for validating an Astro migration works end-to-end.
 
 ## CloudCannon build command
 
-The build command CloudCannon runs must match the full pipeline—usually the same sequence as the `build` script in `package.json`. For sites that run generators or other steps before Astro, chain them with `&&` before `astro build`.
-
-**Example only** (replace with your real scripts; many sites need only `astro build` or `npm run build`):
+The build command goes in `.cloudcannon/initial-site-settings.json` as `build_command`. Point it at the site's full build script:
 
 ```bash
-node scripts/your-prebuild-step.js && node scripts/another-step.js && astro build
+npm run build
 ```
 
-This goes in `.cloudcannon/initial-site-settings.json` as the `build_command`, or in `.cloudcannon/prebuild` if using the prebuild script approach (see [configuration.md](../../cloudcannon-configuration/astro/configuration.md)).
+Steps that run either side of `astro build` belong in that `build` script, so CloudCannon and a local build run the same thing. Steps that must run before dependencies install go in `install_command`. See [build-commands.md](../../cloudcannon-configuration/build-commands.md).
 
 ## Common issues
 
 ### Peer dependency conflicts
 
-Older `@cloudcannon/editable-regions` versions may not list Astro 5+ as a supported peer. Use `--legacy-peer-deps` (npm) or equivalent to bypass.
+Current `@cloudcannon/editable-regions` versions declare no Astro peer. Use `--legacy-peer-deps` (npm) or the equivalent only if install actually reports a conflict. **MUST NOT** add it pre-emptively — it can hide real conflicts.
 
 ### Style injection
 

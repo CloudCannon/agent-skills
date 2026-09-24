@@ -26,6 +26,7 @@ description: >-
 - **Adding editable regions to templates** — that is [`cloudcannon-visual-editing`](../cloudcannon-visual-editing/SKILL.md). This skill configures the data behind them.
 - **MDX components or inline HTML in content** — that is [`cloudcannon-snippets`](../cloudcannon-snippets/SKILL.md)
 - **Running a full migration** — start at [`migrate-to-cloudcannon`](../migrate-to-cloudcannon/SKILL.md), which enters this skill at Phase 2
+- **Operating on a hosted site** — authenticating, listing or creating sites, reading and writing site files, triggering builds, or changing an existing site's build configuration is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md). This skill decides what a configuration should say; that one runs the commands.
 
 ## Do this before writing any configuration
 
@@ -46,38 +47,23 @@ This skill covers creating and customizing `cloudcannon.config.yml` (tells Cloud
 Generate a baseline configuration with the CloudCannon CLI, if `cloudcannon.config.yml` does not already exist, run:
 
 ```bash
-npx @cloudcannon/cli configure generate --auto --initial-build-settings
+npx @cloudcannon/cli configure generate --auto --initial-site-settings
 ```
 
 This detects your SSG, collections, and build settings, and writes `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json`. The output likely needs customization — it does not infer input types, structures, select data, or editor toolbars. See [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) for step-by-step control and customization targets.
 
-## Common invalid keys
-
-Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritative. Each row specifies the real key for each hallucination. Run `npx @cloudcannon/cli validate` to catch unknown keys automatically — see [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration).
-
-| Wrong                                                               | Correct                                                                                                                                         |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `disable_url_preview: true`                                         | `disable_url: true` (toggles whether the collection has an output URL)                                                                          |
-| `output: false` (legacy Jekyll/Hugo/Eleventy key)                   | Omit `url:` and add `disable_url: true` — or use `data_config` instead of a collection                                                          |
-| `type: hidden` (deprecated value)                                   | `hidden: true` (sibling of `type`, works on any input; also `hidden: "<query>"` for conditional hiding)                                         |
-| `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                 |
-| `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`)  |
-| `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                        |
-| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview`                                                                                         |
-| `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                         |
-| `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
-| `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |
-| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names silently fall back — check the schema for names                              |
+Observed hallucinations and their real keys: [§ Common invalid keys](#common-invalid-keys).
 
 ## Contents
 
-| File                                                 | Covers                                                                                                                                            |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [json-schemas.md](json-schemas.md)                   | Querying the authoritative schemas — do this before writing any key                                                                               |
-| [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating a baseline, and `validate`. CLI output **always** needs customization — it infers no input types, structures, select data, or toolbars |
-| [structures.md](structures.md)                       | **Read early.** Every array and object Input needs a structure or editors cannot add items. Field completeness rule and definition patterns       |
-| [collection-urls.md](collection-urls.md)             | Collections that produce pages need a `url`. A wrong one is the most common reason a page fails to load in the Visual Editor                      |
-| [troubleshooting.md](troubleshooting.md)             | Symptom → fix, for when configuration is already wrong                                                                                            |
+| File                                                 | Covers                                                                                                                                                                                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [json-schemas.md](json-schemas.md)                   | Querying the authoritative schemas — do this before writing any key                                                                                                                                                                         |
+| [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating a baseline with `configure`, and `validate`. CLI output **always** needs customization — it infers no input types, structures, select data, or toolbars. The rest of the CLI is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md) |
+| [structures.md](structures.md)                       | **Read early.** Every array and object Input needs a structure or editors cannot add items. Field completeness rule and definition patterns                                                                                                 |
+| [collection-urls.md](collection-urls.md)             | Collections that produce pages need a `url`. A wrong one is the most common reason a page fails to load in the Visual Editor                                                                                                                |
+| [build-commands.md](build-commands.md)               | Where generators and post-build steps go — the `build` script and `install_command`                                                                                                                                                         |
+| [troubleshooting.md](troubleshooting.md)             | Symptom → fix, for when configuration is already wrong                                                                                                                                                                                      |
 
 **SSG-specific:**
 
@@ -102,6 +88,7 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 | Skill                                                        | When to read                                                                                                                                                                                        |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [make-site-multilingual](../make-site-multilingual/SKILL.md) | Configuring a multilingual site — `locales_{code}` entries under `data_config`, per-locale collections, locale-prefixed collection URLs, and why a `source:` key breaks `rosey/locales/` resolution |
+| [cloudcannon-dev-server](../cloudcannon-dev-server/SKILL.md) | Letting the user open the configured site in CloudCannon and try the collections and inputs                                                                                                         |
 
 ## Checklist reinforcement
 
@@ -111,7 +98,26 @@ The SSG-specific configuration docs contain detailed verification checklists. Th
 - **You are not done until every checklist item is verified**
 - **After every round of changes, run `npx @cloudcannon/cli validate`** — fixes unknown keys and type errors before they become hard-to-debug editor issues. See [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration)
 - Cross-reference every Zod schema field against `_inputs` — missing fields get wrong editor types
-- Every Array Input needs both a structure definition AND an `_inputs` entry linking to it
+- Every Array Input needs both a structure definition AND an `_inputs` entry linking to it (arrays of primitives instead take a `<field>[*]` input for the item type — see [structures.md § The four rules](structures.md#the-four-rules-read-first))
+
+## Common invalid keys
+
+Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritative. Each row specifies the real key for each hallucination. Run `npx @cloudcannon/cli validate` to catch unknown keys automatically — see [cloudcannon-cli-guide.md § Validating Configuration](cloudcannon-cli-guide.md#validating-configuration).
+
+| Wrong                                                               | Correct                                                                                                                                         |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_url_preview: true`                                         | `disable_url: true` (toggles whether the collection has an output URL)                                                                          |
+| `output: false` (legacy Jekyll/Hugo/Eleventy key)                   | Omit `url:` and add `disable_url: true` — or use `data_config` instead of a collection                                                          |
+| `type: hidden` (deprecated value)                                   | `hidden: true` (sibling of `type`, works on any input; also `hidden: "<query>"` for conditional hiding)                                         |
+| `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                 |
+| `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). For block-level formatting use `_editables.content` or `_editables.block` (`BlockEditable`)  |
+| `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                        |
+| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview` — see [what each `value_key` stores](astro/configuration.md#customization-checklist)    |
+| `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                         |
+| `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC` |
+| `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                |
+| `paths.output` (invented)                                           | No such key. `paths` configures asset directories only. Tell the build tool where the output is; nothing reads it from config                   |
+| Arbitrary Material Symbols name (e.g. `place`)                      | Icon must be in the fixed enum (e.g. `location_on`). Invalid names render as a broken icon — check the schema for names                         |
 
 ## Common mistakes
 
@@ -123,7 +129,7 @@ The SSG-specific configuration docs contain detailed verification checklists. Th
 | "CloudCannon will infer the right input type"                                          | CC's inference is a fallback to configuration. Explicit `_inputs` entries prevent wrong editor types.                                                                                                                                                                                                                   |
 | "The URL pattern looks right"                                                          | Test it. Wrong URLs are the #1 reason pages fail to load in the Visual Editor. Check trailing slashes.                                                                                                                                                                                                                  |
 | "Data collections don't need configuration"                                            | Data files need `data_config` entries with `file_config` for proper input types and structures.                                                                                                                                                                                                                         |
-| "I don't need `_select_data` — editors can type values"                                | Free-text entry leads to inconsistency. Use `_select_data` for any field with a fixed set of valid values.                                                                                                                                                                                                              |
+| "I don't need `_select_data` — editors can type values"                                | Any field with a fixed set of valid values needs its values configured somewhere; free text drifts. `_select_data` where the list is short and developer-owned, or a data file with `values: data.<file>` where editors should see and manage the options themselves. Pick one — but not free text.                     |
 | "I split theme/navigation/socials into 3 collections for nicer sidebar icons"          | Single `data` collection + per-file `file_config` is the default; use `$.options.preview.icon` on each file's root to get per-file icons without the config bloat. See [astro/configuration.md § Single `data` collection or split?](astro/configuration.md#single-data-collection-or-split).                           |
 | "I copied the colors block from a reference config — it has `accent` and `background`" | Before adding `_inputs`, grep the actual JSON for keys. Inputs for missing keys are silently ignored; missing inputs for real keys fall through to plain text. See [astro/configuration-gotchas.md § Data inputs must follow the JSON](astro/configuration-gotchas.md#data-inputs-must-follow-the-json-not-a-template). |
 | "The icon field is optional so I left it out of the structure value"                   | Every field that appears on any item must be in the value template with a default — otherwise CC can't match existing items and editors can't add the field to new ones. See [structures.md § Optional fields — common mistake](structures.md#optional-fields--common-mistake).                                         |

@@ -1,6 +1,6 @@
 # Editable Regions — Overview
 
-Reference for `@cloudcannon/editable-regions` v0.1.x — the client-side system that makes DOM elements interactive inside CloudCannon's Visual Editor. SSG-specific integration lives in [astro/visual-editing.md](astro/visual-editing.md) (or the equivalent for your SSG). Internals, lifecycle traces, and the JavaScript API reference live in [editable-regions-internals.md](editable-regions-internals.md).
+Reference for `@cloudcannon/editable-regions` (0.0.x) — the client-side system that makes DOM elements interactive inside CloudCannon's Visual Editor. This file owns the region types and the attribute reference. The patterns that use them are in [visual-editing-reference.md](visual-editing-reference.md); the JavaScript API, lifecycle traces, and internals are in [editable-regions-internals.md](editable-regions-internals.md). SSG-specific integration lives in that SSG's directory — Astro's is [astro/visual-editing.md](astro/visual-editing.md).
 
 ## Region Types
 
@@ -13,7 +13,7 @@ Reference for `@cloudcannon/editable-regions` v0.1.x — the client-side system 
 
 **Precedence:** a primitive that binds a `data-prop` to a subtree wins for that subtree's live value — updates follow frontmatter through the region and override any component-level transform. With no primitive on that markup, the component re-render owns value derivation. Typical split: an `array` region for CRUD plus nested `text`/`image` primitives on the fields you want on-canvas.
 
-For when to wrap a section in a component, see [When to Use a Component Editable Region](#when-to-use-a-component-editable-region).
+For when to wrap a section in a component, see [visual-editing-reference.md § Golden rule](visual-editing-reference.md#golden-rule--computed-content-needs-a-component-wrapper). When in doubt, prefer a component: the cost is one registration call plus a wrapper element, and every data-driven change then live-updates.
 
 ### EditableText
 
@@ -27,7 +27,7 @@ When `data-type` is omitted, CloudCannon defaults to `block`/`text` for Source E
 
 ### EditableImage
 
-Image editing via CloudCannon's data panel. The region **host** is either (1) an `<img>` with `data-editable="image"` and path attributes on that same element, or (2) a non-`img` host (`<editable-image>`, `<div data-editable="image">`, layout wrapper, etc.) that contains a descendant `<img>`. The resolved `<img>` is what gets live `src` / `alt` / `title` updates — each facet can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields).
+Image editing via CloudCannon's data panel. The region **host** is either (1) an `<img>` with `data-editable="image"` and path attributes on that same element, or (2) a non-`img` host (`<editable-image>`, `<div data-editable="image">`, layout wrapper, etc.) that contains a descendant `<img>`. The resolved `<img>` is what gets live `src` / `alt` / `title` updates — each facet can be bound independently via `data-prop-src`, `data-prop-alt`, `data-prop-title`, or together via `data-prop` (for object image fields whose only keys are `src`/`alt`/`title`).
 
 ### EditableComponent
 
@@ -47,38 +47,12 @@ Extends `EditableComponent` for editing snippets within rich text content. Manag
 
 ---
 
-## Rich text region contents are editor-owned
-
-A rich text region — `source`, or `text` with `data-type="text"`/`"block"` — has its contents parsed into CloudCannon's editor schema and re-serialized on save. That schema covers block structure and inline marks (`<strong>`, `<a>`, `<code>`), but **not arbitrary attributes**. An attribute on markup _inside_ a region can't survive the round-trip, so CloudCannon flags that markup as uneditable rather than silently dropping it — the region still saves, but the editor can't touch that element.
-
-Attributes on the region **host** are untouched: the host is the region boundary, not its content, so CloudCannon only rewrites what's between its tags.
-
-So anything needing a stable per-element attribute — a translation key (`data-rosey`), an analytics hook, a test id — belongs on the region host, or on a component that renders the markup. Not inside the region. Stability points the same way even where an attribute would survive: editors reshape a region's inner DOM freely (splitting paragraphs, adding lists, reordering blocks), so an element you tagged may not exist after the next edit. Treat the region as the smallest addressable unit.
-
-A snippet can teach the editor to round-trip custom markup, and is the right tool when the markup is genuinely content the editor should manage. It's the wrong tool for developer plumbing: the attribute becomes an editor-facing form field that can be duplicated into a collision, and the prose turns into a snippet card instead of inline WYSIWYG. Prefer hoisting the attribute out of the region.
-
----
-
-## When to Use a Component Editable Region
-
-Primitive editables update their own DOM slice but can't re-render the surrounding template. Wrap a section in a component when it has any of the signals below — without a component region, data-driven changes to conditional or computed markup don't reflect live.
-
-| Signal                   | Example                                                      |
-| ------------------------ | ------------------------------------------------------------ |
-| Conditional elements     | A button that appears/disappears based on a boolean          |
-| Style or class bindings  | Alternating background colours, layout order driven by index |
-| Computed/derived content | A badge or label that changes based on another field         |
-
-**When in doubt, prefer a component.** Cost: one registration call + a wrapper element. Benefit: every data-driven change live-updates.
-
----
-
 ## Quick Attribute Reference
 
 | Attribute                 | Values                                                        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `data-editable`           | `text`, `image`, `array`, `array-item`, `component`, `source` | Declares the region type                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `data-prop`               | Path string                                                   | Data path for the editable value. `@content` is the reserved token for the file's markdown body — frontmatter is reached via normal field paths, so the body has no path other than `@content`                                                                                                                                                                                                                                                     |
+| `data-prop`               | Path string                                                   | Data path for the editable value — full grammar in [visual-editing-reference.md § Data-prop paths](visual-editing-reference.md#data-prop-paths--pick-one). `@content` is the reserved token for the file's markdown body — frontmatter is reached via normal field paths, so the body has no path other than `@content`                                                                                                                            |
 | `data-prop-*`             | Path string                                                   | Per-attribute binding: the suffix after `data-prop-` names the attribute or logical field being edited; path-string rules match `data-prop`. On **image** regions the usual cases are `data-prop-src`, `data-prop-alt`, and `data-prop-title`. The same pattern applies elsewhere where the visual editor supports binding that attribute for the region type — it is not limited to images, but not every attribute is available on every region. |
 | `data-type`               | `span`, `text`, `block`                                       | Text editor mode. `span` = plain text (no toolbar); `text` = paragraph-level rich text (bold, links, superscript); `block` = multi-paragraph rich text (lists, quotes, headings). Omitted → `block`/`text` for Source regions, `@content`, and Rich Text Inputs; `span` otherwise                                                                                                                                                                  |
 | `data-component`          | Component key                                                 | Component identifier for re-rendering lookup                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -104,7 +78,7 @@ These attributes wire **complex** arrays (e.g. page builders) so the Visual Edit
 
 CloudCannon uses **`data-id` / `data-id-key`**, not a separate `data-component-id` attribute.
 
-For when to add HTML `<template>` children on the array wrapper versus relying on component registration, see the visual-editing guide for your SSG (e.g. [astro/visual-editing.md](astro/visual-editing.md) § Array editing).
+For when to add HTML `<template>` children on the array wrapper versus relying on component registration, see [visual-editing-reference.md § When HTML `<template>` blueprints are needed](visual-editing-reference.md#when-html-template-blueprints-are-needed).
 
 ### Custom Element Equivalents
 
@@ -124,4 +98,16 @@ Both forms produce identical behaviour. Custom elements self-hydrate via `connec
 | Semantic or layout element (`<h1>`, `<p>`, `<section>`)     | Keep `data-editable` on the semantic element                                                    |
 | Stylesheet or third-party targets `span`/`div`              | Explicit `<span data-editable="...">` / `<div data-editable="...">`                             |
 
-Astro-specific patterns (slots, links, templates) are in [astro/visual-editing.md](astro/visual-editing.md).
+---
+
+## Rich text region contents are editor-owned
+
+A rich text region — `source`, or `text` with `data-type="text"`/`"block"` — has its contents parsed into CloudCannon's editor schema and re-serialized on save. That schema covers block structure and inline marks (`<strong>`, `<a>`, `<code>`), but **not arbitrary attributes**. An attribute on markup _inside_ a region can't survive the round-trip, so CloudCannon flags that markup as uneditable rather than silently dropping it — the region still saves, but the editor can't touch that element.
+
+Attributes on the region **host** are untouched: the host is the region boundary, not its content, so CloudCannon only rewrites what's between its tags.
+
+So anything needing a stable per-element attribute — an analytics hook, a test id, a translation key — belongs on the region host, or on a component that renders the markup. Not inside the region. Stability points the same way even where an attribute would survive: editors reshape a region's inner DOM freely (splitting paragraphs, adding lists, reordering blocks), so an element you tagged may not exist after the next edit. Treat the region as the smallest addressable unit.
+
+A snippet can teach the editor to round-trip custom markup, and is the right tool when the markup is genuinely content the editor should manage. It's the wrong tool for developer plumbing: the attribute becomes an editor-facing form field that can be duplicated into a collision, and the prose turns into a snippet card instead of inline WYSIWYG. Prefer hoisting the attribute out of the region.
+
+Astro-specific patterns (slots, links, templates) are in [astro/visual-editing-reference.md](astro/visual-editing-reference.md).

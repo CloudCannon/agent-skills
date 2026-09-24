@@ -10,7 +10,7 @@ How to close a migration with the user: who tests what, when to stop, and what t
 | Builds, greps, small scripts, `dist/` inspection                   | Agent |
 | Fidelity checks in CloudCannon (preview, inline edit, save-to-git) | Human |
 
-Prefer asking the user to run CloudCannon verification over spinning up long-lived dev servers or heavy end-to-end testing in the agent session.
+The agent does not stand up a dev server to verify its own work, or run heavy end-to-end testing in session. Starting one **for the user** is a different act: it gives them the local CloudCannon they need to run the fidelity checks they own. See [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md).
 
 ## When to close with the user
 

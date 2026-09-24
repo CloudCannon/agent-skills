@@ -19,3 +19,4 @@ Astro-specific configuration guidance. The cross-SSG rules live one level up: [`
 | [../structures.md](../structures.md)                       | Structures — inline vs split, previews, field completeness |
 | [../collection-urls.md](../collection-urls.md)             | URL placeholders, filters, troubleshooting                 |
 | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | CloudCannon CLI commands and options                       |
+| [../build-commands.md](../build-commands.md)               | Build and install commands — where each build step goes    |

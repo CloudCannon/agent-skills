@@ -13,12 +13,14 @@ This workflow assumes editors use **MDX component tags** in content. Concretely:
 
 ## MDX setup pipeline (must complete all four)
 
-| #   | Step                                                         | File                     | Skip = broken                        |
-| --- | ------------------------------------------------------------ | ------------------------ | ------------------------------------ |
-| 1   | `npm install astro-auto-import`                              | `package.json`           | `import` statements leak into editor |
-| 2   | Register `AutoImport({ imports: [...] })` **before** `mdx()` | `astro.config.mjs`       | Components not resolved at build     |
-| 3   | Delete `import` lines from all `.mdx` content files          | `src/content/**/*.mdx`   | Raw imports shown to editors         |
-| 4   | Add `_snippets` entries (or raw snippet) for every JSX tag   | `cloudcannon.config.yml` | Components shown as broken in editor |
+Steps 1–3 have one goal: **no `import` lines in content, and every MDX render site resolves its components.** `astro-auto-import` is the default route — one integration config that applies to every MDX render. Where it can't be installed, a [shared `components` map](#alternative-components-prop) satisfies steps 1–2 instead.
+
+| #   | Step                                                                                                                              | File                     | Skip = broken                        |
+| --- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------ |
+| 1   | Check `astro-auto-import`'s `peerDependencies.astro` range against the site's Astro version, then `npm install astro-auto-import` | `package.json`           | `import` statements leak into editor |
+| 2   | Register `AutoImport({ imports: [...] })` **before** `mdx()`                                                                      | `astro.config.mjs`       | Components not resolved at build     |
+| 3   | Delete `import` lines from all `.mdx` content files                                                                               | `src/content/**/*.mdx`   | Raw imports shown to editors         |
+| 4   | Add `_snippets` entries (or raw snippet) for every JSX tag                                                                        | `cloudcannon.config.yml` | Components shown as broken in editor |
 
 All four are mandatory. Steps 1+2 without 4 = editor still can't insert/parse the components. Step 4 without 1+2 = build fails. Verify at the end with the [component inventory grep](#component-inventory-grep-must-run-check).
 
@@ -28,7 +30,9 @@ CloudCannon's Content Editor displays the raw file contents. Import statements (
 
 ### `astro-auto-import`
 
-The recommended approach. This Astro integration injects imports into MDX files at build time.
+The default approach. This Astro integration injects imports into MDX files at build time.
+
+Before installing, compare the package's `peerDependencies.astro` range (`npm view astro-auto-import peerDependencies`) with the site's Astro version. If the range excludes it, use the [`components` map](#alternative-components-prop) instead of forcing the install.
 
 ```bash
 npm install astro-auto-import
@@ -58,17 +62,27 @@ imports: [{ "astro-embed": ["Tweet", "YouTube"] }];
 
 ### Alternative: `components` prop
 
-Pass components explicitly when rendering content:
+Pass components explicitly when rendering content. Use this when the auto-import package can't be installed (its peer range excludes the site's Astro version) or fails to resolve components (path alias issues, pnpm hoisting).
+
+**MUST** define **one shared components map** in a single file and pass it at **every** `<Content />` / `render()` site:
+
+```ts
+// src/components/mdx-components.ts
+import Button from "@/shortcodes/Button.astro";
+import Notice from "@/shortcodes/Notice.astro";
+export const mdxComponents = { Button, Notice };
+```
 
 ```astro
 ---
-import Button from "@/shortcodes/Button";
-const { Content } = await entry.render();
+import { render } from "astro:content";
+import { mdxComponents } from "@/components/mdx-components";
+const { Content } = await render(entry);
 ---
-<Content components={{ Button }} />
+<Content components={mdxComponents} />
 ```
 
-Less scalable but avoids the extra dependency. The `astro-auto-import` approach is better for templates with many shortcodes. If auto-import fails to resolve components (path alias issues, pnpm hoisting), fallback to this approach -- it's reliable and sufficient for sites with only 1-2 MDX components.
+Grep for every render site (`rg '<Content|render\(' src`) — posts, pages, RSS, search indexes, anywhere an entry renders. **Why:** a missed site fails at runtime with `Expected component X to be defined`, often on only one page type, and a build that never renders that page type passes.
 
 ## Built-in templates for Astro
 
@@ -282,16 +296,6 @@ Every component used in MDX content must either have a `_snippets` entry or the 
 
 For files restricted to source/data editor, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
 
-## Common mistakes
-
-| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
-| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |
-| Leaving `import` lines at the top of `.mdx` content files                | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports.                                                      |
-| Registering `AutoImport` after `mdx()` in `astro.config.mjs`             | Order matters — `AutoImport` must come earlier in the `integrations` array                                                         |
-| "I'll configure the common ones now and add the rest later"              | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
-
 ## Component inventory grep (must-run check)
 
 Before declaring snippets done, list every JSX tag used in content and verify each has a `_snippets` entry:
@@ -317,3 +321,13 @@ After adding snippet configs:
 - [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)
 - [ ] `astro build` passes cleanly
 - [ ] Components in existing `.mdx` files should round-trip correctly (CC parses and re-serializes without losing attributes)
+
+## Common mistakes
+
+| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
+| Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |
+| Leaving `import` lines at the top of `.mdx` content files                | Delete them; let `AutoImport` inject them. Editors shouldn't see raw imports.                                                      |
+| Registering `AutoImport` after `mdx()` in `astro.config.mjs`             | Order matters — `AutoImport` must come earlier in the `integrations` array                                                         |
+| "I'll configure the common ones now and add the rest later"              | Run the [component inventory grep](#component-inventory-grep-must-run-check); unconfigured components show as broken in the editor |
