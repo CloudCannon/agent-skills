@@ -76,8 +76,8 @@ _structures:
 Then, for each structure value:
 
 - **Validate** the result against the configuration schema — see [cloudcannon-configuration](../cloudcannon-configuration/SKILL.md). Bookshop never validated `spec.icon` or input options, so invalid values carried over are common.
-- **Check** that every `_inputs` key names a field in `value`. The schema can't catch a key that names nothing, and an `_inputs` entry on a misspelled path silently never applies.
-- **Check** blueprint values against the region type that will edit them. Bookshop rendered a bare number (`number: 200`) fine; a text region bound to it shows an error card. Quote display figures as strings and pin the input to `type: text`.
+- **Check** that every `_inputs` key names a field in `value` — see [configuration-gotchas.md § An `_inputs` key that names no field is ignored](../cloudcannon-configuration/configuration-gotchas.md#an-_inputs-key-that-names-no-field-is-ignored).
+- **Check** blueprint values against the region type that will edit them. Bookshop rendered a bare number (`number: 200`) fine; a text region bound to it shows an error card — see [editable-regions.md § Value types per region](editable-regions.md#value-types-per-region).
 - **Link** each array input to its structure — see [structures.md](../cloudcannon-configuration/structures.md).
 
 ## Renaming `_bookshop_name`

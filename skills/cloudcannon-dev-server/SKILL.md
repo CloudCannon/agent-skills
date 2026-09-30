@@ -15,7 +15,7 @@ description: >-
 
 **MUST rebuild the site after every change. `cloudcannon dev` never builds.**
 
-**Why:** the server serves a directory and syncs source files; it does not run the SSG. `--live-sync` carries an editor save to disk, so the field shows the new text — but the preview renders the built output, and nothing regenerated it. The user sees their edit in the field and the old page beside it, with no error anywhere.
+**Why:** the server serves a directory and syncs source files; it does not run the SSG. `--app-sync` carries an editor save to disk, so the field shows the new text — but the preview renders the built output, and nothing regenerated it. The user sees their edit in the field and the old page beside it, with no error anywhere.
 
 ## The loop
 
@@ -60,6 +60,7 @@ Default to manual when the build is slow or has a post-build step that rewrites 
 - **Checking that a site's output is correct** — whether URLs match the collection config, whether pages are orphaned. This skill starts a server; it does not grade the site.
 - **Driving the editor in a browser** — clicking regions, dumping inputs, screenshotting. Ask the user to look.
 - **Final sign-off.** Local CloudCannon has no real save-to-git, no build pipeline and no permissions. A human still confirms on the hosted site.
+- **Testing hosted-only behaviour.** The local app isn't told the SSG, so SSG-specific rules don't apply locally — a Hugo site's config files show in a collection locally even without `include_developer_files` ([Site config as data](../cloudcannon-configuration/hugo/configuration.md#site-config-as-data)). Creating new files isn't a faithful test either: an unsaved new entry carries a temporary flat name.
 
 ## Contents
 

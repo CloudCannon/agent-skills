@@ -55,7 +55,9 @@ Extends `EditableComponent` for editing snippets within rich text content. Manag
 | `data-prop`               | Path string                                                   | Data path for the editable value — full grammar in [visual-editing-reference.md § Data-prop paths](visual-editing-reference.md#data-prop-paths--pick-one). `@content` is the reserved token for the file's markdown body — frontmatter is reached via normal field paths, so the body has no path other than `@content`                                                                                                                            |
 | `data-prop-*`             | Path string                                                   | Per-attribute binding: the suffix after `data-prop-` names the attribute or logical field being edited; path-string rules match `data-prop`. On **image** regions the usual cases are `data-prop-src`, `data-prop-alt`, and `data-prop-title`. The same pattern applies elsewhere where the visual editor supports binding that attribute for the region type — it is not limited to images, but not every attribute is available on every region. |
 | `data-type`               | `span`, `text`, `block`                                       | Text editor mode. `span` = plain text (no toolbar); `text` = paragraph-level rich text (bold, links, superscript); `block` = multi-paragraph rich text (lists, quotes, headings). Omitted → `block`/`text` for Source regions, `@content`, and Rich Text Inputs; `span` otherwise                                                                                                                                                                  |
-| `data-component`          | Component key                                                 | Component identifier for re-rendering lookup                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `data-component`          | Component key                                                 | Component identifier for re-rendering lookup. On an **array wrapper**, the component for any item that has no `data-component` of its own and no value under `data-component-key` — see [Complex array attributes](#complex-array-attributes-wrapper-vs-item)                                                                                                                                                                                      |
+| `data-direction`          | `row`, `column`, `row-reverse`, `column-reverse`              | On the **array wrapper**: the direction items are laid out in, so item controls and drag-and-drop point the right way. Inferred from `flex-direction` only when the wrapper is `display: flex`; otherwise `column`. Set `data-direction="row"` on grid and inline-block rows                                                                                                                                                                       |
+| `data-literal-prop-*`     | Literal value                                                 | Passes a literal value to the region under the suffix's name, instead of a path. Values that parse as JSON are passed as structured values, the rest as strings                                                                                                                                                                                                                                                                                    |
 | `data-id-key`             | Key name                                                      | On the **array wrapper**: which data field uniquely identifies each item. Defaults to `data-component-key` value when omitted (Dec 2025)                                                                                                                                                                                                                                                                                                           |
 | `data-component-key`      | Key name                                                      | On the **array wrapper**: which data field identifies the component type for each item                                                                                                                                                                                                                                                                                                                                                             |
 | `data-id`                 | ID value                                                      | On each **array item**: the resolved identity value for this specific item. Defaults to `data-component` when omitted                                                                                                                                                                                                                                                                                                                              |
@@ -75,10 +77,36 @@ These attributes wire **complex** arrays (e.g. page builders) so the Visual Edit
 - **`data-id-key`** (on the **array wrapper**): Name of the field used as a **stable identity** for matching DOM nodes to data items across reorder/add/remove. Often the same field as `data-component-key`; when omitted, it defaults to the same value as `data-component-key` (Dec 2025).
 - **`data-component`** (on each **array item**): The **resolved** component key for that row. It must match the key your SSG’s integration resolves (Astro: `registerAstroComponent('hero', Hero)` → `data-component="hero"`; Hugo: `data-component="blocks/hero"` → `layouts/partials/blocks/hero.html`).
 - **`data-id`** (on each **array item**): The **resolved** stable id for that row, taken from the field named by `data-id-key`. When omitted, it defaults to the same value as `data-component` (Dec 2025).
+- **`data-component`** (on the **array wrapper**): The component for any item without its own `data-component` and without a value under `data-component-key`. A uniform list whose items are all one component needs only this — new items render through it, with no `<template>`.
 
 CloudCannon uses **`data-id` / `data-id-key`**, not a separate `data-component-id` attribute.
 
 For when to add HTML `<template>` children on the array wrapper versus relying on component registration, see [visual-editing-reference.md § When HTML `<template>` blueprints are needed](visual-editing-reference.md#when-html-template-blueprints-are-needed).
+
+### Selectors provided by the runtime
+
+`data-prop` paths are in [visual-editing-reference.md § Data-prop paths](visual-editing-reference.md#data-prop-paths--pick-one). These references and special props also resolve:
+
+| Selector                 | Resolves to                                                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@collections[<key>]`    | A whole collection, usable as an array region's value. **Warning:** removing an item from that array region deletes the collection file, so editors can delete entries from a listing |
+| `@file[<path>].@content` | Another file's markdown body                                                                                                                                                          |
+| `@length`                | Inside an array region: the item count                                                                                                                                                |
+| `@index`                 | Inside an array item: the item's position                                                                                                                                             |
+
+### Value types per region
+
+A region shows an error card when its resolved value has the wrong type. Match the stored value to the region:
+
+| Region                       | Accepts                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `text`                       | A string, or `null`                                              |
+| `array`                      | An array, `null`, or a collection or dataset object from the API |
+| `image` with `data-prop`     | An object whose only keys are `src`, `alt` and `title`           |
+| `image` with `data-prop-src` | A string path                                                    |
+
+**MUST:** quote YAML numbers that a text region displays (`count: "40"`, not `count: 40`), and pin the input with `_inputs.<key>.type: text`.
+**Why:** a bare YAML number reaches the region as a number, which a text region rejects. The pinned input type keeps the sidebar from saving it back as a number.
 
 ### Custom Element Equivalents
 

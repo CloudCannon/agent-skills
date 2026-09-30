@@ -37,5 +37,10 @@ write there.
 If a build does feed itself anyway, the script stops after five back-to-back rebuilds and says so,
 rather than looping silently.
 
+**Hugo with editable regions:** don't pass `--watch assets`. Rebuild by hand after SCSS or theme
+changes instead.
+**Why:** every build rewrites `assets/jsconfig.json`, so a watched `assets/` retriggers itself until
+the loop guard stops it.
+
 `cloudcannon dev` is expected to grow a build-and-watch mode of its own. No flag belongs here that
 a different `--build-cmd` or `--watch` can already express, and this file goes when that ships.

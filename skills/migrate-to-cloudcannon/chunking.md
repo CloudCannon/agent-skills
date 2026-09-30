@@ -12,7 +12,7 @@ At the end of Phase 1, evaluate the sizing thresholds against `.cloudcannon/migr
 
 | Signal                                | Threshold | Source                                                                       |
 | ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
-| Total pages                           | > 30      | Audit § Pages and routing                                                    |
+| Content-backed pages                  | > 30      | Audit § Pages and routing                                                    |
 | Hardcoded template → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
 | Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
 
@@ -30,7 +30,7 @@ If any 2 thresholds are tripped, write `.cloudcannon/migration/plan.md` using th
 
 ## Sizing
 
-- Total pages: <n> (threshold >30: <tripped|ok>)
+- Content-backed pages: <n> (threshold >30: <tripped|ok>)
 - Hardcoded → YAML conversions: <n> (threshold >15: <tripped|ok>)
 - Distinct collections: <n> (threshold >5: <tripped|ok>)
 - Tripped: <count>/3 → <chunked recommended|single-pass fine>

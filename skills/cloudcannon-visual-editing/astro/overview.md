@@ -7,9 +7,10 @@ Astro-specific Visual Editor guidance, built on `@cloudcannon/editable-regions`.
 | Order | File                                                             | Read when                                                   |
 | ----- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
 | 1     | [visual-editing.md](visual-editing.md)                           | Always — the Phase 4 workflow, census and checklists        |
-| 2     | [../visual-editing-reference.md](../visual-editing-reference.md) | On demand — the generic pattern behind a checklist item     |
-| 3     | [visual-editing-reference.md](visual-editing-reference.md)       | On demand — what Astro does differently from that pattern   |
-| 4     | [troubleshooting.md](troubleshooting.md)                         | An Astro-specific symptom, after checking the generic table |
+| 2     | [../visual-editing.md](../visual-editing.md)                     | Always — the census format and the Universal checklist      |
+| 3     | [../visual-editing-reference.md](../visual-editing-reference.md) | On demand — the generic pattern behind a checklist item     |
+| 4     | [visual-editing-reference.md](visual-editing-reference.md)       | On demand — what Astro does differently from that pattern   |
+| 5     | [troubleshooting.md](troubleshooting.md)                         | An Astro-specific symptom, after checking the generic table |
 
 **MUST NOT:** read `visual-editing-reference.md` front to back. It is a pattern reference; `visual-editing.md` links into the section you need.
 

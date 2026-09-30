@@ -29,6 +29,7 @@ description: >-
 | Doc                                                            | When to read                                                                          |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | [editable-regions.md](editable-regions.md)                     | Start here. Region types, the attribute reference, custom-element equivalents         |
+| [visual-editing.md](visual-editing.md)                         | Section census, completeness checklist, pre-handoff sweep — every SSG                 |
 | [visual-editing-reference.md](visual-editing-reference.md)     | On demand. Data-prop paths, arrays, page builders, components, source editables       |
 | [editable-regions-internals.md](editable-regions-internals.md) | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging          |
 | [troubleshooting.md](troubleshooting.md)                       | Symptom → fix, when regions do not appear, update, or write where expected            |
@@ -41,11 +42,11 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 | SSG   | Doc                                                                    | Purpose                                                                          |
 | ----- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | Astro | [astro/overview.md](astro/overview.md)                                 | **Start here for Astro** — reading order and what each file covers               |
-| Astro | [astro/visual-editing.md](astro/visual-editing.md)                     | Setup workflow, section census, infrastructure + completeness checklists         |
+| Astro | [astro/visual-editing.md](astro/visual-editing.md)                     | Setup workflow, infrastructure checklist, Astro checklist items                  |
 | Astro | [astro/visual-editing-reference.md](astro/visual-editing-reference.md) | Astro's deltas from the generic pattern reference (read on demand)               |
 | Astro | [astro/troubleshooting.md](astro/troubleshooting.md)                   | Astro-specific symptom → fix                                                     |
 | Hugo  | [hugo/overview.md](hugo/overview.md)                                   | **Start here for Hugo** — reading order and what each file covers                |
-| Hugo  | [hugo/visual-editing.md](hugo/visual-editing.md)                       | Module setup, section census, infrastructure + completeness checklists           |
+| Hugo  | [hugo/visual-editing.md](hugo/visual-editing.md)                       | Module setup, infrastructure checklist, Hugo checklist items, local checks       |
 | Hugo  | [hugo/visual-editing-reference.md](hugo/visual-editing-reference.md)   | Hugo's deltas: partials-only re-render, `ENV_CLIENT`, what the editor's Hugo has |
 | Hugo  | [hugo/troubleshooting.md](hugo/troubleshooting.md)                     | Hugo-specific symptom → fix                                                      |
 | Hugo  | [hugo/migrating-from-bookshop.md](hugo/migrating-from-bookshop.md)     | Hugo's delta for a Bookshop site                                                 |
@@ -79,9 +80,9 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 ## Workflow
 
 1. **Setup** — Install and wire the integration per the SSG's `visual-editing.md` (Astro: setup script + conditional `registerComponents` import; Hugo: module import + `editable-regions` partial)
-2. **Census** — Document every visible section on every key page with treatment decisions
+2. **Census** — Document every visible section on every key page with treatment decisions ([visual-editing.md § Section census](visual-editing.md#section-census))
 3. **Implement** — Work through sections, adding editable attributes per the census
-4. **Verify** — Run the completeness checklist in the SSG-specific workflow doc
+4. **Verify** — Run the completeness checklist in [visual-editing.md](visual-editing.md), then the SSG's extra items
 
 ## Checklist reinforcement
 

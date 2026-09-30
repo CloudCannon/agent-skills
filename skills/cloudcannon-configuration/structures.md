@@ -28,7 +28,7 @@ _inputs:
     type: text
 ```
 
-Editors get a plain list they can add to, delete from and drag-reorder, and it can be emptied: an empty array in content (`features: []`) still offers the right item on Add. **MUST NOT** rely on a bare `type: array` without the `[*]` entry — the Add button clones the previous item, so once the last one is deleted the array loses its item type. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `allow_create: true` and `values`.
+Editors get a plain list they can add to, delete from and drag-reorder, and it can be emptied: an empty array in content (`features: []`) still offers the right item on Add. **MUST NOT** rely on a bare `type: array` without the `[*]` entry — the Add button clones the previous item, so once the last one is deleted the array loses its item type. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `values` pointing at a data file of the options (`values: data.tags`) — never an empty `values: []`.
 
 These apply in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Define structures during the configuration phase and use them as the blueprint when creating content files in the content phase — not as a backfill step.
 
@@ -176,6 +176,42 @@ _inputs:
 | ----------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `values_from_glob`      | Individual structure values into an array. One file = one structure value.               | Split co-located approach (one file per component). Default choice.                      |
 | `_structures_from_glob` | Named structure groups. One file defines an `_structures`-like block with multiple keys. | Grouping multiple related structures in one file (e.g. `header_links` + `footer_links`). |
+
+## Arrays of single-key maps
+
+An array whose items are maps with one key naming the kind — common for social links:
+
+```yaml
+social:
+  - github: https://github.com/example
+  - email: hello@example.com
+```
+
+becomes one structure value per key, each with its own preview and input. Editors choose the kind from Add:
+
+```yaml
+_structures:
+  social_links:
+    style: modal
+    values:
+      - label: GitHub
+        icon: code
+        value:
+          github:
+        preview:
+          text:
+            - key: github
+      - label: Email
+        icon: mail
+        value:
+          email:
+        preview:
+          text:
+            - key: email
+        _inputs:
+          email:
+            type: email
+```
 
 ## Shared sub-structures
 
@@ -333,9 +369,12 @@ _inputs:
 
 ### The `_type` discriminator
 
-Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard — the name is arbitrary (`_name`, `_component`) but must be consistent across all values in a given array. The discriminator value must match the key used in `componentMap` and `registerAstroComponent` calls.
+Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard — the name is arbitrary (`_name`, `_component`) but must be consistent across all values in a given array. The discriminator value must match the component key the SSG resolves — Astro: the key used in `componentMap` and `registerAstroComponent` calls; Hugo: the partial path (Bookshop sites keep `_name`).
 
 ### Scoped `_inputs`
+
+**MUST:** put `_inputs` on each structure value, not on the structure (`_structures.<name>._inputs`).
+**Why:** a structure has no `_inputs` key — `cloudcannon validate` reports `$._structures.<name>: unexpected property _inputs`. Share one definition between values with a YAML alias (`_inputs: *link_inputs`, anchor defined first) or `_inputs_from_glob`.
 
 Field type configuration inside a structure-value file is scoped to that component. Only include fields that need non-default types — strings, arrays, and objects work without explicit configuration.
 
@@ -400,7 +439,7 @@ In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truth
 
 When iterating, filter items that have nothing visible to render: `actions.filter((a) => a?.text || a?.icon).map(...)`.
 
-Check and update these guards in the content phase, as the first content file for each block type is created. **Why:** an unguarded null is a build failure, not a cosmetic defect — `<Icon name={null}>` crashes `astro build`. Revisit during the visual-editing phase only to confirm every `data-editable` element is still conditionally rendered. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
+Check and update these guards in the content phase, as the first content file for each block type is created. **Why:** an unguarded null is a build failure, not a cosmetic defect — `<Icon name={null}>` crashes `astro build`. Revisit during the visual-editing phase only to confirm every `data-editable` element is still conditionally rendered. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples. The examples above are JavaScript; Hugo's idioms (`with`, `isset`) are in [hugo/visual-editing-reference.md § Nil safety](../cloudcannon-visual-editing/hugo/visual-editing-reference.md#nil-safety).
 
 ## Default values from components
 

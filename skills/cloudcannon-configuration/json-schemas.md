@@ -21,12 +21,17 @@ jq '.definitions["collections_config.*"].properties.disable_file_actions' .cloud
 # List all valid input type values
 jq '[.definitions | to_entries[] | select(.key | test("Input$")) | .key]' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 
-# List valid keys for _editables.content (BlockEditable)
-jq '.definitions.BlockEditable.properties | keys' .cloudcannon/migration/cloudcannon-config.latest.schema.json
+# List valid keys for _editables.content (BlockEditable) — it is anyOf-wrapped, so collect keys from each branch
+jq '[.definitions.BlockEditable.anyOf[] | .properties? // {} | keys[]] | unique' .cloudcannon/migration/cloudcannon-config.latest.schema.json
+
+# Find where a key is defined anywhere in the schema, however deeply it is wrapped
+jq -r '[paths | select(.[-1] == "uploads_use_relative_path") | map(tostring) | join(".")] | .[]' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 
 # List valid keys on a structure value item
 jq '.definitions["type.structure.values.[*]"].properties | keys' .cloudcannon/migration/cloudcannon-config.latest.schema.json
 ```
+
+Some definitions (`BlockEditable`, the markdown `options`) are wrapped in `anyOf`, so `.properties` on them is `null` and a plain `keys` errors. Use the `anyOf[]` form above, or the find-anywhere recipe. When a recipe and `npx @cloudcannon/cli validate` disagree, the validator wins.
 
 No `jq`? Use Node:
 

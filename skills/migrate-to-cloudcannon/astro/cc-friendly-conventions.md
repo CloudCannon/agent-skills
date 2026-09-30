@@ -55,23 +55,7 @@ Use Astro 5+. The CloudCannon editable regions integration (`@cloudcannon/editab
 
 ## Shared data
 
-Cross-page content (navigation, CTAs, testimonials, site settings) should live in JSON files (e.g. `src/data/cta.json`) rather than scattered across collection frontmatter. This keeps shared data consistent and editable in one place via CloudCannon's data editor.
-
-**Default to editable.** All user-facing text should be editable. Never leave common UI sections hardcoded without explicit justification from the customer. If an editor can see it on the page, they must be able to edit it.
-
-### Shared-UI treatment table
-
-Every site has most of these. For each row, the default treatment is non-negotiable unless you have a written technical reason not to — scan the repo for each one and either implement it or document the exception in `.cloudcannon/migration/visual-editing.md`.
-
-| Section                             | Default treatment                           | Data file / approach                                                                |
-| ----------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Header / Navigation                 | data-file + component                       | `src/data/navigation.json` with `items[]` structure                                 |
-| Footer link columns                 | data-file + array                           | `src/data/footer.json` — `columns[{heading, links[]}]`                              |
-| Footer tip / credits / image credit | data-file                                   | Same `src/data/footer.json`, under `tip`, `credits`, `image_credit` keys            |
-| CTA banner (above footer)           | data-file + `editable-component`            | `src/data/cta.json` — `title`, `link`, `link_text`                                  |
-| Share block (post / project detail) | source editables OR `src/data/sharing.json` | `data-editable="source"` on heading + description in the page template              |
-| Author card                         | data-file                                   | `src/data/authors.json` keyed by slug; frontmatter `author: <slug>`; `select` input |
-| Cookie banner / announcement bar    | data-file                                   | `src/data/announcement.json` or similar                                             |
+Cross-page content lives in JSON files under `src/data/` (e.g. `src/data/cta.json`). Which treatment each shared section gets is in [../cc-friendly-conventions.md § Shared-UI treatment table](../cc-friendly-conventions.md#shared-ui-treatment-table).
 
 ### Footer
 
@@ -85,11 +69,11 @@ Extract CTA content to a data file if the section is rendered on multiple pages 
 
 Treat authors as a data relationship, not a free-text field. Decide treatment by reuse pattern:
 
-| Situation                                         | Treatment                                                                                                       | Rationale                                         |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Few authors (≤ ~10), reused across posts/projects | `src/data/authors.json` keyed by slug; frontmatter `author: <slug>`; `select` input with `values: data.authors` | Centralized bios, avatars, roles; cheap to extend |
-| Many authors with their own pages / URLs          | `src/content/authors/` collection; `_enabled_editors: [data]` if they don't render individual pages             | Needs CRUD and routing                            |
-| One-off, never reused                             | Inline string on the post                                                                                       | Not worth the indirection                         |
+| Situation                                         | Treatment                                                                                                                                                               | Rationale                                         |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Few authors (≤ ~10), reused across posts/projects | `src/data/authors.json` as a top-level array with a `slug` on each item; frontmatter `author: <slug>`; `select` input with `values: data.authors` and `value_key: slug` | Centralized bios, avatars, roles; cheap to extend |
+| Many authors with their own pages / URLs          | `src/content/authors/` collection; `_enabled_editors: [data]` if they don't render individual pages                                                                     | Needs CRUD and routing                            |
+| One-off, never reused                             | Inline string on the post                                                                                                                                               | Not worth the indirection                         |
 
 **Anti-pattern:** constructing the author object inline in a page template with a hardcoded bio (`const author = { name: post.data.author, bio: 'Accessibility advocate' }`). Lift to a data file — the author's bio, avatar, and role belong in one editable place.
 
@@ -99,8 +83,8 @@ Wire live-preview for `select` inputs that reference another data file, otherwis
 
 Required pieces:
 
-1. **Data file** keyed by slug — e.g. `src/data/authors.json` with `{ "<slug>": { name, avatar, bio } }`.
-2. **CC input** — expose the data file under `data_config` (`authors: { path: src/data/authors.json }`), then a `select` input with `values: data.authors` and `value_key: ''` so the frontmatter stores the slug. Without the `data_config` entry, `data.authors` won't resolve.
+1. **Data file** as a top-level array — e.g. `src/data/authors.json` with `[{ slug, name, avatar, bio }]`.
+2. **CC input** — expose the data file under `data_config` (`authors: { path: src/data/authors.json }`), then a `select` input with `values: data.authors` and `value_key: slug` so the frontmatter stores the slug. Without the `data_config` entry, `data.authors` won't resolve.
 3. **Dedicated registered component** that takes the slug and does the lookup _internally_ (e.g. `AuthorCard.astro`). Register with `registerAstroComponent('author-card', AuthorCard)`.
 4. **Editable wrapper** at the call site: `<editable-component data-component="author-card" data-prop="<slug-field>"><AuthorCard author={slug} /></editable-component>`. The slug-field name must match the frontmatter key (e.g. `data-prop="author"`).
 

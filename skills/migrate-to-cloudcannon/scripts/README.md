@@ -18,7 +18,9 @@ The output is structured text the agent uses as a starting point for `.cloudcann
 
 ### `audit-hugo.sh` (Phase 1: Audit)
 
-Gathers audit data for a Hugo site. Runs the same CloudCannon CLI commands with `--ssg hugo`, then adds what the CLI doesn't cover: Hugo version (and a misspelled `hugoVersion` in the site settings), config files, routing and Goldmark settings, modules and themes, Bookshop markers, content sections, `_index.md` files and bundles, front matter formats, data files, layouts split into page templates / partials / shortcodes, and the editor-runtime risks — asset pipeline calls, `.Content` in partials, positional CSS selectors, global JS bindings, inline scripts in partials.
+Gathers audit data for a Hugo site. Runs the same CloudCannon CLI commands with `--ssg hugo`, then adds what the CLI doesn't cover: Hugo version (a misspelled `hugoVersion` in the site settings, npm Hugo pins), each module's and theme's Hugo version window checked against the local Hugo, config files, routing and Goldmark settings, modules and themes (with `version` keys on imports flagged), agent docs themes ship, Bookshop markers, content sections, `_index.md` files and bundles, front matter formats, data files, layouts split into page templates / partials / shortcodes (both folder schemes), overridden built-in shortcodes, GitHub-style alerts, and the editor-runtime risks — asset pipeline calls, glob-chosen images, `.Content` candidates in partials, positional CSS selectors, global JS bindings, inline scripts in partials.
+
+The editor-runtime scans cover every template root `hugo config mounts` reports — the project, each theme and each module — labelled by module. If that command fails, the script scans the project only and says which imports it skipped. It needs `hugo` and `jq` on `PATH` for the module scans.
 
 ```bash
 bash audit-hugo.sh /path/to/project

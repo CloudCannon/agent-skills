@@ -11,6 +11,7 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 1. `migrate-to-cloudcannon/SKILL.md` → detect SSG
 2. `migrate-to-cloudcannon/<ssg>/overview.md` → phase summary
 3. `migrate-to-cloudcannon/<ssg>/audit.md` → full audit procedure
+4. `migrate-to-cloudcannon/audit.md` → when classifying static pages
 
 ### Phase 2: Configuration
 
@@ -34,7 +35,8 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 1. `cloudcannon-visual-editing/SKILL.md` → region types and quick reference
 2. `cloudcannon-visual-editing/<ssg>/overview.md` → the SSG's reading order
 3. `cloudcannon-visual-editing/<ssg>/visual-editing.md` → full integration workflow
-4. `migrate-to-cloudcannon/<ssg>/page-building.md` → if page builder (block dispatcher, array editables)
+4. `cloudcannon-visual-editing/visual-editing.md` → section census, completeness checklist, pre-handoff sweep
+5. `migrate-to-cloudcannon/<ssg>/page-building.md` → if page builder (block dispatcher, array editables)
 
 ### Phase 5: Build
 

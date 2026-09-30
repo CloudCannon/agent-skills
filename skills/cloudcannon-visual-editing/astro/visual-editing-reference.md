@@ -344,7 +344,7 @@ Pages with source editables should be in the pages collection so editors can fin
 
 ### Identifying source editable candidates during audit
 
-During Phase 1, run hardcoded text through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) before reaching for source-editable. Most candidates — homepage heroes, CTA sections, section headings — belong in a page-builder `pages` collection entry. Unique-layout pages with two or more structured sections belong in the page builder; see [page-building.md § When to reach for page builder](../../migrate-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder). Footer taglines and other shared-UI text belong in a data file — see [cc-friendly-conventions.md § Shared-UI treatment table](../../migrate-to-cloudcannon/astro/cc-friendly-conventions.md#shared-ui-treatment-table).
+During Phase 1, run hardcoded text through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) before reaching for source-editable. Most candidates — homepage heroes, CTA sections, section headings — belong in a page-builder `pages` collection entry. Unique-layout pages with two or more structured sections belong in the page builder; see [page-building.md § When to reach for page builder](../../migrate-to-cloudcannon/astro/page-building.md#when-to-reach-for-page-builder). Footer taglines and other shared-UI text belong in a data file — see [cc-friendly-conventions.md § Shared-UI treatment table](../../migrate-to-cloudcannon/cc-friendly-conventions.md#shared-ui-treatment-table).
 
 ## Astro components in source editables
 
@@ -359,16 +359,14 @@ The rule: if the component just wraps a native element with styles, inline it. I
 
 [Base § Cross-collection select inputs](../visual-editing-reference.md#cross-collection-select-inputs) states the rule — the lookup must live inside the registered component. This is the Astro wiring.
 
-1. **Data file** keyed by slug.
+1. **Data file** as a top-level array with a `slug` on each item.
 
    ```json
    // src/data/authors.json
-   {
-     "jane-smith": { "name": "Jane Smith", "avatar": "...", "bio": "..." }
-   }
+   [{ "slug": "jane-smith", "name": "Jane Smith", "avatar": "...", "bio": "..." }]
    ```
 
-2. **CC config** — expose the data file under `data_config` (without this, `data.authors` won't resolve in the select), then a `select` input with `value_key: ''` so the frontmatter stores the bare slug.
+2. **CC config** — expose the data file under `data_config` (without this, `data.authors` won't resolve in the select), then a `select` input with `value_key: slug` so the frontmatter stores the bare slug.
 
    ```yaml
    data_config:
@@ -380,7 +378,7 @@ The rule: if the component just wraps a native element with styles, inline it. I
        type: select
        options:
          values: data.authors
-         value_key: ""
+         value_key: slug
    ```
 
 3. **Dedicated registered component** that takes the slug and does the lookup internally:
@@ -389,7 +387,7 @@ The rule: if the component just wraps a native element with styles, inline it. I
    ---
    import authors from '../data/authors.json'
    const { author } = Astro.props
-   const entry = author ? authors[author] : undefined
+   const entry = authors.find((a) => a.slug === author)
    ---
    {entry && <!-- render entry.name, entry.avatar, entry.bio -->}
    ```
@@ -411,7 +409,7 @@ The rule: if the component just wraps a native element with styles, inline it. I
 
 ```astro
 <!-- WRONG: lookup runs at build time; nothing on the page binds to the slug -->
-const author = authors[post.data.author]
+const author = authors.find((a) => a.slug === post.data.author)
 <PageHeader author={author} />
 ```
 

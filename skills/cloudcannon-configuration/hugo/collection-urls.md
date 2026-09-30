@@ -22,13 +22,7 @@ A leaf bundle — `content/blog/first-post/index.md` with its images beside it �
 
 ## `_index.md` — list pages and the home page
 
-Hugo builds `content/_index.md` to `/` and `content/blog/_index.md` to `/blog/`. CloudCannon's docs say `[slug]` is empty for a file named `index`; they don't say whether `_index` gets the same treatment.
-
-**Unverified:** whether `[slug]` and `[full_slug]` collapse `_index` the way they collapse `index`. If they don't, `/[full_slug]/` resolves `content/_index.md` to `/_index/`, and the home page and every section list page fail to open in the Visual Editor. Leaf pages are unaffected either way.
-
-- **Open** the home page and one section list page in the Visual Editor before configuring the rest of the site.
-- **Record** the result in `.cloudcannon/migration/configuration.md`.
-- **Tell** the user if it fails — it needs a CloudCannon-side answer, not a per-site workaround.
+Hugo builds `content/_index.md` to `/` and `content/blog/_index.md` to `/blog/`. `[full_slug]` collapses `_index` the way it collapses `index`, so with `url: /[full_slug]/` the home page opens at `/` and each section list page at its list URL.
 
 Whether `_index.md` belongs in its section's collection is a separate choice — see [configuration.md § Section collections](configuration.md#section-collections).
 
@@ -36,16 +30,28 @@ Whether `_index.md` belongs in its section's collection is a separate choice —
 
 Hugo lets front matter override the path. Mirror each override in the CloudCannon `url`, or the Visual Editor opens the wrong page:
 
-| Front matter or config                        | Hugo output             | CloudCannon `url`                                                  |
-| --------------------------------------------- | ----------------------- | ------------------------------------------------------------------ |
-| `slug: my-post` on a file                     | Directory + `my-post`   | `/blog/{slug}/` — only if every file in the collection sets `slug` |
-| `url: /custom/path/` on a file                | Exactly that path       | `{url}` — only if every file sets `url`                            |
-| `[permalinks] blog = "/:year/:month/:slug/"`  | Date-based path         | `/{date\|year}/{date\|month}/[slug]/`                              |
-| `[permalinks] blog = "/:sections/:filename/"` | Section path + filename | `/blog/[full_slug]/`                                               |
+| Front matter or config                                               | Hugo output                                                   | CloudCannon `url`                                                                                                                                                                                        |
+| -------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `slug: my-post` on a file                                            | Directory + `my-post`                                         | `/blog/{slug}/` — only if every file in the collection sets `slug`                                                                                                                                       |
+| `url: /custom/path/` on a file                                       | Exactly that path                                             | `{url}` — only if every file sets `url`                                                                                                                                                                  |
+| `[permalinks] blog = "/:year/:month/:slug/"`                         | Date-based path                                               | `/{date\|year}/{date\|month}/[slug]/`                                                                                                                                                                    |
+| `[permalinks] blog = "/:sections/:filename/"`                        | Section path + filename                                       | `/blog/[full_slug]/`                                                                                                                                                                                     |
+| `[permalinks] blog = "/posts/:slugorcontentbasename/"` (Hugo 0.144+) | `slug`, else the file name — for a leaf bundle, its directory | `/posts/{slug}/` if every file sets `slug`; otherwise `/posts/[full_slug]/`, when the section holds only flat files and leaf bundles (no subsections). `[slug]` alone is empty for a bundle's `index.md` |
 
 **MUST:** make an override uniform across the collection before relying on it. If some posts set `slug` and others don't, add `slug` (matching the filename) to the rest and to the collection's schema file, so one pattern fits every file.
 
 Check the site config for a `permalinks` block during the audit; it's easy to miss because it lives outside `content/`.
+
+### Permalinks and section list pages
+
+A flat `permalinks` entry (`blog: /posts/:slug/`) applies to the section's pages, not its list pages: `content/blog/_index.md` and any subsection `_index.md` keep their default paths (`/blog/`, `/blog/<subsection>/`). A collection holding both can't share one `url` pattern.
+
+| Collection holds                                    | Fix                                                                                                                                                                                                                                                  |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pages only (`_index.md` excluded)                   | Mirror the flat entry — nothing else needed                                                                                                                                                                                                          |
+| Pages and list pages, and editors need both to open | Use Hugo's map form, which sets pages and sections separately (`permalinks: { page: { blog: … }, section: { blog: … } }`), and pick patterns one CloudCannon `url` can express — or give `_index.md` files their own collection with their own `url` |
+
+Build after changing `permalinks` and compare the paths in `public/` with the parity baseline — the map form isn't available on old Hugo versions.
 
 ## Trailing slash
 

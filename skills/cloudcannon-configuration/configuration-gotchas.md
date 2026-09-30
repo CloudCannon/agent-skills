@@ -9,6 +9,26 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 3. Data files that hold like-shaped items must be arrays, not objects keyed by slug ([astro/configuration.md § Content specifics](astro/configuration.md#content-specifics))
 4. Divergent top-level keys break structure matching ([structures.md § Common mistakes](structures.md#common-mistakes))
 
+## Editor-owned option lists
+
+**MUST:** configure the options of every `select` and `multiselect`. Choose where they live by asking who adds a new option:
+
+| Situation                                                                                                                                   | Home                                                                                                                                                                       | Examples                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Editors should see or change the list — an editor could need a new option while writing                                                     | A dataset: a data file registered in `data_config`, in a collection so editors can open it, and `values: data.<name>` on the input. Seed it from the values already in use | Tags, categories, series, authors, locations    |
+| The list is large or complex (many entries, or entries with more than a value, such as label + value + icon), and only developers change it | A dataset in `data_config` with `values: data.<name>`. Leave it out of collections so editors can't change it                                                              | A full icon set generated from the site's icons |
+| A small, fixed list the code branches on — adding an option needs a code change                                                             | `_select_data`, or `values` inline on the input                                                                                                                            | Colour schemes, layout variants, button styles  |
+
+When unsure, ask whether a non-developer would ever say "I need a new one of these". If yes, it's a dataset editors can open. Size alone never makes a list editor-owned, but a large or complex developer-owned list still reads better as a dataset than as `_select_data`.
+
+**MUST NOT:** leave an input with `values: []` or no `values`, even with `allow_create: true`.
+**Why:** an empty field renders as a misconfiguration error and the dropdown offers nothing. A value typed through `allow_create` is saved to that one file only and never joins the list.
+
+**MUST:** wire a dataset explicitly with `values: data.<name>`.
+**Why:** don't rely on CloudCannon matching an input to a dataset by name. A `select` named `my_colors` with a dataset `colors` gets no options — only its stored value and an empty dropdown.
+
+A dataset needs all its connected pieces — see [§ Data references require three connected pieces](#data-references-require-three-connected-pieces). The icon recipe below is a worked example of both dataset rows.
+
 ## Configure icon fields as select inputs
 
 When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `flat-color-icons:*`), configure the `icon` input as a `select` with `allow_create: true` rather than a plain `text` field. Non-technical editors can't guess icon names, but they can pick from a curated list with friendly display names.
@@ -24,9 +44,9 @@ When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `fla
 
 **Deriving friendly names:** strip the collection prefix (`tabler:`, `flat-color-icons:`), replace hyphens with spaces, title-case. For icons from secondary collections, add a suffix (e.g. "Template (Color)" for `flat-color-icons:template` vs "Template" for `tabler:template`).
 
-### Inline values (fewer than ~20 icons)
+### Inline values
 
-For small icon sets, list the values directly on the input:
+When the icon set is a short list only developers change, list the values directly on the input (or in `_select_data`):
 
 ```yaml
 _inputs:
@@ -48,9 +68,9 @@ _inputs:
           id: flat-color-icons:template
 ```
 
-### Data file values (~20+ icons)
+### Dataset values
 
-When there are ~20 or more unique icons, move the list into a data file so editors can manage it without touching the CC config. Steps:
+When editors add icons, or the list is long or carries more than an ID, move it into a dataset ([§ Editor-owned option lists](#editor-owned-option-lists)):
 
 1. Create a data file (e.g. `data/icons.json`) containing the icon objects:
 
@@ -70,7 +90,7 @@ data_config:
     path: data/icons.json
 ```
 
-3. Add the data file to a collection in `collections_config` so editors can browse and add new icons:
+3. If editors should add icons, add the data file to a collection in `collections_config` so they can open it. Skip this step for a developer-owned list:
 
 ```yaml
 collections_config:
@@ -81,7 +101,7 @@ collections_config:
     disable_add: true
 ```
 
-4. Reference the data set on the input using `values: data.icons`:
+4. Reference the dataset on the input using `values: data.icons`:
 
 ```yaml
 _inputs:
@@ -279,6 +299,24 @@ When content uses a folder-per-post structure (e.g. `blog/getting-started/index.
 
 The fix depends on how the SSG derives the output path from the folder — see your SSG's `collection-urls.md` or `configuration-gotchas.md`. Astro: [astro/configuration-gotchas.md § Folder-per-post](astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders). Hugo: [hugo/collection-urls.md § Page bundles](hugo/collection-urls.md#page-bundles).
 
+### A folder-per-post glob must also match a flat file
+
+**MUST:** give a folder-per-post collection a glob that also matches a flat file in the collection folder (`**/*.md`, or no glob), plus a `create.path` that makes the folder: `"[relative_base_path]/{title|slugify}/index.[ext]"`.
+**MUST NOT:** use a folder-only glob such as `**/index.md`.
+**Why:** a new entry starts as a flat file with a temporary name. A folder-only glob doesn't match it, so the entry gets none of the collection's settings — `create.path`, `instance_value` and upload paths are all ignored — it's created flat, and then it vanishes from the list.
+
+Keep `disable_add_folder: true` on these collections so editors can't add stray folders. It doesn't stop `create.path` from making the entry's folder.
+
+### A flat glob needs `disable_add_folder`
+
+**MUST:** give a collection whose glob excludes subfolders (`*.md`) `disable_add_folder: true` and a flat `create.path` (`"[relative_base_path]/{title|slugify}.[ext]"`).
+**Why:** a file created in a subfolder doesn't match the glob and vanishes from the list.
+
+## Keep collection globs disjoint
+
+**MUST:** make sure no file matches the `path` and `glob` of two collections.
+**Why:** a file belongs to one collection only. It appears in just one of them, and the other looks empty for that file with no error.
+
 ## `_editables` key-to-schema mapping
 
 `_editables` has five keys, each backed by a different schema. The available toolbar options depend on which key — mixing them is the most common `_editables` mistake.
@@ -459,6 +497,8 @@ _inputs:
     type: text
 ```
 
+A dotted key takes precedence over a plain key that also matches: `menu.main.weight` wins over `weight` for that field. Use it to scope a short, common name (`weight`, `url`, `name`) that means different things in different places.
+
 ## Data inputs must follow the JSON, not a template
 
 Before finalizing `file_config` for a data file, grep the actual JSON keys and ensure every key has a matching input. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the JSON actually has those keys. Mismatches fail silently in both directions — "the editor works but a few fields aren't styled right" is easy to miss on a fast visual pass.
@@ -478,3 +518,60 @@ jq -r 'paths(scalars) | join(".")' <data dir>/*.json | sort -u
 Every path in the output should either have a corresponding `_inputs` entry (scoped via `file_config` or matched by global `_inputs`) or be intentionally left untyped. Keys in `_inputs` that do NOT appear in the JSON are dead config — remove them.
 
 **Applies equally when the template changes:** removing a color key from JSON means removing the matching input in the same commit.
+
+## An `_inputs` key that names no field is ignored
+
+**MUST:** list the field paths the content actually has, and diff them against the `_inputs` keys. For a structure value, every key in its `_inputs` must name a key in its `value`.
+**Why:** an `_inputs` key that matches nothing is valid config, so the schema check passes — and the input never applies. The field it was meant for falls back to an inferred text box.
+
+```bash
+# Top-level front matter keys in use across a collection (YAML front matter)
+find <collection dir> -name '*.md' -exec sed -n '/^---$/,/^---$/p' {} \; | grep -oE '^[A-Za-z_][A-Za-z0-9_]*:' | sort -u
+```
+
+[§ Data inputs must follow the JSON](#data-inputs-must-follow-the-json-not-a-template) is the same check for data files.
+
+## The first edit writes every schema key
+
+**MUST:** make every key whose schema default would change what the site builds (`draft: true`, a boolean a template filters on) explicit in the existing files before editors start.
+**Why:** the first edit to a file fills in every field its schema defines, with the schema's default. A file that relied on a key being absent — and a template that treats "absent" differently from `false` — changes on that first edit, before the editor touched the field.
+
+- **Check** each boolean and enum the schema adds against how the templates read it. A template that compares against a string (`"true"`) or tests whether the key exists treats a written `false` differently from no key.
+- **Leave** a key out of the schema when that difference matters and the template can't be changed.
+- **Say** "the first edit", not "the first save": on the local dev server every edit is written to disk at once.
+
+The SSG's gotchas file gives the grep for its template syntax — Hugo: [hugo/configuration-gotchas.md § Booleans compared as strings](hugo/configuration-gotchas.md#booleans-compared-as-strings).
+
+## Dated content: `instance_value: NOW`
+
+**MUST:** give the date input on a schema for dated content (posts, events, news) `instance_value: NOW`.
+**Why:** a new file otherwise gets an empty date. Hugo builds an empty date as year 0001, so the new post sorts last.
+
+```yaml
+_inputs:
+  date:
+    type: datetime
+    instance_value: NOW
+```
+
+## No YAML merge keys
+
+**MUST NOT:** use YAML merge keys (`<<: *anchor`) in `cloudcannon.config.yml`. Reuse a block with a plain alias (`key: *anchor`), and define each anchor above its first use.
+**Why:** the CloudCannon CLI parses YAML 1.2, which has no merge keys — `validate` reports `unexpected property <<`. An alias used before its anchor fails with `Unresolved alias`.
+
+```yaml
+_editables:
+  content: &toolbar
+    bold: true
+    italic: true
+    link: true
+collections_config:
+  blog:
+    _editables:
+      content: *toolbar
+```
+
+## Keep edited files free of comments
+
+**MUST:** keep comments out of the data, config and content files editors change. Put explanations in an `_inputs` `comment`, or in the editor README.
+**Why:** saving a file reserialises it. Comments are lost and formatting is normalised; key order is kept. See [cloudcannon-dev-server/troubleshooting.md § Writing](../cloudcannon-dev-server/troubleshooting.md#writing).

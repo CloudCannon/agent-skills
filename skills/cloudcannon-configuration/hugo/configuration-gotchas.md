@@ -1,6 +1,6 @@
 # Configuration Gotchas (Hugo)
 
-Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values, `_editables`, markdown tables, data references, previews — live in [../configuration-gotchas.md](../configuration-gotchas.md). Read that file first.
+Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values, `_editables`, markdown tables, data references, previews, schema defaults — live in [../configuration-gotchas.md](../configuration-gotchas.md). Read that file first.
 
 ## Match Goldmark in the markdown options
 
@@ -15,6 +15,7 @@ Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values,
 | `extensions.strikethrough`         | `true`       | `strikethrough` — same value                                                                       |
 | `extensions.linkify`               | `true`       | `linkify` — same value                                                                             |
 | `extensions.typographer`           | `true`       | `typographer: false` — Goldmark curls quotes at render time, so keep straight quotes in the source |
+| `parser.attribute.block`           | `false`      | `attributes` — same value                                                                          |
 
 Read the site config (`hugo config | grep -A20 goldmark` prints the effective values) and set every row; the CLI baseline sets `table`, `strikethrough` and `linkify` to `false`. The generic rule is in [../configuration-gotchas.md § Markdown tables](../configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 
@@ -46,7 +47,7 @@ _inputs:
     type: text
 ```
 
-Counters and prices are the usual cases. The figures still work anywhere the template does arithmetic on them — convert with `int` or `float` in the template (`{{ int .price }}`). The cross-SSG rule for text inputs is [../configuration-gotchas.md § Quote numeric values](../configuration-gotchas.md#quote-numeric-values-that-map-to-text-inputs).
+Counters and prices are the usual cases. The figures still work anywhere the template does arithmetic on them — convert with `int` or `float` in the template (`{{ int .price }}`). The value types each region accepts are in [../../cloudcannon-visual-editing/editable-regions.md](../../cloudcannon-visual-editing/editable-regions.md); the cross-SSG rule for text inputs is [../configuration-gotchas.md § Quote numeric values](../configuration-gotchas.md#quote-numeric-values-that-map-to-text-inputs).
 
 ## Match the site's front matter format
 
@@ -57,20 +58,46 @@ Hugo accepts YAML (`---`), TOML (`+++`) and JSON (`{ }`) front matter, and a sit
 
 ## Hide Hugo's routing and build front matter
 
-Hide the keys that change how Hugo builds a page rather than what it shows — editors changing them move or remove pages:
+Hide the keys that change how Hugo builds a page rather than what it shows — editors changing them move or remove pages. Put the list in each content collection's `_inputs`, not the root:
 
 ```yaml
-_inputs:
-  layout:
-    hidden: true
-  type:
-    hidden: true
-  aliases:
-    hidden: true
-  build:
-    hidden: true
-  cascade:
-    hidden: true
+collections_config:
+  blog:
+    _inputs:
+      layout:
+        hidden: true
+      type:
+        hidden: true
+      aliases:
+        hidden: true
+      build:
+        hidden: true
+      cascade:
+        hidden: true
 ```
 
+**Why:** root `_inputs` cascade into data files, config files and structures, and Hugo reuses the same short names there — a menu item has a `url` and a `weight`, and theme params often have a `type`. A root `type: hidden` hides them everywhere. Where a key must be scoped more tightly still, use a dotted key (`menu.main.weight`) — see [../configuration-gotchas.md § `_inputs` key collision](../configuration-gotchas.md#_inputs-key-collision-across-nesting-levels).
+
 Leave `draft`, `weight` and `date` visible — editors legitimately change them — with a `comment` on `draft` noting that draft pages are not built and can't open in the Visual Editor. Leave `slug` and `url` visible only if the collection's `url` pattern uses them ([collection-urls.md § Front matter that changes the URL](collection-urls.md#front-matter-that-changes-the-url)).
+
+## Booleans compared as strings
+
+**MUST:** before a schema adds a boolean, grep the templates for how it's read, and leave it out of the schema if a template compares it with a string.
+**Why:** the first edit writes every schema key into the file ([../configuration-gotchas.md § The first edit writes every schema key](../configuration-gotchas.md#the-first-edit-writes-every-schema-key)). A comparison such as `where .Pages "Params.hidden" "!=" "true"` or `eq .Params.featured "true"` treats a real boolean — `false` included — differently from an absent key, so a written `false` can drop a page from a list.
+
+```sh
+grep -rnE '"(true|false)"' layouts themes/*/layouts
+```
+
+Fix the comparison in a project override if the field must stay in the schema.
+
+## Config files in a collection must be YAML
+
+**MUST:** make every Hugo config file inside a collection YAML — `config/_default/params.yaml`, not `params.toml`. Keep the theme's file names and split.
+**Why:** the Visual Editor mirrors every collection file into its in-browser Hugo as YAML front matter at the file's own path. A TOML or JSON config file then fails to parse, and since every render loads the config first, every component region shows an error card (`failed to unmarshal config for path "config/_default/<file>.toml"`). A YAML file mirrored the same way is still valid config.
+
+- **Convert** only the files the collection's glob matches. Developer-only config can stay TOML outside the glob.
+- **Tell** readers of the editor README that the theme docs' TOML examples map one-to-one onto the YAML files.
+- **Don't** route around it with `data_config`: a dataset file that isn't YAML or JSON is mirrored as `<name>.json` beside the original, which is no better.
+
+The settings collection that puts config files in front of editors is in [configuration.md § Site config as data](configuration.md#site-config-as-data).

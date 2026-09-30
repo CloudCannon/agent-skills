@@ -34,6 +34,62 @@ grep_lines() { # pattern dirs...
   grep -rnE "$pattern" $dirs 2>/dev/null | cut -c1-200 | sort || true
 }
 
+# Template roots from `hugo config mounts`: one "label<TAB>dir<TAB>target" line per mount.
+# The command prints a stream of JSON objects (one per module), not an array.
+ROOTS=""
+ROOTS_OK=0
+MOUNTS_JSON=""
+if command -v hugo >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  if MOUNTS_JSON=$(hugo config mounts 2>/dev/null) && [ -n "$MOUNTS_JSON" ]; then
+    ROOTS=$(printf '%s' "$MOUNTS_JSON" | jq -rs '
+      .[] | (if .owner == "" then "project" else .path end) as $label
+      | (.dir | sub("/$"; "")) as $dir
+      | .mounts[]? | select(.target | test("^(layouts|assets|static)"))
+      | "\($label)\t\($dir)/\(.source)\t\(.target)"' 2>/dev/null) && ROOTS_OK=1
+  fi
+fi
+if [ "$ROOTS_OK" = "0" ]; then
+  # Fallback: the project's own directories only.
+  ROOTS=$(printf 'project\t%s/layouts\tlayouts\nproject\t%s/assets\tassets\nproject\t%s/static\tstatic\n' "$PWD" "$PWD" "$PWD")
+fi
+roots_for() { # target → "label<TAB>dir" for each mount whose target is it or under it (editable-regions itself excluded)
+  printf '%s\n' "$ROOTS" | awk -F'\t' -v t="$1" '$1 !~ /CloudCannon\/editable-regions/ && ($3 == t || index($3, t "/") == 1) { print $1 "\t" $2 }'
+}
+# Run a line or file scan over every root for a target, labelled by module.
+# Usage: scan_roots <lines|files> <pattern> <target> [subdir-regex]
+scan_roots() {
+  local mode="$1" pattern="$2" target="$3" sub="${4:-}"
+  local label dir dirs out found=0
+  while IFS=$'\t' read -r label dir; do
+    [ -d "$dir" ] || continue
+    dirs="$dir"
+    if [ -n "$sub" ]; then
+      dirs=$(find "$dir" -type d 2>/dev/null | grep -E "$sub\$" || true)
+      [ -z "$dirs" ] && continue
+    fi
+    # shellcheck disable=SC2086
+    if [ "$mode" = "lines" ]; then
+      out=$(grep -rnE "$pattern" $dirs 2>/dev/null | sed "s|^$dir/||" | cut -c1-200 | sort -u || true)
+    else
+      out=$(grep -rlE "$pattern" $dirs 2>/dev/null | sed "s|^$dir/||" | sort -u || true)
+    fi
+    [ -z "$out" ] && continue
+    found=1
+    echo "### [$label] $(basename "$dir")"
+    printf '%s\n' "$out"
+  done < <(roots_for "$target")
+  [ "$found" = "0" ] && echo "(none in $target/)"
+  return 0
+}
+print_unscanned() {
+  if [ "$ROOTS_OK" = "0" ]; then
+    echo "NOTE: hugo config mounts failed (or hugo/jq is missing), so only the project's own directories were scanned."
+    echo "      Templates in themes and modules were NOT scanned. Imports and themes named in the config:"
+    config_grep '^\s*(-\s*)?path\s*[:=]|^\s*theme\s*[:=]' | sed 's/^/      /'
+  fi
+  return 0
+}
+
 echo "=== Audit: $(basename "$(pwd)") ==="
 echo ""
 
@@ -57,9 +113,14 @@ echo '```'
 echo ""
 
 # --- Hugo version ---
-echo "## Hugo Version (editable regions needs 0.150.0+)"
+echo "## Hugo Version"
+LOCAL_HUGO=""
+LOCAL_EXTENDED=0
 if command -v hugo >/dev/null 2>&1; then
-  echo "Local: $(hugo version 2>/dev/null | head -1)"
+  LOCAL_LINE=$(hugo version 2>/dev/null | head -1)
+  echo "Local: $LOCAL_LINE"
+  LOCAL_HUGO=$(printf '%s' "$LOCAL_LINE" | sed -nE 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')
+  printf '%s' "$LOCAL_LINE" | grep -q 'extended' && LOCAL_EXTENDED=1
 else
   echo "Local: hugo not found on PATH"
 fi
@@ -69,6 +130,10 @@ for f in .cloudcannon/initial-site-settings.json netlify.toml .github/workflows/
 done
 if [ -f ".cloudcannon/initial-site-settings.json" ] && grep -q '"hugoVersion"' .cloudcannon/initial-site-settings.json; then
   echo "WARNING: initial-site-settings.json uses \"hugoVersion\" — the schema key is \"build.hugo_version\"; this one is ignored."
+fi
+if [ -f "package.json" ] && grep -qE '"hugo-(extended|bin)"' package.json; then
+  echo "npm Hugo pin (wins over hugo_version when the build runs through npm):"
+  grep -nE '"hugo-(extended|bin)"' package.json | sed 's/^/  package.json:/'
 fi
 echo ""
 
@@ -115,6 +180,67 @@ if [ -d "themes" ]; then
   find themes -mindepth 1 -maxdepth 1 -type d | sort | sed 's/^/- /'
 fi
 [ -d "_vendor" ] && echo "_vendor/ present (vendored modules are bundled for the editor)"
+echo "### version keys on module imports (remove them — see hugo/audit.md § 1)"
+VERSION_KEYS=$(config_grep '^\s*(-\s*)?version\s*[:=]')
+if [ -n "$VERSION_KEYS" ]; then
+  printf '%s\n' "$VERSION_KEYS"
+  echo "WARNING: a module import has a version key — every component fails in the editor"
+else
+  echo "(none)"
+fi
+echo ""
+
+echo "## Hugo Version Window (pin hugo_version inside every one)"
+version_ge() { [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -1)" = "$2" ]; } # $1 >= $2
+check_window() { # label min max extended
+  local label="$1" min="$2" max="$3" ext="$4"
+  [ -z "$min$max$ext" ] && return 0
+  echo "- [$label] min=${min:-—} max=${max:-—} extended=${ext:-—}"
+  [ -z "$LOCAL_HUGO" ] && return 0
+  if [ -n "$min" ] && ! version_ge "$LOCAL_HUGO" "$min"; then echo "  WARNING: local Hugo $LOCAL_HUGO is below $min"; fi
+  if [ -n "$max" ] && ! version_ge "$max" "$LOCAL_HUGO"; then echo "  WARNING: local Hugo $LOCAL_HUGO is above $max"; fi
+  if [ "$ext" = "true" ] && [ "$LOCAL_EXTENDED" = "0" ]; then echo "  WARNING: extended Hugo required, local Hugo is not extended"; fi
+  return 0
+}
+read_window() { # dir label — module.hugoVersion from the module's config, min_version from theme.toml
+  local dir="$1" label="$2" f block min="" max="" ext="" mv
+  for f in "$dir"/hugo.toml "$dir"/hugo.yaml "$dir"/hugo.yml "$dir"/config.toml "$dir"/config.yaml "$dir"/config.yml "$dir"/config/_default/module.toml "$dir"/config/_default/module.yaml "$dir"/config/_default/hugo.toml "$dir"/config/_default/hugo.yaml; do
+    [ -f "$f" ] || continue
+    block=$(grep -iA4 'hugoVersion' "$f" 2>/dev/null || true)
+    [ -z "$block" ] && continue
+    min=$(printf '%s\n' "$block" | sed -nE 's/^[[:space:]]*min[[:space:]]*[:=][[:space:]]*["'\'']?([0-9.]+).*/\1/p' | head -1)
+    max=$(printf '%s\n' "$block" | sed -nE 's/^[[:space:]]*max[[:space:]]*[:=][[:space:]]*["'\'']?([0-9.]+).*/\1/p' | head -1)
+    ext=$(printf '%s\n' "$block" | sed -nE 's/^[[:space:]]*extended[[:space:]]*[:=][[:space:]]*(true|false).*/\1/p' | head -1)
+    break
+  done
+  check_window "$label module.hugoVersion" "$min" "$max" "$ext"
+  if [ -f "$dir/theme.toml" ]; then
+    mv=$(sed -nE 's/^[[:space:]]*min_version[[:space:]]*=[[:space:]]*"?([0-9.]+).*/\1/p' "$dir/theme.toml" | head -1)
+    [ -n "$mv" ] && check_window "$label theme.toml min_version, not enforced by Hugo" "$mv" "" ""
+  fi
+  return 0
+}
+if [ "$ROOTS_OK" = "1" ]; then
+  while IFS=$'\t' read -r label dir; do
+    read_window "$dir" "$label"
+  done < <(printf '%s' "$MOUNTS_JSON" | jq -rs '.[] | "\(if .owner == "" then "project" else .path end)\t\(.dir | sub("/$"; ""))"' | sort -u)
+else
+  read_window "$PWD" project
+  for d in themes/*/; do [ -d "$d" ] && read_window "${d%/}" "${d%/}"; done
+  print_unscanned
+fi
+echo ""
+
+echo "## Agent docs shipped by themes and modules (read before auditing their templates)"
+AGENT_DOCS=0
+while IFS=$'\t' read -r label dir; do
+  [ "$label" = "project" ] && continue
+  base="${dir%/layouts}"
+  for f in "$base/AGENTS.md" "$base/CLAUDE.md" "$base/.claude/skills"; do
+    if [ -e "$f" ]; then echo "- [$label] $f"; AGENT_DOCS=1; fi
+  done
+done < <(roots_for layouts)
+[ "$AGENT_DOCS" = "0" ] && echo "(none)"
 echo ""
 
 # --- Bookshop ---
@@ -166,7 +292,7 @@ if [ -d "content" ]; then
   done
   echo "### Top-level content files"
   find content -mindepth 1 -maxdepth 1 -type f | sort | sed 's/^/- /'
-  echo "### _index.md files (list pages — URL behaviour unverified, see hugo/collection-urls.md)"
+  echo "### _index.md files (list pages)"
   find content -name '_index.md' | sort | sed 's/^/- /'
   echo "### Leaf bundles (index.md)"
   find content -name 'index.md' | sort | sed 's/^/- /'
@@ -196,11 +322,11 @@ echo ""
 echo "## Layouts"
 if [ -d "layouts" ]; then
   echo "### Page templates (never re-rendered in the editor — primitives only)"
-  find layouts -type f -name '*.html' ! -path '*/partials/*' ! -path '*/shortcodes/*' ! -path '*/_markup/*' | sort | sed 's/^/- /'
+  find layouts -type f -name '*.html' ! -path '*/partials/*' ! -path '*/_partials/*' ! -path '*/shortcodes/*' ! -path '*/_shortcodes/*' ! -path '*/_markup/*' | sort | sed 's/^/- /'
   echo "### Partials (can be component regions)"
-  find layouts -type f -path '*/partials/*' | sort | sed 's/^/- /'
+  find layouts -type f \( -path '*/partials/*' -o -path '*/_partials/*' \) | sort | sed 's/^/- /'
   echo "### Shortcodes (snippet candidates)"
-  find layouts -type f -path '*/shortcodes/*' | sort | sed 's/^/- /'
+  find layouts -type f \( -path '*/shortcodes/*' -o -path '*/_shortcodes/*' \) | sort | sed 's/^/- /'
   echo "### Render hooks"
   find layouts -type f -path '*/_markup/*' | sort | sed 's/^/- /'
   echo "### Existing editable-regions wiring"
@@ -208,33 +334,77 @@ if [ -d "layouts" ]; then
 else
   echo "No layouts/ directory (templates come from a theme or module)"
 fi
+echo "### Templates in themes and modules"
+TPL_FOUND=0
+while IFS=$'\t' read -r label dir; do
+  [ "$label" = "project" ] && continue
+  [ -d "$dir" ] || continue
+  TPL_FOUND=1
+  echo "- [$label] $(find "$dir" -type f -name '*.html' | wc -l | tr -d ' ') templates in $dir"
+done < <(roots_for layouts)
+[ "$TPL_FOUND" = "0" ] && echo "(none)"
+print_unscanned
+echo ""
+
+echo "## Hugo built-in shortcodes overridden by the project, a theme or a module (write a custom snippet, not hugo_<name>)"
+BUILTINS='comment|details|figure|gist|highlight|instagram|param|qr|ref|relref|vimeo|x|youtube|twitter|tweet'
+OVR=0
+while IFS=$'\t' read -r label dir; do
+  [ -d "$dir" ] || continue
+  hits=$(find "$dir" -type f \( -path '*/shortcodes/*' -o -path '*/_shortcodes/*' \) 2>/dev/null | grep -E "/_?shortcodes/($BUILTINS)\.[a-z]+$" || true)
+  [ -z "$hits" ] && continue
+  OVR=1
+  printf '%s\n' "$hits" | sed "s|^$dir/|- [$label] |"
+done < <(roots_for layouts)
+[ "$OVR" = "0" ] && echo "(none)"
 echo ""
 
 # --- Editor-runtime risks ---
-echo "## Asset pipeline calls (guard with site.Params.ENV_CLIENT in partials)"
-grep_lines 'resources\.(Get|GetRemote|Match)|\.(Resize|Fill|Fit|Crop|Process)\b|images\.' layouts component-library/components
+# Each scan runs over every template root from `hugo config mounts`, labelled by module.
+ASSET_RE='resources\.(Get|GetRemote|Match)|\.(Resize|Fill|Fit|Crop|Process)\b|images\.'
+echo "## Asset pipeline calls (guard with site.Params.ENV_CLIENT in partials the editor re-renders)"
+scan_roots lines "$ASSET_RE" layouts
+[ -d component-library/components ] && grep_lines "$ASSET_RE" component-library/components
 echo ""
 
-echo "## .Content in partials (empty in the editor)"
-grep_lines '\.Content\b' layouts/partials component-library/components
+echo "## Images chosen by resource glob (no input type can pick one)"
+scan_roots lines 'GetMatch|Resources\.Match' layouts
 echo ""
 
-echo "## Shortcode usage in content"
+echo "## .Content in partials — candidates (only .Content on a Page is the body)"
+scan_roots lines '\.Content\b' layouts '/_?partials'
+[ -d component-library/components ] && grep_lines '\.Content\b' component-library/components
+echo ""
+
+echo "## Shortcode usage in content (opening tags only)"
 if [ -d "content" ]; then
-  grep -rhoE '\{\{[<%] */?[a-zA-Z0-9_-]+' content 2>/dev/null | sed -E 's/\{\{[<%] *\/?//' | sort | uniq -c | sort -rn || true
+  grep -rhoE '\{\{[<%] *[a-zA-Z0-9_-]+' content 2>/dev/null | sed -E 's/\{\{[<%] *//' | sort | uniq -c | sort -rn || true
 fi
 echo ""
 
-echo "## Positional CSS selectors (a <template> blueprint shifts :nth-child)"
-grep_lines ':first-child|:last-child|:nth-child|:nth-last-child' assets static/css static/scss component-library/components
+echo "## GitHub-style alerts in content (a rich-text save breaks them)"
+if [ -d "content" ]; then
+  echo "$(grep -rlE '^[[:space:]]*>[[:space:]]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]' content 2>/dev/null | wc -l | tr -d ' ') content files"
+fi
 echo ""
 
+POS_RE=':first-child|:last-child|:nth-child|:nth-last-child'
+echo "## Positional CSS selectors (a <template> blueprint shifts :nth-child)"
+scan_roots lines "$POS_RE" assets
+scan_roots lines "$POS_RE" static '/(css|scss)'
+[ -d component-library/components ] && grep_lines "$POS_RE" component-library/components
+echo ""
+
+JS_RE='DOMContentLoaded|document\)\.ready|\$\(function|querySelectorAll|IntersectionObserver'
 echo "## Global JS bindings (don't reach re-rendered markup)"
-grep_lines 'DOMContentLoaded|document\)\.ready|\$\(function|querySelectorAll|IntersectionObserver' assets/js static/js
+scan_roots lines "$JS_RE" assets '/js'
+scan_roots lines "$JS_RE" static '/js'
 echo ""
 
 echo "## Inline scripts and styles in partials"
-grep_files '<script|<style' layouts/partials component-library/components
+scan_roots files '<script|<style' layouts '/_?partials'
+[ -d component-library/components ] && grep_files '<script|<style' component-library/components
+print_unscanned
 echo ""
 
 # --- Package and build ---

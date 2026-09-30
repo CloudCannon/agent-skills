@@ -93,7 +93,9 @@ Definitions each template takes:
 | `positional_args` | `*_positional_args` | One entry per argument, in order: `editor_key`, `type`, and optionally `default`, `optional`, `allowed_values`, `implied_boolean`                             |
 | `content_key`     | `*_paired_*`        | The editor key that holds the inner content                                                                                                                   |
 
-`type` is one of `string`, `boolean`, `number`, `array`. Hugo's own built-in shortcodes are pre-built snippets rather than templates — load them with `_snippets_imports.hugo`, see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes).
+`type` is one of `string`, `boolean`, `number`, `array`.
+
+A paired shortcode that takes no arguments (`{{< note >}}…{{< /note >}}`) uses `hugo_paired_shortcode_named_args` with `named_args: []`. Hugo's own built-in shortcodes are pre-built snippets rather than templates — load them with `_snippets_imports.hugo`, see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes).
 
 Source: [Snippets using Hugo shortcodes](https://cloudcannon.com/documentation/articles/snippets-using-hugo-shortcodes/).
 

@@ -2,6 +2,8 @@
 
 How to turn a Hugo site's unique-layout pages into a page-builder `pages` collection. When to reach for a page builder at all is SSG-agnostic — see [astro/page-building.md § When to reach for page builder](../astro/page-building.md#when-to-reach-for-page-builder).
 
+This applies to pages whose templates the project owns. If templates come from a theme or module, pages the theme renders from front matter and params keep the theme's model — see [audit.md § Classifying static pages](audit.md#classifying-static-pages).
+
 ## The shape
 
 | Piece               | Hugo                                                                                   |
@@ -14,7 +16,7 @@ How to turn a Hugo site's unique-layout pages into a page-builder `pages` collec
 
 ## Steps
 
-1. **Create** a partial per block type under `layouts/partials/`, grouping related ones in subdirectories (`blocks/hero.html`, `home/hero.html`). The partial receives the block's front matter as `.`.
+1. **Create** a partial per block type under `layouts/partials/` — even on a site that uses `layouts/_partials/`, see [What the editor can re-render](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#what-the-editor-can-re-render) — grouping related ones in subdirectories (`blocks/hero.html`, `home/hero.html`). The partial receives the block's front matter as `.`.
 2. **Add** the dispatcher to every layout that renders page-builder pages — typically `_default/single.html` for leaf pages and `_default/list.html` (or `index.html`) for the home page and section list pages:
 
    ```go-html-template
@@ -29,7 +31,7 @@ How to turn a Hugo site's unique-layout pages into a page-builder `pages` collec
    {{ end }}
    ```
 
-   The region attributes can wait for Phase 4, but the `range` and `partial ._name .` belong here.
+   Write the region attributes now, along with the `range` and `partial ._name .` — the census gate covers existing page templates, not the dispatcher and block partials written here ([visual-editing.md § Section census](../../cloudcannon-visual-editing/visual-editing.md#section-census)).
 
 3. **Move** each page's content into `content_blocks` in its content file — `content/_index.md` for the home page, `content/about.md` for `/about/`.
 4. **Write** `_structures.content_blocks` with one value per block type, `_name` set to the partial path — see [structures.md](../../cloudcannon-configuration/structures.md).

@@ -60,6 +60,8 @@ SKILL.md                                ENTRY POINT — phases, handoff readines
 reading-order.md                        Which docs to read in which phase, and when
 chunking.md                             Splitting a large migration across conversations
 handoff.md                              Closing with the user — testing boundaries, what to ask
+audit.md                                Phase 1 shared rules — classifying static pages
+cc-friendly-conventions.md              Shared-UI treatment table
 astro/overview.md                       ENTRY POINT for Astro — phase links
 astro/audit.md                          Phase 1: site analysis
 astro/content.md                        Phase 3: content restructuring
@@ -99,7 +101,7 @@ astro/configuration.md                  Phase 2: config, schemas, inputs, add op
 astro/collection-urls.md                Astro: glob-loader slug, trailingSlash
 astro/configuration-gotchas.md          Astro: .astro pages, TypeScript config, Zod unions
 hugo/overview.md                        ENTRY POINT for Hugo — reading order
-hugo/configuration.md                   Phase 2: CLI baseline fixes, section collections, data, build
+hugo/configuration.md                   Phase 2: CLI baseline fixes, section collections, site config as data, build
 hugo/collection-urls.md                 Hugo: [full_slug], page bundles, _index.md, permalinks
 hugo/configuration-gotchas.md           Hugo: Goldmark, taxonomies, quoted numbers, front matter
 
@@ -120,12 +122,13 @@ editable-regions.md                     Region types, attribute reference, decis
 editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, quirks
 troubleshooting.md                      Symptom → fix, when regions misbehave
 migrating-from-bookshop.md              Bookshop → editable regions, cross-SSG mapping
+visual-editing.md                       Phase 4: section census, completeness checklist, pre-handoff sweep
 astro/overview.md                       ENTRY POINT for Astro — reading order
-astro/visual-editing.md                 Phase 4: workflow, census, checklists
+astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
 astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not read front to back
 astro/troubleshooting.md                Astro: symptom → fix
 hugo/overview.md                        ENTRY POINT for Hugo — reading order
-hugo/visual-editing.md                  Phase 4: module setup, census, checklists, local checks
+hugo/visual-editing.md                  Phase 4: module setup, infrastructure checklist, Hugo items, local checks
 hugo/visual-editing-reference.md        ON DEMAND — partials-only re-render, ENV_CLIENT, editor's Hugo
 hugo/troubleshooting.md                 Hugo: symptom → fix
 hugo/migrating-from-bookshop.md         Hugo: Bookshop call and module swaps

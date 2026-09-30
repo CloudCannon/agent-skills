@@ -42,6 +42,9 @@ growing the chain.
 (Markdown, data files) runs before the SSG. A tool that crawls the built HTML runs after it,
 because the HTML does not exist until then: `astro build && pagefind --site dist`.
 
+**MUST:** chain a step that reads the output after the SSG with `&&`. Never run the two in parallel (`&`, `npm-run-all --parallel`, `concurrently`).
+**Why:** a parallel step reads the output while the SSG is still writing it, and indexes a partial or stale site.
+
 A pipeline that rewrites or multiplies the whole output is the same shape and runs after the SSG.
 A localisation pass that regenerates the build as a per-locale tree is one example.
 
