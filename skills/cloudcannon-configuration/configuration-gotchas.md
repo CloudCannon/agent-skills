@@ -285,7 +285,7 @@ The syntax for each row is SSG-specific — [Astro](astro/configuration.md#custo
 
 - **Expect** template and content to agree. Markdown or HTML in a field the template escapes already prints literally on the live site — a bug in the original. Record it and ask the user whether to fix the template or the content; don't pick the input from the content alone. Plain text in a field the template renders as markdown is not a mismatch — `markdown` is still right.
 - **Scope** the input per structure when the same key renders differently in different blocks (`hero.description` as `markdown`, `description` as `textarea` elsewhere) — see [§ Where the input definition goes](#where-the-input-definition-goes).
-- **Give** every `markdown` and `html` input explicit `options` — see [§ Rich text input toolbar options](#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables).
+- **Give** every `markdown` and `html` input explicit `options` — see [§ Rich text input toolbar options](#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables). The same `options` set the toolbar of any region bound to the field — see [§ Set region toolbars on the input](#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
 
 **Common miss:** a global `_inputs.description: { type: html }` because one block renders it as HTML. Every other block that escapes `description` now offers a rich text editor whose output prints as tags.
 
@@ -342,15 +342,31 @@ Keep `disable_add_folder: true` on these collections so editors can't add stray 
 
 | Editable key | Schema          | Inline formatting (bold/italic/link/...) | Block formatting (lists, blockquote) | `format` dropdown | Image options      |
 | ------------ | --------------- | ---------------------------------------- | ------------------------------------ | ----------------- | ------------------ |
-| `content`    | `BlockEditable` | ✅                                       | ✅                                   | ✅                | ✅                 |
-| `block`      | `BlockEditable` | ✅                                       | ✅                                   | ✅                | ✅                 |
-| `text`       | `TextEditable`  | ✅                                       | ❌                                   | ❌                | ❌                 |
+| `content`    | `BlockEditable` | Yes                                      | Yes                                  | Yes               | Yes                |
+| `block`      | `BlockEditable` | Yes                                      | Yes                                  | Yes               | Yes                |
+| `text`       | `TextEditable`  | Yes                                      | No                                   | No                | No                 |
 | `image`      | `ImageEditable` | n/a                                      | n/a                                  | n/a               | image options only |
 | `link`       | `LinkEditable`  | n/a                                      | n/a                                  | n/a               | n/a                |
 
-**`_editables.text` is inline-only.** It does NOT have `bulletedlist`, `numberedlist`, `blockquote`, `format`, `table`, or any block-level option — only inline formatting (`bold`, `italic`, `link`, `strike`, `subscript`, `superscript`, `underline`, `undo`, `redo`, `removeformat`, `copyformatting`, `remove_custom_markup`, `allow_custom_markup`). If you need block-level controls, use `_editables.content` or `_editables.block`. See [../SKILL.md § Do this before writing any configuration](SKILL.md#do-this-before-writing-any-configuration) for schema details.
+**`_editables.text` is inline-only.** It does NOT have `bulletedlist`, `numberedlist`, `blockquote`, `format`, `table`, or any block-level option — only inline formatting (`bold`, `italic`, `link`, `strike`, `subscript`, `superscript`, `underline`, `undo`, `redo`, `removeformat`, `copyformatting`, `remove_custom_markup`, `allow_custom_markup`). For block-level controls on a region, set them in its input's `options` — see [§ Set region toolbars on the input](#set-region-toolbars-on-the-input-not-in-_editablestext-or-block). For the Content Editor, use `_editables.content`. See [SKILL.md § Do this before writing any configuration](SKILL.md#do-this-before-writing-any-configuration) for schema details.
 
 **Headings are a `format` string, not boolean keys.** `heading2: true` / `heading3: true` are not in the schema. Use `format: "p h1 h2 h3 h4 h5 h6"` (space-separated) in `ToolbarOptions`.
+
+### Set region toolbars on the input, not in `_editables.text` or `.block`
+
+**MUST:** when a `text` or `block` region edits a field, give that field a `markdown` (or `html`) input with its own `options`.
+**Why:** a region uses its input's `options`. `_editables.text` / `.block` are only a fallback for inputs with none. The fallback reaches the region but not the sidebar input for the same field, so the two offer different toolbars. With no rich text input at all, the region saves HTML into what the sidebar shows as a plain text field.
+
+| Surface                                                                  | Toolbar                                                                                                             |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Content Editor, source regions, `data-prop="@content"` regions           | `_editables.content`                                                                                                |
+| `text` / `block` region on a key whose input has `options`               | The input's `options` — the sidebar shows the same                                                                  |
+| `text` / `block` region on a `markdown` / `html` input with no `options` | `_editables.text` / `.block`, else CloudCannon's defaults. The sidebar shows CloudCannon's default markdown toolbar |
+| `text` / `block` region on a key with no rich text input                 | CloudCannon's default toolbar; saves HTML. The sidebar shows a plain text input with raw tags                       |
+
+`data-type="span"` regions have no toolbar; this covers `text` and `block` regions.
+
+**Common miss:** adding `label` or `comment` to an input and expecting it to control the toolbar — only `options` does.
 
 ## Set `markdown.options.table` when content has Markdown tables
 
@@ -391,7 +407,7 @@ _editables:
 
 ## Rich text input toolbar options follow the same "omitted = false" rule as `_editables`
 
-The "define one key, all omitted keys become false" behavior applies not just to `_editables.content` but also to individual `_inputs.*.options` on `type: html` and `type: markdown` inputs. Adding `styles` (or any other toolbar option) to an input strips the default inline formatting toolbar unless you re-declare the options you want.
+The "define one key, all omitted keys become false" behavior applies not just to `_editables.content` but also to individual `_inputs.*.options` on `type: html` and `type: markdown` inputs. Adding `styles` (or any other toolbar option) to an input strips the default inline formatting toolbar unless you re-declare the options you want. Once an input has any option, `_editables.text` / `.block` stop applying to that field's regions too — see [§ Set region toolbars on the input](#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
 
 When configuring `type: html` inputs with `options.styles` for editor CSS, always include the inline formatting defaults alongside it:
 

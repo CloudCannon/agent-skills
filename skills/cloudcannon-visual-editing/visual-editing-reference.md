@@ -128,7 +128,7 @@ For block-level rich text (paragraphs, headings, lists) in a frontmatter field, 
 **Choosing `data-type` for HTML-rendered fields.** This applies to any field rendered as HTML, whether inserted directly or produced by a markdown parser. Keep the original element and don't add `data-type` unless there's a reason to. Two signals that `data-type="block"` is needed:
 
 1. **The field's input config allows block-level content.** The CloudCannon input configuration (`_inputs` in `cloudcannon.config.yml` or schema files) is the source of truth for what a field accepts. If the input config permits block-level options (lists, headings), the on-page text editable needs `data-type="block"` to match — otherwise a user adds a list via the sidebar and the on-page editable can't handle it.
-2. **The existing content already contains block-level HTML.** Even without explicit input config, if the field already contains `<ul>`, `<ol>`, `<h*>` or similar, add `data-type="block"`.
+2. **The existing content already contains block-level HTML.** If the field already contains `<ul>`, `<ol>`, `<h*>` or similar, add `data-type="block"`, and give the field a `markdown` or `html` input with block-level `options`. A region on a field with no rich text input saves HTML into what the sidebar shows as a plain text field — see [configuration-gotchas.md § Set region toolbars on the input](../cloudcannon-configuration/configuration-gotchas.md#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
 
 **MUST host block content on an element that can hold it.** `<p>` cannot nest block elements — browsers auto-close the `<p>` before any `<ul>`/`<ol>`/`<h*>`, breaking the DOM and the editable region. Change to an element that can hold block content, e.g. `<div>`.
 

@@ -37,7 +37,9 @@ grep -rnE 'markdownify|RenderString|safeHTML' layouts themes/*/layouts
 
 - **Read** the whole pipeline: `.x | markdownify | safeHTML` is still `markdown`.
 - **Match** the Goldmark settings — `markdownify` and `RenderString` render with the site's Goldmark, so a `markdown` input follows [§ Match Goldmark](#match-goldmark-in-the-markdown-options).
-- **Set** both halves on a field that also has a region: the `markdown` input's `options` (the sidebar toolbar), and the region's `data-type` — `text` for inline content, `block` for multi-paragraph. Neither sets the other — see [Text regions and markdown in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#text-regions-and-markdown-in-hugo).
+- **Set** the `markdown` input's `options` on a field that also has a region — they set the toolbar for both the sidebar and the region. See [../configuration-gotchas.md § Set region toolbars on the input](../configuration-gotchas.md#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
+- **Set** the region's `data-type` separately, in the template — `text` for inline content, `block` for multi-paragraph. See [Text regions and markdown in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#text-regions-and-markdown-in-hugo).
+- **Expect** a region on a field with no `markdown` input to save HTML, which `markdownify` drops as `<!-- raw HTML omitted -->` under Goldmark's default `renderer.unsafe: false` — see [§ Match Goldmark](#match-goldmark-in-the-markdown-options).
 
 ## Keep taxonomies top-level
 

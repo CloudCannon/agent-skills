@@ -324,7 +324,7 @@ After adding snippet configs:
 
 ## Common mistakes
 
-| ❌ Mistake                                                               | ✓ Correct                                                                                                                          |
+| Mistake                                                                  | Correct                                                                                                                            |
 | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Adding `_snippets` entries without `astro-auto-import`                   | Steps 1–4 in the [MDX setup pipeline](#mdx-setup-pipeline-must-complete-all-four) are all required                                 |
 | Skipping `<Image>` from `astro:assets` because "it's a layout component" | Every JSX tag in `.mdx` must have a `_snippets` entry — layout isn't an exemption                                                  |

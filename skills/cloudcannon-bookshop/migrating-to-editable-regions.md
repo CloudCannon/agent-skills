@@ -154,7 +154,7 @@ Do this straight after step 3.
 The census and checklists in [cloudcannon-visual-editing](../cloudcannon-visual-editing/SKILL.md) apply unchanged. These differ:
 
 - **Bookshop's coverage is not a census.** Its bindings made whole components clickable; every field now needs its own region. Text that was hardcoded under Bookshop gets a census row and the usual treatment decision.
-- **`_editables`** — add the key for each `data-type` the regions use. A Bookshop site defines at most `_editables.content`. See [configuration-gotchas.md § `_editables`](../cloudcannon-configuration/configuration-gotchas.md#_editables-key-to-schema-mapping).
+- **Inputs** — give every field that a region edits its own `_inputs` entry: `markdown` with `options` if it holds formatting, `text` or `textarea` if it doesn't. The input sets the region's toolbar — see [configuration-gotchas.md § Set region toolbars on the input](../cloudcannon-configuration/configuration-gotchas.md#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
 - **Data files shared partials read** need `data_config` entries. Bookshop's covered only data its live engine read — check every data file a header, footer or other shared partial reads.
 - **Hand-written `data-cms-bind` / `data-cms-edit`** are CloudCannon's older bindings, not Bookshop, and keep working beside regions. Converting them is a census decision. Bookshop's own bindings were added in the browser and never appear in source.
 
