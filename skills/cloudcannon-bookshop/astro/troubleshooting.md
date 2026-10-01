@@ -1,0 +1,24 @@
+# Troubleshooting (Astro)
+
+Astro rows only. Check [../troubleshooting.md](../troubleshooting.md) first.
+
+## On a Bookshop site
+
+| Symptom                                                                            | Cause                                               | Fix                                                                                                      |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Editor console: "The 'astro:x' module is not supported inside Bookshop components" | The live engine can't provide that virtual module   | Branch on `ENV_BOOKSHOP_LIVE` — [bookshop.md § Live editing in Astro](bookshop.md#live-editing-in-astro) |
+| Live editing stopped working after an Astro upgrade                                | Astro 5.8.1 and later need Bookshop 3.16.2 or later | Upgrade Bookshop                                                                                         |
+| Build log: "No live editing connected…" on an Astro site                           | No call has `bookshop:live`                         | Add it to the component calls in the layout                                                              |
+
+## Partway through a migration
+
+| Symptom                                                                                          | Cause                                                                | Fix                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build error: "Element type is invalid…" or "Unable to render Component because it is undefined!" | `_bookshop_name` renamed while the old dispatcher still reads it     | Replace the dispatcher in the same step                                                                                                                   |
+| A hero or single block silently disappears                                                       | Its dispatcher guards the lookup, so a missed rename renders nothing | Rename in component code too; throw on an unknown name in the new dispatcher                                                                              |
+| A Markdown page's `<link rel="stylesheet">` lands before `<html>`                                | The page's `layout:` contains the page-builder loop directly         | Move the loop into its own component — [migrating-to-editable-regions.md § The page-builder loop](migrating-to-editable-regions.md#the-page-builder-loop) |
+| Build error after uninstalling Bookshop: `Preprocessor dependency "sass-embedded" not found`     | `sass` was only installed through `@bookshop/astro-engine`           | Install `sass` as a devDependency at the baseline's version                                                                                               |
+| Switching a single slot's structure in the editor shows an error card                            | `data-component` names the component chosen at build                 | [migrating-to-editable-regions.md § One slot, several structures](migrating-to-editable-regions.md#one-slot-several-structures)                           |
+| A block renders differently in the editor than on the built page (spacing, ids)                  | It uses a prop the dispatcher computed                               | [migrating-to-editable-regions.md § Props the dispatcher computed](migrating-to-editable-regions.md#props-the-dispatcher-computed)                        |
+| A camelCase prop fed by `data-prop-*` is undefined                                               | `data-prop-*` names are lowercased                                   | Rename the prop to snake_case                                                                                                                             |
+| An MDX page fails to build after removing the integration                                        | It used a component the integration auto-imported                    | Import the component in the MDX file                                                                                                                      |

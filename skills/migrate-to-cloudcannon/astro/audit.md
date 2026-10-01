@@ -11,6 +11,7 @@ Use its output as a starting point, then fill in the sections below with finding
 ## 1. Astro version and dependencies
 
 - Astro version (check `package.json`)
+- **Bookshop.** If the script reports Bookshop markers, read [cloudcannon-bookshop](../../cloudcannon-bookshop/SKILL.md) now. It changes Phases 2 to 4.
 - Framework integrations and versions (React, Vue, Svelte, Solid -- look for `@astrojs/*` packages).
   **Why:** Vue/Svelte/Solid components are unsupported in editable regions (see [overview.md § Astro scope](overview.md)). For each, decide: convert to `.astro`/React, or keep and provide an editing fallback.
 - CSS framework (Tailwind, etc.)

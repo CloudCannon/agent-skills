@@ -31,6 +31,7 @@ One CloudCannon feature each. Reference-shaped — delegated to by a journey, or
 | `cloudcannon-dev-server`     | Start the local editing loop under `cloudcannon dev`                | [SKILL.md](skills/cloudcannon-dev-server/SKILL.md)     |
 | `cloudcannon-cli`            | The CloudCannon CLI, and operations on hosted sites                 | [SKILL.md](skills/cloudcannon-cli/SKILL.md)            |
 | `cloudcannon-sdk`            | The CloudCannon API from code, and the surface the CLI cannot reach | [SKILL.md](skills/cloudcannon-sdk/SKILL.md)            |
+| `cloudcannon-bookshop`       | Bookshop sites — how Bookshop works, maintaining it, migrating off  | [SKILL.md](skills/cloudcannon-bookshop/SKILL.md)       |
 
 ### Operations
 
@@ -51,6 +52,7 @@ Short, symptom- or task-driven, run against a site that already works.
 | needs to serve more than one language                 | `make-site-multilingual`, then `translate-site`              |
 | is being generated in this task (e.g. from WordPress) | `migrate-to-cloudcannon` § Chaining with upstream skills     |
 | has a request with more than one sensible answer      | `brainstorming` first, then the skill that owns the work     |
+| uses Bookshop (`*.bookshop.yml`, `_bookshop_name`)    | `cloudcannon-bookshop` — maintain it, or migrate it off      |
 
 ## File map
 
@@ -121,7 +123,6 @@ SKILL.md                                ENTRY POINT — region types, workflow, 
 editable-regions.md                     Region types, attribute reference, decision tree
 editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, quirks
 troubleshooting.md                      Symptom → fix, when regions misbehave
-migrating-from-bookshop.md              Bookshop → editable regions, cross-SSG mapping
 visual-editing.md                       Phase 4: section census, completeness checklist, pre-handoff sweep
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
@@ -131,8 +132,22 @@ hugo/overview.md                        ENTRY POINT for Hugo — reading order
 hugo/visual-editing.md                  Phase 4: module setup, infrastructure checklist, Hugo items, local checks
 hugo/visual-editing-reference.md        ON DEMAND — partials-only re-render, ENV_CLIENT, editor's Hugo
 hugo/troubleshooting.md                 Hugo: symptom → fix
-hugo/migrating-from-bookshop.md         Hugo: Bookshop call and module swaps
 scripts/setup-editable-regions.sh       Astro only — installs package, wires Astro integration
+
+── cloudcannon-bookshop (capability) ─────────────────────────
+SKILL.md                                ENTRY POINT — detection, SSG support, maintain or migrate
+bookshop.md                             How Bookshop works — component library, bookshop.yml, generate, live editing
+maintaining.md                          Changing a site that stays on Bookshop
+migrating-to-editable-regions.md        Bookshop → editable regions — step order, structures, rename, removal
+troubleshooting.md                      Symptom → cause → fix, on Bookshop sites and mid-migration
+astro/overview.md                       ENTRY POINT for Astro — reading order
+astro/bookshop.md                       Astro: bookshop:live, the integration, the glob dispatcher
+astro/migrating-to-editable-regions.md  Astro: components, dispatcher and integration swaps
+astro/troubleshooting.md                Astro: symptom → fix
+hugo/overview.md                        ENTRY POINT for Hugo — reading order
+hugo/bookshop.md                        Hugo: the bookshop partials, the module, env_bookshop_live
+hugo/migrating-to-editable-regions.md   Hugo: partial moves, call rewrites, component SCSS, module swap
+hugo/troubleshooting.md                 Hugo: symptom → fix
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

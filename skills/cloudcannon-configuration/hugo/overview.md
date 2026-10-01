@@ -6,12 +6,12 @@ Hugo-specific configuration guidance. The cross-SSG rules live one level up: [`.
 
 ## Reading order
 
-| Order | File                                                       | Read when                                                                       |
-| ----- | ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 1     | [configuration.md](configuration.md)                       | Always — the Phase 2 workflow: CLI baseline, collections, data, build settings  |
-| 2     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, `_index.md`, page bundles)        |
-| 3     | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only             |
-| 4     | [configuration-gotchas.md](configuration-gotchas.md)       | Hugo-only pitfalls — markdown rendering, taxonomies, config files, routing keys |
+| Order | File                                                       | Read when                                                                                         |
+| ----- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1     | [configuration.md](configuration.md)                       | Always — the Phase 2 workflow: CLI baseline, collections, data, build settings                    |
+| 2     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, `_index.md`, page bundles)                          |
+| 3     | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                               |
+| 4     | [configuration-gotchas.md](configuration-gotchas.md)       | Hugo-only pitfalls — markdown rendering, rich text inputs, taxonomies, config files, routing keys |
 
 ## Cross-SSG deep-dives
 

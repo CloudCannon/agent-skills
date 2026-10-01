@@ -2,8 +2,6 @@
 
 Workflow for adding CloudCannon Visual Editor support to a Hugo site with the `editable-regions` Hugo module. The generic patterns behind these checks live in [../visual-editing-reference.md](../visual-editing-reference.md), and Hugo's deltas from them in [visual-editing-reference.md](visual-editing-reference.md) — read sections on demand as checklist items link to them. For the region types and attribute reference, see [../editable-regions.md](../editable-regions.md).
 
-If the site uses Bookshop, read [migrating-from-bookshop.md](migrating-from-bookshop.md) first.
-
 ## Setup steps
 
 It's a Hugo module, not an npm package. Nothing goes in `package.json`, and there is no component registration file.

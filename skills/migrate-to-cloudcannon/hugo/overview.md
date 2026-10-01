@@ -2,7 +2,7 @@
 
 Guidance for migrating a Hugo site to CloudCannon. Follow the phases in order. Before starting, run [../scripts/audit-hugo.sh](../scripts/audit-hugo.sh) to gather site information automatically.
 
-> **Coverage note — read this first.** This guide covers Bookshop-based sites, sites that own their `layouts/`, and sites whose templates come from a theme in `themes/` or a module in the module cache. The build side is covered for all of them, including which files reach the editor's bundle. The two known failures are both on module sites: a module-cache dependency is missing from the editor entirely, and a `version` key on a module import breaks every component — see [Themes, modules and vendoring](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#themes-modules-and-vendoring). Editor-side behaviour on theme and module sites is only partly verified: treat gaps there as unverified rather than not-applicable, and record what you find in `.cloudcannon/migration/`.
+> **Coverage note — read this first.** This guide covers sites that own their `layouts/`, and sites whose templates come from a theme in `themes/` or a module in the module cache. The build side is covered for all of them, including which files reach the editor's bundle. The two known failures are both on module sites: a module-cache dependency is missing from the editor entirely, and a `version` key on a module import breaks every component — see [Themes, modules and vendoring](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#themes-modules-and-vendoring). Editor-side behaviour on theme and module sites is only partly verified: treat gaps there as unverified rather than not-applicable, and record what you find in `.cloudcannon/migration/`.
 
 ## Hugo scope
 

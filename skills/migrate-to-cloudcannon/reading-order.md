@@ -57,7 +57,7 @@ Does the site have inline HTML in .md files (<figure>, <video>, etc.)?
 └─ No  → skip
 
 Is the site using Bookshop?
-├─ Yes → read cloudcannon-visual-editing/migrating-from-bookshop.md before Phase 2
+├─ Yes → read cloudcannon-bookshop/SKILL.md before Phase 2
 └─ No  → skip
 
 Does the site have static pages with structured/repeated data editors need CRUD over?

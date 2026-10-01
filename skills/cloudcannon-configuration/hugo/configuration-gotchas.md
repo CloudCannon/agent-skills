@@ -19,6 +19,26 @@ Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values,
 
 Read the site config (`hugo config | grep -A20 goldmark` prints the effective values) and set every row; the CLI baseline sets `table`, `strikethrough` and `linkify` to `false`. The generic rule is in [../configuration-gotchas.md § Markdown tables](../configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 
+## Choose rich text inputs from the template filter
+
+The rule is in [../configuration-gotchas.md § Choose text, markdown or html inputs](../configuration-gotchas.md#choose-text-markdown-or-html-inputs-from-how-the-template-renders-the-field). Hugo escapes every string it prints, so the filter on the output decides the input:
+
+| Template renders the field                                                     | Input               |
+| ------------------------------------------------------------------------------ | ------------------- |
+| `{{ .description }}`, or through `plainify` or `htmlEscape`                    | `text` / `textarea` |
+| `{{ .description \| markdownify }}`, or `{{ page.RenderString .description }}` | `markdown`          |
+| `{{ .description \| safeHTML }}`, with no markdown step                        | `html`              |
+
+List the fields that need a rich text input — every other printed string field is `text` or `textarea`:
+
+```sh
+grep -rnE 'markdownify|RenderString|safeHTML' layouts themes/*/layouts
+```
+
+- **Read** the whole pipeline: `.x | markdownify | safeHTML` is still `markdown`.
+- **Match** the Goldmark settings — `markdownify` and `RenderString` render with the site's Goldmark, so a `markdown` input follows [§ Match Goldmark](#match-goldmark-in-the-markdown-options).
+- **Set** both halves on a field that also has a region: the `markdown` input's `options` (the sidebar toolbar), and the region's `data-type` — `text` for inline content, `block` for multi-paragraph. Neither sets the other — see [Text regions and markdown in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#text-regions-and-markdown-in-hugo).
+
 ## Keep taxonomies top-level
 
 **MUST NOT:** nest a taxonomy key (`tags`, `categories`, or anything under `taxonomies:` in the site config) inside an object, even to group it with a component's fields.

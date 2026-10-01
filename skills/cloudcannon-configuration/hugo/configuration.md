@@ -14,7 +14,7 @@ See [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) for the individua
 
 ### A site that already has CloudCannon config
 
-A Bookshop or earlier CloudCannon site usually has `cloudcannon.config.yaml` (or `.yml`) already. Customize it in place:
+A site that was on CloudCannon before usually has `cloudcannon.config.yaml` (or `.yml`) already. Customize it in place:
 
 - **Run** `npx @cloudcannon/cli validate` on it first, and fix what fails — old configs carry invalid enum values (`source_editor.theme`, icon names) that nothing checked.
 - **Run** `configure generate --dry-run` for comparison only. Without `--dry-run` it writes a second `cloudcannon.config.yml` beside the existing file.
@@ -371,6 +371,7 @@ Work through these before moving to the next phase. The Astro checklist's collec
 - [ ] Every key used in a collection's files is in its schema file, or the schema sets `remove_extra_inputs: false`
 - [ ] `permalinks`, `slug:` and `url:` overrides are mirrored in the matching collection `url`
 - [ ] Every data file referenced by a region or a live partial has a `data_config` entry and a `file_config` entry
+- [ ] Every string field's input type matches its template filter — `markdown` for `markdownify`, `html` for `safeHTML`, `text` or `textarea` otherwise — see [configuration-gotchas.md](configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter)
 - [ ] Taxonomy keys are top-level `multiselect` inputs with `values: data.<taxonomy>` from a seeded data file — no `values: []`
 - [ ] Every `select` and `multiselect` has its options configured — see [../configuration-gotchas.md § Editor-owned option lists](../configuration-gotchas.md#editor-owned-option-lists)
 - [ ] A settings collection over config files has `include_developer_files: true`, and every file it matches is YAML

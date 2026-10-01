@@ -45,8 +45,6 @@ This skill orchestrates a full migration of an existing SSG site to CloudCannon.
 | Astro | [astro/overview.md](astro/overview.md) |
 | Hugo  | [hugo/overview.md](hugo/overview.md)   |
 
-If the site uses Bookshop, read [cloudcannon-visual-editing/migrating-from-bookshop.md](../cloudcannon-visual-editing/migrating-from-bookshop.md) during the audit — it changes Phases 2 and 4.
-
 ## Chaining with upstream skills
 
 If the site is being **generated** as part of this task (e.g. converting from WordPress), read the target SSG's scaffolding conventions before scaffolding — Astro: [astro/cc-friendly-conventions.md](astro/cc-friendly-conventions.md) — it covers the structural choices that make the migration smooth. Once scaffolded, return here and run the migration phases.

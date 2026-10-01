@@ -270,6 +270,25 @@ _inputs:
 
 Placement follows the same rule as icons: define the input on each structure value that has the key, and share one definition across them with `_inputs_from_glob`. See [§ Where the input definition goes](#where-the-input-definition-goes).
 
+## Choose text, markdown or html inputs from how the template renders the field
+
+**MUST:** pick a string field's input type from how its template outputs the value, not only from what the current content holds.
+**Why:** the input decides what editors can write. A rich text input on a field the template escapes lets editors add formatting that prints as literal `**asterisks**` or `<strong>` tags; a `textarea` on a field the template renders as markdown hides formatting the page supports.
+
+| Template outputs the value                | Input                                        |
+| ----------------------------------------- | -------------------------------------------- |
+| Escaped, as plain text                    | `text` (one line) or `textarea` (multi-line) |
+| Through a markdown renderer, then as HTML | `markdown`                                   |
+| As raw HTML, with no markdown step        | `html`                                       |
+
+The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customization-checklist), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter).
+
+- **Expect** template and content to agree. Markdown or HTML in a field the template escapes already prints literally on the live site — a bug in the original. Record it and ask the user whether to fix the template or the content; don't pick the input from the content alone. Plain text in a field the template renders as markdown is not a mismatch — `markdown` is still right.
+- **Scope** the input per structure when the same key renders differently in different blocks (`hero.description` as `markdown`, `description` as `textarea` elsewhere) — see [§ Where the input definition goes](#where-the-input-definition-goes).
+- **Give** every `markdown` and `html` input explicit `options` — see [§ Rich text input toolbar options](#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables).
+
+**Common miss:** a global `_inputs.description: { type: html }` because one block renders it as HTML. Every other block that escapes `description` now offers a rich text editor whose output prints as tags.
+
 ## Quote numeric values that map to text inputs
 
 YAML parses bare numbers (`price: 29`) as integers, not strings. If the corresponding CloudCannon input is `type: text` (or defaults to text), CC throws "This text input is misconfigured. This input must have a text value." This affects both structure default values and content file frontmatter.

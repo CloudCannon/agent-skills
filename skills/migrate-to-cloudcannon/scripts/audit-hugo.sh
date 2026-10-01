@@ -257,7 +257,7 @@ BS_CALLS=$(grep_files 'partial "bookshop' layouts | wc -l | tr -d ' ')
 CMS_ATTRS=$(grep_files 'data-cms-(bind|edit)' layouts component-library | wc -l | tr -d ' ')
 [ "$CMS_ATTRS" != "0" ] && echo "- data-cms-bind / data-cms-edit in $CMS_ATTRS files (remove when adding regions)"
 if [ "$BOOKSHOP" = "1" ]; then
-  echo "BOOKSHOP SITE → read cloudcannon-visual-editing/migrating-from-bookshop.md"
+  echo "BOOKSHOP SITE → read cloudcannon-bookshop/SKILL.md"
   if [ -d "component-library/components" ]; then
     echo "### Bookshop components (future partials: layouts/partials/<path>.html)"
     find component-library/components -name '*.hugo.html' | sort | sed -E 's|component-library/components/(.*)/[^/]+\.hugo\.html|- \1|'

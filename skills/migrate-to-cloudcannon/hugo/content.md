@@ -53,16 +53,6 @@ Align each `archetypes/<section>.md` with the section's schema file, so `hugo ne
 - **Reshape** a data file of like-shaped items into a top-level array if it is a map keyed by slug. Update every template that reads it (`range $key, $item := hugo.Data.x` → `range hugo.Data.x`).
 - **Move** hardcoded shared UI (footer copy, nav labels, CTA text) out of partials into a `data/` file, so it has one place to edit — see [cc-friendly-conventions.md § Shared-UI treatment table](../cc-friendly-conventions.md#shared-ui-treatment-table) for which treatment each shared section gets.
 
-### Bookshop content
-
-On a Bookshop site, do these together in this phase, then build — any one alone breaks the build, because Bookshop's dispatcher selects on `_bookshop_name`:
-
-1. **Rename** `_bookshop_name` to `_name` in every content and schema file — [migrating-from-bookshop.md § Renaming `_bookshop_name`](../../cloudcannon-visual-editing/migrating-from-bookshop.md#renaming-_bookshop_name).
-2. **Move** the components into `layouts/partials/` — [hugo/migrating-from-bookshop.md § Move components](../../cloudcannon-visual-editing/hugo/migrating-from-bookshop.md#move-components-into-layoutspartials).
-3. **Rewrite** the Bookshop template calls and add the `range … partial ._name .` dispatcher — [§ Rewrite the Bookshop template calls](../../cloudcannon-visual-editing/hugo/migrating-from-bookshop.md#rewrite-the-bookshop-template-calls). Region attributes can wait for Phase 4.
-
-The module swap and removing `component-library/` wait for Phase 4.
-
 ## Verify
 
 - [ ] `hugo` builds with no new warnings

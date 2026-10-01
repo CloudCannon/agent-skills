@@ -11,12 +11,11 @@ Hugo-specific Visual Editor guidance, built on the `github.com/CloudCannon/edita
 
 | Order | File                                                             | Read when                                                          |
 | ----- | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1     | [migrating-from-bookshop.md](migrating-from-bookshop.md)         | First, if the site uses Bookshop                                   |
-| 2     | [visual-editing.md](visual-editing.md)                           | Always — module setup, the Phase 4 workflow, census and checklists |
-| 3     | [../visual-editing.md](../visual-editing.md)                     | Always — the census format and the Universal checklist it links to |
-| 4     | [../visual-editing-reference.md](../visual-editing-reference.md) | On demand — the generic pattern behind a checklist item            |
-| 5     | [visual-editing-reference.md](visual-editing-reference.md)       | On demand — what Hugo does differently from that pattern           |
-| 6     | [troubleshooting.md](troubleshooting.md)                         | A Hugo-specific symptom, after checking the generic table          |
+| 1     | [visual-editing.md](visual-editing.md)                           | Always — module setup, the Phase 4 workflow, census and checklists |
+| 2     | [../visual-editing.md](../visual-editing.md)                     | Always — the census format and the Universal checklist it links to |
+| 3     | [../visual-editing-reference.md](../visual-editing-reference.md) | On demand — the generic pattern behind a checklist item            |
+| 4     | [visual-editing-reference.md](visual-editing-reference.md)       | On demand — what Hugo does differently from that pattern           |
+| 5     | [troubleshooting.md](troubleshooting.md)                         | A Hugo-specific symptom, after checking the generic table          |
 
 **MUST NOT:** read `visual-editing-reference.md` front to back. It is a pattern reference; `visual-editing.md` links into the section you need.
 
@@ -28,4 +27,3 @@ Hugo-specific Visual Editor guidance, built on the `github.com/CloudCannon/edita
 | [../visual-editing-reference.md](../visual-editing-reference.md)     | The generic pattern reference — paths, arrays, components     |
 | [../editable-regions-internals.md](../editable-regions-internals.md) | The Visual Editor JavaScript API; lifecycle traces and quirks |
 | [../troubleshooting.md](../troubleshooting.md)                       | Generic symptom → fix                                         |
-| [../migrating-from-bookshop.md](../migrating-from-bookshop.md)       | The cross-SSG Bookshop → editable regions mapping             |

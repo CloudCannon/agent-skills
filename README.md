@@ -54,6 +54,7 @@ Entered directly when you only need one piece ("add visual editing to my existin
 | `cloudcannon-dev-server`     | Running the site locally in CloudCannon so the user can edit it and see it rebuild  |
 | `cloudcannon-cli`            | The CloudCannon CLI — authenticating, hosted sites, files, builds, form submissions |
 | `cloudcannon-sdk`            | The CloudCannon API from code — `@cloudcannon/sdk`, and what the CLI cannot reach   |
+| `cloudcannon-bookshop`       | A site built with Bookshop — maintaining it, or migrating it to editable regions    |
 
 ### Operations — short tasks on a site that already works
 
@@ -75,6 +76,7 @@ Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory 
 | `cloudcannon-configuration`  | Yes   | —        | Yes     |
 | `cloudcannon-snippets`       | Yes   | —        | Yes     |
 | `cloudcannon-visual-editing` | Yes   | —        | Yes     |
+| `cloudcannon-bookshop`       | Yes   | —        | Yes     |
 | `cloudcannon-dev-server`     | Yes   | Yes      | Yes     |
 
 `cloudcannon-cli`, `cloudcannon-sdk`, `translate-site` and `brainstorming` are SSG-agnostic — they work the same everywhere and have no SSG directories.

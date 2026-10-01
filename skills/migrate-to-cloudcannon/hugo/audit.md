@@ -24,7 +24,7 @@ Use its output as a starting point, then fill in the sections below with finding
   **Why:** a `version` key builds fine but fails every component region in the editor.
 - **The theme's own agent docs.** Check each theme and module directory for `.claude/skills/`, `AGENTS.md` or `CLAUDE.md`, and read them before auditing its templates.
   **Why:** they often map the theme's config files, partial names and resource lookups in one page.
-- **Bookshop.** If the script reports Bookshop markers, read [cloudcannon-visual-editing/migrating-from-bookshop.md](../../cloudcannon-visual-editing/migrating-from-bookshop.md) now. It changes Phases 2 and 4.
+- **Bookshop.** If the script reports Bookshop markers, read [cloudcannon-bookshop](../../cloudcannon-bookshop/SKILL.md) now. It changes Phases 2 to 4.
 - **npm tooling** — `package.json` scripts (Tailwind, PostCSS, Pagefind) and the package manager. If Hugo shells out to npm-installed tools (Dart Sass, PostCSS, Babel), build through `npm run …` so `node_modules/.bin` is first on `PATH`.
 
 ### Calling a pinned Hugo
@@ -42,7 +42,7 @@ For each directory under `content/`:
   **Why:** decides whether it joins the section collection — see [configuration.md § Section collections](../../cloudcannon-configuration/hugo/configuration.md#section-collections).
 - **Leaf bundles** (`<name>/index.md` with resources beside it) — keep them as bundles. Each is one entry of its section's collection: ignore the per-bundle sub-collections `detect-collections` lists under a section (`<section>_<slug>`, `suggested: false`). Treat the CLI's collection list as a starting point — it can also miss sections.
 - **Front matter format** (YAML, TOML, JSON) and whether it is mixed
-- **Front matter fields** — list every key, with its type, whether it is always present, and which template reads it. Hugo has no content schema, so this list becomes the CloudCannon schema file.
+- **Front matter fields** — list every key, with its type, whether it is always present, which template reads it, and — for strings — whether it prints escaped or through `markdownify` or `safeHTML`, which sets its input type ([configuration-gotchas.md § Choose rich text inputs](../../cloudcannon-configuration/hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter)). Hugo has no content schema, so this list becomes the CloudCannon schema file.
 - **Routing overrides** — `slug:` or `url:` in front matter, and any `permalinks` in the site config
 - **Taxonomies** — which keys (`tags`, `categories`, custom) and whether values come from a curated list
 

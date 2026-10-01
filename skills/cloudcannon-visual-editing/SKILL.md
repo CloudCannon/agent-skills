@@ -22,18 +22,18 @@ description: >-
 
 - **The field has no `_inputs` entry or the collection is unconfigured** — configure it first with [`cloudcannon-configuration`](../cloudcannon-configuration/SKILL.md). An editable region with no matching Input errors in the editor.
 - **Editors need to insert new markup inside rich text** — that is [`cloudcannon-snippets`](../cloudcannon-snippets/SKILL.md). Editable regions edit what is already rendered.
+- **The site uses Bookshop** (`*.bookshop.yml` files, `@bookshop/*` packages, `_bookshop_name` keys) — start at [`cloudcannon-bookshop`](../cloudcannon-bookshop/SKILL.md). It routes back here for the regions.
 - **A page will not open in the Visual Editor at all** — that is usually a wrong collection `url`, not a region problem. See [cloudcannon-configuration/collection-urls.md](../cloudcannon-configuration/collection-urls.md).
 
 ## Contents
 
-| Doc                                                            | When to read                                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [editable-regions.md](editable-regions.md)                     | Start here. Region types, the attribute reference, custom-element equivalents         |
-| [visual-editing.md](visual-editing.md)                         | Section census, completeness checklist, pre-handoff sweep — every SSG                 |
-| [visual-editing-reference.md](visual-editing-reference.md)     | On demand. Data-prop paths, arrays, page builders, components, source editables       |
-| [editable-regions-internals.md](editable-regions-internals.md) | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging          |
-| [troubleshooting.md](troubleshooting.md)                       | Symptom → fix, when regions do not appear, update, or write where expected            |
-| [migrating-from-bookshop.md](migrating-from-bookshop.md)       | The site uses Bookshop. Replacing it with editable regions — structures, names, hooks |
+| Doc                                                            | When to read                                                                    |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [editable-regions.md](editable-regions.md)                     | Start here. Region types, the attribute reference, custom-element equivalents   |
+| [visual-editing.md](visual-editing.md)                         | Section census, completeness checklist, pre-handoff sweep — every SSG           |
+| [visual-editing-reference.md](visual-editing-reference.md)     | On demand. Data-prop paths, arrays, page builders, components, source editables |
+| [editable-regions-internals.md](editable-regions-internals.md) | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging    |
+| [troubleshooting.md](troubleshooting.md)                       | Symptom → fix, when regions do not appear, update, or write where expected      |
 
 **SSG-specific:**
 
@@ -49,7 +49,6 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 | Hugo  | [hugo/visual-editing.md](hugo/visual-editing.md)                       | Module setup, infrastructure checklist, Hugo checklist items, local checks       |
 | Hugo  | [hugo/visual-editing-reference.md](hugo/visual-editing-reference.md)   | Hugo's deltas: partials-only re-render, `ENV_CLIENT`, what the editor's Hugo has |
 | Hugo  | [hugo/troubleshooting.md](hugo/troubleshooting.md)                     | Hugo-specific symptom → fix                                                      |
-| Hugo  | [hugo/migrating-from-bookshop.md](hugo/migrating-from-bookshop.md)     | Hugo's delta for a Bookshop site                                                 |
 
 **Scripts:**
 
