@@ -80,7 +80,9 @@ const data = page.data;
       data-component-key="_type"
     >
       {data.content_blocks.map((block) => (
-        <BlockRenderer block={block} />
+        <div data-editable="array-item" data-component={block._type}>
+          <BlockRenderer {...block} />
+        </div>
       ))}
     </div>
   ) : (
@@ -224,26 +226,21 @@ Editors get visual editing on reference blocks via `@data[key]` regions.
 
 ### BlockRenderer
 
-Create a `BlockRenderer.astro` component that maps `_type` to the matching widget. Use a shared `componentMap` (see [visual-editing.md § Setup steps](../../cloudcannon-visual-editing/astro/visual-editing.md#setup-steps)) so the mapping lives in one place:
+Create a `BlockRenderer.astro` component that maps `_type` to the matching widget. Use a shared `componentMap` (see [visual-editing.md § Setup steps](../../cloudcannon-visual-editing/astro/visual-editing.md#setup-steps)) so the mapping lives in one place. BlockRenderer is a thin dispatcher with no markup of its own:
 
 ```astro
 <!-- BlockRenderer.astro -->
 ---
-import { componentMap } from '~/cloudcannon/componentMap';
+import { componentMap } from '../cloudcannon/componentMap';
 
-const { block } = Astro.props;
-const { _type, ...props } = block;
+const { _type, ...props } = Astro.props;
 const Component = componentMap[_type as string];
 ---
 
-{Component && (
-  <section data-editable="array-item" data-component={_type} data-id={_type}>
-    <Component {...props} />
-  </section>
-)}
+{Component && <Component {...props} />}
 ```
 
-Each array item combines two behaviours: `data-editable="array-item"` provides CRUD controls (add, remove, reorder) and `data-component` enables component re-rendering of the block's contents. When no suitable HTML element exists, use `<editable-array-item>` instead. See [visual-editing-reference.md § Page builder blocks](../../cloudcannon-visual-editing/visual-editing-reference.md#page-builder-blocks) for the full visual editing setup.
+The array-item wrapper belongs in the loop in the catch-all route above, not in BlockRenderer — see [visual-editing-reference.md § BlockRenderer architecture](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#blockrenderer-architecture). Each array item combines two behaviours: `data-editable="array-item"` provides CRUD controls (add, remove, reorder) and `data-component` enables component re-rendering of the block's contents. When no suitable HTML element exists, use `<editable-array-item>` instead. See [visual-editing-reference.md § Page builder blocks](../../cloudcannon-visual-editing/visual-editing-reference.md#page-builder-blocks) for the full visual editing setup.
 
 Every widget component inside also needs nested text/image regions on editable fields (`data-editable="text"` / `data-editable="image"`, or `<editable-text>` / `<editable-image>` when the host is wrapper-only). See [visual-editing-reference.md § Text editing](../../cloudcannon-visual-editing/visual-editing-reference.md#text-editing) and [§ Image editing](../../cloudcannon-visual-editing/visual-editing-reference.md#image-editing). Every `_type` value used in content files must have a matching `registerAstroComponent(_type, Component)` call in `registerComponents.ts`.
 

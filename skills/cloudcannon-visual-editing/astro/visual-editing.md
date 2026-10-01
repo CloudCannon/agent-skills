@@ -7,8 +7,10 @@ Workflow for adding CloudCannon Visual Editor support to an Astro site using `@c
 Run the setup script to handle steps 1-3 automatically:
 
 ```bash
-bash skills/cloudcannon-visual-editing/scripts/setup-editable-regions.sh .
+bash <skills-dir>/cloudcannon-visual-editing/scripts/setup-editable-regions.sh .
 ```
+
+Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).
 
 This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a conditional import in the base layout so `registerComponents` only loads inside CloudCannon's Visual Editor:
 
@@ -22,7 +24,7 @@ This installs the package (falling back to `--legacy-peer-deps` if needed), adds
 </script>
 ```
 
-`window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration code out of the production bundle entirely — it only loads when the page is being edited.
+`window.inEditorMode` is set to `true` by CloudCannon inside the Visual Editor iframe. The dynamic `import()` keeps the registration JavaScript out of production page loads — it only loads when the page is being edited. It does not keep out the CSS: Astro links the styles of every component reachable from `registerComponents.ts` on every page that includes the layout, including components the page never renders. Register only components that need re-rendering — if `registerComponents.ts` or `componentMap.ts` uses `import.meta.glob`, narrow it to the block directory, or import components explicitly — and diff the built CSS before and after adding the import.
 
 Use a relative path for the `import()` — `@cloudcannon/...` looks like an npm scope and will resolve to the package, not your local file.
 
@@ -32,12 +34,14 @@ When the site uses a page builder with a `BlockRenderer`, create a shared `src/c
 
 ### Package exports reference
 
-| Import path                                          | Purpose                                                                                                                             |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `@cloudcannon/editable-regions/astro-integration`    | Astro integration for `astro.config.mjs` (build-time)                                                                               |
-| `@cloudcannon/editable-regions/astro`                | `registerAstroComponent()` for client-side component re-rendering                                                                   |
-| `@cloudcannon/editable-regions/astro-react-renderer` | Side-effect import: registers a catch-all React renderer (needed when React components are used inside registered Astro components) |
-| `@cloudcannon/editable-regions/react`                | `registerReactComponent()` for standalone React component re-rendering                                                              |
+| Import path                                           | Purpose                                                                                                                       |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `@cloudcannon/editable-regions/astro-integration`     | Astro integration for `astro.config.mjs` (build-time)                                                                         |
+| `@cloudcannon/editable-regions/astro`                 | `registerAstroComponent()` for client-side component re-rendering                                                             |
+| `@cloudcannon/editable-regions/astro-react-renderer`  | Side-effect import: registers the React renderer (needed when React components are used inside registered Astro components)   |
+| `@cloudcannon/editable-regions/astro-vue-renderer`    | Side-effect import: registers the Vue renderer (needed when Vue components are used inside registered Astro components)       |
+| `@cloudcannon/editable-regions/astro-svelte-renderer` | Side-effect import: registers the Svelte renderer (needed when Svelte components are used inside registered Astro components) |
+| `@cloudcannon/editable-regions/react`                 | `registerReactComponent()` for standalone React component re-rendering                                                        |
 
 ## Section census
 
@@ -53,7 +57,7 @@ Run through these after setup, before starting on editable regions:
 - [ ] The `editableRegions()` integration is in the `integrations` array in `astro.config.mjs` (inside the array, not after it)
 - [ ] `src/cloudcannon/registerComponents.ts` exists with commented-out examples
 - [ ] Base layout conditionally imports `registerComponents` inside `if (window.inEditorMode)`
-- [ ] `src/icons/` directory exists (required by `astro-icon` even if empty)
+- [ ] If `astro-icon` is installed, the `src/icons/` directory exists (it fails the build without it, even if empty)
 - [ ] Every registered component, and everything it renders, has been grepped for `Astro.` reads other than `props`, `slots` and `request` — nothing else exists in a re-render, and the failure is invisible at build time → [Runtime shims](visual-editing-reference.md#how-the-astro-integration-works)
 - [ ] Every registered component, and everything it renders, has been grepped for `.svg` imports — SVG component imports throw `NoMatchingRenderer` in a re-render; use `?raw` + `set:html` → [SVG component imports](visual-editing-reference.md#module-compatibility-in-the-editable-regions-client-bundle)
 - [ ] `astro-icon`, if installed, is ≤ 1.1.5 — or ≥ 1.2.0 with the `Astro.locals` crash addressed → [astro-icon](visual-editing-reference.md#astro-icon)

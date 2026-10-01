@@ -3,8 +3,10 @@
 Run the audit script first to gather data automatically:
 
 ```bash
-bash skills/migrate-to-cloudcannon/scripts/audit-astro.sh .
+bash <skills-dir>/migrate-to-cloudcannon/scripts/audit-astro.sh .
 ```
+
+Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).
 
 Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `.cloudcannon/migration/audit.md`.
 
@@ -13,7 +15,7 @@ Use its output as a starting point, then fill in the sections below with finding
 - Astro version (check `package.json`)
 - **Bookshop.** If the script reports Bookshop markers, read [cloudcannon-bookshop](../../cloudcannon-bookshop/SKILL.md) now. It changes Phases 2 to 4.
 - Framework integrations and versions (React, Vue, Svelte, Solid -- look for `@astrojs/*` packages).
-  **Why:** Vue/Svelte/Solid components are unsupported in editable regions (see [overview.md § Astro scope](overview.md)). For each, decide: convert to `.astro`/React, or keep and provide an editing fallback.
+  **Why:** React, Vue and Svelte each need their renderer imported in `registerComponents.ts`; Solid components are unsupported in editable regions (see [overview.md § Astro scope](overview.md)). For each Solid component, decide: convert to a supported framework, or keep it and provide an editing fallback.
 - CSS framework (Tailwind, etc.)
 - Markdown processing: remark/rehype plugins, MDX support (`@astrojs/mdx`)
 - Package manager (npm, pnpm, yarn) and any lockfile present

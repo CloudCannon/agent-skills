@@ -66,8 +66,9 @@ Some Astro templates use a `-index.md` file to hold listing/index page metadata 
 
 1. **Rename the files.** Run the rename script to handle this automatically:
    ```bash
-   bash skills/migrate-to-cloudcannon/scripts/rename-dash-index.sh .
+   bash <skills-dir>/migrate-to-cloudcannon/scripts/rename-dash-index.sh .
    ```
+   Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).
 2. **Update `getSinglePage()`** to filter on `id === "index"` instead of `id.startsWith("-")`.
 3. **Update `getListPage()` callers** from `"-index"` to `"index"`.
 

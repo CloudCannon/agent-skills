@@ -36,6 +36,8 @@ These apply in both the main `cloudcannon.config.yml` AND inside co-located stru
 
 For each content block in a page's `content_blocks` array, open the structure definition and verify that **every single key** appears in the content. The rule covers any field that appears on any item — rare (1 of 10 items), conditional (only populated when `type: dropdown`), or purely decorative. Commonly forgotten: `tagline`, `content`, `subtitle`, and nested object fields like `callToAction.variant`, `callToAction.icon`, `callToAction.target`.
 
+**Exception — keys no template reads.** Content migrated from another system often carries dead keys (Bookshop: `heading.text_color`, `button_aria_label`). Grep the templates for each key first; if nothing reads it, drop it from the content instead of declaring it in the value.
+
 After creating or editing content files, cross-reference every block in every content file against its structure definition. Field omissions are the single most common source of CloudCannon editor errors.
 
 ### Optional fields — common mistake
@@ -83,7 +85,7 @@ value:
   primaryLabel: Schedule a Consultation
 ```
 
-Reconcile: rule #1 means "if any **existing** item has the field, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
+Reconcile: rule #1 means "if any **existing** item has a field a template reads, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
 
 **Migrating an existing page?** A field the original page never passed may still be rendering a component default — write that resolved default, not an empty value. See [content.md § Extraction pattern](../migrate-to-cloudcannon/astro/content.md#extraction-pattern-per-block).
 

@@ -534,6 +534,8 @@ _inputs:
 
 A dotted key takes precedence over a plain key that also matches: `menu.main.weight` wins over `weight` for that field. Use it to scope a short, common name (`weight`, `url`, `name`) that means different things in different places.
 
+The same applies inside one structure value's `_inputs`. A contact block whose `email` is an object holding `heading` and its own `email` string can't type both with a plain `email` key — it matches the object and the string. Type the object with `email` and the string with `email.email`, or leave `type` off both and let CloudCannon infer them from the value.
+
 ## Data inputs must follow the JSON, not a template
 
 Before finalizing `file_config` for a data file, grep the actual JSON keys and ensure every key has a matching input. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the JSON actually has those keys. Mismatches fail silently in both directions — "the editor works but a few fields aren't styled right" is easy to miss on a fast visual pass.
@@ -556,7 +558,7 @@ Every path in the output should either have a corresponding `_inputs` entry (sco
 
 ## An `_inputs` key that names no field is ignored
 
-**MUST:** list the field paths the content actually has, and diff them against the `_inputs` keys. For a structure value, every key in its `_inputs` must name a key in its `value`.
+**MUST:** list the field paths the content actually has, and diff them against the `_inputs` keys. For a structure value, every key in its `_inputs` must name a key at any depth in its `value` — a nested field name (`heading`) or a dotted path (`button.text`) both apply. A key for a field on an array item belongs on that item's structure, not on the parent's value.
 **Why:** an `_inputs` key that matches nothing is valid config, so the schema check passes — and the input never applies. The field it was meant for falls back to an inferred text box.
 
 ```bash

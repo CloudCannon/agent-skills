@@ -50,13 +50,13 @@ Name components so the content discriminator is the partial path. Then `_name: h
 **MUST:** call a component partial with exactly the value its region's `data-prop` points at, and nothing else, as its context (`.`).
 **Why:** on re-render the editor calls `partial "<data-component>"` with the `data-prop` value as `.`. A partial the build calls with a page, a `dict`, or a wrapper map gets a different shape in the editor, and renders blank or errors — the build never shows the problem.
 
-| The partial needs                                    | Read it from                                                                                                                      |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Its own fields                                       | `.` — the `data-prop` value                                                                                                       |
-| The page being edited (title, taxonomies, `.Params`) | `page` — e.g. `page.Params.tags`, `page.RelPermalink`                                                                             |
-| Site config values no region edits                   | `site.Params`, `site.Title` — never `.Site`, because `.` is not a page                                                            |
-| Site config values a region edits                    | `.` — bind the config file as the region's `data-prop`, see [§ Site config values](#site-config-values)                           |
-| Data files                                           | `hugo.Data.<name>` (Hugo ≥ 0.156; the editor's renderer is newer, see [§ What the editor's Hugo has](#what-the-editors-hugo-has)) |
+| The partial needs                                    | Read it from                                                                                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Its own fields                                       | `.` — the `data-prop` value                                                                                                                       |
+| The page being edited (title, taxonomies, `.Params`) | `page` — e.g. `page.Params.tags`, `page.RelPermalink`                                                                                             |
+| Site config values no region edits                   | `site.Params`, `site.Title` — never `.Site`, because `.` is not a page                                                                            |
+| Site config values a region edits                    | `.` — bind the config file as the region's `data-prop`, see [§ Site config values](#site-config-values)                                           |
+| Data files                                           | `hugo.Data.<name>` on Hugo ≥ 0.156, `site.Data.<name>` below that — both work in the editor, see [§ Data files and `@data`](#data-files-and-data) |
 
 ```go-html-template
 {{/* ✗ build passes a dict; the editor passes post_hero */}}
@@ -88,7 +88,7 @@ The block dispatcher is a `range` in the page template, with each item's `_name`
 
 - `data-id-key` defaults to `data-component-key`, so it can be omitted when both are `_name`.
 - A heterogeneous array with a component key needs no `<template>` — the component pipeline renders new rows.
-- A sub-array inside a block whose items are themselves partials (a `buttons` list mixing `buttons/primary` and `buttons/secondary`) takes the same attributes: `data-component-key="_name"` on its container, `data-component="{{ ._name }}"` on each item, and no `<template>`.
+- A sub-array inside a block whose items are themselves partials (a `buttons` list mixing `buttons/primary` and `buttons/secondary`) takes the same attributes: `data-component-key="_name"` on its container, `data-component="{{ ._name }}"` on each item, and no `<template>`. Each item needs its own wrapper element, so run the [wrapper checks](#wrapper-elements-around-partials) on the sub-array too. A root that was block-level only because its flex parent made it so (an `<a>` button) becomes inline inside the wrapper, and often needs `display: block` or `inline-block`.
 - The dispatcher's wrapper is the array-item host: it carries both `data-editable="array-item"` and `data-component`, and the partial's root stays plain markup — see [§ Wrapper elements around partials](#wrapper-elements-around-partials).
 - Put the dispatcher in every layout that renders `content_blocks` — usually `single.html` **and** `list.html` (under `_default/` on the older scheme), because section `_index.md` pages use the list layout.
 
@@ -203,6 +203,8 @@ Read each hit: the script only looks up to the first closing tag. Every real one
 ## Data files and `@data`
 
 Shared partials — header, footer, navigation — render from `baseof.html` and read a data file. Their regions use `@data[<name>]` selectors, which edit the shared data file from any page.
+
+The examples use `hugo.Data`, which needs Hugo 0.156 or later. On an older Hugo, write `site.Data` instead — the editor's renderer (Hugo 0.164) accepts both, so match the version the site builds with.
 
 **Primitives only** — when the partial has no conditionals or computed values, keep its context as it is and put `@data` selectors on the fields:
 

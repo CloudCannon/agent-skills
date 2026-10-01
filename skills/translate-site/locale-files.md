@@ -50,12 +50,12 @@ This skill ships helper scripts that do the mechanical work (classification, tra
 2. **Translate** — the AI reads the task file and fills in translations.
 3. **Merge** — a script merges translations back into the full locale file.
 
-**Locate the scripts before running them.** The commands below assume the skills were copied to `skills/` in the project root. Depending on the install route they may be under `.agents/skills/`, `.cursor/skills/`, or a plugin directory outside the project — adjust the path to wherever this skill's `scripts/` sits. If they aren't present at all, use the **Manual Fallback** at the end of Part 1.
+**Locate the scripts before running them.** In the commands below, `<skills-dir>` is wherever the skills are installed — `.agents/skills/`, `.cursor/skills/`, or a plugin directory outside the project. Run them from the project root. If they aren't present at all, use the **Manual Fallback** at the end of Part 1.
 
 ## Phase 1.1: Prepare
 
 ```bash
-node skills/translate-site/scripts/prepare-translation.mjs --locale fr
+node <skills-dir>/translate-site/scripts/prepare-translation.mjs --locale fr
 ```
 
 The script:
@@ -106,7 +106,7 @@ After translating, write the task file back to the same path with `value` fields
 ## Phase 1.3: Merge
 
 ```bash
-node skills/translate-site/scripts/merge-translation.mjs --locale fr
+node <skills-dir>/translate-site/scripts/merge-translation.mjs --locale fr
 ```
 
 The script:

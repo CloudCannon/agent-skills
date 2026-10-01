@@ -6,7 +6,7 @@ Read this doc on demand when a checklist item in [visual-editing.md](visual-edit
 
 ## Astro scope
 
-Only `.astro` and React components can be re-rendered in the visual editor. Vue, Svelte and Solid have no renderer and must be converted or given an editing fallback — see [Non-Astro framework components](#non-astro-framework-components).
+`.astro`, React, Vue and Svelte components can be re-rendered in the visual editor; React, Vue and Svelte each need their renderer imported. Solid has no renderer and must be converted or given an editing fallback — see [Non-Astro framework components](#non-astro-framework-components).
 
 ## Computed-content triggers in Astro
 
@@ -110,11 +110,26 @@ See [base § Text editing](../visual-editing-reference.md#text-editing) for host
 
 See [base § Image editing](../visual-editing-reference.md#image-editing) for host resolution and the `data-prop-src` versus `data-prop` choice.
 
-Output from `<Image />` (`astro:assets`) is usually not a plain `<img>` you can annotate directly, so the **wrapper + child** pattern is the normal choice in Astro:
+**Pass the region attributes as props on `<Image>` or `<Picture>`** (`astro:assets`). Both put unknown attributes on the `<img>` they render, in the build and in the editor, so the `<img>` becomes the region host with no extra element:
+
+```astro
+<Picture
+  src={image}
+  alt={title}
+  widths={[600, 1200]}
+  data-editable="image"
+  data-prop-src="image"
+  data-prop-alt="title"
+/>
+```
+
+**MUST NOT:** put the region attributes in `pictureAttributes`. The editor's `<Picture>` drops `pictureAttributes` entirely (it renders `<picture><img …></picture>` from the other props), so the region disappears on the first re-render. Classes in `pictureAttributes` are dropped there too; if the layout depends on them, style the `<img>` instead.
+
+The **wrapper + child** pattern also works, but `<editable-image>` adds a box around the image, which can break flex and grid layouts that size the `<picture>` or `<img>` directly. Use it only when the image component doesn't forward attributes to its `<img>`:
 
 ```astro
 <editable-image data-prop-src="image">
-  <Image src={image} width={1200} height={600} alt={title} format="webp" />
+  <ThirdPartyImage src={image} alt={title} />
 </editable-image>
 ```
 
@@ -235,6 +250,7 @@ Per [base § Component prop contract](../visual-editing-reference.md#component-p
 
 - **Object-bound:** `<editable-component data-prop="banner"><Hero {...banner} /></editable-component>` → `const { title, image } = Astro.props`
 - **Array-bound:** `<editable-component data-prop="plans"><PricingSection {...plans} /></editable-component>` → `const plans = Object.values(Astro.props)`
+- **Per-prop attributes:** `data-prop-*` (and `data-literal-*`) names are lowercased before they become props, so `data-prop-imageAlt` arrives as `imagealt`. Give such props lowercase or snake_case names (`image_alt`) — see [editable-regions.md § Quick Attribute Reference](../editable-regions.md#quick-attribute-reference).
 
 ### Scattered fields — the Zod reshape
 
@@ -454,12 +470,19 @@ registerAstroComponent("call-to-action", CallToAction);
 
 ### Non-Astro framework components
 
-Only `.astro` and React components are supported.
+React, Vue and Svelte components re-render inside registered Astro components once their renderer is imported in `registerComponents.ts`:
 
-**Decision: convert or provide an editing fallback.**
+```typescript
+import "@cloudcannon/editable-regions/astro-react-renderer";
+import "@cloudcannon/editable-regions/astro-vue-renderer";
+import "@cloudcannon/editable-regions/astro-svelte-renderer";
+```
 
-- **Convert** — rewrite as `.astro` or React. Prefer `.astro` unless the component needs complex client-side state, in which case React is a good choice. Simpler (no duplication) and gives full visual editing support. Default recommendation.
-- **Editing fallback** — if conversion isn't practical (third-party framework library with no equivalent, large complex component, team preference), keep the original and use `ENV_CLIENT` to render a fallback in the visual editor.
+Import only the renderers for frameworks the site uses — each pulls its framework into the editor bundle. A component with a `client:*` directive is mounted in the browser after the re-render rather than rendered to a string, so it shows its client-side state, not the server output.
+
+To register a React, Vue or Svelte component as a top-level editable component, use that framework's integration (`registerReactComponent`, `registerVueComponent`, `registerSvelteComponent` from `@cloudcannon/editable-regions/react`, `/vue`, `/svelte`).
+
+**Solid has no renderer.** Convert Solid components to `.astro` or another supported framework, or keep the original and use `ENV_CLIENT` to render an [editing fallback](#editing-fallbacks-solid-or-complex-components).
 
 #### React components
 
@@ -476,7 +499,7 @@ To make nested content editable within a React component you may need to refacto
 
 **Hydration gotcha.** Content inside a React island's hydrated DOM can be overwritten when React rehydrates. If an editable region modifies static server-rendered HTML but React then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by React state may not be a good candidate for inline editable regions.
 
-#### Editing fallbacks (Vue, Svelte, Solid, or complex components)
+#### Editing fallbacks (Solid, or complex components)
 
 An editing fallback is a display-only `.astro` component that visually resembles the real one and supports editable attributes. It needs no interactivity. The live site still uses the real component; only the visual editor's renderer is swapped.
 
@@ -505,15 +528,15 @@ registerAstroComponent("announcement", AnnouncementDisplay);
 </editable-component>
 ```
 
-**When to use one:** Vue, Svelte or Solid components that can't be converted; components using third-party DOM libraries (Swiper, GSAP); Web Components with shadow DOM that don't serialize cleanly; anything too complex for the editor to re-render directly.
+**When to use one:** Solid components that can't be converted; components using third-party DOM libraries (Swiper, GSAP); Web Components with shadow DOM that don't serialize cleanly; anything too complex for the editor to re-render directly.
 
-**Keep the fallback in sync.** It duplicates markup, so mirror structural changes. Keep both in the same directory with clear names (`Announcement.vue` + `AnnouncementDisplay.astro`).
+**Keep the fallback in sync.** It duplicates markup, so mirror structural changes. Keep both in the same directory with clear names (`Announcement.tsx` + `AnnouncementDisplay.astro`).
 
 ### Use `ENV_CLIENT` editing fallbacks when
 
-`ENV_CLIENT` in Astro is a Vite `define`, read as `import.meta.env.ENV_CLIENT`. See [base § Detecting the editor](../visual-editing-reference.md#detecting-the-editor-and-skipping-build-only-logic) for what it does and does not affect.
+`ENV_CLIENT` in Astro is a Vite `define` of the bare identifier `ENV_CLIENT` — not `import.meta.env.ENV_CLIENT`, which is `undefined` in the editor bundle, so a guard written that way never fires. The package's types declare it as a global; if TypeScript still reports it, add `declare const ENV_CLIENT: boolean;` to `src/env.d.ts`. See [base § Detecting the editor](../visual-editing-reference.md#detecting-the-editor-and-skipping-build-only-logic) for what it does and does not affect.
 
-- **Vue, Svelte, Solid components** — these throw runtime errors in editable regions, even nested inside supported wrappers.
+- **Solid components** — these throw runtime errors in editable regions, even nested inside supported wrappers.
 - **Components with complex DOM management** (Swiper carousels and similar) — their JS conflicts with editable region DOM manipulation.
 - **Server-only APIs** — `getImage` from `astro:assets`, or `fetch` to external APIs at render time. Guard with `ENV_CLIENT` for a simplified client-side path that skips optimization.
 - **React islands** that fetch, submit forms, or load third-party scripts — gate with `window.inEditorMode`, rendering the same markup but skipping API calls and script loads.
@@ -521,8 +544,8 @@ registerAstroComponent("announcement", AnnouncementDisplay);
 ### Astro-specific caveats on component regions
 
 - Astro components importing `astro:content` or `astro:assets` need the integration's Vite plugin, which shims those modules for client-side rendering.
-- React components inside registered Astro components (e.g. `react-icons`) need the React framework renderer. Add `import "@cloudcannon/editable-regions/astro-react-renderer"` to `registerComponents.ts` — a side-effect import registering a catch-all React renderer. Without it, any React component encountered during re-rendering fails with "NoMatchingRenderer". Its `check` function unconditionally returns `true`, so it acts as a fallback for all unmatched components — import it **after** any other framework renderers. `NoMatchingRenderer` has a second cause the React renderer doesn't fix: SVG files imported as components. See [SVG component imports](#module-compatibility-in-the-editable-regions-client-bundle).
-- The React renderer covers React only. There are no equivalents for Vue, Svelte or Solid; those always error and must be converted or given fallbacks.
+- React, Vue or Svelte components inside registered Astro components (e.g. `react-icons`) need that framework's renderer import (see [Non-Astro framework components](#non-astro-framework-components)). Without it, the re-render fails with "NoMatchingRenderer". Each renderer's `check` only claims components of its own framework, so import order doesn't matter. `NoMatchingRenderer` has a second cause no renderer fixes: SVG files imported as components. See [SVG component imports](#module-compatibility-in-the-editable-regions-client-bundle).
+- There is no Solid renderer; Solid components always error and must be converted or given fallbacks.
 - **Runtime `fetch()` in islands** isn't blocked by editable-regions, but preview iframes often differ from production (CORS, auth cookies, relative URLs). Test in the visual editor if the UI depends on it.
 
 ## How the Astro integration works
@@ -531,7 +554,7 @@ Understanding the internals helps when debugging unexpected behaviour.
 
 **Build-time** (`@cloudcannon/editable-regions/astro-integration`) — an Astro integration registering a Vite plugin for the client build. The plugin:
 
-1. Sets `ENV_CLIENT = true` for tree-shaking server-only code. **Only in the editable-regions client bundle**, not the normal production build: code guarded with `import.meta.env.ENV_CLIENT` in `.astro` template expressions still runs normally (with `ENV_CLIENT` falsy) in production SSR output. For initial-render concerns like hiding animation classes, use `.cms-editor-active` CSS overrides instead.
+1. Sets `ENV_CLIENT = true` for tree-shaking server-only code. **Only in the editable-regions client bundle**, not the normal production build: code guarded with `ENV_CLIENT` in `.astro` template expressions still runs normally (with `ENV_CLIENT` falsy) in production SSR output. For initial-render concerns like hiding animation classes, use `.cms-editor-active` CSS overrides instead.
 2. Patches Astro's `astro:build` Vite plugin to force SSR transforms on client code — this is what makes `renderToString()` work in the browser.
 3. Adds `vite-plugin-editable-regions`, which intercepts `astro:*` virtual module imports and resolves them to local shims: `astro:content`, `astro:assets` and `astro:env/server`.
 
@@ -608,7 +631,7 @@ const debug = { allPropKeys: Object.keys(Astro.props), allProps: Astro.props };
 
 ```astro
 <!-- WidgetWrapper.astro or equivalent -->
-<div class:list={[{ reveal: animate && !import.meta.env.ENV_CLIENT }]}>
+<div class:list={[{ reveal: animate && !ENV_CLIENT }]}>
   <slot />
 </div>
 ```
@@ -623,7 +646,7 @@ The `editableRegions()` integration builds a client bundle that re-renders regis
 
 **Third-party virtual modules** — modules like `virtual:astro-icon` aren't intercepted at all, since the resolver only handles `astro:*` prefixed imports. Their own Vite plugins resolve them in the same build pipeline. As long as the emitted module is browser-safe, they work. Most Vite virtual modules emit static data or pure JS at build time, so this is the common case.
 
-**What doesn't work** — components using Node-only APIs at runtime (filesystem access, `process.env`, native binaries) fail in the browser context. Vue, Svelte and Solid have no renderers and need editing fallbacks.
+**What doesn't work** — components using Node-only APIs at runtime (filesystem access, `process.env`, native binaries) fail in the browser context. Solid has no renderer and needs an editing fallback.
 
 **SVG component imports** — in the site build, `import Icon from './x.svg'` (or `import.meta.glob` over `.svg` files) gives an Astro component that renders `<svg>`. In the client bundle the same import compiles to image metadata (`{src, width, height, format}`), so rendering it throws `NoMatchingRenderer: Unable to render 'Icon'`. `astro build` passes and the `Astro.*` grep doesn't catch it. In registered components, and everything they render, import SVGs as raw strings and inline them:
 

@@ -68,6 +68,14 @@ editors work on.
 Rewriting the **output** is safe. Reaching back into the repository puts the editor and the
 deployed site out of step.
 
+## Steps before the build MUST NOT rewrite tracked files
+
+**MUST NOT** let a step that runs before the SSG (a theme or token generator, a config writer) overwrite a file that git tracks.
+**Why:** the step runs on every rebuild in the `cloudcannon dev` loop and every local build, so the working tree shows a change nobody made, and it gets committed by accident or fights an editor's edit to the same file.
+
+- **Write** the generated file to a path in `.gitignore` and import it from the tracked source, or
+- **Make** the output deterministic and commit it, so a rebuild with unchanged inputs leaves the file byte-for-byte the same.
+
 ## `.cloudcannon/` hook files
 
 **MUST NOT** add `.cloudcannon/preinstall`, `prebuild` or `postbuild` files.

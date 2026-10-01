@@ -2,7 +2,7 @@
 
 The mechanical half of translation — classification, translation memory, merging, validation — automated so the AI only does the translating. Each part of the skill is a prepare → translate → merge loop; these scripts are the first and last step of each.
 
-Run them with `node` from the project root. Paths below assume the skills were copied to `skills/` — adjust if this skill lives under `.agents/skills/`, `.cursor/skills/`, or a plugin directory. Every script supports `--help`.
+Run them with `node` from the project root. In the paths below, `<skills-dir>` is wherever the skills are installed — `.agents/skills/`, `.cursor/skills/`, or a plugin directory. Every script supports `--help`.
 
 ## Part 1: Rosey locale files
 
@@ -11,7 +11,7 @@ Run them with `node` from the project root. Paths below assume the skills were c
 Reads `rosey/locales/<code>.json`, classifies every entry as untranslated / stale / current, and writes a slim task file containing only the work. Builds a translation memory from already-translated entries and auto-applies exact matches straight back to the locale file, then picks tone/register examples for the AI to match.
 
 ```bash
-node skills/translate-site/scripts/prepare-translation.mjs --locale fr
+node <skills-dir>/translate-site/scripts/prepare-translation.mjs --locale fr
 ```
 
 | Flag                  | Meaning                              |
@@ -26,7 +26,7 @@ node skills/translate-site/scripts/prepare-translation.mjs --locale fr
 Merges the `value` fields from the task file back into the full locale file, sets `original = _base_original` on stale entries to clear the stale flag, and validates that HTML in translated values still matches the original.
 
 ```bash
-node skills/translate-site/scripts/merge-translation.mjs --locale fr
+node <skills-dir>/translate-site/scripts/merge-translation.mjs --locale fr
 ```
 
 | Flag                  | Meaning                            |
@@ -43,7 +43,7 @@ node skills/translate-site/scripts/merge-translation.mjs --locale fr
 Compares a source content directory against its locale counterpart and writes a task manifest of the files needing translation, with translatable frontmatter paths and body content extracted and structural fields skipped.
 
 ```bash
-node skills/translate-site/scripts/prepare-content-translation.mjs \
+node <skills-dir>/translate-site/scripts/prepare-content-translation.mjs \
   --source-dir src/content/blog \
   --locale-dir src/content/blog_fr \
   --locale fr
@@ -61,7 +61,7 @@ node skills/translate-site/scripts/prepare-content-translation.mjs \
 Patches translated frontmatter back into the YAML (preserving structural fields and formatting), replaces body content, validates frontmatter integrity, and deletes the manifest on success. Review anything it warns it couldn't patch.
 
 ```bash
-node skills/translate-site/scripts/merge-content-translation.mjs \
+node <skills-dir>/translate-site/scripts/merge-content-translation.mjs \
   --input src/content/.translation-task-fr-content.json
 ```
 

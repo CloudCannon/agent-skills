@@ -23,7 +23,7 @@ Rule of thumb: **frontmatter or body → content collection (Part 2); shared lay
 
 ## Workflow overview
 
-Same prepare → translate → merge shape as Part 1, with content-specific scripts. If the scripts aren't available, use the **Manual Fallback** at the end of Part 2.
+Same prepare → translate → merge shape as Part 1, with content-specific scripts, run from the project root (`<skills-dir>` is wherever the skills are installed). If the scripts aren't available, use the **Manual Fallback** at the end of Part 2.
 
 ## Phase 2.1: Prepare
 
@@ -32,7 +32,7 @@ First identify the source and locale directories: look for `{collection}_{locale
 Then, per locale collection:
 
 ```bash
-node skills/translate-site/scripts/prepare-content-translation.mjs \
+node <skills-dir>/translate-site/scripts/prepare-content-translation.mjs \
   --source-dir src/content/blog \
   --locale-dir src/content/blog_fr \
   --locale fr
@@ -98,7 +98,7 @@ Write the manifest back with `translated_frontmatter` / `translated_body` added.
 ## Phase 2.3: Merge
 
 ```bash
-node skills/translate-site/scripts/merge-content-translation.mjs \
+node <skills-dir>/translate-site/scripts/merge-content-translation.mjs \
   --input src/content/.translation-task-fr-content.json
 ```
 
