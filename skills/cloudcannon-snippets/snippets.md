@@ -203,7 +203,7 @@ The `key_values` parser handles the `<img>` tag's `src` and `alt` attributes as 
 _snippets:
   video_controls:
     snippet: |-
-      <video autoplay muted="muted" controls plays-inline="true">
+      <video autoplay muted="muted" controls playsinline>
       <source [[source_attrs]] type="video/mp4">
       </video>
     inline: false
@@ -238,7 +238,7 @@ Three keys work together:
 
 - `view: gallery` — switches the snippet from a compact card to a large image preview
 - `preview.gallery.image` — cascading option pointing at the image field's `editor_key`
-- `preview.gallery.fit` — `cover` (default, crops to fill) or `contain` (shows full image)
+- `preview.gallery.fit` — `padded` (default, keeps the aspect ratio with padding), `cover` (crops to fill), `cover-top` (crops to fill, anchored at the top), or `contain` (shows the full image)
 
 Use `picker_preview` to override the gallery for the snippet picker modal (where you choose which snippet to insert). The picker doesn't have image data yet, so disable the gallery image and show a static icon instead — see the `<figure>` example above for the exact YAML shape.
 
