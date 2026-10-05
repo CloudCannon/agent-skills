@@ -8,11 +8,16 @@
  * translated), and writes a slim task file containing only the entries that
  * still need AI work — plus tone/register examples from existing translations.
  *
+ * An entry whose value equals its original is untranslated, unless it's in
+ * <source>/translate-site-keep.json: the entries merge-translation.mjs recorded
+ * as deliberately left the same (brand names, product names). A kept entry
+ * comes back once its original changes.
+ *
  * Usage:
  *   node prepare-translation.mjs --locale fr [--source rosey] [--output path] [--examples 5]
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 // ---------------------------------------------------------------------------
@@ -72,6 +77,19 @@ try {
 	process.exit(1);
 }
 
+// Entries deliberately left the same as the original, by locale: { fr: { key: original } }
+const keepPath = join(sourceDir, "translate-site-keep.json");
+let keepAll = {};
+if (existsSync(keepPath)) {
+	try {
+		keepAll = JSON.parse(readFileSync(keepPath, "utf-8"));
+	} catch (err) {
+		console.error(`Error: Could not read ${keepPath}: ${err.message}`);
+		process.exit(1);
+	}
+}
+const keep = keepAll[locale] ?? {};
+
 // ---------------------------------------------------------------------------
 // Classify entries
 // ---------------------------------------------------------------------------
@@ -79,17 +97,27 @@ try {
 const untranslated = {};
 const stale = {};
 const current = {};
+const kept = {};
 
 for (const [key, entry] of Object.entries(localeData)) {
 	const { original, value, _base_original } = entry;
 
 	if (_base_original !== undefined && original !== _base_original) {
 		stale[key] = entry;
+	} else if (value === original && keep[key] === original) {
+		kept[key] = entry;
 	} else if (value === original) {
 		untranslated[key] = entry;
 	} else {
 		current[key] = entry;
 	}
+}
+
+// Drop keep entries whose key is gone or whose original changed
+const prunedKeep = Object.fromEntries(Object.keys(kept).map((key) => [key, keep[key]]));
+if (Object.keys(prunedKeep).length !== Object.keys(keep).length) {
+	keepAll[locale] = prunedKeep;
+	writeFileSync(keepPath, JSON.stringify(keepAll, null, 2) + "\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -232,6 +260,7 @@ const needsAICount = Object.keys(needsAI).length;
 
 console.log(`Locale: ${locale} (${totalKeys} total keys)`);
 console.log(`  Current (skip):        ${currentCount}`);
+console.log(`  Kept as original:      ${Object.keys(kept).length}`);
 console.log(`  Untranslated:          ${untranslatedCount}`);
 console.log(`    Auto-applied (TM):   ${autoAppliedCount}`);
 console.log(`    Needs AI:            ${needsAICount}`);

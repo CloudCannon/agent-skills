@@ -18,7 +18,7 @@ Before touching code, understand what needs to be translated.
 
 3. **Map out the page/content structure.** Understand how pages are generated — dynamic routes, content collections, data-driven pages, page-builder arrays. This determines how you set `data-rosey-root` and `data-rosey-ns` values.
 
-4. **Confirm the target locales** with the user (e.g., `fr,de,es`) and the default/source language (usually `en`).
+4. **Confirm the target locales** with the user (e.g., `fr,de,es`) and the default/source language (usually `en`). **Every locale with a locale file is published**, translated or not: an untranslated locale ships default-language text marked `lang="de"`, with `hreflang` and sitemap entries. To hold one back until it's translated, leave it out of `--locales` (and so out of `rosey/locales/`) for now.
 
 5. **Decide the URL structure — ask the user, don't assume.** Rosey can serve the default language either at the site root or under its own locale prefix. This is the `--default-language-at-root` flag on `rosey build`, and the choice changes URLs, redirects, the locale picker, and CloudCannon collection paths — so settle it before wiring anything up.
 
@@ -34,6 +34,8 @@ Before touching code, understand what needs to be translated.
    Record the choice. It feeds the postbuild command (Phase 4), the CloudCannon collection URLs (Phase 5e), verification (Phase 6), and the locale picker (Phase 9). The rest of this skill uses **`{defaultLang}`** to mean the actual default-language code (e.g. `en`) wherever the prefix appears.
 
 6. **Detect Bookshop (most sites don't use it).** Look for `bookshop.config.cjs`, a `_bookshop/` or `component-library/bookshop/` directory, `{% bookshop %}` tags, or `_bookshop_name` in content files. If none are found, **skip all Bookshop-specific notes** throughout this skill. Bookshop is a legacy component framework — most CloudCannon sites use editable regions instead.
+
+7. **Hugo: choose a setup before Phase 2.** Hugo has its own multilingual system, and one of the three setups doesn't use Rosey at all — see [hugo/overview.md § Choose a setup](hugo/overview.md#choose-a-setup).
 
 ## Phase 2: Install dependencies
 
@@ -55,9 +57,11 @@ npx rosey-cloudcannon-connector init --yes \
   --collection
 ```
 
-The manual steps below (Phases 3–4) are still needed for tagging templates. If you ran `init`, the postbuild pipeline (Phase 4) and CloudCannon config (Phase 5) are already done — skip to Phase 3 for tagging, then Phase 6 to verify.
+The manual steps below (Phases 3–4) are still needed for tagging templates. `init` writes the postbuild (Phase 4) and the CloudCannon config (Phases 5c–5d). It only prints the rest — the RCC import (5a), the snapshot boundary (5b) and the sync path (5f) — so do those yourself. Then tag (Phase 3) and verify (Phase 6).
 
 > **Re-read the config `init` rewrote.** Its `source`-removal pass doesn't reach every `source`-relative path — confirm each one moved before relying on it. See the [`source` gotcha](troubleshooting.md#cloudcannon-cant-reach-roseylocales).
+
+> **Fix the postbuild `init` wrote.** Add `rm -rf ./_untranslated_site` before its `mv` (without it, a second local run moves the build _into_ the old copy and Rosey rebuilds from stale HTML). Add [Phase 4's fix script](#fix-the-head-and-sitemap-on-generated-pages) if the layout emits a canonical or `og:url`, or the site has a sitemap. If the postbuild already had steps, check their order ([Phase 4](#existing-postbuild-steps)).
 
 > **Reconcile the URL-structure choice (Phase 1 step 5).** `init` writes a postbuild that serves the default language at root (`--default-language-at-root`). If the user chose **all languages prefixed**, remove that flag from `.cloudcannon/postbuild` and add the `/{defaultLang}/` prefix to collection URLs (Phase 5e) before the first build.
 
@@ -101,18 +105,30 @@ npm install rosey-cloudcannon-connector
 
 ## Phase 4: Make the site Rosey-ready (the pipeline)
 
-This is the required core: a postbuild pipeline that generates locale files and builds translated copies of the site. If you ran `init`, this is already in `.cloudcannon/postbuild` — verify it and move on.
+This is the required core: a postbuild pipeline that generates locale files and builds translated copies of the site. If you ran `init`, most of this is already in `.cloudcannon/postbuild` — compare it with the block below.
 
-Create/update `.cloudcannon/postbuild` (adjust `--source dist` to your build output dir). On first run, add `--locales fr,de` to create the initial locale files; subsequent runs auto-detect:
+Create/update `.cloudcannon/postbuild` (adjust `--source dist` to your build output dir). `--locales fr,de` on `write-locales` names the locale files it creates and updates; without it, later runs auto-detect the files already in `rosey/locales/`. `rosey build` publishes every file in `rosey/locales/`, so a locale is held back (Phase 1 step 4) by never creating its file. Keep the flag, so the postbuild lists the published locales:
 
 ```bash
 #!/usr/bin/env bash
 
 npx rosey generate --source dist
-npx rosey-cloudcannon-connector write-locales --source rosey --dest dist
+npx rosey-cloudcannon-connector write-locales --source rosey --dest dist --locales fr,de
+npx rosey-cloudcannon-connector install-client --dest dist
+rm -rf ./_untranslated_site
 mv ./dist ./_untranslated_site
 npx rosey build --source _untranslated_site --dest dist --default-language en --default-language-at-root --exclusions "\.(html?)$"
 ```
+
+**MUST NOT add `set -e` or other shell options.** CloudCannon sources the postbuild, so they leak into its runner.
+
+**Add `_untranslated_site/` to `.gitignore`.** The pipeline leaves it behind on local runs.
+
+### Existing postbuild steps
+
+**MUST run anything that reads the built HTML after `rosey build`** (and after the fix script): a search indexer like Pagefind, a link checker, a sitemap generator. `init` appends the Rosey steps after whatever the postbuild already had, so an existing `npx pagefind --site dist` ends up indexing the default language only. Move it to the end; Pagefind then indexes each language by `<html lang>`.
+
+Steps that change the HTML Rosey should read (minifying, injecting markup) stay before `rosey generate`.
 
 **The `--default-language-at-root` flag encodes the Phase 1 step 5 choice:**
 
@@ -129,12 +145,51 @@ What each step does:
 
 1. `rosey generate` — scans built HTML and writes `rosey/base.json` (all keys + original text).
 2. `write-locales` — creates/updates `rosey/locales/{code}.json` (preserving existing translations, removing keys no longer in `base.json`). It also writes the locale manifest to `dist/_rcc/locales.json`, which the RCC reads at runtime.
-3. `mv` — moves the untranslated build aside.
-4. `rosey build` — rebuilds the site with translations injected at `/{locale}/` URLs (and, without `--default-language-at-root`, moves the default language to `/{defaultLang}/` and writes the root redirect). `--exclusions "\.(html?)$"` overrides Rosey's default (`\.(html?|json)$`) so JSON assets like `_rcc/locales.json` and `_cloudcannon/info.json` flow through.
+3. `install-client` — **(RCC layer)** copies the RCC's browser script to `dist/_rcc/client.mjs`, which Phase 5a imports. It must run before the `mv`, so the file is in the tree Rosey copies through.
+4. `mv` — moves the untranslated build aside.
+5. `rosey build` — rebuilds the site with translations injected at `/{locale}/` URLs (and, without `--default-language-at-root`, moves the default language to `/{defaultLang}/` and writes the root redirect). `--exclusions "\.(html?)$"` overrides Rosey's default (`\.(html?|json)$`) so JSON assets like `_rcc/locales.json` and `_cloudcannon/info.json` flow through.
 
 > `write-locales` also accepts `--keep-unused` to preserve locale keys no longer in `base.json`. Not needed for greenfield setup — it's used during migration (Appendix A/B) to remap old translations before cleanup.
 
+### What `rosey build` rewrites, and what it doesn't
+
+`rosey build` rewrites the same things on every page in a locale directory, whether it generated the page or the SSG built it (Phase 8):
+
+| Rewritten                                                                       | Left as-is                                                                                     |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `<a href>` starting with `/` (`/about/` → `/fr/about/`)                         | Absolute (`https://example.com/about/`) and relative (`about/`) hrefs                          |
+| `<html lang>`; adds `<meta http-equiv="content-language">` and `hreflang` links | Hrefs with a file extension other than `.html` (`/feed.xml`), and `data-rosey-ignore` links    |
+| Text and attributes tagged with `data-rosey`                                    | `<link rel="canonical">`, `og:url`, `<meta http-equiv="refresh">` redirects, and `sitemap.xml` |
+
+`--base-url https://example.com` makes Rosey's `hreflang` hrefs absolute; it changes nothing else. Pass it with the production URL: search engines expect absolute `hreflang` URLs.
+
+**Missing `/fr/…` URLs get the default-language 404 on CloudCannon hosting.** Rosey writes a translated `/fr/404.html`, but the host serves the root `404.html` for every missing URL. Tell the user.
+
+### Fix the head and sitemap on generated pages
+
+**MUST add the fix script when the layout emits a canonical or `og:url`, or the site has a sitemap.** Copy [`scripts/fix-rosey-pages.mjs`](scripts/fix-rosey-pages.mjs) into `.cloudcannon/` and add it after `rosey build`:
+
+```bash
+node .cloudcannon/fix-rosey-pages.mjs --source _untranslated_site --dest dist --locales fr,de
+```
+
+**Why:** every page Rosey generates is a copy of the default-language page, head included. Without the fix, each `/fr/` page declares the English URL as its canonical, which tells search engines not to index it, and no `/fr/` page appears in any sitemap.
+
+The script only touches pages Rosey generated. It localizes a canonical or `og:url` that points at the page's own default-language URL (a canonical set to another site is left alone), points alias redirects at the locale copy, and adds each page to the sitemap if its default-language URL is listed there. It covers default-language-at-root mode only.
+
 > **Not on CloudCannon?** The `.cloudcannon/postbuild` filename is a CloudCannon convention, but the four commands are plain shell — run them in any CI step or build hook. `write-locales` and `rosey build` don't require CloudCannon.
+
+### Adding a locale later
+
+A locale held back in Phase 1 step 4 goes live by adding it everywhere the first ones are listed:
+
+- [ ] `--locales` on `write-locales` in the postbuild (`fr,de`). Keep the flag there: it is the list of published locales
+- [ ] `--locales` on the fix script, if the postbuild runs it
+- [ ] `data_config: locales_de` (Phase 5c)
+- [ ] The locale picker's locale list (Phase 9), and any locale config the templates read (`data-rcc-exclude` lists, Phase 8)
+- [ ] The SSG's own language config, for per-locale content directories (Phase 8)
+
+Then build, run the postbuild, and translate the new locale file with [`translate-site`](../translate-site/SKILL.md).
 
 ## Phase 5: Add the RCC + CloudCannon layer (optional)
 
@@ -147,10 +202,12 @@ Lazy-load the RCC so it only runs inside the CloudCannon editor. Place it in `<b
 ```html
 <script>
   if (window?.inEditorMode) {
-    import("rosey-cloudcannon-connector");
+    import("/_rcc/client.mjs").catch(console.error);
   }
 </script>
 ```
+
+**MUST import the URL, not the package name, unless the framework bundles this script.** `install-client` (Phase 4) puts the file at `/_rcc/client.mjs`. A bare `import("rosey-cloudcannon-connector")` only resolves where a bundler processes the layout's scripts; on Eleventy, Hugo and Jekyll the browser can't resolve it, and the RCC never loads. On a bundled framework, the SSG file says whether you can use the bare specifier and skip `install-client`.
 
 ### 5b. Set the snapshot boundary
 
@@ -213,6 +270,8 @@ collections_config:
 
 `data_config` exposes data for programmatic use (the RCC's API, select inputs); `collections_config` is what gives editors a browsable sidebar interface. They're independent.
 
+**If the config has `collection_groups`, add `locales` to a group.** A collection missing from the groups doesn't appear in the sidebar, and `init` doesn't add it.
+
 ### 5e. Prefix collection URLs (all-languages-prefixed mode only)
 
 > **Skip this entirely if you kept `--default-language-at-root`** — default-language URLs didn't move, so collection URLs are already correct. This applies whenever you omitted the flag (Phase 1 step 5), even without the RCC — it's a plain CloudCannon-config concern.
@@ -239,6 +298,12 @@ collections_config:
 - **Leave the `locales` data collection (5d) alone** — it's a data-file browser, not a rendered page, so it has no `url`.
 - Per-locale split-by-directory collections (Phase 8) are already prefixed with their own locale (`/fr/blog/...`); in this mode the **default-language** split collection also needs `/{defaultLang}/blog/...`.
 
+### 5f. Sync the locale files back to the repo
+
+**MUST set `CLOUDCANNON_SYNC_PATHS=/rosey/`** in the site's environment variables in CloudCannon (site settings). For a site not created yet, add it to `build.environment_variables` in `.cloudcannon/initial-site-settings.json` as well — that file only applies when a site is created.
+
+**Why:** `rosey generate` and `write-locales` update `rosey/base.json` and `rosey/locales/*.json` during each CloudCannon build. Without the sync path, those changes stay in the build: new keys never reach the repo, so the locales collection and the RCC never see them. `init` prints this as its first next step and doesn't set it.
+
 ## Phase 6: Generate and verify
 
 **MUST verify on a translated page, not `/`.** Almost every multilingual bug renders correctly in the default language, because Rosey doesn't inject translations there — a polluted key, a stale namespace, a duplicated pagination root and a dropped Visual Editor save all look perfect at `/`. See [troubleshooting.md](troubleshooting.md).
@@ -251,12 +316,8 @@ collections_config:
    ```
 4. **Run the 6a assertions against `rosey/base.json`.**
 5. **Verify locale files** (`rosey/locales/fr.json`) — keys match `base.json`; `original`/`value` populated.
-6. **Test the full pipeline** (drop `--default-language-at-root` if you chose all-languages-prefixed mode):
-   ```bash
-   mv ./dist ./_untranslated_site
-   npx rosey build --source _untranslated_site --dest dist --default-language en --exclusions "\.(html?)$" --default-language-at-root
-   ```
-7. **Open a translated page.** Not just the directory listing — read `dist/{locale}/index.html` and one deep page (a post, a paginated listing page 2), and confirm: the text is translated, no icon or SVG markup appears twice, internal links point inside the locale, and there is no `/{defaultLang}/{defaultLang}/` anywhere in the output. Confirm `dist/_rcc/locales.json` exists and parses. **In all-languages-prefixed mode**, also confirm the default language lives at `dist/{defaultLang}/` and the root `dist/index.html` is the generated redirect, not the home page.
+6. **Test the full pipeline:** run `.cloudcannon/postbuild` after a fresh build, so you test what CloudCannon runs. **Empty the output folder before each local build** (Hugo: `--cleanDestinationDir`; Eleventy doesn't clean `_site/` either). Otherwise the last run's `/{locale}/` pages survive the SSG build, `rosey build` treats them as SSG-built locale pages, and your changes never reach them. CloudCannon builds start clean.
+7. **Open a translated page.** Not just the directory listing — read `dist/{locale}/index.html` and one deep page (a post, a paginated listing page 2), and confirm: the text is translated, no icon or SVG markup appears twice, code samples still show their `<` and `>` ([Rosey entity bug](troubleshooting.md#code-samples-break-on-locale-pages)), internal links point inside the locale, the canonical (if any) is the locale URL, and there is no `/{defaultLang}/{defaultLang}/` anywhere in the output. Confirm `dist/_rcc/locales.json` exists and parses, and **(RCC layer)** that `dist/_rcc/client.mjs` exists. **In all-languages-prefixed mode**, also confirm the default language lives at `dist/{defaultLang}/` and the root `dist/index.html` is the generated redirect, not the home page.
 8. **(RCC layer)** Push to CloudCannon, open a page in the Visual Editor, confirm the locale-switcher FAB appears, switch locale, make an edit, **reload and confirm the edit survived** — a save that silently doesn't persist is the [dotted-key failure](troubleshooting.md#edits-save-in-the-visual-editor-but-never-persist).
 
 ### 6a. Assertions on `rosey/base.json`
@@ -329,6 +390,8 @@ For Tailwind: `ms-*`/`me-*`, `ps-*`/`pe-*`, `text-start`/`text-end`.
 
 For pages with large body content (blog posts, articles, docs), a single Rosey key per body is impractical. Instead, create a **separate content collection per locale** and let the SSG build those pages natively at `/{locale}/...` URLs. Rosey still runs in postbuild and **merges** with the pre-existing locale pages — it respects the existing body content and only translates `data-rosey` elements (shared UI strings).
 
+**On Hugo, this phase is setup B**, built with Hugo languages: see [hugo/hybrid.md](hugo/hybrid.md), which maps each step below.
+
 ### When to use it
 
 - Long-form body content, or bodies with rich components/formatting
@@ -341,8 +404,8 @@ For pages with large body content (blog posts, articles, docs), a single Rosey k
 3. **Create locale routes** so the SSG builds `/{locale}/blog/{slug}/`. **MUST derive the slug from the filename, never from the translated title.** Every locale's copy of a post shares one URL path. A title-derived slug forks the path per locale and breaks the locale picker, `hreflang`, tag links, step 5's root-stripping, and `translate-site`'s same-filename pairing of source to locale copy.
 4. **Extract shared rendering logic** and pass `locale` for locale-aware links, dates, and collection selection.
 5. **Align Rosey roots** — locale pages must set `data-rosey-root` to the **English-equivalent** path (`blog/my-post`, not `fr/blog/my-post`) via a `roseyRoot` override that strips the locale prefix. Deriving the root from source identity ([§3e](tagging.md#3e-derive-the-root-from-the-templates-source-identity)) makes this nearly free.
-6. **Scope every content query to one locale.** Once per-locale directories exist, any ambient query mixes languages: taxonomy term collections, RSS feeds, sitemaps, "recent posts" sidebars, search indexes. Build per-`(term, locale)` groupings from that locale's own content. **Why:** the query still returns results and the page still builds — a French tag page just quietly lists English posts. Verified on Astro and Eleventy; SSGs with native i18n routing may scope by language already, so check before hand-rolling it.
-7. **Prefix internal links on these pages yourself.** Rosey rewrites links only on pages it generates, and these already exist at the locale URL. Two non-obvious guards: **skip paths with a file extension** (`/feed.xml` is emitted once at the root, so prefixing 404s) and **don't prefix on default-language pages** (the same shared template renders `/blog/x/`, where prefixing double-prefixes). See [troubleshooting.md](troubleshooting.md#links-on-a-split-by-directory-locale-page-go-to-the-wrong-language).
+6. **Scope every content query to one locale.** Once per-locale directories exist, any ambient query mixes languages: taxonomy term collections, RSS feeds, sitemaps, "recent posts" sidebars, search indexes. Build per-`(term, locale)` groupings from that locale's own content. **Why:** the query still returns results and the page still builds — a French tag page just quietly lists English posts. Needed on Astro and Eleventy; Hugo languages scope all of these already.
+7. **Keep internal links root-relative.** `rosey build` prefixes `<a href="/...">` on these pages as on generated ones ([Phase 4](#what-rosey-build-rewrites-and-what-it-doesnt)), so a plain `/about/` link is right. Prefix links yourself only where Rosey can't reach them: links built in JavaScript, absolute URLs, and previews served without the postbuild (the SSG's dev server). If you do, **skip paths with a file extension** (`/feed.xml` is emitted once at the root) and **don't prefix on default-language pages** (the same template renders `/blog/x/`).
 8. **Suppress `data-rosey` on body content and frontmatter-driven fields** (title, description, tags) — those are translated in the locale collection files. Keep `data-rosey` on shared UI (breadcrumbs, sidebar headings, share buttons). **This includes the `<head>`** — don't give these pages head keys ([§3h](tagging.md#which-pages-need-head-keys)); their `<title>`/description already come from the translated frontmatter, and a Rosey value overwrites it. But do check whether a _listing_ route reads its title from the shared default-language entry — those still need keys.
 9. **(RCC layer)** Add CloudCannon collections for each locale (`blog_fr`, `blog_de`) with `url: /{locale}/blog/[full_slug]/`.
 10. **Create a locale config utility** — one file mapping locale codes to collection names, date locale strings, and display labels.
@@ -412,12 +475,15 @@ Add this to the picker's client-side script: the editor branch hides every `nav[
 - [ ] Attribute-only text uses `data-rosey-attrs-explicit`, or is deliberately and knowingly skipped
 - [ ] Pages falling back to a site-wide description share one `page_description` key rather than repeating the same sentence per page
 - [ ] No page renders two `<title>` tags (check if you suppressed an SEO component's version to emit your own)
-- [ ] `.cloudcannon/postbuild` (or CI hook) runs the full Rosey pipeline
+- [ ] `.cloudcannon/postbuild` (or CI hook) runs the full Rosey pipeline, with no `set -e` or other shell options
 - [ ] `write-locales --dest` generates the locale manifest at `{build_dir}/_rcc/locales.json`
+- [ ] The fix script runs after `rosey build` if the layout emits a canonical or `og:url`, or the site has a sitemap; a `/{locale}/` page's canonical is the locale URL
+- [ ] Internal links are root-relative (`/about/`), so Rosey can localize them
 - [ ] `rosey/base.json` generates with correct keys, passes the 6a assertions, and is **committed** as the baseline
 - [ ] A translated page has been opened and read — not just `/`
-- [ ] **(split-by-directory)** Every content query is scoped to one locale; internal links are prefixed with the extension and default-language guards
-- [ ] **(RCC layer)** RCC imported conditionally in the root layout (`window?.inEditorMode`)
+- [ ] **(split-by-directory)** Every content query is scoped to one locale
+- [ ] **(RCC layer)** RCC imported conditionally in the root layout (`window?.inEditorMode`), from `/_rcc/client.mjs` unless the framework bundles the script
+- [ ] **(RCC layer)** `install-client` runs in the postbuild before the `mv`
 - [ ] **(RCC layer)** `data-rcc` boundary set if nav/footer need translation
 - [ ] **(RCC layer)** `cloudcannon.config.yml` has `data_config` entries for each locale (`locales_{code}`)
 - [ ] **(RCC layer)** An edit made in the Visual Editor survives a reload

@@ -146,6 +146,20 @@ When implementing RTL support (Phase 7 of the main skill) in Astro, add the `dir
 
 The `is:inline` directive is critical — without it, Astro bundles and defers the script as a module, which runs after paint and causes a flash of LTR content.
 
+## RCC Import
+
+Astro processes and bundles a `<script>` tag that isn't `is:inline`, so the bare specifier resolves and `install-client` can be skipped ([Phase 5a](../setup.md#5a-import-the-rcc-in-the-root-layout)):
+
+```astro
+<script>
+  if (window?.inEditorMode) {
+    import("rosey-cloudcannon-connector");
+  }
+</script>
+```
+
+Inside an `is:inline` script, use the `/_rcc/client.mjs` form and keep `install-client` in the postbuild.
+
 ## Split-by-Directory for Body Content
 
 When implementing split-by-directory (Phase 8 of the main skill) in Astro:
@@ -163,7 +177,7 @@ Astro sites avoid the locale-mixing problem in Phase 8 step 6 for free **only if
 
 ### Internal links
 
-Rosey rewrites links only on pages it generates, and these pages already exist at the locale URL, so their links need prefixing in the template (Phase 8 step 7):
+`rosey build` prefixes root-relative `<a href>` on these pages too, so plain `/about/` links are right in the deployed site (Phase 8 step 7). A helper is still useful for `astro dev`, which serves the pages without the postbuild, and for links Rosey can't reach (built in client JS, or absolute):
 
 ```ts
 export function localizeUrl(url: string, locale: string, defaultLocale: string) {

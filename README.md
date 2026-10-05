@@ -72,7 +72,7 @@ Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory 
 | Skill                        | Astro | Eleventy | Hugo    |
 | ---------------------------- | ----- | -------- | ------- |
 | `migrate-to-cloudcannon`     | Yes   | —        | Partial |
-| `make-site-multilingual`     | Yes   | Yes      | Partial |
+| `make-site-multilingual`     | Yes   | Yes      | Yes     |
 | `cloudcannon-configuration`  | Yes   | —        | Yes     |
 | `cloudcannon-snippets`       | Yes   | —        | Yes     |
 | `cloudcannon-visual-editing` | Yes   | —        | Yes     |

@@ -23,7 +23,7 @@ node <skills-dir>/translate-site/scripts/prepare-translation.mjs --locale fr
 
 ### `merge-translation.mjs`
 
-Merges the `value` fields from the task file back into the full locale file, sets `original = _base_original` on stale entries to clear the stale flag, and validates that HTML in translated values still matches the original.
+Merges the `value` fields from the task file back into the full locale file, sets `original = _base_original` on stale entries to clear the stale flag, and validates that HTML in translated values still matches the original. An entry merged with `value` equal to its original is recorded in `<source>/translate-site-keep.json`, which `prepare-translation.mjs` reads so it isn't offered again until its original changes. Commit that file.
 
 ```bash
 node <skills-dir>/translate-site/scripts/merge-translation.mjs --locale fr
@@ -40,7 +40,7 @@ node <skills-dir>/translate-site/scripts/merge-translation.mjs --locale fr
 
 ### `prepare-content-translation.mjs`
 
-Compares a source content directory against its locale counterpart and writes a task manifest of the files needing translation, with translatable frontmatter paths and body content extracted and structural fields skipped.
+Compares every file under a locale content directory (subfolders included) against the source file at the same relative path, and writes a task manifest of the files needing translation: translatable frontmatter by path (`content_blocks.0.title`), body content, and any frontmatter it can't read safely under `manual_frontmatter`. The manifest goes in the working directory as `.translation-task-<locale>-content-<locale-dir>.json`, so runs on different directories don't overwrite each other.
 
 ```bash
 node <skills-dir>/translate-site/scripts/prepare-content-translation.mjs \
@@ -58,14 +58,20 @@ node <skills-dir>/translate-site/scripts/prepare-content-translation.mjs \
 
 ### `merge-content-translation.mjs`
 
-Patches translated frontmatter back into the YAML (preserving structural fields and formatting), replaces body content, validates frontmatter integrity, and deletes the manifest on success. Review anything it warns it couldn't patch.
+Replaces each translated field's lines in the YAML and the body, then reads the frontmatter back. A file whose translated fields don't read back exactly, or whose other fields changed, is left unchanged with a warning, and the manifest is kept. Otherwise the manifest is deleted.
 
 ```bash
 node <skills-dir>/translate-site/scripts/merge-content-translation.mjs \
-  --input src/content/.translation-task-fr-content.json
+  --input .translation-task-fr-content-src-content-blog_fr.json
 ```
 
 | Flag                 | Meaning                       |
 | -------------------- | ----------------------------- |
 | `-i, --input <path>` | Task manifest path (required) |
 | `--dry-run`          | Print changes without writing |
+
+## Shared
+
+### `frontmatter.mjs`
+
+The YAML frontmatter scanner both Part 2 scripts use. It has no dependencies, so the scripts run from the skills directory with nothing installed. It reads block mappings and sequences, plain and quoted scalars (including quoted values over several lines) and `|` / `>` block scalars, and reports anything else (anchors, aliases, `|+`) as unsupported rather than guessing.

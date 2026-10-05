@@ -4,6 +4,8 @@ Strip an existing i18n system (astro-i18n, astro-i18next, next-intl, i18next, vu
 
 **MUST:** finish this before starting [setup.md](setup.md). Running both at once leaves two translation systems half-wired.
 
+**Hugo multilingual is usually kept, not stripped.** A Hugo site already on `languages` and `i18n` tables goes to [hugo/overview.md § Choose a setup](hugo/overview.md#choose-a-setup) instead: setup A keeps it as it is, and setup B keeps its content directories. Strip it only for setup C.
+
 Use this when the site already has an i18n system (astro-i18n, astro-i18next, next-intl, i18next, vue-i18n, path-based routing, dictionaries + `t()`, etc.). The goal is to get to a **clean single-language site**, then apply the main workflow. Astro has a companion supplement (`astro/overview.md`) with concrete before/after code.
 
 ## A1. Identify the current method

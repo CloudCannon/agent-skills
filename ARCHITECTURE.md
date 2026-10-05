@@ -87,7 +87,10 @@ migrating-from-i18n.md                  Replacing an existing i18n system, befor
 rcc-v1-to-v2-upgrade.md                 RCC v1 → v2, an alternative to setup
 astro/overview.md                       Astro: root derivation, head/SEO, taxonomy routes
 eleventy/overview.md                    Eleventy: tagging, taxonomy scoping, link localization
-hugo/overview.md                        Hugo: tagging and pipeline (partial — see its coverage note)
+hugo/overview.md                        Hugo: choosing a setup (A/B/C), shared rules, setup C
+hugo/native-multilingual.md             Hugo setup A: Hugo languages + i18n tables, no Rosey
+hugo/hybrid.md                          Hugo setup B: Hugo languages for content, Rosey for UI
+scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url, sitemap on generated pages
 
 ── cloudcannon-configuration (capability) ────────────────────
 SKILL.md                                ENTRY POINT — the schema gate, invalid keys, symptoms

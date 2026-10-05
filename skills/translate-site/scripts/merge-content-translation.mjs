@@ -4,14 +4,17 @@
  * Merges AI-translated content back into locale collection MDX/MD files.
  *
  * Reads the task manifest produced by prepare-content-translation.mjs (with
- * translated frontmatter fields and body filled in by the AI), patches the
- * translations into the locale files, and validates structural integrity.
+ * translated frontmatter fields and body filled in by the AI) and patches the
+ * translations into the locale files. Each field's lines are replaced in place,
+ * then the front matter is read back: if a translated field doesn't decode to
+ * its translation, or any other field changed, the file is left unchanged.
  *
  * Usage:
  *   node merge-content-translation.mjs --input .translation-task-fr-content.json [--dry-run]
  */
 
-import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { renderSlot, scanYaml, splitFile } from "./frontmatter.mjs";
 
 // ---------------------------------------------------------------------------
 // Arg parsing
@@ -62,73 +65,57 @@ try {
 // ---------------------------------------------------------------------------
 
 /**
- * Replaces a frontmatter field value in raw YAML text using dot-notation path.
- *
- * For a path like "seo.page_description", finds the `page_description:` line
- * nested under `seo:` at the correct indentation and replaces its value.
+ * Replaces each translated field's lines in the YAML, then re-reads the result.
+ * Returns { yaml, problems }; any problem means the file must not be written.
  */
-function patchFrontmatterField(yaml, dottedPath, newValue) {
-	const segments = dottedPath.split(".");
-	const lines = yaml.split("\n");
-	const result = [];
-	let targetIndent = 0;
-	let segmentIndex = 0;
+function patchFrontmatter(yaml, translations) {
+	const { slots } = scanYaml(yaml);
+	const byPath = new Map(slots.map((slot) => [slot.path, slot]));
+	const problems = [];
+	const patches = [];
 
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i];
-		const indentMatch = line.match(/^(\s*)/);
-		const indent = indentMatch ? indentMatch[1].length : 0;
-		const keyMatch = line.match(/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:(.*)/);
-
-		if (keyMatch && segmentIndex < segments.length) {
-			const lineIndent = keyMatch[1].length;
-			const lineKey = keyMatch[2];
-			const lineRest = keyMatch[3];
-
-			if (lineKey === segments[segmentIndex] && lineIndent === targetIndent) {
-				if (segmentIndex === segments.length - 1) {
-					// This is the target field — replace its value
-					const escapedValue = escapeYamlValue(newValue);
-					result.push(`${keyMatch[1]}${lineKey}: ${escapedValue}`);
-					segmentIndex++; // done
-					continue;
-				} else {
-					// Intermediate parent — advance to next segment
-					segmentIndex++;
-					targetIndent = lineIndent + 2;
-				}
-			}
+	for (const [path, value] of Object.entries(translations)) {
+		const slot = byPath.get(path);
+		if (!slot || slot.style === "flow") {
+			problems.push(`field "${path}" not found in the front matter`);
+			continue;
 		}
-
-		result.push(line);
+		if (typeof value !== "string") {
+			problems.push(`field "${path}": translation is not a string`);
+			continue;
+		}
+		patches.push({ slot, value });
 	}
+	if (problems.length) return { yaml, problems };
 
-	if (segmentIndex < segments.length) {
-		return { yaml, patched: false };
+	const lines = yaml.split("\n");
+	for (const { slot, value } of patches.sort((a, b) => b.slot.start - a.slot.start)) {
+		lines.splice(slot.start, slot.end - slot.start, ...renderSlot(slot, value));
 	}
+	const patched = lines.join("\n");
 
-	return { yaml: result.join("\n"), patched: true };
+	// Read it back: every translated field must decode to the translation, and
+	// every other field must be unchanged
+	const after = new Map(scanYaml(patched).slots.map((slot) => [slot.path, slot.value]));
+	for (const slot of slots) {
+		const expected = Object.hasOwn(translations, slot.path)
+			? normalizeTrailingNewline(translations[slot.path], slot)
+			: slot.value;
+		if (after.get(slot.path) !== expected) {
+			problems.push(
+				`field "${slot.path}" would read back as ${JSON.stringify(after.get(slot.path))}, expected ${JSON.stringify(expected)}`,
+			);
+		}
+	}
+	if (after.size !== byPath.size) problems.push("the number of front matter fields changed");
+
+	return { yaml: patched, problems };
 }
 
-function escapeYamlValue(value) {
-	if (
-		value.includes(":") ||
-		value.includes("#") ||
-		value.includes("'") ||
-		value.includes('"') ||
-		value.includes("\n") ||
-		value.startsWith(" ") ||
-		value.endsWith(" ") ||
-		value.startsWith("{") ||
-		value.startsWith("[")
-	) {
-		// Use double-quoted YAML string with escaped inner quotes
-		const escaped = value
-			.replace(/\\/g, "\\\\")
-			.replace(/"/g, '\\"')
-			.replace(/\n/g, "\\n");
-		return `"${escaped}"`;
-	}
+// A block scalar keeps at most one trailing newline; others never end in one
+function normalizeTrailingNewline(value, slot) {
+	if (slot.style === "literal" || slot.style === "folded")
+		return value.replace(/\n+$/, (m) => (m ? "\n" : ""));
 	return value;
 }
 
@@ -136,16 +123,23 @@ function escapeYamlValue(value) {
 // Process files
 // ---------------------------------------------------------------------------
 
+// Fields translated as identical to the source are recorded here, so
+// prepare-content-translation.mjs doesn't offer them again
+const KEEP_PATH = "translate-site-keep-content.json";
+const keepAll = existsSync(KEEP_PATH) ? JSON.parse(readFileSync(KEEP_PATH, "utf-8")) : {};
+const keepDirKey = String(manifest._meta?.locale_dir ?? "").replace(/\/+$/, "");
+let keptFieldCount = 0;
+
 const warnings = [];
 let patchedCount = 0;
 let skippedCount = 0;
+let refusedCount = 0;
 
 for (const [filename, entry] of Object.entries(manifest.files)) {
 	if (entry.status !== "untranslated") continue;
 
 	const hasTranslatedFrontmatter =
-		entry.translated_frontmatter &&
-		Object.keys(entry.translated_frontmatter).length > 0;
+		entry.translated_frontmatter && Object.keys(entry.translated_frontmatter).length > 0;
 	const hasTranslatedBody = typeof entry.translated_body === "string";
 
 	if (!hasTranslatedFrontmatter && !hasTranslatedBody) {
@@ -163,53 +157,34 @@ for (const [filename, entry] of Object.entries(manifest.files)) {
 		continue;
 	}
 
-	// Split into frontmatter + body
-	const fmMatch = content.match(
-		/^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n?)([\s\S]*)$/,
-	);
-	if (!fmMatch) {
-		warnings.push(`${filename}: Could not parse frontmatter`);
-		skippedCount++;
+	const parsed = splitFile(content);
+	if (parsed.format !== "yaml" && hasTranslatedFrontmatter) {
+		warnings.push(`${filename}: no YAML front matter to patch — file left unchanged`);
+		refusedCount++;
 		continue;
 	}
 
-	let frontmatterYaml = fmMatch[2];
-	let body = fmMatch[4];
+	let frontmatterYaml = parsed.yaml;
+	let body = parsed.body;
 
-	// Patch frontmatter fields
 	if (hasTranslatedFrontmatter) {
-		for (const [path, translatedValue] of Object.entries(
-			entry.translated_frontmatter,
-		)) {
-			const result = patchFrontmatterField(
-				frontmatterYaml,
-				path,
-				translatedValue,
-			);
-			if (result.patched) {
-				frontmatterYaml = result.yaml;
-			} else {
-				warnings.push(
-					`${filename}: Could not patch field "${path}" — field not found in YAML`,
-				);
-			}
+		const result = patchFrontmatter(frontmatterYaml, entry.translated_frontmatter);
+		if (result.problems.length) {
+			for (const problem of result.problems) warnings.push(`${filename}: ${problem}`);
+			warnings.push(`${filename}: file left unchanged — fix the manifest, or translate it by hand`);
+			refusedCount++;
+			continue;
 		}
+		frontmatterYaml = result.yaml;
 	}
 
-	// Replace body
 	if (hasTranslatedBody) {
 		body = entry.translated_body;
 		if (!body.endsWith("\n")) body += "\n";
 	}
 
-	const output = `${fmMatch[1]}${frontmatterYaml}${fmMatch[3]}${body}`;
-
-	// Validate: frontmatter still has opening and closing ---
-	if (!output.startsWith("---") || !output.includes("\n---\n")) {
-		warnings.push(
-			`${filename}: Output appears to have broken frontmatter structure`,
-		);
-	}
+	const output =
+		parsed.format === "yaml" ? `${parsed.open}${frontmatterYaml}${parsed.close}${body}` : body;
 
 	if (dryRun) {
 		console.log(`\n--- ${filename} ---`);
@@ -218,11 +193,23 @@ for (const [filename, entry] of Object.entries(manifest.files)) {
 		writeFileSync(localePath, output);
 	}
 
+	for (const [path, value] of Object.entries(entry.translated_frontmatter ?? {})) {
+		if (value === entry.translatable_frontmatter?.[path]) {
+			((keepAll[keepDirKey] ??= {})[filename] ??= {})[path] = value;
+			keptFieldCount++;
+		}
+	}
+
 	patchedCount++;
 }
 
-// Clean up manifest
-if (!dryRun && patchedCount > 0) {
+if (!dryRun && keptFieldCount > 0) {
+	writeFileSync(KEEP_PATH, JSON.stringify(keepAll, null, 2) + "\n");
+	console.log(`Recorded ${keptFieldCount} fields kept as the source in ${KEEP_PATH}`);
+}
+
+// Clean up manifest, unless a file was refused and still needs it
+if (!dryRun && patchedCount > 0 && refusedCount === 0) {
 	try {
 		unlinkSync(inputPath);
 		console.log(`Removed task manifest ${inputPath}`);
@@ -239,6 +226,9 @@ console.log("");
 console.log(`Patched:  ${patchedCount} files`);
 if (skippedCount > 0) {
 	console.log(`Skipped:  ${skippedCount} (no translations provided)`);
+}
+if (refusedCount > 0) {
+	console.log(`Refused:  ${refusedCount} (see warnings; the manifest was kept)`);
 }
 
 if (warnings.length > 0) {

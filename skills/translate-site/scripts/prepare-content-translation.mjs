@@ -3,23 +3,24 @@
 /**
  * Preprocesses split-by-directory content collection files for AI translation.
  *
- * Compares locale content files against the source-language files, identifies
- * which files need translation, extracts translatable frontmatter fields and
- * body content into a task manifest. The AI fills in translations, then
- * merge-content-translation.mjs patches them back.
+ * Compares every content file under the locale directory (subfolders included)
+ * with the source-language file at the same relative path, identifies which
+ * files need translation, and extracts translatable frontmatter fields (by
+ * path, e.g. content_blocks.0.title) and body content into a task manifest.
+ * The AI fills in translations, then merge-content-translation.mjs patches
+ * them back.
+ *
+ * Front matter values the scanner can't read safely are listed under
+ * `manual_frontmatter` for hand translation; TOML and JSON front matter are
+ * reported as `unsupported_format`.
  *
  * Usage:
  *   node prepare-content-translation.mjs --source-dir src/content/blog --locale-dir src/content/blog_fr --locale fr
  */
 
-import {
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	readFileSync,
-	writeFileSync,
-} from "node:fs";
-import { dirname, extname, join } from "node:path";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, extname, join, sep } from "node:path";
+import { scanYaml, splitFile } from "./frontmatter.mjs";
 
 // ---------------------------------------------------------------------------
 // Arg parsing
@@ -50,6 +51,7 @@ for (let i = 0; i < args.length; i++) {
 				"  --locale-dir <dir>    Locale content directory (e.g. src/content/blog_fr)\n" +
 				"  -l, --locale <code>   Locale code (required)\n" +
 				"  -o, --output <path>   Task manifest output path\n" +
+				"                        (default: .translation-task-<locale>-content-<locale-dir>.json)\n" +
 				"  -h, --help            Show this help\n",
 		);
 		process.exit(0);
@@ -69,79 +71,20 @@ if (!localeDir) {
 	process.exit(1);
 }
 if (!outputPath) {
-	outputPath = join(
-		dirname(localeDir),
-		`.translation-task-${locale}-content.json`,
-	);
-}
-
-// ---------------------------------------------------------------------------
-// Frontmatter parsing
-// ---------------------------------------------------------------------------
-
-const CONTENT_EXTENSIONS = new Set([".md", ".mdx", ".markdown"]);
-
-function splitFrontmatter(content) {
-	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
-	if (!match) return { raw: "", body: content, fields: {} };
-	return {
-		raw: match[1],
-		body: match[2],
-		fields: parseFrontmatterFields(match[1]),
-	};
-}
-
-/**
- * Parses YAML frontmatter into flat dot-notation key-value pairs.
- * Only extracts simple scalar string values (not arrays, booleans, dates, etc.).
- */
-function parseFrontmatterFields(yaml) {
-	const fields = {};
-	const lines = yaml.split("\n");
-	const indentStack = [{ indent: -1, path: "" }];
-
-	for (const line of lines) {
-		if (line.trim() === "" || line.trim().startsWith("#")) continue;
-		// Skip array items
-		if (line.trim().startsWith("- ")) continue;
-
-		const indentMatch = line.match(/^(\s*)/);
-		const indent = indentMatch ? indentMatch[1].length : 0;
-		const keyValueMatch = line.match(
-			/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.*)$/,
-		);
-		if (!keyValueMatch) continue;
-
-		const key = keyValueMatch[2];
-		const rawValue = keyValueMatch[3].trim();
-
-		// Pop indent stack to find parent
-		while (
-			indentStack.length > 1 &&
-			indentStack[indentStack.length - 1].indent >= indent
-		) {
-			indentStack.pop();
-		}
-
-		const parentPath = indentStack[indentStack.length - 1].path;
-		const fullPath = parentPath ? `${parentPath}.${key}` : key;
-
-		if (rawValue === "" || rawValue === ">" || rawValue === "|") {
-			// Mapping or block scalar — push as parent context
-			indentStack.push({ indent, path: fullPath });
-		} else {
-			fields[fullPath] = rawValue;
-			indentStack.push({ indent, path: fullPath });
-		}
-	}
-
-	return fields;
+	// One manifest per locale directory, in the working directory: never inside
+	// a content directory, and never shared between two runs
+	const slug = localeDir.replace(/^\.?\/+|\/+$/g, "").replace(/[^A-Za-z0-9_-]+/g, "-");
+	outputPath = `.translation-task-${locale}-content-${slug}.json`;
 }
 
 // ---------------------------------------------------------------------------
 // Field classification
 // ---------------------------------------------------------------------------
 
+const CONTENT_EXTENSIONS = new Set([".md", ".mdx", ".markdown"]);
+
+// Field names whose values are never prose. Matched against the nearest named
+// segment of the path, so `content_blocks.0.buttons.1.url` checks `url`.
 const STRUCTURAL_FIELD_NAMES = new Set([
 	"_schema",
 	"_name",
@@ -151,6 +94,8 @@ const STRUCTURAL_FIELD_NAMES = new Set([
 	"publish_date",
 	"created_date",
 	"updated_date",
+	"lastmod",
+	"expirydate",
 	"tags",
 	"categories",
 	"author",
@@ -161,57 +106,131 @@ const STRUCTURAL_FIELD_NAMES = new Set([
 	"canonical_url",
 	"href",
 	"url",
+	"link",
+	"src",
 	"slug",
 	"full_slug",
+	"aliases",
 	"open_graph_type",
 	"author_twitter_handle",
 	"no_index",
 	"draft",
 	"published",
 	"layout",
+	"type",
 	"permalink",
+	"weight",
+	"identifier",
+	"parent",
+	"id",
+	"target",
+	"rel",
+	"lang",
+	"color",
+	"colour",
+	"icon",
+	"class",
+	"style",
+	"variant",
+	"size",
+	"height",
+	"width",
+	"align",
+	"alignment",
+	"position",
+	"anchor",
+	"theme",
+	"format",
+	"new_tab",
 ]);
 
+// Suffixes that mark a field as structural: text_color, button_icon, body_class, image_path …
+const STRUCTURAL_SUFFIXES = [
+	"_color",
+	"_colour",
+	"_icon",
+	"_class",
+	"_classes",
+	"_url",
+	"_link",
+	"_path",
+	"_image",
+	"_src",
+	"_id",
+	"_anchor",
+	"_type",
+	"_style",
+	"_size",
+	"_position",
+	"_align",
+	"_alignment",
+	"_layout",
+];
+
+function namedLeaf(dottedPath) {
+	return (
+		dottedPath
+			.split(".")
+			.reverse()
+			.find((seg) => !/^\d+$/.test(seg)) ?? ""
+	).toLowerCase();
+}
+
 function isStructuralField(dottedPath, value) {
-	const leaf = dottedPath.split(".").pop();
+	const leaf = namedLeaf(dottedPath);
 
 	if (leaf.startsWith("_")) return true;
 	if (STRUCTURAL_FIELD_NAMES.has(leaf)) return true;
-	if (STRUCTURAL_FIELD_NAMES.has(dottedPath)) return true;
+	if (STRUCTURAL_SUFFIXES.some((suffix) => leaf.endsWith(suffix))) return true;
+	// Hugo menus in front matter: only the label is text
+	if (/^menus?\./.test(dottedPath) && leaf !== "name" && leaf !== "title") return true;
 
-	// Path-like values
-	if (typeof value === "string") {
-		if (value.startsWith("/") || value.startsWith("http")) return true;
-		// Booleans
-		if (value === "true" || value === "false") return true;
-		// ISO dates
-		if (/^\d{4}-\d{2}-\d{2}/.test(value)) return true;
-		// Numbers
-		if (/^\d+(\.\d+)?$/.test(value)) return true;
-	}
+	if (/^(\/|https?:|mailto:|tel:|#[0-9a-f]{3,8}$)/i.test(value)) return true;
+	if (/^(true|false|yes|no|null|~)$/i.test(value)) return true;
+	if (/^\d{4}-\d{2}-\d{2}/.test(value)) return true;
+	if (/^[-+]?\d+(\.\d+)?(px|em|rem|%)?$/.test(value)) return true;
+	// A single lowercase identifier: primary, top, docs, button-primary
+	if (/^[a-z0-9]+([_-][a-z0-9]+)*$/.test(value)) return true;
+	// No letters at all: $, +, —
+	if (!/\p{L}/u.test(value)) return true;
 
 	return false;
 }
 
 function isTranslatableField(dottedPath, value) {
-	if (isStructuralField(dottedPath, value)) return false;
-	// Must be a non-empty string
 	if (typeof value !== "string" || value.trim() === "") return false;
-	return true;
+	return !isStructuralField(dottedPath, value);
 }
 
 // ---------------------------------------------------------------------------
 // Scan files
 // ---------------------------------------------------------------------------
 
+// Every content file under `dir`, as paths relative to it (posix separators)
 function listContentFiles(dir) {
 	if (!existsSync(dir)) return [];
-	return readdirSync(dir)
+	return readdirSync(dir, { recursive: true })
+		.map((f) => f.split(sep).join("/"))
 		.filter((f) => CONTENT_EXTENSIONS.has(extname(f).toLowerCase()))
 		.sort();
 }
 
-const sourceFiles = listContentFiles(sourceDir);
+function frontmatterFields(parsed) {
+	const { slots, unsupported } = scanYaml(parsed.yaml);
+	const fields = {};
+	for (const slot of slots) {
+		if (slot.style !== "flow") fields[slot.path] = slot.value;
+	}
+	return { fields, unsupported };
+}
+
+// Fields deliberately left the same as the source (a brand name in a title), recorded
+// by merge-content-translation.mjs: { "<locale-dir>": { "<file>": { "<path>": "<source value>" } } }
+const KEEP_PATH = "translate-site-keep-content.json";
+const keepAll = existsSync(KEEP_PATH) ? JSON.parse(readFileSync(KEEP_PATH, "utf-8")) : {};
+const keep = keepAll[localeDir.replace(/\/+$/, "")] ?? {};
+let keptFieldCount = 0;
+
 const localeFiles = listContentFiles(localeDir);
 
 const manifest = {
@@ -226,6 +245,7 @@ const manifest = {
 let untranslatedCount = 0;
 let translatedCount = 0;
 let noSourceCount = 0;
+let unsupportedCount = 0;
 
 for (const filename of localeFiles) {
 	const localePath = join(localeDir, filename);
@@ -237,20 +257,43 @@ for (const filename of localeFiles) {
 		continue;
 	}
 
-	const sourceContent = readFileSync(sourcePath, "utf-8");
-	const localeContent = readFileSync(localePath, "utf-8");
+	const sourceParsed = splitFile(readFileSync(sourcePath, "utf-8"));
+	const localeParsed = splitFile(readFileSync(localePath, "utf-8"));
 
-	const sourceParsed = splitFrontmatter(sourceContent);
-	const localeParsed = splitFrontmatter(localeContent);
+	if (
+		sourceParsed.format === "toml" ||
+		sourceParsed.format === "json" ||
+		localeParsed.format !== sourceParsed.format
+	) {
+		manifest.files[filename] = {
+			status: "unsupported_format",
+			note: `${sourceParsed.format.toUpperCase()} front matter isn't supported. Translate this file by hand (Manual fallback).`,
+		};
+		unsupportedCount++;
+		continue;
+	}
+
+	const source =
+		sourceParsed.format === "yaml"
+			? frontmatterFields(sourceParsed)
+			: { fields: {}, unsupported: [] };
+	const local =
+		localeParsed.format === "yaml"
+			? frontmatterFields(localeParsed)
+			: { fields: {}, unsupported: [] };
 
 	// Find translatable frontmatter fields that still match the source
 	const translatableFields = {};
 	let hasUntranslatedFields = false;
 
-	for (const [path, sourceValue] of Object.entries(sourceParsed.fields)) {
+	for (const [path, sourceValue] of Object.entries(source.fields)) {
 		if (!isTranslatableField(path, sourceValue)) continue;
 
-		const localeValue = localeParsed.fields[path];
+		const localeValue = local.fields[path];
+		if (localeValue === sourceValue && keep[filename]?.[path] === sourceValue) {
+			keptFieldCount++;
+			continue;
+		}
 		if (localeValue === sourceValue) {
 			translatableFields[path] = sourceValue;
 			hasUntranslatedFields = true;
@@ -258,10 +301,9 @@ for (const filename of localeFiles) {
 	}
 
 	const bodyIdentical =
-		sourceParsed.body.trim() !== "" &&
-		localeParsed.body.trim() === sourceParsed.body.trim();
+		sourceParsed.body.trim() !== "" && localeParsed.body.trim() === sourceParsed.body.trim();
 
-	if (!hasUntranslatedFields && !bodyIdentical) {
+	if (!hasUntranslatedFields && !bodyIdentical && local.unsupported.length === 0) {
 		manifest.files[filename] = { status: "already_translated" };
 		translatedCount++;
 		continue;
@@ -278,8 +320,22 @@ for (const filename of localeFiles) {
 		entry.body = sourceParsed.body;
 	}
 
+	if (local.unsupported.length > 0) {
+		// The scanner can't safely read these values; the merge won't touch them
+		entry.manual_frontmatter = local.unsupported.map(
+			(u) => `${u.path} (file line ${u.line + 1}: ${u.reason})`,
+		);
+	}
+
+	if (!hasUntranslatedFields && !bodyIdentical) {
+		// Only manual fields left
+		entry.status = "manual_only";
+	} else {
+		untranslatedCount++;
+	}
+
 	manifest.files[filename] = entry;
-	untranslatedCount++;
+	if (entry.manual_frontmatter) unsupportedCount++;
 }
 
 // ---------------------------------------------------------------------------
@@ -300,9 +356,17 @@ console.log(`  Needs translation:   ${untranslatedCount}`);
 if (noSourceCount > 0) {
 	console.log(`  No source file:      ${noSourceCount}`);
 }
+if (keptFieldCount > 0) {
+	console.log(`  Fields kept as source: ${keptFieldCount} (${KEEP_PATH})`);
+}
+if (unsupportedCount > 0) {
+	console.log(
+		`  Need manual work:    ${unsupportedCount} (see manual_frontmatter / unsupported_format in the manifest)`,
+	);
+}
 console.log("");
 
-if (untranslatedCount === 0) {
+if (untranslatedCount === 0 && unsupportedCount === 0) {
 	console.log("Nothing to translate — all files are already translated.");
 } else {
 	console.log(`Task manifest written to ${outputPath}`);

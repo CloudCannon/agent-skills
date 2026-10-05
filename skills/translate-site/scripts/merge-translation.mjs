@@ -11,7 +11,7 @@
  *   node merge-translation.mjs --locale fr [--source rosey] [--input path] [--dry-run]
  */
 
-import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // ---------------------------------------------------------------------------
@@ -137,6 +137,13 @@ function validateHtml(key, original, translated) {
 	return null;
 }
 
+// Entries deliberately left the same as the original, by locale: { fr: { key: original } }.
+// prepare-translation.mjs reads it so they aren't offered again.
+const keepPath = join(sourceDir, "translate-site-keep.json");
+const keepAll = existsSync(keepPath) ? JSON.parse(readFileSync(keepPath, "utf-8")) : {};
+const keep = (keepAll[locale] ??= {});
+let keptCount = 0;
+
 // ---------------------------------------------------------------------------
 // Merge untranslated entries
 // ---------------------------------------------------------------------------
@@ -160,6 +167,11 @@ for (const [key, taskEntry] of Object.entries(task.untranslated || {})) {
 	const issue = validateHtml(key, taskEntry.original, taskEntry.value);
 	if (issue) {
 		warnings.push(`${key}: ${issue}`);
+	}
+
+	if (taskEntry.value === taskEntry.original) {
+		keep[key] = taskEntry.original;
+		keptCount++;
 	}
 
 	localeData[key].value = taskEntry.value;
@@ -189,6 +201,11 @@ for (const [key, taskEntry] of Object.entries(task.stale || {})) {
 		warnings.push(`${key}: ${issue}`);
 	}
 
+	if (taskEntry.value === taskEntry.new_original) {
+		keep[key] = taskEntry.new_original;
+		keptCount++;
+	}
+
 	localeData[key].value = taskEntry.value;
 	localeData[key].original = localeData[key]._base_original;
 	staleResolvedCount++;
@@ -211,6 +228,11 @@ if (dryRun) {
 } else {
 	writeFileSync(localeFilePath, output);
 	console.log(`Updated ${localeFilePath}`);
+
+	if (keptCount > 0) {
+		writeFileSync(keepPath, JSON.stringify(keepAll, null, 2) + "\n");
+		console.log(`Recorded ${keptCount} entries kept as the original in ${keepPath}`);
+	}
 
 	// Clean up task file
 	try {
@@ -242,7 +264,5 @@ if (warnings.length > 0) {
 }
 
 if (mergedCount === 0 && skippedCount > 0) {
-	console.log(
-		"\nNo translations were merged. Did the AI fill in `value` fields in the task file?",
-	);
+	console.log("\nNo translations were merged. Did the AI fill in `value` fields in the task file?");
 }

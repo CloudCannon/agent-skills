@@ -97,9 +97,11 @@ Read the task file. It contains:
 
 **Match tone and register** using `_meta.tone_examples`: formal vs informal address (vous/tu, Sie/du, usted/tú), and terminology consistency (if "Sign up" is already "S'inscrire", don't switch to "Créer un compte").
 
-**Intentional non-translations.** Brand names ("CloudCannon"), product names ("Rosey"), proper nouns, technical terms, URLs, email addresses, and code snippets stay identical — set `value` equal to `original`. Signals: the key contains `brand`/`name`/`logo`/`copyright`, or the value is a single proper noun/trademark/URL/code. When in doubt, translate — a reviewer can revert one entry more easily than spot a missing translation.
+**Intentional non-translations.** Brand names ("CloudCannon"), product names ("Rosey"), proper nouns, technical terms, URLs, email addresses, and code snippets stay identical — set `value` equal to `original`. The merge records each one in `rosey/translate-site-keep.json`, so later runs count it as done until its original changes; commit that file with the locale files. Signals: the key contains `brand`/`name`/`logo`/`copyright`, or the value is a single proper noun/trademark/URL/code. When in doubt, translate — a reviewer can revert one entry more easily than spot a missing translation.
 
-**Whitespace.** `write-locales` preserves whitespace from the HTML (entries may be `" Blog "`). Preserve the same leading/trailing whitespace — Rosey substitutes the value directly into HTML and altered whitespace can break rendering.
+**Whitespace.** `write-locales` trims leading and trailing whitespace from each original (`base.json` keeps it). Don't add any to the value, and keep inner line breaks and spacing as they are in the original.
+
+**Not translating an entry yet** (a post that stays in English for now): leave its `value` out of the task file. The merge skips it, and the next run offers it again. Don't set it to the original — that records it as kept for good.
 
 After translating, write the task file back to the same path with `value` fields added.
 

@@ -76,6 +76,8 @@ Tag every element containing user-visible text:
 | `md.render`    | `block`     |
 | `renderInline` | `text`      |
 
+The SSG file has the mapping for its own render calls (Hugo's `markdownify` needs care).
+
 Two things that break it silently:
 
 - A rich field passed through a **slot** bypasses the markdown render entirely, so no `data-type` is correct.
@@ -252,7 +254,7 @@ Triage by **where the head text comes from**, not by whether the page is transla
 
 The last row is the trap: those heads are already correct from the locale collection file, and a key gives you a second, winning source of truth. See [troubleshooting.md](troubleshooting.md#a-split-by-directory-pages-translated-title-reverted-to-english).
 
-So make head keys **opt-in per page**, never a layout-wide default: a default would land on Phase 8 post pages, the one place they must not go.
+So on a site with split-by-directory pages, make head keys **opt-in per page**, never a layout-wide default: a default would land on Phase 8 post pages, the one place they must not go. A site with no split-by-directory pages can key the head in the layout.
 
 #### Don't expect an SSG i18n convention to cover this
 
@@ -303,4 +305,4 @@ Keep this helper separate from locale config — it only ever produces the **def
 
 **Editing a label invalidates its translations.** Changing the helper's output changes the Rosey original, which marks every translation of that term out of date. Where the translation is still correct (fixing `Seo` → `SEO` when the locale value already said `SEO`), set `_base_original` to the new string in each locale file to pre-clear the review — the equivalent of ticking "mark as reviewed".
 
-Taxonomy pages also need **per-locale routes** so each lists that locale's posts; without them Rosey generates the locale copies from the default-language page, listing the wrong posts. See the SSG-specific file. Their `<title>` needs a key **per term**, which is why head keys support explicit overrides — a root-derived name would give every term page one title. One route serving many terms is also why [3e](#3e-derive-the-root-from-the-templates-source-identity) matters here.
+On a site with split-by-directory posts, taxonomy pages also need **per-locale routes** so each lists that locale's posts; without them Rosey generates the locale copies from the default-language page, listing the wrong posts. See the SSG-specific file. On a site where every locale page is a Rosey copy, the copies list the same posts as the default language, which is correct. Their `<title>` needs a key **per term**, which is why head keys support explicit overrides — a root-derived name would give every term page one title. One route serving many terms is also why [3e](#3e-derive-the-root-from-the-templates-source-identity) matters here.

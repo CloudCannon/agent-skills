@@ -27,18 +27,21 @@ Step-by-step workflow for making a single-language site translatable with **Rose
 
 ## Contents
 
-| File                                               | Covers                                                                      |
-| -------------------------------------------------- | --------------------------------------------------------------------------- |
-| **SKILL.md** (this file)                           | When this skill applies, the two layers, starting point, SSG detection      |
-| [setup.md](setup.md)                               | **The main workflow** — nine phases, audit through locale picker, checklist |
-| [tagging.md](tagging.md)                           | **Phase 3 in full** — every `data-rosey` / `-ns` / `-root` authoring rule   |
-| [gotchas.md](gotchas.md)                           | Preventative one-line rules, framework-agnostic and SSG-specific            |
-| [troubleshooting.md](troubleshooting.md)           | Symptom → cause → fix for things that build cleanly and translate wrongly   |
-| [migrating-from-i18n.md](migrating-from-i18n.md)   | Replacing an existing i18n system, before the main workflow                 |
-| [rcc-v1-to-v2-upgrade.md](rcc-v1-to-v2-upgrade.md) | Moving a site from RCC v1 to v2 — an alternative to the main workflow       |
-| [astro/overview.md](astro/overview.md)             | Astro implementations, plus the Astro i18n migration supplement             |
-| [eleventy/overview.md](eleventy/overview.md)       | Eleventy implementations, incl. taxonomy scoping and link localization      |
-| [hugo/overview.md](hugo/overview.md)               | Hugo implementations (partial — see the coverage note in that file)         |
+| File                                                       | Covers                                                                      |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **SKILL.md** (this file)                                   | When this skill applies, the two layers, starting point, SSG detection      |
+| [setup.md](setup.md)                                       | **The main workflow** — nine phases, audit through locale picker, checklist |
+| [tagging.md](tagging.md)                                   | **Phase 3 in full** — every `data-rosey` / `-ns` / `-root` authoring rule   |
+| [gotchas.md](gotchas.md)                                   | Preventative one-line rules, framework-agnostic and SSG-specific            |
+| [troubleshooting.md](troubleshooting.md)                   | Symptom → cause → fix for things that build cleanly and translate wrongly   |
+| [migrating-from-i18n.md](migrating-from-i18n.md)           | Replacing an existing i18n system, before the main workflow                 |
+| [rcc-v1-to-v2-upgrade.md](rcc-v1-to-v2-upgrade.md)         | Moving a site from RCC v1 to v2 — an alternative to the main workflow       |
+| [astro/overview.md](astro/overview.md)                     | Astro implementations, plus the Astro i18n migration supplement             |
+| [eleventy/overview.md](eleventy/overview.md)               | Eleventy implementations, incl. taxonomy scoping and link localization      |
+| [hugo/overview.md](hugo/overview.md)                       | Hugo: choosing one of three setups, root derivation, setup C (Rosey only)   |
+| [hugo/native-multilingual.md](hugo/native-multilingual.md) | Hugo setup A: Hugo languages and `i18n` tables, no Rosey                    |
+| [hugo/hybrid.md](hugo/hybrid.md)                           | Hugo setup B: Hugo languages for content, Rosey for UI strings              |
+| [scripts/fix-rosey-pages.mjs](scripts/fix-rosey-pages.mjs) | Postbuild fix for canonical, `og:url` and sitemaps on Rosey-generated pages |
 
 ## The two layers
 
@@ -67,5 +70,7 @@ After auditing the site (Phase 1), identify the SSG and read the matching `<ssg>
 | Astro           | `astro/overview.md`    |
 | Eleventy (11ty) | `eleventy/overview.md` |
 | Hugo            | `hugo/overview.md`     |
+
+**Hugo: read `hugo/overview.md` before Phase 2.** It asks which of three setups the site needs, and one of them (Hugo's own multilingual system) replaces the Rosey workflow entirely.
 
 These files contain root derivation patterns, content-block namespacing examples, the array-item component rule, split-by-directory details, locale picker examples, and framework-specific gotchas. The phase docs reference them where needed.
