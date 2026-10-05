@@ -70,7 +70,7 @@ astro/content.md                        Phase 3: content restructuring
 astro/build.md                          Phase 5: build verification
 astro/page-building.md                  Phase 2/4: pages collection, page builder, BlockRenderer
 astro/cc-friendly-conventions.md        Pre-migration scaffolding conventions
-hugo/overview.md                        ENTRY POINT for Hugo — phase links (partial — see its coverage note)
+hugo/overview.md                        ENTRY POINT for Hugo — phase links
 hugo/audit.md                           Phase 1: site analysis
 hugo/content.md                         Phase 3: content restructuring
 hugo/build.md                           Phase 5: build verification

@@ -69,15 +69,15 @@ Not sure where to start? [ARCHITECTURE.md](ARCHITECTURE.md#which-skill-do-i-star
 
 Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory covering that SSG's differences.
 
-| Skill                        | Astro | Eleventy | Hugo    |
-| ---------------------------- | ----- | -------- | ------- |
-| `migrate-to-cloudcannon`     | Yes   | —        | Partial |
-| `make-site-multilingual`     | Yes   | Yes      | Yes     |
-| `cloudcannon-configuration`  | Yes   | —        | Yes     |
-| `cloudcannon-snippets`       | Yes   | —        | Yes     |
-| `cloudcannon-visual-editing` | Yes   | —        | Yes     |
-| `cloudcannon-bookshop`       | Yes   | —        | Yes     |
-| `cloudcannon-dev-server`     | Yes   | Yes      | Yes     |
+| Skill                        | Astro | Eleventy | Hugo |
+| ---------------------------- | ----- | -------- | ---- |
+| `migrate-to-cloudcannon`     | Yes   | —        | Yes  |
+| `make-site-multilingual`     | Yes   | Yes      | Yes  |
+| `cloudcannon-configuration`  | Yes   | —        | Yes  |
+| `cloudcannon-snippets`       | Yes   | —        | Yes  |
+| `cloudcannon-visual-editing` | Yes   | —        | Yes  |
+| `cloudcannon-bookshop`       | Yes   | —        | Yes  |
+| `cloudcannon-dev-server`     | Yes   | Yes      | Yes  |
 
 `cloudcannon-cli`, `cloudcannon-sdk`, `translate-site` and `brainstorming` are SSG-agnostic — they work the same everywhere and have no SSG directories.
 

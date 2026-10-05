@@ -66,7 +66,7 @@ The postbuild below does this in its first five lines.
 
 **MUST emit content-derived keys (`<title>`, meta description, hero text, post title and body) only on pages with no content file in another language.**
 
-**Why:** a Rosey key with a locale value overwrites Hugo's French text on Hugo-built pages: `À propos | Sendit` becomes whatever the locale file says. Keys with no value leave it alone, so the bug appears only once someone translates.
+**Why:** a Rosey key with a locale value overwrites Hugo's French text on Hugo-built pages: `À propos` becomes whatever the locale file says. Keys with no value leave it alone, so the bug appears only once someone translates.
 
 Decide it in one helper:
 

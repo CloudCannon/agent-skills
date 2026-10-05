@@ -142,7 +142,7 @@ fr:
 {{ end }}
 ```
 
-Put it in the theme's head hook if it has one (Docsy: `layouts/partials/hooks/head-end.html`), so no theme layout is overridden.
+Put it in the theme's head hook if it has one (often a `hooks/head-end.html` partial), so no theme layout is overridden.
 
 ### Search
 
@@ -151,11 +151,11 @@ Check how the theme builds its index. If it ranges over `hugo.Sites` or every la
 **Fix: one index per language, from `site.Pages`, written under a per-language name.** The output name must differ per language — Hugo caches a `resources.ExecuteAsTemplate` result by its target name, so overriding only the index template still gives every language the first language's index:
 
 ```go-html-template
-{{ $index := resources.Get "json/offline-search-index.json"
-  | resources.ExecuteAsTemplate (printf "offline-search-index.%s.json" site.Language.Lang) . }}
+{{ $index := resources.Get "json/search-index.json"
+  | resources.ExecuteAsTemplate (printf "search-index.%s.json" site.Language.Lang) . }}
 ```
 
-On Docsy that means overriding the index template (`assets/json/offline-search-index.json`) and the partial that names it (`search-input.html`, as `layouts/partials/search-input.html` in the site): a theme override, so ask first.
+That usually means overriding the theme's index template and the partial that names its output file: a theme override, so ask first.
 
 **Common miss:** files copied out of Hugo's module cache are read-only. `chmod u+w` them before editing, and note the theme version in a comment at the top so the next theme update can diff them.
 

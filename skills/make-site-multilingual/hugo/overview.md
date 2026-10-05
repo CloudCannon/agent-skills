@@ -8,10 +8,6 @@ Framework-specific implementation details for making a Hugo site multilingual. R
 | [native-multilingual.md](native-multilingual.md) | Setup A: Hugo languages and `i18n` tables, no Rosey                        |
 | [hybrid.md](hybrid.md)                           | Setup B: Hugo languages for page content, Rosey and the RCC for UI strings |
 
-## Coverage note
-
-Tested with Hugo 0.166, Rosey 2.3.10 and RCC 2.0.1, at build time and in the CloudCannon editor: A on a Docsy site, B on a site that owns its layouts (Sendit), C on `hugo-starter`. One editor limitation affects A: components on `/fr/` pages re-render in the default language ([native-multilingual.md § 6](native-multilingual.md#the-visual-editor-renders-components-in-the-default-language)).
-
 ## Choose a setup
 
 A site has two kinds of translatable text, decided separately:
@@ -44,7 +40,7 @@ That gives three setups:
 | Body content as one file per language | No                                                                                                       | No                                                                                                                                           | Yes — a key per element |
 | Hugo-specific setup work              | Template fixes for Hugo's gaps (search, `data/`, dates, links, `hreflang`), some of them theme overrides | A two-step Rosey generate, no `{{ i18n }}`, a content-key gate, and the home and section pages translated as whole files (no inline editing) | The rules in this file  |
 
-Record the choice. **A** leaves the Rosey workflow: follow [native-multilingual.md](native-multilingual.md) instead of `setup.md`. **B** and **C** follow `setup.md`, with the rules below; B adds [hybrid.md](hybrid.md).
+Record the choice. **A** leaves the Rosey workflow: follow [native-multilingual.md](native-multilingual.md) instead of `setup.md`. Tell the user that in A, components on `/fr/` pages re-render in the default language in the Visual Editor ([native-multilingual.md § 6](native-multilingual.md#the-visual-editor-renders-components-in-the-default-language)). **B** and **C** follow `setup.md`, with the rules below; B adds [hybrid.md](hybrid.md).
 
 ## Rules for B and C
 

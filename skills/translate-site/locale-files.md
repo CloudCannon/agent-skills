@@ -18,9 +18,9 @@ Each file is a flat JSON object keyed by Rosey translation keys:
 ```json
 {
   "hero:title": {
-    "original": "Welcome to Sendit",
-    "value": "Welcome to Sendit",
-    "_base_original": "Welcome to Sendit"
+    "original": "Welcome to our site",
+    "value": "Welcome to our site",
+    "_base_original": "Welcome to our site"
   },
   "hero:subtitle": {
     "original": "The best email platform",
