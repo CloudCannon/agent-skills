@@ -69,12 +69,12 @@ import { componentMap } from "../cloudcannon/componentMap";
 const blocks = Astro.props.blocks ?? [];
 ---
 <div data-editable="array" data-prop="content_blocks" data-component-key="_name">
-  {blocks.map((block, i) => {
+  {blocks.map((block) => {
     const Block = componentMap[block._name];
     if (!Block) throw new Error(`Unknown component: ${block._name}`);
     return (
       <div data-editable="array-item" data-component={block._name}>
-        <Block {...block} key={i} content_blocks_length={blocks.length} />
+        <Block {...block} />
       </div>
     );
   })}
@@ -82,7 +82,7 @@ const blocks = Astro.props.blocks ?? [];
 ```
 
 - **Read** props directly (`Astro.props.blocks ?? []`), not by destructuring with a default. While `bookshop()` is still installed at step 3, its rewrite breaks destructured props and the page drops out of the build.
-- **Pass** every prop the old dispatcher computed (`key`, `content_blocks_length` here) as the same prop, so the build doesn't change. [§ Props the dispatcher computed](#props-the-dispatcher-computed) adds the editor side.
+- **Pass** only the block's data. Anything the old dispatcher computed (`key`, `content_blocks_length`) moves into the components → [§ Props the dispatcher computed](#props-the-dispatcher-computed).
 - **Use** the element the old dispatcher's parent expected — the layout usually owns `<main>` already.
 - **Throw** on an unknown name: a guarded lookup hides a missed rename.
 
@@ -133,23 +133,21 @@ Register the `block-renderer` dispatcher too, if the site has one. A React block
 
 ## Props the dispatcher computed
 
-Bookshop dispatchers often pass props that aren't in the block's data — the index, the array length, the page body. A re-render only has the block's data, so these vanish in the editor. Feed them from the wrapper:
+Bookshop dispatchers often pass props that aren't in the block's data, such as the item's index or the array's length. The editor re-renders a block from its data alone, so these arrive `undefined` there. Remove the dependency from the component:
 
-| Dispatcher passed                       | Wrapper attribute                           |
-| --------------------------------------- | ------------------------------------------- |
-| `key={i}`                               | `data-prop-key="@index"`                    |
-| `content_blocks_length={blocks.length}` | `data-prop-content_blocks_length="@length"` |
-| `bodyContent={body}`                    | `data-prop-body_content="@content"`         |
+| The block used it for                                              | Replace with                                                       |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Spacing or styling by position (first, last, alternating)          | `:first-child`, `:last-child`, `:nth-child(even)` in the block CSS |
+| A value editors should control (an anchor id, a background choice) | A field in the block's data, with an input                         |
 
-- **Rename** camelCase props to snake_case. `data-prop-*` names are lowercased, so `data-prop-bodyContent` delivers `bodycontent`.
-- **Expect** blocks added in the editor to lack positional props until the next build. Prefer CSS (`:last-child`) over an index prop for position-dependent styling.
+**Only** when the position itself changes the markup (an `<h1>` on the first block only, say), pass it both ways: `index={i}` on the component for the build, and `data-prop-index="@index"` on the array item for the editor. `@length` gives the item count the same way. Name these props in lowercase or snake_case, because `data-prop-*` names are lowercased. Blocks added in the editor don't get them until the next build.
 
 ## Removing the integration
 
 Remove `bookshop()` from `astro.config.mjs` at step 4, with the packages. Then:
 
 - [ ] Replace every `ENV_BOOKSHOP_LIVE` with `ENV_CLIENT` — `grep -rn ENV_BOOKSHOP_LIVE src`.
-- [ ] Add an explicit import to every MDX file that uses a component without one — the integration auto-imported them.
+- [ ] Replace the integration's auto-import without adding `import` lines to MDX content — editors see them in the Content Editor. Register the components MDX content uses (`rg '<[A-Z]' -g '*.mdx' src/content`) with `astro-auto-import` before `mdx()`, or pass a shared `components` map at every render site, and delete any `import` lines already in content → [MDX setup pipeline](../../cloudcannon-snippets/astro/overview.md#mdx-setup-pipeline-must-complete-all-four).
 - [ ] Remove `src/bookshop/` and `src/shared/astro/`, and any path alias pointing at `src/shared` in `tsconfig.json`. Imports rooted at `baseUrl` (`src/shared/…`) go with them; keep `baseUrl` itself if other imports use it.
 - [ ] Check the site's Node version meets `@cloudcannon/editable-regions`' `engines.node` — Bookshop-era sites often pin Node 18. On a hosted site, change it in the site's build settings (or with [cloudcannon-cli](../../cloudcannon-cli/SKILL.md)); `.cloudcannon/initial-site-settings.json` only applies when a site is created.
 
