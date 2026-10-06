@@ -123,7 +123,7 @@ collections_config:
 
 ## Data files
 
-Hugo reads `data/*.{yml,yaml,json,toml}` into `hugo.Data.<name>` (`site.Data` on Hugo < 0.156). For each file an editor should change, add a `data_config` entry and a `file_config` entry:
+Hugo reads `data/*.{yml,yaml,json,toml}` into `hugo.Data.<name>` (`site.Data` on Hugo < 0.156). For each file an editor should change, add a `data_config` entry and configure inputs for its keys (usually in `file_config`):
 
 ```yaml
 data_config:
@@ -370,7 +370,7 @@ Work through these before moving to the next phase. The Astro checklist's collec
 - [ ] Every section of leaf bundles has a glob that matches flat files, a bundle `create.path`, and `disable_add_folder: true`
 - [ ] Every key used in a collection's files is in its schema file, or the schema sets `remove_extra_inputs: false`
 - [ ] `permalinks`, `slug:` and `url:` overrides are mirrored in the matching collection `url`
-- [ ] Every data file referenced by a region or a live partial has a `data_config` entry and a `file_config` entry
+- [ ] Every data file referenced by a region or a live partial has a `data_config` entry and inputs for its keys — see [../configuration-gotchas.md § Data inputs must follow the data file](../configuration-gotchas.md#data-inputs-must-follow-the-data-file-not-a-template)
 - [ ] Every string field's input type matches its template filter — `markdown` for `markdownify`, `html` for `safeHTML`, `text` or `textarea` otherwise — see [configuration-gotchas.md](configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter)
 - [ ] Taxonomy keys are top-level `multiselect` inputs with `values: data.<taxonomy>` from a seeded data file — no `values: []`
 - [ ] Every `select` and `multiselect` has its options configured — see [../configuration-gotchas.md § Editor-owned option lists](../configuration-gotchas.md#editor-owned-option-lists)

@@ -114,7 +114,7 @@ Work through every item after implementing editable regions, then the extra item
       → [Cross-collection items on a page](visual-editing-reference.md#cross-collection-items-on-a-page)
 - [ ] **`<template>` blueprints**: Primitive-only arrays that can be empty at build time have `<template>` children.
       → [When HTML `<template>` blueprints are needed](visual-editing-reference.md#when-html-template-blueprints-are-needed)
-- [ ] **Data file input config**: Every data file in `data_config` has a `file_config` entry with proper input types and structure references
+- [ ] **Data file input config**: Every data file in `data_config` has proper input types and structure references, configured at any level that reaches the file (usually `file_config`) — see [configuration-gotchas.md § Data inputs must follow the data file](../cloudcannon-configuration/configuration-gotchas.md#data-inputs-must-follow-the-data-file-not-a-template)
 
 ### Page builder only (skip if not applicable)
 

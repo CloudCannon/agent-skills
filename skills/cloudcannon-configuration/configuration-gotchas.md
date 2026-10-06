@@ -112,7 +112,7 @@ Common culprits: `price`, `amount`, `count`, `order`, `rating`. Structure defaul
 find <collection dir> -name '*.md' -exec sed -n '/^---$/,/^---$/p' {} \; | grep -oE '^[A-Za-z_][A-Za-z0-9_]*:' | sort -u
 ```
 
-[§ Data inputs must follow the JSON](#data-inputs-must-follow-the-json-not-a-template) is the same check for data files.
+[§ Data inputs must follow the data file](#data-inputs-must-follow-the-data-file-not-a-template) is the same check for data files.
 
 ### `_inputs` key collision across nesting levels
 
@@ -130,25 +130,36 @@ A dotted key takes precedence over a plain key that also matches: `menu.main.wei
 
 The same applies inside one structure value's `_inputs`. A contact block whose `email` is an object holding `heading` and its own `email` string can't type both with a plain `email` key — it matches the object and the string. Type the object with `email` and the string with `email.email`, or leave `type` off both and let CloudCannon infer them from the value.
 
-### Data inputs must follow the JSON, not a template
+### Data inputs must follow the data file, not a template
 
-Before finalizing `file_config` for a data file, grep the actual JSON keys and ensure every key has a matching input. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the JSON actually has those keys. Mismatches fail silently in both directions — "the editor works but a few fields aren't styled right" is easy to miss on a fast visual pass.
+Before finalizing the `_inputs` for a data file, list the file's actual keys and check each one against the inputs that reach it. Copying `colors.primary` / `colors.secondary` / `colors.accent` / `colors.background` from a reference template is only correct if the file actually has those keys. Mismatches fail silently in both directions — "the editor works but a few fields aren't styled right" is easy to miss on a fast visual pass.
 
 | Mismatch                       | Symptom                                                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| Input defined, key not in JSON | Input is silently ignored. No warning, no editor UI, no-op at build.                                                      |
-| Key in JSON, no input defined  | Falls through to a plain text field. Editors see a raw text box where a color picker / switch / image uploader should be. |
+| Input defined, key not in file | Input is silently ignored. No warning, no editor UI.                                                                      |
+| Key in file, no input defined  | Falls through to a plain text field. Editors see a raw text box where a color picker / switch / image uploader should be. |
 
-**Recipe:** before committing `file_config`, list every leaf key path in each JSON file and cross-reference against the `_inputs` scope:
+A data file's inputs merge from every level of the configuration cascade that covers it, so check them all. Levels are listed least to most specific; where two levels configure the same key, the more specific one wins:
+
+| Level           | Where                                                | Covers                                |
+| --------------- | ---------------------------------------------------- | ------------------------------------- |
+| Global          | `_inputs` at the config root                         | Every file                            |
+| Collection      | `collections_config.<name>._inputs`                  | Files in that collection              |
+| Schema          | `collections_config.<name>.schemas.<schema>._inputs` | Files using that schema               |
+| File config     | `file_config[]._inputs`                              | Files matching the entry's `glob`     |
+| In file         | `_inputs` at the root of the data file               | That file                             |
+| Structure value | `_structures.<name>.values[]._inputs`                | Items added from that structure value |
+
+**Recipe:** list every leaf key path in the file, then cross-reference it against those levels:
 
 ```bash
 jq -r 'paths(scalars) | join(".")' <data dir>/*.json | sort -u
 # YAML data files: yq -o=json '.' <file> | jq -r 'paths(scalars) | join(".")'
 ```
 
-Every path in the output should either have a corresponding `_inputs` entry (scoped via `file_config` or matched by global `_inputs`) or be intentionally left untyped. Keys in `_inputs` that do NOT appear in the JSON are dead config — remove them.
+Every path should either match an `_inputs` key at a level that covers the file, or be intentionally left untyped. Remove any input scoped to this file (its collection, schema, `file_config` entry or the file itself) that matches no path; it's dead config. A global key that matches nothing here may still match other files.
 
-**Applies equally when the template changes:** removing a color key from JSON means removing the matching input in the same commit.
+**Applies equally when the template changes:** removing a key from a data file means removing its matching input in the same commit.
 
 ### The first edit writes every schema key
 
