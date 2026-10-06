@@ -27,7 +27,7 @@ When unsure, ask whether a non-developer would ever say "I need a new one of the
 **MUST:** wire a dataset explicitly with `values: data.<name>`.
 **Why:** don't rely on CloudCannon matching an input to a dataset by name. A `select` named `my_colors` with a dataset `colors` gets no options — only its stored value and an empty dropdown.
 
-A dataset needs all its connected pieces — see [§ Data references require three connected pieces](#data-references-require-three-connected-pieces). The icon recipe below is a worked example of both dataset rows.
+A dataset needs a `data_config` entry, and editing its file needs a collection — see [§ Data files: editing and datasets are separate](#data-files-editing-and-datasets-are-separate). The icon recipe below is a worked example of both dataset rows.
 
 ## Configure icon fields as select inputs
 
@@ -348,9 +348,9 @@ Keep `disable_add_folder: true` on these collections so editors can't add stray 
 | `image`      | `ImageEditable` | n/a                                      | n/a                                  | n/a               | image options only |
 | `link`       | `LinkEditable`  | n/a                                      | n/a                                  | n/a               | n/a                |
 
-**`_editables.text` is inline-only.** It does NOT have `bulletedlist`, `numberedlist`, `blockquote`, `format`, `table`, or any block-level option — only inline formatting (`bold`, `italic`, `link`, `strike`, `subscript`, `superscript`, `underline`, `undo`, `redo`, `removeformat`, `copyformatting`, `remove_custom_markup`, `allow_custom_markup`). For block-level controls on a region, set them in its input's `options` — see [§ Set region toolbars on the input](#set-region-toolbars-on-the-input-not-in-_editablestext-or-block). For the Content Editor, use `_editables.content`. See [SKILL.md § Do this before writing any configuration](SKILL.md#do-this-before-writing-any-configuration) for schema details.
+**`_editables.text` is inline-only** (`TextEditable`): `bold`, `italic`, `link`, `strike`, `subscript`, `superscript`, `underline`, `undo`, `redo`, `removeformat`, `copyformatting`, `remove_custom_markup`, `allow_custom_markup`. Lists, `blockquote`, `format` and `table` exist only on `_editables.content`, `_editables.block`, and a `markdown`/`html` input's `options`. It's only a fallback in any case: a region takes its whole toolbar, inline and block, from its field's input `options` → [§ Set region toolbars on the input](#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
 
-**Headings are a `format` string, not boolean keys.** `heading2: true` / `heading3: true` are not in the schema. Use `format: "p h1 h2 h3 h4 h5 h6"` (space-separated) in `ToolbarOptions`.
+**Headings are a `format` string, not boolean keys.** `heading2: true` / `heading3: true` are not in the schema. Use `format: p h1 h2 h3` (space-separated) in any of those three places.
 
 ### Set region toolbars on the input, not in `_editables.text` or `.block`
 
@@ -436,17 +436,14 @@ For heading-level fields (title, subtitle), intentionally omit block-level optio
 
 The first entry in `_enabled_editors` is the editor a file opens in. See [astro/configuration.md § \_enabled_editors order](astro/configuration.md#_enabled_editors-order-determines-the-default) for the per-collection defaults.
 
-## Data references require three connected pieces
+## Data files: editing and datasets are separate
 
-Exposing a data file (icons, site settings, etc.) to editors requires three things, and missing any one silently breaks (no error in the editor, but the data either never appears or can't be edited):
+A data file is registered in two independent ways. Each fails silently when missing.
 
-1. **The file** — e.g. `data/icons.json`
-2. **`data_config` entry** — registers it as a data set CC can read: `icons: { path: data/icons.json }`
-3. **Consumer** — either an `_inputs` reference (`values: data.icons`) or a `collections_config` entry so editors can browse/edit it
+- **To edit it**, it belongs to a collection like any other, with no output URL: a `collections_config` entry, inputs per file or on the collection, and a `collection_groups` reference to show it in a sidebar group.
+- **To use it as data**, it needs a `data_config` entry (`icons: { path: data/icons.json }`). This exposes it as a dataset to `values: data.<name>` selects, `@data[<name>]` editable regions, and the Visual Editor API.
 
-If the data file should appear in the sidebar, it also needs a `collections_config` entry for its parent directory AND a matching `collection_groups` reference. That's potentially four pieces that must all agree.
-
-**Common miss pattern:** Creating the file and the input reference but forgetting the `data_config` entry. Or defining `data_config` and `collection_groups` but no `collections_config` entry.
+A file can need either or both. **Common miss:** a select with `values: data.icons` or a region bound to `@data[icons]` with no `data_config` entry. There's no error; the options or the region are just empty.
 
 ## `collection_groups` requires matching `collections_config` entries
 
