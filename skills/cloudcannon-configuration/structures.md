@@ -396,7 +396,7 @@ _inputs:
         icon: image
 ```
 
-See [configuration.md § Object inputs need preview icons](astro/configuration.md#object-inputs-need-preview-icons).
+See [configuration-gotchas.md § Configure object inputs with preview icons](configuration-gotchas.md#configure-object-inputs-with-preview-icons).
 
 ## Deriving structures from components
 

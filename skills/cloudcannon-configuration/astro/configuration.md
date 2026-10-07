@@ -137,19 +137,6 @@ file_config:
           structures: _structures.<name>
 ```
 
-### Object inputs need preview icons
-
-Object inputs without a `preview.icon` show a generic icon in the data editor. Configure `type: object` with `options.preview.icon` on any object key that editors will see — both top-level data file objects and nested objects inside structures. Use [Material Icons](https://fonts.google.com/icons) names.
-
-```yaml
-_inputs:
-  callToAction:
-    type: object
-    options:
-      preview:
-        icon: ads_click
-```
-
 ### Hide developer-only frontmatter fields
 
 Fields like `layout`, `_schema`, and other routing/rendering keys should be hidden from editors:

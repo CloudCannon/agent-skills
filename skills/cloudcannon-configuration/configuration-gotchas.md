@@ -571,7 +571,7 @@ _structures:
         value: { name: Link label, href: / }
 ```
 
-The same applies to a snippet's repeating-parser array and to a top-level array data file (`$`) — see [../cloudcannon-snippets/astro/overview.md § Nested components](../cloudcannon-snippets/astro/overview.md#nested-components-repeating-parser) and [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config).
+The same applies to a snippet's repeating-parser array — see [../cloudcannon-snippets/raw.md § repeating](../cloudcannon-snippets/raw.md#repeating--repeat-a-child-pattern-as-array-items) — and to a top-level array data file (`$` in its `file_config` entry's `_inputs`).
 
 ### Add preview icon fallbacks on structures
 
@@ -589,7 +589,16 @@ preview:
 
 ### Configure object inputs with preview icons
 
-See [astro/configuration.md § Object inputs need preview icons](astro/configuration.md#object-inputs-need-preview-icons) for the core recommendation.
+Object inputs without a `preview.icon` show a generic icon in the data editor. Configure `type: object` with `options.preview.icon` on any object key that editors will see — both top-level data file objects and nested objects inside structures. Use [Material Icons](https://fonts.google.com/icons) names.
+
+```yaml
+_inputs:
+  callToAction:
+    type: object
+    options:
+      preview:
+        icon: ads_click
+```
 
 **Key collisions:** A key like `image` may be a string path (`type: image`) in some contexts and an object (`{ src, alt }`) in others. Keep the simpler/more common definition globally and use `file_config` or scoped keys for the other.
 

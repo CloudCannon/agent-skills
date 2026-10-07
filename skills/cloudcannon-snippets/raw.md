@@ -166,6 +166,8 @@ Options:
 
 **Do not** define the child component as a separate `_snippets` entry. If you do, the content parser will match it standalone before the parent's repeating parser runs, stealing the child elements and leaving the parent empty.
 
+Give the `editor_key` an array input with a structure, with the item preview and field inputs on the structure value, as for any array of objects.
+
 ```yaml
 _snippets:
   tabs:
