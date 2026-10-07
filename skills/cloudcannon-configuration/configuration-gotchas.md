@@ -4,7 +4,7 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 
 **Quick reference for the four most-missed rules:**
 
-1. Array item previews: `[*]` only for plain arrays — structured arrays need preview on the structure value ([§ Array item previews](#array-item-previews---vs-structure-value))
+1. Array item previews: set `preview` on the structure's `values[]` entry, at the same level as `label` and `value`; `[*]` only sets the item type of an array of primitives ([§ Array item previews](#array-item-previews---vs-structure-value))
 2. Every `type: markdown` needs explicit `options:` ([SKILL.md common mistakes](SKILL.md#common-mistakes))
 3. Data files that hold like-shaped items must be arrays, not objects keyed by slug ([astro/configuration.md § Content specifics](astro/configuration.md#content-specifics))
 4. Divergent top-level keys break structure matching ([structures.md § Common mistakes](structures.md#common-mistakes))
@@ -553,30 +553,12 @@ See [structures.md § Mandatory rules](structures.md#the-four-rules-read-first) 
 
 ### Array item previews — `[*]` vs structure value
 
-Where the preview lives depends on whether the array has `structures:`.
+**MUST:** give an array of objects a structure, and set the item `preview` on its `values[]` entry, at the same level as `label`, `icon`, `_inputs` and `value`.
+**Why:** when an array has `structures:`, CloudCannon uses the structure value's preview and ignores an `arrayName[*]` preview. It validates clean and does nothing. A structure also labels the Add button and keeps the item shape once the array is emptied.
 
-| Array shape                                                                                        | Preview location                                                                    |
-| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Plain array — no `structures:`                                                                     | `arrayName[*]` in `_inputs`                                                         |
-| Structured array — `structures: _structures._foo` OR inline `structures: { style, values: [...] }` | Inside the structure value itself, alongside `label` / `icon` / `value` / `_inputs` |
-
-`[*]` previews on a structured array validate clean and silently do nothing. If you see arrays with `structures:` and a matching `[*]` preview block, the `[*]` is dead weight — delete it and move the config onto the structure value. See [structures.md § Previews](structures.md#previews).
-
-Do **not** add `type: object` to `arrayName[*]` for snippet array items — the repeating parser already defines the item shape.
+`[*]` is for the item type of an array of primitives (`features[*]: { type: text }`) — see [structures.md § The four rules](structures.md#the-four-rules-read-first). A `[*]` preview on an array with `structures:` is dead config: delete it and set the preview on the structure's `values[]` entry.
 
 ```yaml
-# ✓ Plain array — [*] preview is correct here
-_inputs:
-  tab_items:
-    type: array
-  tab_items[*]:
-    options:
-      preview:
-        text:
-          - key: name
-        icon: tab
-
-# ✓ Structured array — preview goes on the structure value
 _structures:
   _nav_items:
     style: modal
@@ -588,6 +570,8 @@ _structures:
           icon: [link]
         value: { name: Link label, href: / }
 ```
+
+The same applies to a snippet's repeating-parser array and to a top-level array data file (`$`) — see [../cloudcannon-snippets/astro/overview.md § Nested components](../cloudcannon-snippets/astro/overview.md#nested-components-repeating-parser) and [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config).
 
 ### Add preview icon fallbacks on structures
 

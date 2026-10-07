@@ -125,7 +125,7 @@ file_config:
         type: text
 ```
 
-**Scoping:** For top-level arrays and objects in data/config files, use `file_config` so that you can gain access to `$`, which symbolises the root of the data file:
+**Scoping:** For top-level arrays and objects in data/config files, use `file_config` so that you can gain access to `$`, which symbolises the root of the data file. Give a top-level array of objects a structure like any other array; `$[*]` is only for an array of primitives:
 
 ```yaml
 file_config:
@@ -133,11 +133,8 @@ file_config:
     _inputs:
       $:
         type: array
-      $[*]:
-        type: object
         options:
-          preview:
-            icon: list
+          structures: _structures.<name>
 ```
 
 ### Object inputs need preview icons

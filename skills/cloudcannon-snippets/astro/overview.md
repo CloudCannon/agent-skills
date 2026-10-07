@@ -226,16 +226,28 @@ tabs:
   _inputs:
     tab_items:
       type: array
-    tab_items[*]:
       options:
-        preview:
-          text:
-            - key: name
-          icon: tab
-    tab_items[*].name:
-      type: text
-    tab_items[*].tab_content:
-      type: markdown
+        structures:
+          values:
+            - label: Tab
+              icon: tab
+              preview:
+                text: [{ key: name }, Tab]
+                icon: [tab]
+              _inputs:
+                name:
+                  type: text
+                tab_content:
+                  type: markdown
+                  options:
+                    bold: true
+                    italic: true
+                    link: true
+                    bulletedlist: true
+                    numberedlist: true
+              value:
+                name: ""
+                tab_content: ""
   params:
     repeating_tabs:
       parser: repeating
@@ -269,7 +281,7 @@ tabs:
             trailing: "\n\n"
 ```
 
-Configure `_inputs` using the `editor_key` from the repeating parser (`tab_items`) as the array input, and `tab_items[*]` for array item previews. Use `[*].field` syntax for individual field inputs within each item.
+Configure the repeating parser's `editor_key` (`tab_items`) as an array input with a structure. Put the item preview and the inputs for each item's fields on the structure value, as for any array of objects.
 
 ## Every MDX component must be accounted for
 
