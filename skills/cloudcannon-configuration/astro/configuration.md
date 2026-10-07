@@ -292,49 +292,7 @@ For visual editing, use `@data[key].path` syntax in editable regions:
 </h2>
 ```
 
-Data files configured via `data_config` allows those files to be referenced by other CloudCannon config, but **they do not automatically appear in the sidebar**. The most common reason to add an entry to `data_config` is to populate select inputs. To make data files browsable and editable in the sidebar, add a `collections_config` entry pointing to the data file(s) and group it under a "Data" `collection_group`. Configure `_inputs` and `_structures` globally since data files don't have collection-scoped config.
-
-### Single `data` collection or split?
-
-Default: **one `data` collection** with `path: src/data`, `glob: '**/*.json'`, `disable_url: true`, and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface.
-
-```yaml
-collections_config:
-  data:
-    path: src/data
-    glob:
-      - "**/*.json"
-    disable_url: true
-    icon: settings
-    _enabled_editors:
-      - data
-
-file_config:
-  - glob: src/data/theme.json
-    _inputs:
-      $:
-        type: object
-        options:
-          preview:
-            icon: palette
-      # ... per-file inputs
-  - glob: src/data/navigation.json
-    _inputs:
-      $:
-        type: object
-        options:
-          preview:
-            icon: menu
-      # ...
-```
-
-Split into per-file collections only when:
-
-- The files have radically different edit cadences or permissions
-- Editors actively complain they can't find a specific file under "Data"
-- You need different `_enabled_editors` per file that `file_config` can't express
-
-"Each file gets its own sidebar icon" is not a strong enough reason — `file_config.$.options.preview.icon` handles per-file icons inside a single collection.
+`data_config` makes a file a dataset; it doesn't put it in the sidebar or configure its inputs. For the collection that makes data files editable, see [../configuration-gotchas.md § Data files: editing and datasets are separate](../configuration-gotchas.md#data-files-editing-and-datasets-are-separate) and [§ Single `data` collection or split?](../configuration-gotchas.md#single-data-collection-or-split).
 
 ## Image path configuration
 

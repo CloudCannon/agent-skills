@@ -73,6 +73,48 @@ A data file is registered in two independent ways. Each fails silently when miss
 
 A file can need either or both. **Common miss:** a select with `values: data.icons` or a region bound to `@data[icons]` with no `data_config` entry. There's no error; the options or the region are just empty.
 
+### Single `data` collection or split?
+
+Default: **one `data` collection** for the SSG's data directory (`src/data` in Astro, `data/` in Hugo), with `disable_url: true` and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface. Set the glob to the formats the data files use.
+
+```yaml
+collections_config:
+  data:
+    path: data
+    glob:
+      - "**/*.json"
+    disable_url: true
+    icon: settings
+    _enabled_editors:
+      - data
+
+file_config:
+  - glob: data/theme.json
+    _inputs:
+      $:
+        type: object
+        options:
+          preview:
+            icon: palette
+      # ... per-file inputs
+  - glob: data/navigation.json
+    _inputs:
+      $:
+        type: object
+        options:
+          preview:
+            icon: menu
+      # ...
+```
+
+Split into per-file collections only when:
+
+- The files have radically different edit cadences or permissions
+- Editors actively complain they can't find a specific file under "Data"
+- You need different `_enabled_editors` per file that `file_config` can't express
+
+"Each file gets its own sidebar icon" is not a strong enough reason — `file_config.$.options.preview.icon` handles per-file icons inside a single collection.
+
 ## Inputs
 
 ### Choose text, markdown or html inputs from how the template renders the field

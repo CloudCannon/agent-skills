@@ -59,7 +59,7 @@ The Hugo baseline is a starting point, not a working config. Check each row:
 **MUST:** build production with the site's real `baseURL`, and keep `-b /` for local dev-server builds.
 **Why:** CloudCannon doesn't override `baseURL`, so the production build is the site as it deploys. Absolute URLs built from `baseURL` (`.Permalink`, `absURL`) point at the live domain even in the editor, so how well the preview works depends on the theme using relative URLs.
 
-These only take effect when the site is created — see [../astro/configuration.md § Build settings](../astro/configuration.md#build-settings-cloudcannoninitial-site-settingsjson) for changing an existing site.
+**Only takes effect on first site creation.** For existing CloudCannon sites, change build settings with `cloudcannon sites update-build-config` (see [`cloudcannon-cli` § Changing build configuration](../../cloudcannon-cli/commands.md#changing-build-configuration)) or in the CloudCannon UI under **Site Settings > Builds > Configuration**. See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
 
 ## Collections from `content/` sections
 
@@ -136,7 +136,7 @@ data_config:
 **MUST:** add a `data_config` entry for every data file a template's editable regions reference as `@data[<name>]`, and for every file a partial reads with `hugo.Data.<name>` (`site.Data` on Hugo < 0.156) that should update in the Visual Editor. A `collections_config` entry for `data/` is not enough.
 **Why:** `data_config` is what the Visual Editor loads. A region on an unregistered file never resolves, and the in-browser Hugo has no copy of the file to render from.
 
-The single-`data`-collection pattern and `file_config` examples in [../astro/configuration.md § Data config for shared data](../astro/configuration.md#data-config-for-shared-data) apply unchanged, with `data/` as the path.
+To make data files editable, put them in one `data` collection — see [../configuration-gotchas.md § Single `data` collection or split?](../configuration-gotchas.md#single-data-collection-or-split).
 
 Data files that hold select options (tags, authors, icons) follow [../configuration-gotchas.md § Editor-owned option lists](../configuration-gotchas.md#editor-owned-option-lists). On a site whose templates come from a theme or module, check the theme's `data/` before naming one: a project file with the same name replaces the theme's.
 
