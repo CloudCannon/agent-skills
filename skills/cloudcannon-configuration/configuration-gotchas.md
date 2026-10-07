@@ -116,7 +116,7 @@ find <collection dir> -name '*.md' -exec sed -n '/^---$/,/^---$/p' {} \; | grep 
 
 ### `_inputs` key collision across nesting levels
 
-`_inputs` matches by key name regardless of nesting depth. Use dot syntax to disambiguate when the same key appears with different types:
+`_inputs` matches by key name regardless of nesting depth — [inputs.md § How a key matches a field](inputs.md#how-a-key-matches-a-field) lists every key form. Use dot syntax to disambiguate when the same key appears with different types:
 
 ```yaml
 _inputs:
@@ -139,16 +139,7 @@ Before finalizing the `_inputs` for a data file, list the file's actual keys and
 | Input defined, key not in file | Input is silently ignored. No warning, no editor UI.                                                                      |
 | Key in file, no input defined  | Falls through to a plain text field. Editors see a raw text box where a color picker / switch / image uploader should be. |
 
-A data file's inputs merge from every level of the configuration cascade that covers it, so check them all. Levels are listed least to most specific; where two levels configure the same key, the more specific one wins:
-
-| Level           | Where                                                | Covers                                |
-| --------------- | ---------------------------------------------------- | ------------------------------------- |
-| Global          | `_inputs` at the config root                         | Every file                            |
-| Collection      | `collections_config.<name>._inputs`                  | Files in that collection              |
-| Schema          | `collections_config.<name>.schemas.<schema>._inputs` | Files using that schema               |
-| File config     | `file_config[]._inputs`                              | Files matching the entry's `glob`     |
-| In file         | `_inputs` at the root of the data file               | That file                             |
-| Structure value | `_structures.<name>.values[]._inputs`                | Items added from that structure value |
+A data file's inputs merge from every level of the configuration cascade that covers it, so check them all — the levels are in [inputs.md § Where `_inputs` live](inputs.md#where-_inputs-live).
 
 **Recipe:** list every leaf key path in the file, then cross-reference it against those levels:
 
@@ -226,6 +217,7 @@ When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `fla
 When the icon set is a short list only developers change, list the values directly on the input (or in `_select_data`):
 
 ```yaml
+# Input shape — placement is in § Where the input definition goes
 _inputs:
   icon:
     type: select
@@ -281,6 +273,7 @@ collections_config:
 4. Reference the dataset on the input using `values: data.icons`:
 
 ```yaml
+# Input shape — placement is in § Where the input definition goes
 _inputs:
   icon:
     type: select
@@ -300,7 +293,7 @@ The rest of the input config (`allow_create`, `value_key`, `preview`) stays the 
 
 **MUST:** define `icon` on every structure value that has an `icon` field — in that value's own `_inputs` — rather than relying on one root-level entry to reach it.
 
-Structures are designed to be portable: a structure value should carry its own input configuration and behave the same wherever it is used, not change based on configuration outside it. A root-level `_inputs.icon` does currently cascade into structure values, but that is behaviour likely to change, so treat the structure value as the place the input lives.
+A structure value carries its own input configuration — see [inputs.md § Where `_inputs` live](inputs.md#where-_inputs-live).
 
 To avoid repeating the definition, put it in an input configuration file once and pull it into each structure value with `_inputs_from_glob`. The file must end in `.cloudcannon.inputs.yml`:
 
@@ -571,7 +564,7 @@ _structures:
         value: { name: Link label, href: / }
 ```
 
-The same applies to a snippet's repeating-parser array — see [../cloudcannon-snippets/raw.md § repeating](../cloudcannon-snippets/raw.md#repeating--repeat-a-child-pattern-as-array-items) — and to a top-level array data file (`$` in its `file_config` entry's `_inputs`).
+The same applies to a snippet's repeating-parser array — see [../cloudcannon-snippets/raw.md § repeating](../cloudcannon-snippets/raw.md#repeating--repeat-a-child-pattern-as-array-items) — and to a top-level array data file — see [inputs.md § The file root](inputs.md#the-file-root).
 
 ### Add preview icon fallbacks on structures
 

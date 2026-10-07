@@ -265,6 +265,8 @@ _inputs:
       values: data.tags
 ```
 
+`$` is the root of the file and `$[*]` each item in it — see [../inputs.md § The file root](../inputs.md#the-file-root).
+
 Seed the file with every term already used in content, and add it to the data collection so it shows under Site data. No template needs to read it — Hugo still builds term pages from front matter. A taxonomy is an editor-owned list, so the general rules apply, including why `allow_create` alone isn't enough — see [../configuration-gotchas.md § Editor-owned option lists](../configuration-gotchas.md#editor-owned-option-lists).
 
 ## Site config as data

@@ -17,6 +17,7 @@ Hugo-specific configuration guidance. The cross-SSG rules live one level up: [`.
 
 | File                                                       | Covers                                                     |
 | ---------------------------------------------------------- | ---------------------------------------------------------- |
+| [../inputs.md](../inputs.md)                               | Where `_inputs` live, cascade order, how keys match fields |
 | [../structures.md](../structures.md)                       | Structures — inline vs split, previews, field completeness |
 | [../collection-urls.md](../collection-urls.md)             | URL placeholders, filters, troubleshooting                 |
 | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | CloudCannon CLI commands and options                       |

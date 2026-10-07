@@ -101,17 +101,7 @@ When the component looks entries up by Astro entry id or slug, use `value_key: f
 
 - **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit. **Multiple schemas can live in one collection** -- both via `schemas:` config and Zod `z.union`. See [§ Schemas](#schemas) below for the worked multi-schema `pages` example.
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
-- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` to reference the root of the file or structure. `$.key` also works in `collections_config.<name>._inputs` — use it when root-level keys (`title`, `description`) share names with deeper nested fields that need a different input type:
-
-```yaml
-collections_config:
-  pages:
-    _inputs:
-      $.title:
-        type: text
-```
-
-`$.title` matches each file's root `title` **and** the `title` directly at the root of every structure value, so it does not separate a page title from a block's title — don't give it a page-specific label. Deeper nested `title` fields keep the global `title` input. To give block titles their own input, define `title` in that structure value's `_inputs`.
+- **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` for the root of the file — see [../inputs.md § The file root](../inputs.md#the-file-root).
 
 `file_config` example:
 
@@ -125,17 +115,7 @@ file_config:
         type: text
 ```
 
-**Scoping:** For top-level arrays and objects in data/config files, use `file_config` so that you can gain access to `$`, which symbolises the root of the data file. Give a top-level array of objects a structure like any other array; `$[*]` is only for an array of primitives:
-
-```yaml
-file_config:
-  - glob: src/config/config.json
-    _inputs:
-      $:
-        type: array
-        options:
-          structures: _structures.<name>
-```
+**Scoping:** for top-level arrays and objects in data and config files, use `$` in `file_config` — see [../inputs.md § The file root](../inputs.md#the-file-root).
 
 ### Hide developer-only frontmatter fields
 
