@@ -46,14 +46,14 @@ Render two complete branches instead, each with its own static `data-prop`.
 
 ## Editable type — pick one
 
-| Field shape                                 | Editable type                                                | Section                                                                           |
-| ------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Single string/text (frontmatter or body)    | `data-editable="text"` or `<editable-text>`                  | [Text editing](#text-editing)                                                     |
-| Single image                                | `data-editable="image"` / `<editable-image>`                 | [Image editing](#image-editing)                                                   |
-| Array of items (uniform)                    | `data-editable="array"` + `array-item` children              | [Array editing](#array-editing)                                                   |
-| Page builder (heterogeneous blocks)         | `array` + per-item `data-component` + CRUD                   | [Page builder blocks](#page-builder-blocks)                                       |
-| Conditional/computed output, style bindings | Register the component; wrap with `<editable-component>`     | [When to use a component editable region](#when-to-use-data-editablecomponent)    |
-| Hardcoded string in a template              | `data-editable="source"` (last resort — prefer page-builder) | [Source editables for hardcoded content](#source-editables-for-hardcoded-content) |
+| Field shape                                 | Editable type                                            | Section                                                                           |
+| ------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Single string/text (frontmatter or body)    | `data-editable="text"` or `<editable-text>`              | [Text editing](#text-editing)                                                     |
+| Single image                                | `data-editable="image"` / `<editable-image>`             | [Image editing](#image-editing)                                                   |
+| Array of items (uniform)                    | `data-editable="array"` + `array-item` children          | [Array editing](#array-editing)                                                   |
+| Page builder (heterogeneous blocks)         | `array` + per-item `data-component` + CRUD               | [Page builder blocks](#page-builder-blocks)                                       |
+| Conditional/computed output, style bindings | Register the component; wrap with `<editable-component>` | [When to use a component editable region](#when-to-use-data-editablecomponent)    |
+| Hardcoded string in a template              | `data-editable="source"` on a one-off page               | [Source editables for hardcoded content](#source-editables-for-hardcoded-content) |
 
 Components that fetch, submit forms, or load third-party scripts need an editor-mode branch rather than a region type — see [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic).
 
@@ -415,18 +415,25 @@ For a component used at exactly one call site, hardcode the `data-prop` on the w
 
 Source editables read and write the raw source file directly. They need no content collection and no data file — just a `data-path` naming the source file and a `data-key` identifying the region within it.
 
-**Source-editable is for long-form prose, not for any hardcoded string.** A unique-layout page with two or more structured sections belongs in a page-builder collection, not pinned to its template source.
-
 ### When to use source editables
 
-| Use source-editable when...                                                                    | Use page builder + nested editables instead when... |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| The page is mostly long-form prose and you need one or two inline string edits                 | The page has two or more structured sections        |
-| There are one or two pages of this type and editors won't add more                             | Editors might want to add similar pages             |
-| The site is genuinely simple — a homepage and a blog, no marketing or landing pages            | The site has multiple unique-layout pages           |
-| Refactoring to a content collection would change the rendered HTML in ways the user disallowed | Refactor freely; output should match                |
+Pick the mechanism by who owns the page's structure:
 
-**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification — but the _mechanism_ defaults to a content collection or a page-builder block. Source-editable is the exception, reserved for long-form prose where the layout _is_ the body.
+| Use                      | When                                                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Page builder             | Editors need to add, remove or reorder sections, a section appears on other pages, or editors should be able to create more pages like it. |
+| Schema with fixed fields | Several pages share one layout and editors change content but not structure.                                                               |
+| Source editables         | A one-off page whose structure stays with the developer, where editors change text in place, from short strings to rich-text sections.     |
+
+Source editables fit short strings, such as an `<h1>` hero title, and rich-text sections alike — see [Syntax](#syntax) for `data-type`. Before choosing them, weigh the trade-offs:
+
+- Editors can't add, remove or reorder anything.
+- The content stays in the template file, so editors and developers edit the same file.
+- Components inside a source editable appear as snippets, not rendered components. A section that needs rendered components belongs in a page builder.
+
+When refactoring to a content collection would change the rendered HTML in ways the user disallowed, use source editables.
+
+**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification; pick a mechanism from the table above.
 
 Shared-UI text such as a footer tagline is not a source-editable candidate — it belongs in a data file.
 
@@ -438,7 +445,7 @@ Shared-UI text such as a footer tagline is not a source-editable candidate — i
 </h1>
 ```
 
-Add `data-type="block"` for multi-paragraph prose.
+With no `data-type` the region is inline text. Add `data-type="block"` for multi-paragraph rich text.
 
 ### How it works
 

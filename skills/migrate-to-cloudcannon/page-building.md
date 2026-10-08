@@ -6,18 +6,16 @@ Read when the audit's census sends pages to a `pages` collection or a page build
 
 Classify each page with [audit.md § Classifying static pages](audit.md#classifying-static-pages) first. For a page the census sends to the `pages` collection, pick the approach here:
 
-| Signal                                                                     | Use                                                        | Why                                                                                         |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Page has 2+ distinct content sections (hero, features, testimonials, CTA)  | Page builder                                               | Sections are the editing unit, and editors need to add, remove and reorder them.            |
-| Sections reappear on other pages, or could                                 | Page builder                                               | Shared blocks only pay off when editors can address them.                                   |
-| Editors need to reorder, add or remove sections without engineering        | Page builder                                               | It's the only approach that gives editors array-level control.                              |
-| Site has more than one unique-layout page                                  | Page builder, in one `pages` collection                    | One collection with several schemas scales; a collection per page doesn't.                  |
-| Page is structurally unique and mostly free prose (a long-form article)    | `default` schema in `pages`                                | A markdown body is enough.                                                                  |
-| Short separate strings (headings, buttons, captions) need source editables | Page builder                                               | Needing source editables on short strings is the signal that the page is structured.        |
-| Small page with one section (a headline and a paragraph)                   | Page builder                                               | Source editables are for long rich-text sections.                                           |
-| Page has a long rich-text section among structured ones                    | Source editable on that section, page builder for the rest | A source editable is a content editor inside the page; the other sections are still blocks. |
+| Signal                                                                  | Use                                                | Why                                                                                                                                                       |
+| ----------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Editors need to add, remove or reorder sections without engineering     | Page builder                                       | It's the only approach that gives editors array-level control.                                                                                            |
+| Sections reappear on other pages, or could                              | Page builder                                       | Shared blocks only pay off when editors can address them.                                                                                                 |
+| Editors should be able to create more pages like it                     | Page builder                                       | A creatable schema lets editors build new pages without a developer.                                                                                      |
+| Several pages need a page builder                                       | One `pages` collection with a schema per page type | One collection with several schemas scales; a collection per page doesn't.                                                                                |
+| Page is structurally unique and mostly free prose (a long-form article) | `default` schema in `pages`                        | A markdown body is enough.                                                                                                                                |
+| One-off page whose structure stays with the developer                   | Source editables                                   | See [visual-editing-reference.md § When to use source editables](../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables). |
 
-Components inside a source editable are snippets: editors see the snippet interface, not the rendered component they get in a component region. When the section needs rendered components, make it blocks.
+A section that needs rendered components is blocks — see the source-editable caveats in [visual-editing-reference.md § When to use source editables](../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables).
 
 ## Choose the page types editors can create
 

@@ -360,7 +360,7 @@ Pages with source editables should be in the pages collection so editors can fin
 
 ### Identifying source editable candidates during audit
 
-During Phase 1, run hardcoded text through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) before reaching for source-editable. Most candidates — homepage heroes, CTA sections, section headings — belong in a page-builder `pages` collection entry. Unique-layout pages with two or more structured sections belong in the page builder; see [page-building.md § When to reach for a page builder](../../migrate-to-cloudcannon/page-building.md#when-to-reach-for-a-page-builder). Footer taglines and other shared-UI text belong in a data file — see [cc-friendly-conventions.md § Shared-UI treatment table](../../migrate-to-cloudcannon/cc-friendly-conventions.md#shared-ui-treatment-table).
+During Phase 1, run hardcoded text through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) before reaching for source-editable. [Base § When to use source editables](../visual-editing-reference.md#when-to-use-source-editables) decides between a page builder, a fixed-field schema and source editables.
 
 ## Astro components in source editables
 

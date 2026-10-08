@@ -77,7 +77,7 @@ Also flag **presentational wrapper components** (e.g. a `<Link>` that just rende
 **Why:** these can't survive source editing and need either inlining as plain HTML + CSS or a snippet config. See [visual-editing-reference.md § Astro components in source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#astro-components-in-source-editables).
 
 Also flag **hardcoded text in page templates**, but classify it through the census table below -- not by defaulting to source-editable.
-**Why:** hero sections, CTA copy, and section headings on listing pages almost always belong in a page-builder `pages` collection entry, not pinned to the `.astro` source. Source-editable is reserved for long-form prose where the layout _is_ the body. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables).
+**Why:** the mechanism depends on who owns the page's structure, not on the text being hardcoded. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables).
 
 ### Classifying static pages: source editables vs. content collection
 

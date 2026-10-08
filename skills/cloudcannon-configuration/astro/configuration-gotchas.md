@@ -70,12 +70,12 @@ Only split into separate collections when there's a genuine UX reason — for ex
 
 ### Source editables vs. refactoring to `.md`
 
-| Approach                                        | When                                                                                                                                         | Effort                             |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| **Source editables** (`data-editable="source"`) | Long-form prose only. 1–2 inline string edits on a page whose layout _is_ the body.                                                          | Low — no structural changes.       |
-| **Refactor to `.md`**                           | Default for unique-layout pages with 2+ content sections. Extract into `pages` collection with structured frontmatter + page-builder schema. | Medium — move content, add schema. |
+| Approach                                        | When                                                                           | Effort                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------- |
+| **Source editables** (`data-editable="source"`) | A one-off `.astro` page whose structure stays with the developer.              | Low — no structural changes.       |
+| **Refactor to `.md`**                           | Editors need to add, remove or reorder sections, or create more pages like it. | Medium — move content, add schema. |
 
-**Decision rule:** Page builder is the default; source-editable is the exception. Run the page through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection) and [page-building.md § When to reach for a page builder](../../migrate-to-cloudcannon/page-building.md#when-to-reach-for-a-page-builder).
+Pick between them with [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables), after running the page through the [audit.md classification census](../../migrate-to-cloudcannon/astro/audit.md#classifying-static-pages-source-editables-vs-content-collection).
 
 ## Destructuring defaults never fire on content fields
 
