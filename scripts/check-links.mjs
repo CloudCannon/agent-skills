@@ -7,7 +7,11 @@
  *   2. Every `#anchor` on a link resolves to a real heading in the target file.
  *      Most internal links carry one, and they break silently when a heading is
  *      reworded — nothing else in CI notices.
- *   3. Every SKILL.md has `name` and `description` frontmatter, and `name`
+ *   3. No file in one SSG's directory links into another SSG's directory
+ *      (`hugo/` → `astro/`, in any skill). A link like that means a general
+ *      rule is stuck in an SSG file — see STYLE.md § SSG directories never
+ *      depend on each other.
+ *   4. Every SKILL.md has `name` and `description` frontmatter, and `name`
  *      matches its directory (the plugin loader keys off the directory; agents
  *      key off `name`, so a mismatch routes to a skill that appears missing).
  *
@@ -141,6 +145,24 @@ const report = (file, line, message) =>
 const isSkeleton = (f) =>
   relative(ROOT, f).startsWith("templates/") && basename(f).endsWith("-SKILL.md");
 
+// An SSG directory is any skills/<skill>/<dir>/ with an overview.md — STYLE.md
+// requires one in every SSG directory, so new SSGs are picked up without edits.
+const SKILLS = join(ROOT, "skills");
+const SSGS = new Set(
+  readdirSync(SKILLS).flatMap((skill) => {
+    const dir = join(SKILLS, skill);
+    if (!statSync(dir).isDirectory()) return [];
+    return readdirSync(dir).filter((d) => existsSync(join(dir, d, "overview.md")));
+  }),
+);
+
+/** The SSG directory a path sits in (`skills/<skill>/<ssg>/…`), or null. */
+function ssgOf(path) {
+  const parts = relative(SKILLS, path).split("/");
+  if (parts[0] === ".." || parts.length < 3) return null;
+  return SSGS.has(parts[1]) ? parts[1] : null;
+}
+
 for (const file of files) {
   if (isSkeleton(file)) continue;
   const lines = stripFences(readFileSync(file, "utf8").split("\n"));
@@ -173,6 +195,16 @@ for (const file of files) {
       if (!existsSync(resolved)) {
         report(file, lineNo, `broken link -> ${target}`);
         continue;
+      }
+
+      const fromSsg = ssgOf(file);
+      const toSsg = ssgOf(resolved);
+      if (fromSsg && toSsg && fromSsg !== toSsg) {
+        report(
+          file,
+          lineNo,
+          `${fromSsg}/ links into ${toSsg}/ -> ${target} (link to the root file instead)`,
+        );
       }
 
       if (!anchor) continue;
