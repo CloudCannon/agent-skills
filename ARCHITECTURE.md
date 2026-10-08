@@ -98,11 +98,12 @@ json-schemas.md                         Querying the authoritative schemas
 troubleshooting.md                      Symptom → fix, when configuration is already wrong
 cloudcannon-cli-guide.md                Generating and validating config with the CLI
 structures.md                           Inline vs split, previews, field completeness
+schemas.md                              One collection, many schemas; _schema; remove_extra_inputs
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
 configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs
 astro/overview.md                       ENTRY POINT for Astro — reading order
-astro/configuration.md                  Phase 2: config, schemas, inputs, add options
+astro/configuration.md                  Phase 2: config, Zod schema unions, inputs, add options
 astro/collection-urls.md                Astro: glob-loader slug, trailingSlash
 astro/configuration-gotchas.md          Astro: .astro pages, TypeScript config, Zod unions
 hugo/overview.md                        ENTRY POINT for Hugo — reading order

@@ -63,6 +63,7 @@ Observed hallucinations and their real keys: [§ Common invalid keys](#common-in
 | [structures.md](structures.md)                       | **Read early.** Every array and object Input needs a structure or editors cannot add items. Field completeness rule and definition patterns                                                                                                 |
 | [collection-urls.md](collection-urls.md)             | Collections that produce pages need a `url`. A wrong one is the most common reason a page fails to load in the Visual Editor                                                                                                                |
 | [build-commands.md](build-commands.md)               | Where generators and post-build steps go — the `build` script and `install_command`                                                                                                                                                         |
+| [schemas.md](schemas.md)                             | Read before writing a collection's `schemas`: one collection with many schemas, `_schema` on every file, and keeping every front matter key in the schema                                                                                   |
 | [inputs.md](inputs.md)                               | **Read before writing `_inputs`.** Where inputs can be defined, cascade order, and how keys match fields (dotted paths, `[*]`, `$`)                                                                                                         |
 | [configuration-gotchas.md](configuration-gotchas.md) | Cross-SSG pitfalls — select inputs, numeric values, `_editables`, markdown tables, data references, previews. Reference, not a front-to-back read                                                                                           |
 | [troubleshooting.md](troubleshooting.md)             | Symptom → fix, for when configuration is already wrong                                                                                                                                                                                      |
@@ -84,10 +85,10 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 
 **Rules that live in a deep-dive, flagged here because agents miss them:**
 
-| Rule                                                                                                                                | Owner                                                              |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Explicit `_inputs` beat inference — CloudCannon's type inference is a fallback, not a substitute for configuration                  | [astro/configuration.md](astro/configuration.md)                   |
-| One collection, many schemas — do not create a collection just to get a new schema (`schemas:` config; in Astro also Zod `z.union`) | [astro/configuration.md § Schemas](astro/configuration.md#schemas) |
+| Rule                                                                                                                                | Owner                                            |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Explicit `_inputs` beat inference — CloudCannon's type inference is a fallback, not a substitute for configuration                  | [astro/configuration.md](astro/configuration.md) |
+| One collection, many schemas — do not create a collection just to get a new schema (`schemas:` config; in Astro also Zod `z.union`) | [schemas.md](schemas.md)                         |
 
 **Other skills:**
 

@@ -99,7 +99,7 @@ When `values` points at a collection (`values: collections.posts`), `value_key` 
 
 When the component looks entries up by Astro entry id or slug, use `value_key: filename_without_ext`, or a `slug` front matter key.
 
-- **Schemas** -- define templates for creating new content files, based on the content patterns found in the audit. **Multiple schemas can live in one collection** -- both via `schemas:` config and Zod `z.union`. See [§ Schemas](#schemas) below for the worked multi-schema `pages` example.
+- **Schemas** -- define each collection's schemas per [../schemas.md](../schemas.md), based on the content patterns found in the audit, then mirror them in the Zod content schema — see [§ Schemas](#schemas).
 - **`data_config`** -- a root-level key that targets specific data files via a path, and exposes them for use in CloudCannon (eg. a data file of tags that can be used to populate a multi-select input called tags). Once a data set has been exposed in the `data_config`, its available for use on a select type input by defining it as the input's, `options.values` value (it uses the key we've defined in the `data_config` as the name to use as a reference).
 - **`file_config`** -- an **array** of objects, each with a `glob` key targeting specific files. Do NOT use the old map-keyed format (`file_config: src/file.yaml: ...`) — it must be an array with `- glob:` entries. Use it when key names would collide at broader scopes, or to configure inputs for settings/data files. Supports `$` for the root of the file — see [../inputs.md § The file root](../inputs.md#the-file-root).
 
@@ -133,38 +133,7 @@ The full set of configuration keys is defined in the CloudCannon Configuration J
 
 ### Schemas
 
-One collection, many schemas. Don't make a new collection just because you need a new schema. A `pages` collection can hold a default markdown page, a page-builder page, and a landing page side-by-side. Editors choose which schema to use when creating a new entry.
-
-```yaml
-collections_config:
-  pages:
-    path: src/content/pages
-    url: "/[slug]/"
-    icon: wysiwyg
-    _enabled_editors: [visual, data]
-    schemas:
-      default:
-        path: .cloudcannon/schemas/page.md
-        name: Page (markdown body)
-      page_builder:
-        path: .cloudcannon/schemas/page-builder.md
-        name: Page Builder
-      landing:
-        path: .cloudcannon/schemas/landing.md
-        name: Landing Page
-    add_options:
-      - name: Page Builder
-        schema: page_builder
-      - name: Landing Page
-        schema: landing
-      - name: Markdown Page
-        schema: default
-        editor: content
-```
-
-Add `_schema: <key>` to each content file's frontmatter so CloudCannon matches it explicitly rather than guessing from the frontmatter shape.
-
-**MUST:** when you add a field to content in a collection that uses `schemas`, add it to the schema file too. **Why:** `remove_extra_inputs` defaults to `true`, so CloudCannon strips any front matter key that isn't in the matched schema before loading the file into an editor. The input never appears and nothing reports an error. If a field must exist only on some files, set `remove_extra_inputs: false` on the schema (check the key against the JSON schema in `.cloudcannon/migration/`).
+Define the CloudCannon schemas as in [../schemas.md](../schemas.md), with each collection's `path` under `src/content/`. Then give the collection's Zod schema in `content.config.ts` one member per CloudCannon schema, combined in a union.
 
 #### Zod: `z.union` vs `z.discriminatedUnion`
 
@@ -210,7 +179,7 @@ For pages with unique schemas (e.g. a homepage with `banner`/`features`), merge 
 
 ### Fallback: Merge unique pages into `pages` with a union
 
-When a page has a unique schema but no related files to justify a collection of its own, merge it into `pages` using the multi-schema pattern from [§ Schemas](#schemas). Each page type gets its own named Zod schema spreading `commonFields` plus its required fields, combined via `z.union` (or `z.discriminatedUnion` — see the decision table above).
+When a page has a unique schema but no related files to justify a collection of its own, merge it into `pages` using the multi-schema pattern in [../schemas.md](../schemas.md) and [§ Schemas](#schemas). Each page type gets its own named Zod schema spreading `commonFields` plus its required fields, combined via `z.union` (or `z.discriminatedUnion` — see the decision table above).
 
 ```typescript
 const pageSchema = z.object({ ...commonFields });
@@ -334,29 +303,6 @@ Blog post inline images inserted via markdown or the rich text toolbar use the g
 ## Collection URLs
 
 See [../collection-urls.md](../collection-urls.md) for the full reference on URL patterns (fixed/data placeholders, glob loader slug override, subdirectories, trailing slash, troubleshooting).
-
-## Schemas for index pages
-
-When a collection contains an `index.md` file alongside regular items (e.g. `blog/index.md` for the listing page metadata alongside `blog/post-1.md`, `blog/post-2.md`), define separate schemas so editors get the correct fields for each file type.
-
-```yaml
-blog:
-  path: src/content/blog
-  url: "/blog/[slug]/"
-  schemas:
-    default:
-      path: .cloudcannon/schemas/post.md
-      name: Blog Post
-    blog_index:
-      path: .cloudcannon/schemas/blog-index.md
-      name: Blog Index
-```
-
-The `default` schema controls what editors see when creating or editing regular items. The index schema provides the right fields for the listing page. CloudCannon matches the schema to existing files automatically based on frontmatter shape, or you can set `_schema: blog_index` in the index file's frontmatter to be explicit.
-
-The `[slug]` collapse behavior means no special URL handling is needed -- `index.md` resolves to `/blog/` while `post-1.md` resolves to `/blog/post-1/`.
-
-Create the schema template files in `.cloudcannon/schemas/` with representative frontmatter for each type.
 
 ## New preview URL for schemas
 

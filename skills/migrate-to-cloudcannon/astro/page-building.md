@@ -33,7 +33,7 @@ Default to a page-builder `pages` collection for unique-layout pages (homepage, 
 | 5+ separate strings would need `data-editable="source"` on one page       | Page builder                            | That many source editables is the signal the page is actually structured. |
 | Tiny marketing page with a single headline + paragraph and no variants    | Source editable on a hardcoded `.astro` | Honest exception — no benefit to collection overhead.                     |
 
-Create a single-entry collection per unique page (`homepage` collection with one entry, `our-team` collection with one entry). One `pages` collection with `index.md`, `our-team.md`, etc. plus `z.union` + multiple `schemas:` entries gives editors a unified sidebar without the config bloat. See [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas).
+Create a single-entry collection per unique page (`homepage` collection with one entry, `our-team` collection with one entry). One `pages` collection with `index.md`, `our-team.md`, etc. plus `z.union` + multiple `schemas:` entries gives editors a unified sidebar without the config bloat. See [schemas.md](../../cloudcannon-configuration/schemas.md) for the schemas, and [configuration.md § Schemas](../../cloudcannon-configuration/astro/configuration.md#schemas) for the Zod union.
 
 ### Steps
 

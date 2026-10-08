@@ -144,16 +144,11 @@ Values editors change in `params` and `menus` live in the site config, not `data
 
 ## Schemas
 
-Schema files are front matter templates for new files. Put them in `.cloudcannon/schemas/`, in the same front matter format the collection uses (`---` YAML, `+++` TOML or JSON).
+Write each collection's schemas as in [../schemas.md](../schemas.md). Hugo has no content schema of its own, so there is nothing like Zod to keep in sync — the schema file is the only definition of the fields. `new_preview_url`, `add_options` and `_enabled_editors` order are in [../astro/configuration.md § New preview URL for schemas](../astro/configuration.md#new-preview-url-for-schemas) and the sections after it, and apply unchanged.
 
 - **Seed** each schema from the section's archetype (`archetypes/<section>.md`) if the site has one — it already lists the fields a new file needs. CloudCannon doesn't read archetypes itself.
-- **Include** every field a template reads, including `content_blocks: []` for page-builder pages.
 - **Leave out** fields Hugo fills in at build time (`lastmod` from Git, `.Summary`).
-
-One collection, many schemas — the pattern, `add_options`, `new_preview_url` and `_enabled_editors` order are in [../astro/configuration.md § Schemas](../astro/configuration.md#schemas) and apply unchanged. Hugo has no content schema of its own, so there is nothing like Zod to keep in sync — the schema file is the only definition of the fields.
-
-**MUST:** put every front matter key that any file in the collection uses into its schema file — including `params`, `menu`, `resources`, `cascade` and `aliases` — or set `remove_extra_inputs: false` on the schema.
-**Why:** `remove_extra_inputs` defaults to `true`. Keys missing from the schema are hidden when the file loads and removed from the file when it's saved, so an edit to a post's title can delete its `resources` metadata or `menu` entry. A key hidden in `_inputs` is fine; a key missing from the schema isn't.
+- **Check** each schema for the Hugo keys that files carry but templates rarely show: `params`, `menu`, `resources`, `cascade` and `aliases`. A schema that misses one deletes it on save, so an edit to a post's title can remove its `resources` metadata or `menu` entry. Add the key, or set `remove_extra_inputs: false`:
 
 ```yaml
 collections_config:
@@ -163,10 +158,6 @@ collections_config:
         path: .cloudcannon/schemas/post.md
         remove_extra_inputs: false
 ```
-
-List the keys in use with the recipe in [../configuration-gotchas.md § An `_inputs` key that names no field is ignored](../configuration-gotchas.md#an-_inputs-key-that-names-no-field-is-ignored), and diff them against each schema file.
-
-The same first edit also writes every schema key with its default — check booleans first: [../configuration-gotchas.md § The first edit writes every schema key](../configuration-gotchas.md#the-first-edit-writes-every-schema-key).
 
 ## Split structure files
 
