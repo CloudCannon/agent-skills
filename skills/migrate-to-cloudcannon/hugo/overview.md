@@ -31,7 +31,7 @@ Generate a baseline with the CloudCannon CLI, then customize it from the audit. 
 
 Restructure content files where needed so they work in the CMS.
 
-See [content.md](content.md), and [page-building.md](page-building.md) for pages that become page-builder entries.
+See [content.md](content.md). For pages that become page-builder entries, read [../page-building.md](../page-building.md), then [page-building.md](page-building.md).
 
 ### Phase 4: Visual editing
 

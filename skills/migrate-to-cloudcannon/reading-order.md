@@ -18,10 +18,10 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 1. `cloudcannon-configuration/SKILL.md` → download the JSON schemas first; this is a gate
 2. `cloudcannon-configuration/<ssg>/overview.md` → the SSG's reading order
 3. `cloudcannon-configuration/cloudcannon-cli-guide.md` → generate baseline
-4. `cloudcannon-configuration/<ssg>/configuration.md` → customize config
+4. `cloudcannon-configuration/configuration.md`, then `cloudcannon-configuration/<ssg>/configuration.md` → customize config
 5. `cloudcannon-configuration/collection-urls.md` → if any collection produces pages
-6. `migrate-to-cloudcannon/<ssg>/page-building.md` → if audit identified pages for a pages collection or page builder
-7. `cloudcannon-configuration/structures.md` → if site has array-based components (3+ block types)
+6. `migrate-to-cloudcannon/page-building.md`, then `migrate-to-cloudcannon/<ssg>/page-building.md` → if audit identified pages for a pages collection or page builder
+7. `cloudcannon-configuration/structures.md` → if the site has an array-based page builder — threshold in [page-building.md § Array-based page builder](page-building.md#array-based-page-builder)
 8. `cloudcannon-snippets/SKILL.md` → if content uses components (MDX components, Hugo shortcodes) or inline HTML
 9. `cloudcannon-configuration/configuration-gotchas.md` and `cloudcannon-configuration/<ssg>/configuration-gotchas.md` → reference during and after configuration
 
@@ -36,7 +36,7 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 2. `cloudcannon-visual-editing/<ssg>/overview.md` → the SSG's reading order
 3. `cloudcannon-visual-editing/<ssg>/visual-editing.md` → full integration workflow
 4. `cloudcannon-visual-editing/visual-editing.md` → section census, completeness checklist, pre-handoff sweep
-5. `migrate-to-cloudcannon/<ssg>/page-building.md` → if page builder (block dispatcher, array editables)
+5. `migrate-to-cloudcannon/<ssg>/page-building.md` → if page builder (block dispatcher, array editables); its base rules are in `migrate-to-cloudcannon/page-building.md`
 
 ### Phase 5: Build
 
@@ -61,11 +61,11 @@ Is the site using Bookshop?
 └─ No  → skip
 
 Does the site have static pages with structured/repeated data editors need CRUD over?
-├─ Yes → read <ssg>/page-building.md (pages collection, even without a page builder)
+├─ Yes → read page-building.md, then <ssg>/page-building.md (pages collection, even without a page builder)
 └─ No  → skip
 
-Does the site have 3+ reusable block components?
-├─ Yes → read <ssg>/page-building.md + cloudcannon-configuration/structures.md
+Does the site meet the threshold in page-building.md § Array-based page builder?
+├─ Yes → read page-building.md, <ssg>/page-building.md + cloudcannon-configuration/structures.md
 └─ No  → skip page builder, use schema-based pages
 
 Is the visual editor behaving unexpectedly?

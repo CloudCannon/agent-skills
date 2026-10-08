@@ -43,7 +43,7 @@ Canonical example: `cloudcannon-configuration/collection-urls.md` owns placehold
 
 ### SSG directories never depend on each other
 
-**MUST NOT:** link from one SSG's files to another SSG's files. An `<ssg>/` file links only to root files and to the same SSG's files in other skills.
+**MUST NOT:** link from one SSG's files to another SSG's files. An `<ssg>/` file links only to root files and to the same SSG's files in other skills. `npm run check` enforces this.
 
 **Why:** a link from one SSG to another means a general rule is stuck in an SSG file, and the linked-to SSG has become the base file by default. The test: deleting any one `<ssg>/` directory must not break another SSG's guidance.
 

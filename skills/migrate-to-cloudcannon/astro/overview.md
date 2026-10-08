@@ -29,6 +29,8 @@ Generate a baseline `cloudcannon.config.yml` using the CloudCannon CLI, then cus
 
 If the site uses MDX components or inline HTML in content, also **read the `cloudcannon-snippets` skill**.
 
+If the audit's census sends pages to a `pages` collection or page builder, read [../page-building.md](../page-building.md), then [page-building.md](page-building.md).
+
 ### Phase 3: Content
 
 Review and restructure content files if needed so they work well in the CMS.

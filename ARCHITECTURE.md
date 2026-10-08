@@ -63,12 +63,13 @@ reading-order.md                        Which docs to read in which phase, and w
 chunking.md                             Splitting a large migration across conversations
 handoff.md                              Closing with the user — testing boundaries, what to ask
 audit.md                                Phase 1 shared rules — classifying static pages
+page-building.md                        Phase 2/4 shared rules — pages collection, page builder, blocks
 cc-friendly-conventions.md              Shared-UI treatment table
 astro/overview.md                       ENTRY POINT for Astro — phase links
 astro/audit.md                          Phase 1: site analysis
 astro/content.md                        Phase 3: content restructuring
 astro/build.md                          Phase 5: build verification
-astro/page-building.md                  Phase 2/4: pages collection, page builder, BlockRenderer
+astro/page-building.md                  Phase 2/4: catch-all route, Zod union, BlockRenderer
 astro/cc-friendly-conventions.md        Pre-migration scaffolding conventions
 hugo/overview.md                        ENTRY POINT for Hugo — phase links
 hugo/audit.md                           Phase 1: site analysis

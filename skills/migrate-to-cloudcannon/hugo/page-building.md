@@ -1,8 +1,8 @@
 # Page Building (Hugo)
 
-How to turn a Hugo site's unique-layout pages into a page-builder `pages` collection. When to reach for a page builder at all is SSG-agnostic — see [astro/page-building.md § When to reach for page builder](../astro/page-building.md#when-to-reach-for-page-builder).
+Read [../page-building.md](../page-building.md) first. This file covers only the Hugo differences: block partials, the dispatcher and the content files.
 
-This applies to pages whose templates the project owns. If templates come from a theme or module, pages the theme renders from front matter and params keep the theme's model — see [audit.md § Classifying static pages](audit.md#classifying-static-pages).
+For pages a theme or module renders, see [audit.md § Classifying static pages](audit.md#classifying-static-pages) first.
 
 ## The shape
 
@@ -43,12 +43,8 @@ This applies to pages whose templates the project owns. If templates come from a
 | Excuse                                                        | Reality                                                                                                                                                                              |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | "I'll call the home page `content/home.md`"                   | Hugo builds the home page from `content/_index.md`. A `home.md` builds to `/home/`.                                                                                                  |
-| "I'll make a `homepage` collection"                           | One `pages` collection holds the home page, about, contact and landing pages, with several schemas if needed.                                                                        |
+| "I'll make a `homepage` collection"                           | Use one `pages` collection — see [../audit.md § Census table](../audit.md#census-table).                                                                                             |
 | "The dispatcher only needs to be in `single.html`"            | `_index.md` pages — the home page and section list pages — render through the list layout. Put the dispatcher in both, or in a shared partial both call.                             |
 | "I'll look the partial up from a map of `_name` → partial"    | Name partials by their `_name` instead. `partial ._name .` needs no map, and the editor resolves the same name.                                                                      |
 | "The block can render `.Content`"                             | `.Content` is empty in the editor. A block renders only its own front matter.                                                                                                        |
 | "I'll put `data-editable=\"array-item\"` inside each partial" | It belongs on the dispatcher's wrapper — see [Wrapper elements around partials](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#wrapper-elements-around-partials). |
-
-## Reference blocks vs inline blocks
-
-A block that renders shared content (a CTA used on every page) should read it from a data file rather than duplicate it into every page's `content_blocks`. The trade-off is the same as in Astro — [astro/page-building.md § Reference blocks vs inline blocks](../astro/page-building.md#reference-blocks-vs-inline-blocks).

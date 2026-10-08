@@ -164,12 +164,12 @@ When `_structures` grow past a handful of values, split them into files per [../
 
 Hugo sites serve images one of two ways. Configure each input for the way its template reads it:
 
-| Template reads the image with                             | Image lives in | Front matter value  | Input config                                                                                                                                                                                                          |
-| --------------------------------------------------------- | -------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<img src="{{ .image }}">`                                | `static/`      | `/images/photo.jpg` | Global `paths.static: static`, `paths.uploads: static/images`                                                                                                                                                         |
-| `resources.Get .image` (with a `static` → `assets` mount) | `static/`      | `/images/photo.jpg` | Same as above — the mount makes one path work in both                                                                                                                                                                 |
-| `resources.Get .image` (no mount)                         | `assets/`      | `images/photo.jpg`  | Per-input `paths.uploads: assets/images`, `paths.static: assets`                                                                                                                                                      |
-| `.Resources.Get .image` (page bundle)                     | The bundle     | `cover.jpg`         | `options.paths` on each image input, and `_editables.content.paths` on the collection for body images: `uploads: content/<section>/[relative_base_path]`, `static: ""`, `uploads_use_relative_path: true` — see below |
+| Template reads the image with                             | Image lives in | Front matter value  | Input config                                                                                                                            |
+| --------------------------------------------------------- | -------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `<img src="{{ .image }}">`                                | `static/`      | `/images/photo.jpg` | Global `paths.static: static`, `paths.uploads: static/images`                                                                           |
+| `resources.Get .image` (with a `static` → `assets` mount) | `static/`      | `/images/photo.jpg` | Same as above — the mount makes one path work in both                                                                                   |
+| `resources.Get .image` (no mount)                         | `assets/`      | `images/photo.jpg`  | Per-input `paths.uploads: assets/images`, `paths.static: assets`                                                                        |
+| `.Resources.Get .image` (page bundle)                     | The bundle     | `cover.jpg`         | `options.paths` on each image input, and `_editables.content.paths` on the collection — see [Page-bundle uploads](#page-bundle-uploads) |
 
 An image stored relative to a page bundle or to `assets/` gets no image region in the Visual Editor — editors change it in the sidebar. See [Image editing in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#image-editing-in-hugo).
 
@@ -197,7 +197,7 @@ collections_config:
         removeformat: true
         snippet: true
         paths:
-          uploads: content/blog/[relative_base_path]
+          uploads: content/blog/[full_slug]/
           static: ""
           uploads_use_relative_path: true
     _inputs:
@@ -206,12 +206,13 @@ collections_config:
         comment: Save a new post before adding its image.
         options:
           paths:
-            uploads: content/blog/[relative_base_path]
+            uploads: content/blog/[full_slug]/
             static: ""
             uploads_use_relative_path: true
 ```
 
 - **Repeat** the whole toolbar in a collection-level `_editables.content`. It replaces the root toolbar, and every option left out becomes `false`. Share it between collections with a plain alias (`content: *body_toolbar`) — see [../configuration-gotchas.md § No YAML merge keys](../configuration-gotchas.md#no-yaml-merge-keys).
+- **Use** `[full_slug]` for the bundle folder. In upload paths, a bundle's folder is its `[slug]`, and `[full_slug]` adds any parent folders: `content/blog/2024/post/index.md` uploads to `content/blog/2024/post/`. `[relative_base_path]` is the folder that contains the bundle, so it saves next to the bundle instead of inside it.
 - **Tell** editors to save a new post before adding its images, in the input `comment` and the editor README. Until the entry is saved it has no folder, and an upload lands in the section folder instead of the bundle.
 
 ## Taxonomies

@@ -83,7 +83,7 @@ Also flag **hardcoded text in page templates**, but classify it through the cens
 
 Classify every `.astro` page that isn't already in a collection, using the decision table and the mandatory census table in [../audit.md § Classifying static pages](../audit.md#classifying-static-pages). Name each census row by its page file (`src/pages/index.astro`, `src/pages/about.astro`). For a cross-collection reverse lookup, filter the owning collection: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`.
 
-For census rows that say "Page builder", go straight to [page-building.md § When to reach for page builder](page-building.md#when-to-reach-for-page-builder).
+For census rows that send a page to the `pages` collection, read [../page-building.md § When to reach for a page builder](../page-building.md#when-to-reach-for-a-page-builder), then [page-building.md](page-building.md).
 
 The two follow-on censuses in Astro form:
 

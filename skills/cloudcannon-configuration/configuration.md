@@ -176,6 +176,21 @@ Write `.cloudcannon/README.md` for editors. It shows on the Site Dashboard, so i
 
 Write in plain language. Leave out technical terms such as YAML, front matter, schema and SSG, and the SSG's name and tools.
 
+## Common mistakes
+
+| Excuse                                                  | Reality                                                                                                                                                                                                                 |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "The CLI output is good enough"                         | It's a baseline with no input types, structures, select data or toolbars — see [§ Customize the config](#customize-the-config).                                                                                         |
+| "I'll add `_inputs` later"                              | Configure inputs as you go, because missing inputs now mean broken editing later.                                                                                                                                       |
+| "CloudCannon will infer the right input type"           | Inference is a fallback; give every field an explicit input — see [§ Configure every field explicitly](#configure-every-field-explicitly).                                                                              |
+| "This array doesn't need a structure"                   | Every array of objects needs one or editors can't add items — see [structures.md § The four rules](structures.md#the-four-rules-read-first).                                                                            |
+| "The optional field can stay out of the structure"      | Every field on any item goes in the structure's `value` with a default — see [structures.md § Optional fields](structures.md#optional-fields--common-mistake).                                                          |
+| "It's just a string, `type: text` is fine"              | A field the component branches on is an enum and takes a `select` — see [configuration-gotchas.md § Variant fields](configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs).                     |
+| "Editors can type the values, so no options are needed" | Every select needs its options configured — see [configuration-gotchas.md § Editor-owned option lists](configuration-gotchas.md#editor-owned-option-lists).                                                             |
+| "Data files don't need configuration"                   | They need inputs and structures like any content, and `data_config` only exposes them as datasets — see [configuration-gotchas.md § Data files](configuration-gotchas.md#data-files-editing-and-datasets-are-separate). |
+| "These inputs worked on another site's data file"       | List this file's actual keys first, since mismatched inputs fail silently — see [configuration-gotchas.md § Data inputs](configuration-gotchas.md#data-inputs-must-follow-the-data-file-not-a-template).                |
+| "The URL pattern looks right"                           | Test it against the build output, trailing slash included — see [collection-urls.md § Troubleshooting](collection-urls.md#troubleshooting).                                                                             |
+
 ## Verification checklist
 
 Work through these, then the SSG's checklist, before moving to the next phase. One check per line.
@@ -242,5 +257,6 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] Collections where editors shouldn't create files have `disable_add: true`
 - [ ] Every creatable schema has `new_preview_url`, or its add option has `editor: content`
 - [ ] Collections with a `draft` field use `editor: content` on their add options
+- [ ] Sites with 3+ reusable block components have a page builder schema — see [migrate-to-cloudcannon/page-building.md § Array-based page builder](../migrate-to-cloudcannon/page-building.md#array-based-page-builder)
 
 For pitfalls while configuring, see [configuration-gotchas.md](configuration-gotchas.md) and the SSG's `configuration-gotchas.md`.

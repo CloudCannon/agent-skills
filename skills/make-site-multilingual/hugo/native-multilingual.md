@@ -182,7 +182,7 @@ collections_config:
     _editables:
       content:
         paths:
-          uploads: content_fr/blog/[relative_base_path] # not the English bundle
+          uploads: content_fr/blog/[full_slug]/ # the French bundle
   ui_strings:
     name: UI strings
     path: i18n

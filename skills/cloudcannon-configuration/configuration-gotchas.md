@@ -5,7 +5,7 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 **Quick reference for the four most-missed rules:**
 
 1. Array item previews: set `preview` on the structure's `values[]` entry, at the same level as `label` and `value`; `[*]` only sets the item type of an array of primitives ([§ Array item previews](#array-item-previews---vs-structure-value))
-2. Every `type: markdown` needs explicit `options:` ([SKILL.md common mistakes](SKILL.md#common-mistakes))
+2. Every `type: markdown` needs explicit `options:` ([§ Choose text, markdown or html inputs](#choose-text-markdown-or-html-inputs-from-how-the-template-renders-the-field))
 3. Data files that hold like-shaped items must be arrays, not objects keyed by slug ([configuration.md § Content specifics](configuration.md#content-specifics))
 4. Divergent top-level keys break structure matching ([structures.md § Common mistakes](structures.md#common-mistakes))
 
@@ -670,3 +670,22 @@ collections_config:
 
 **MUST:** keep comments out of the data, config and content files editors change. Put explanations in an `_inputs` `comment`, or in the editor README.
 **Why:** saving a file reserialises it. Comments are lost and formatting is normalised; key order is kept. See [cloudcannon-dev-server/troubleshooting.md § Writing](../cloudcannon-dev-server/troubleshooting.md#writing).
+
+## Invalid keys
+
+Look up a key here when `npx @cloudcannon/cli validate` flags it. These are keys agents have written that the schema doesn't have; the JSON schemas are authoritative — see [json-schemas.md](json-schemas.md).
+
+| Wrong                                                                               | Correct                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_url_preview: true`                                                         | `disable_url: true`, which turns off the collection's output URL.                                                                                                                  |
+| `output: false`                                                                     | Omit `url` and set `disable_url: true`, or use `data_config` instead of a collection.                                                                                              |
+| `type: hidden`                                                                      | `hidden: true` beside `type`, on any input; `hidden: "<query>"` hides it conditionally.                                                                                            |
+| `options.max` on a `text` or `textarea` input                                       | `options.max_length`, paired with `min_length`.                                                                                                                                    |
+| `_editables.text` with block keys (`bulletedlist`, `blockquote`, `format`, `table`) | `_editables.text` is inline-only — see [§ `_editables` key-to-schema mapping](#_editables-key-to-schema-mapping).                                                                  |
+| `heading2: true`, `heading3: true`                                                  | `format: "p h1 h2 h3"`, a space-separated string — see [§ `_editables` key-to-schema mapping](#_editables-key-to-schema-mapping).                                                  |
+| `options.collections: [team]`                                                       | `values: collections.team` with `value_key` and `preview` — see [inputs.md § Select values from a collection](inputs.md#select-values-from-a-collection).                          |
+| `options.structures: my_blocks`                                                     | The full path, `_structures.my_blocks` — see [structures.md § The four rules](structures.md#the-four-rules-read-first).                                                            |
+| `timezone: "+10:00"`                                                                | A top-level IANA name such as `Australia/Melbourne`, defaulting to `Etc/UTC` — see [configuration.md § Review the generated config](configuration.md#review-the-generated-config). |
+| `paths.collections`, `paths.data`                                                   | `collections_config.<name>.path` and `data_config.<name>.path`.                                                                                                                    |
+| `paths.output`                                                                      | No such key: `paths` holds asset directories only, and the build tool sets the output directory.                                                                                   |
+| A Material Symbols name outside the schema's enum, such as `place`                  | A name from the enum, such as `location_on`; an invalid name falls back to the default icon — check it with the icon recipe in [json-schemas.md](json-schemas.md#query-recipes).   |

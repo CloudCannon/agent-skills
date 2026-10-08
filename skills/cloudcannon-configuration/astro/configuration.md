@@ -171,7 +171,7 @@ Blog post inline images inserted via markdown or the rich text toolbar use the g
 
 ## Page building patterns
 
-See [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md) for the full guide on creating content-backed pages and array-based page builders, including the pages collection setup, catch-all route, BlockRenderer, and CC collection config.
+See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-building.md) for content-backed pages and array-based page builders, then [its Astro file](../../migrate-to-cloudcannon/astro/page-building.md) for the catch-all route, BlockRenderer and CC collection config.
 
 ## Verification checklist
 
@@ -204,6 +204,5 @@ See [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md) for 
 ### Schemas
 
 - [ ] Every Zod schema field has an `_inputs` entry
-- [ ] Sites with 3+ reusable block components have a page builder schema — see [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md)
 
 For Astro-only pitfalls, see [configuration-gotchas.md](configuration-gotchas.md).
