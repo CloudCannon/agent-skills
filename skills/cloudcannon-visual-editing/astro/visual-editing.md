@@ -68,8 +68,8 @@ Run through these after setup, before starting on editable regions:
 1. **Work through** [../visual-editing.md § Completeness checklist](../visual-editing.md#completeness-checklist) — the Universal items and, if the site has a page builder, the Page builder items.
 2. **Then work through** the Astro items:
 
-- [ ] **Collection and data file config**: `_enabled_editors` and each data file's `file_config` follow the Astro configuration guide
-      → [configuration.md](../../cloudcannon-configuration/astro/configuration.md)
+- [ ] **Collection and data file config**: `_enabled_editors` and each data file's `file_config` follow the configuration guide
+      → [configuration.md](../../cloudcannon-configuration/configuration.md)
 - [ ] **Registration wiring**: Every component in `registerComponents.ts` is actually referenced via `data-component` in a template.
       → [Component re-rendering](visual-editing-reference.md#component-re-rendering)
 - [ ] **Cross-collection select wiring**: the lookup component is registered with `registerAstroComponent`

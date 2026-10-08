@@ -68,8 +68,6 @@ Only split into separate collections when there's a genuine UX reason — for ex
 | `disable_add: true` | Template is blog-focused and standalone pages are one-offs with hardcoded layouts; enabling creation would give editors a broken or unstyled result. |
 | Default (allow add) | Template has a generic page layout that works for arbitrary content; new `.md` pages render correctly with the existing layout and navigation.       |
 
-Use `disable_add: true` to hide the Add button — `add_options: []` has no effect.
-
 ### Source editables vs. refactoring to `.md`
 
 | Approach                                        | When                                                                                                                                         | Effort                             |

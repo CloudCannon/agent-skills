@@ -427,7 +427,7 @@ See [configuration-gotchas.md § Configure object inputs with preview icons](con
 
 **Keep `id` when in-page links target it.** If nav, footer or button links point at a block's `id` (`href="#pricing"`), excluding it drops it from the extracted content and breaks those links. Keep `id` in the content and in the structure, and pick per site:
 
-- **Default:** `hidden: true`. Links keep working and editors can't break them — see [astro/configuration.md § Hide developer-only frontmatter fields](astro/configuration.md#hide-developer-only-frontmatter-fields).
+- **Default:** `hidden: true`. Links keep working and editors can't break them — see [configuration.md § Hide developer-only fields](configuration.md#hide-developer-only-fields).
 - **Visible:** a `type: text` input labelled "Anchor ID", when editors are expected to add sections they'll link to.
 
 ### Guarding empty objects and arrays in components

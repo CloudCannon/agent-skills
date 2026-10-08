@@ -104,3 +104,7 @@ collections_config:
 ```
 
 The same first edit also writes every schema key with its default — see [configuration-gotchas.md § The first edit writes every schema key](configuration-gotchas.md#the-first-edit-writes-every-schema-key).
+
+## Choosing what editors can create
+
+Which schemas appear in the **+ Add** menu, and where a new file opens, is in [configuration.md § New files and the Add button](configuration.md#new-files-and-the-add-button).

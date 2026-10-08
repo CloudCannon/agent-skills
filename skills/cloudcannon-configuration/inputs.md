@@ -1,6 +1,6 @@
 # Inputs: where they live and what they match
 
-Read before writing `_inputs`. This covers where an input can be defined and how its key finds a field. The pitfalls are in [configuration-gotchas.md § Inputs](configuration-gotchas.md#inputs).
+Read before writing `_inputs`. This covers where an input can be defined, how its key finds a field, and what a select over a collection stores. The pitfalls are in [configuration-gotchas.md § Inputs](configuration-gotchas.md#inputs).
 
 ## Where `_inputs` live
 
@@ -81,3 +81,17 @@ file_config:
 ```
 
 `$.key` also works in `collections_config.<name>._inputs`. `$.title` matches each file's root `title` and the `title` at the root of every structure value, so it does not separate a page title from a block's title; don't give it a page-specific label. To give block titles their own input, define `title` in that structure value's `_inputs`.
+
+## Select values from a collection
+
+Read when a `select` or `multiselect` takes its values from a collection (`values: collections.posts`). `value_key` decides what is stored in the file:
+
+| `value_key`                            | Stored value                                                                                                                                       |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| omitted                                | The default checks `id`, `uuid`, `path`, `title` and `name` in that order, so it usually stores the file path, such as `/content/posts/my-post.md` |
+| `filename_without_ext`                 | `my-post`                                                                                                                                          |
+| `filename`                             | `my-post.md`                                                                                                                                       |
+| `url`                                  | The file's collection URL                                                                                                                          |
+| any front matter key (`title`, `slug`) | That key's value                                                                                                                                   |
+
+Match the stored value to how the template looks the entry up: `filename_without_ext` or a `slug` key when it finds the entry by file name or slug.

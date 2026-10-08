@@ -58,6 +58,7 @@ Observed hallucinations and their real keys: [§ Common invalid keys](#common-in
 
 | File                                                 | Covers                                                                                                                                                                                                                                      |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [configuration.md](configuration.md)                 | **Start here when writing config** — the baseline, review, customization and shared verification checklist that every SSG follows                                                                                                           |
 | [json-schemas.md](json-schemas.md)                   | Querying the authoritative schemas — do this before writing any key                                                                                                                                                                         |
 | [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating a baseline with `configure`, and `validate`. CLI output **always** needs customization — it infers no input types, structures, select data, or toolbars. The rest of the CLI is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md) |
 | [structures.md](structures.md)                       | **Read early.** Every array and object Input needs a structure or editors cannot add items. Field completeness rule and definition patterns                                                                                                 |
@@ -75,7 +76,7 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 | SSG   | Doc                                                              | Purpose                                                                                                    |
 | ----- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Astro | [astro/overview.md](astro/overview.md)                           | **Start here for Astro** — reading order and what each file covers                                         |
-| Astro | [astro/configuration.md](astro/configuration.md)                 | Full configuration workflow, customization checklist, verification checklist                               |
+| Astro | [astro/configuration.md](astro/configuration.md)                 | Astro build values, Zod schema unions, image paths, Astro checklist items                                  |
 | Astro | [astro/collection-urls.md](astro/collection-urls.md)             | Glob-loader `slug` override and the `trailingSlash` rule                                                   |
 | Astro | [astro/configuration-gotchas.md](astro/configuration-gotchas.md) | `.astro` pages, TypeScript config, destructuring defaults, `z.union`                                       |
 | Hugo  | [hugo/overview.md](hugo/overview.md)                             | **Start here for Hugo** — reading order and what each file covers                                          |
@@ -85,10 +86,10 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 
 **Rules that live in a deep-dive, flagged here because agents miss them:**
 
-| Rule                                                                                                                                | Owner                                            |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Explicit `_inputs` beat inference — CloudCannon's type inference is a fallback, not a substitute for configuration                  | [astro/configuration.md](astro/configuration.md) |
-| One collection, many schemas — do not create a collection just to get a new schema (`schemas:` config; in Astro also Zod `z.union`) | [schemas.md](schemas.md)                         |
+| Rule                                                                                                                                | Owner                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Explicit `_inputs` beat inference — CloudCannon's type inference is a fallback, not a substitute for configuration                  | [configuration.md](configuration.md#configure-every-field-explicitly) |
+| One collection, many schemas — do not create a collection just to get a new schema (`schemas:` config; in Astro also Zod `z.union`) | [schemas.md](schemas.md)                                              |
 
 **Other skills:**
 
@@ -119,7 +120,7 @@ Observed LLM hallucinations — not exhaustive, the JSON schemas are authoritati
 | `options.max` on text/textarea                                      | `options.max_length` (paired with `min_length`)                                                                                                                                  |
 | `_editables.text: { bulletedlist, blockquote, format, table, ... }` | `_editables.text` is inline-only (`TextEditable`). A region's toolbar comes from its bound input's `options`; for the Content Editor, use `_editables.content` (`BlockEditable`) |
 | `heading2: true`, `heading3: true`                                  | `format: "p h1 h2 h3 h4 h5 h6"` (space-separated string)                                                                                                                         |
-| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview` — see [what each `value_key` stores](astro/configuration.md#customization-checklist)                                     |
+| `options.collections: [team]` (invented)                            | `values: collections.team` with `value_key` / `preview` — see [what each `value_key` stores](inputs.md#select-values-from-a-collection)                                          |
 | `options.structures: my_blocks` (bare name, invalid)                | `options.structures: _structures.my_blocks` (full path)                                                                                                                          |
 | `timezone: "+10:00"` (UTC offset, invalid)                          | `timezone` is a top-level key and a strict IANA-name enum (e.g. `Australia/Melbourne`, `America/New_York`), not a UTC offset. Default `Etc/UTC`                                  |
 | `paths.collections`, `paths.data` (legacy keys)                     | No such keys. Use `collections_config.<name>.path` and `data_config.<name>.path`                                                                                                 |

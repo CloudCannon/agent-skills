@@ -1,16 +1,12 @@
 # Configuration (Hugo)
 
-> **Checklist discipline:** This doc ends with a [Verification checklist](#verification-checklist). Read it now so you know what to aim for, then work through every item before marking this phase complete.
-
-Guidance for creating `cloudcannon.config.yml` and `.cloudcannon/initial-site-settings.json` for a Hugo site. Much of the customization work is the same for every SSG and is written up in the Astro workflow; this file links there for those parts and carries what differs for Hugo.
+Read [../configuration.md](../configuration.md) first: it has the steps and the shared checklist. This file covers only what differs for Hugo, and its [Verification checklist](#verification-checklist) adds the Hugo items.
 
 ## Baseline generation with the CloudCannon CLI
 
 ```bash
 npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg hugo
 ```
-
-See [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) for the individual `detect-*` subcommands. When the CLI is unavailable, write the config by hand from the audit — the review below still applies.
 
 ### A site that already has CloudCannon config
 
@@ -37,7 +33,6 @@ The Hugo baseline is a starting point, not a working config. Check each row:
 | `_snippets_imports`        | `hugo` with `exclude: [hugo_instagram]`                                              | Keep it, and narrow it to the shortcodes the site uses — see [cloudcannon-snippets/hugo/overview.md](../../cloudcannon-snippets/hugo/overview.md)                                                                                           |
 | `timezone`                 | The timezone of the machine running the CLI                                          | Set it to the site config's `timeZone` if it sets one; otherwise ask. **Why:** CloudCannon fills `NOW` dates in this zone, and Hugo skips future-dated pages unless `buildFuture` is set. A zone ahead of Hugo's hides a new post for hours |
 | `build.build_command`      | `hugo -b /`                                                                          | `hugo`, or `npm run build` — see [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson). `-b /` is for the local dev server only                                                                                          |
-| `source`                   | Not set                                                                              | Leave it unset — see [../configuration-gotchas.md § `source`](../configuration-gotchas.md#verify-the-cloudcannon-clis-source-path)                                                                                                          |
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
@@ -58,8 +53,6 @@ The Hugo baseline is a starting point, not a working config. Check each row:
 
 **MUST:** build production with the site's real `baseURL`, and keep `-b /` for local dev-server builds.
 **Why:** CloudCannon doesn't override `baseURL`, so the production build is the site as it deploys. Absolute URLs built from `baseURL` (`.Permalink`, `absURL`) point at the live domain even in the editor, so how well the preview works depends on the theme using relative URLs.
-
-**Only takes effect on first site creation.** For existing CloudCannon sites, change build settings with `cloudcannon sites update-build-config` (see [`cloudcannon-cli` § Changing build configuration](../../cloudcannon-cli/commands.md#changing-build-configuration)) or in the CloudCannon UI under **Site Settings > Builds > Configuration**. See [cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md).
 
 ## Collections from `content/` sections
 
@@ -144,7 +137,7 @@ Values editors change in `params` and `menus` live in the site config, not `data
 
 ## Schemas
 
-Write each collection's schemas as in [../schemas.md](../schemas.md). Hugo has no content schema of its own, so there is nothing like Zod to keep in sync — the schema file is the only definition of the fields. `new_preview_url`, `add_options` and `_enabled_editors` order are in [../astro/configuration.md § New preview URL for schemas](../astro/configuration.md#new-preview-url-for-schemas) and the sections after it, and apply unchanged.
+Write each collection's schemas as in [../schemas.md](../schemas.md). Hugo has no content schema of its own, so there is nothing like Zod to keep in sync — the schema file is the only definition of the fields.
 
 - **Seed** each schema from the section's archetype (`archetypes/<section>.md`) if the site has one — it already lists the fields a new file needs. CloudCannon doesn't read archetypes itself.
 - **Leave out** fields Hugo fills in at build time (`lastmod` from Git, `.Summary`).
@@ -344,14 +337,14 @@ Hugo itself needs no pre-build step. Search indexers (Pagefind) and CSS builds t
 
 ## Editor README
 
-Write `.cloudcannon/README.md` as in [../astro/configuration.md § Editor README](../astro/configuration.md#editor-readme). On Hugo, also tell editors:
+On Hugo, the [editor README](../configuration.md#editor-readme) also tells editors:
 
 - **Save** a new post before adding its images, in a section of page bundles
-- **Find** site settings (menus, social links, the footer) under the settings collection, and read the theme's TOML examples as the same keys in these YAML files
+- **Find** site settings (menus, social links, the footer) under the settings collection — see [configuration-gotchas.md § Config files in a collection must be YAML](configuration-gotchas.md#config-files-in-a-collection-must-be-yaml) for the theme's TOML examples
 
 ## Verification checklist
 
-Work through these before moving to the next phase. The Astro checklist's collection, input, schema and content items apply too — [../astro/configuration.md § Verification checklist](../astro/configuration.md#verification-checklist) — skipping its MDX, `astro:assets`, `package.json` engines and `[slug].astro` items.
+**MUST:** complete the [shared checklist](../configuration.md#verification-checklist) first, then these Hugo items.
 
 - [ ] `.cloudcannon/initial-site-settings.json` has `"ssg": "hugo"`, `build.output_path` matching `publishDir`, and a `build.hugo_version` inside every declared version window
 - [ ] `build.build_command` builds with the site's real `baseURL`
@@ -361,13 +354,10 @@ Work through these before moving to the next phase. The Astro checklist's collec
 - [ ] Every `_index.md` is deliberately in or out of its section collection
 - [ ] The home page opens at `/` in the Visual Editor — through a title-only `content/_index.md` if the home page has no content file
 - [ ] Every section of leaf bundles has a glob that matches flat files, a bundle `create.path`, and `disable_add_folder: true`
-- [ ] Every key used in a collection's files is in its schema file, or the schema sets `remove_extra_inputs: false`
 - [ ] `permalinks`, `slug:` and `url:` overrides are mirrored in the matching collection `url`
 - [ ] Every data file referenced by a region or a live partial has a `data_config` entry and inputs for its keys — see [../configuration-gotchas.md § Data inputs must follow the data file](../configuration-gotchas.md#data-inputs-must-follow-the-data-file-not-a-template)
 - [ ] Every string field's input type matches its template filter — `markdown` for `markdownify`, `html` for `safeHTML`, `text` or `textarea` otherwise — see [configuration-gotchas.md](configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter)
 - [ ] Taxonomy keys are top-level `multiselect` inputs with `values: data.<taxonomy>` from a seeded data file — no `values: []`
-- [ ] Every `select` and `multiselect` has its options configured — see [../configuration-gotchas.md § Editor-owned option lists](../configuration-gotchas.md#editor-owned-option-lists)
 - [ ] A settings collection over config files has `include_developer_files: true`, and every file it matches is YAML
 - [ ] `markdown` options match the site's Goldmark config — see [configuration-gotchas.md](configuration-gotchas.md#match-goldmark-in-the-markdown-options)
 - [ ] Image inputs upload where their template reads from, and page-bundle uploads are configured on inputs and `_editables`, not the collection
-- [ ] `npx @cloudcannon/cli validate` passes

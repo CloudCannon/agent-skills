@@ -6,7 +6,7 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 
 1. Array item previews: set `preview` on the structure's `values[]` entry, at the same level as `label` and `value`; `[*]` only sets the item type of an array of primitives ([§ Array item previews](#array-item-previews---vs-structure-value))
 2. Every `type: markdown` needs explicit `options:` ([SKILL.md common mistakes](SKILL.md#common-mistakes))
-3. Data files that hold like-shaped items must be arrays, not objects keyed by slug ([astro/configuration.md § Content specifics](astro/configuration.md#content-specifics))
+3. Data files that hold like-shaped items must be arrays, not objects keyed by slug ([configuration.md § Content specifics](configuration.md#content-specifics))
 4. Divergent top-level keys break structure matching ([structures.md § Common mistakes](structures.md#common-mistakes))
 
 ## Collections and paths
@@ -52,7 +52,17 @@ CC's `slugify` replaces non-alphanumeric characters with hyphens and collapses t
 
 ### `_enabled_editors` order is the default editor
 
-The first entry in `_enabled_editors` is the editor a file opens in. See [astro/configuration.md § \_enabled_editors order](astro/configuration.md#_enabled_editors-order-determines-the-default) for the per-collection defaults.
+The first entry in `_enabled_editors` is the editor an existing file opens in. Put `visual` first in every collection that builds pages:
+
+| Collection                               | `_enabled_editors`        |
+| ---------------------------------------- | ------------------------- |
+| Page builder                             | `[visual, data]`          |
+| Body-text pages that build (posts, docs) | `[visual, content, data]` |
+| Files that build no page                 | `[data]`                  |
+
+**Common miss:** `data` first on a page collection, so every page opens in the Data Editor instead of the Visual Editor.
+
+New files open in the add option's `editor` instead — see [configuration.md § New files and the Add button](configuration.md#new-files-and-the-add-button).
 
 ### Data-only markdown collections
 
@@ -75,7 +85,7 @@ A file can need either or both. **Common miss:** a select with `values: data.ico
 
 ### Single `data` collection or split?
 
-Default: **one `data` collection** for the SSG's data directory (`src/data` in Astro, `data/` in Hugo), with `disable_url: true` and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface. Set the glob to the formats the data files use.
+Default: **one `data` collection** for the site's data directory, with `disable_url: true` and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface. Set the glob to the formats the data files use.
 
 ```yaml
 collections_config:
@@ -128,7 +138,7 @@ Split into per-file collections only when:
 | Through a markdown renderer, then as HTML | `markdown`                                   |
 | As raw HTML, with no markdown step        | `html`                                       |
 
-The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customization-checklist), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter).
+The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter).
 
 - **Expect** template and content to agree. Markdown or HTML in a field the template escapes already prints literally on the live site — a bug in the original. Record it and ask the user whether to fix the template or the content; don't pick the input from the content alone. Plain text in a field the template renders as markdown is not a mismatch — `markdown` is still right.
 - **Scope** the input per structure when the same key renders differently in different blocks (`hero.description` as `markdown`, `description` as `textarea` elsewhere) — see [§ Where the input definition goes](#where-the-input-definition-goes).

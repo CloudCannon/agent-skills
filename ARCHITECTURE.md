@@ -96,18 +96,20 @@ scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url, sitemap on
 SKILL.md                                ENTRY POINT — the schema gate, invalid keys, symptoms
 json-schemas.md                         Querying the authoritative schemas
 troubleshooting.md                      Symptom → fix, when configuration is already wrong
+configuration.md                        Phase 2 base: baseline, review, customize, shared checklist
 cloudcannon-cli-guide.md                Generating and validating config with the CLI
 structures.md                           Inline vs split, previews, field completeness
 schemas.md                              One collection, many schemas; _schema; remove_extra_inputs
+inputs.md                               Where _inputs live, how keys match fields, value_key
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
 configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs
 astro/overview.md                       ENTRY POINT for Astro — reading order
-astro/configuration.md                  Phase 2: config, Zod schema unions, inputs, add options
+astro/configuration.md                  Astro: build values, Zod schema unions, image paths
 astro/collection-urls.md                Astro: glob-loader slug, trailingSlash
 astro/configuration-gotchas.md          Astro: .astro pages, TypeScript config, Zod unions
 hugo/overview.md                        ENTRY POINT for Hugo — reading order
-hugo/configuration.md                   Phase 2: CLI baseline fixes, section collections, site config as data, build
+hugo/configuration.md                   Hugo: CLI baseline fixes, section collections, site config as data, build
 hugo/collection-urls.md                 Hugo: [full_slug], page bundles, _index.md, permalinks
 hugo/configuration-gotchas.md           Hugo: Goldmark, taxonomies, quoted numbers, front matter
 

@@ -57,7 +57,7 @@ Returns:
 { "source": "src", "ssg": "astro" }
 ```
 
-This is informational only — **do not set `source` in `cloudcannon.config.yml`** during migration. See [astro/configuration.md](astro/configuration.md) for details on why `source` should be omitted.
+This is informational only — **do not set `source` in `cloudcannon.config.yml`** during migration. See [configuration-gotchas.md § `source`](configuration-gotchas.md#verify-the-cloudcannon-clis-source-path) for why.
 
 ### 3. Inspect Available Collections
 
@@ -89,7 +89,7 @@ Adding the `--dry-run` flag prints the file output instead:
 npx @cloudcannon/cli configure generate --auto --dry-run
 ```
 
-Review the output before customizing. In particular, `timezone` is the timezone of the machine that ran the CLI, and `node_version` can be missing even when `.nvmrc` exists — see [astro/configuration.md § Review the generated config](astro/configuration.md#review-the-generated-config).
+Review the output before customizing. In particular, `timezone` is the timezone of the machine that ran the CLI, and `node_version` can be missing even when `.nvmrc` exists — see [configuration.md § Review the generated config](configuration.md#review-the-generated-config) and the SSG's `configuration.md`.
 
 ## Validating Configuration
 
@@ -124,17 +124,17 @@ Validation catches unknown keys, wrong value types, and missing required fields.
 
 The CLI generates a baseline. These keys are the common customization targets:
 
-| Key                  | What it controls                                                                                                   | Reference                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `collections_config` | Each collection CloudCannon exposes — paths, schemas, URLs, collection-scoped settings                             | [astro/configuration.md](astro/configuration.md)                                                                                 |
-| `_inputs`            | How fields appear in the editor (dropdowns, date pickers, image uploaders, hidden fields)                          | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                     |
-| `_structures`        | Reusable component structures for array and object inputs                                                          | [structures.md](structures.md)                                                                                                   |
-| `collection_groups`  | Sidebar grouping of collections                                                                                    | [astro/configuration.md](astro/configuration.md)                                                                                 |
-| `_editables`         | Rich text editor toolbars (per key: `content`, `block`, `text`, `image`, `link`)                                   | [configuration-gotchas.md § `_editables`](configuration-gotchas.md#_editables-key-to-schema-mapping)                             |
-| `markdown`           | Markdown engine options — set `options.table: true` if content has Markdown-syntax tables (default is HTML tables) | [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables) |
-| `_snippets`          | Component syntax support in rich text content                                                                      | [cloudcannon-snippets skill](../cloudcannon-snippets/SKILL.md)                                                                   |
-| `_select_data`       | Shared dropdown options                                                                                            | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                     |
-| `file_config`        | Per-file input overrides (array format only)                                                                       | [astro/configuration.md § Customize the config](astro/configuration.md#customize-the-config)                                     |
+| Key                  | What it controls                                                                                                   | Reference                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `collections_config` | Each collection CloudCannon exposes — paths, schemas, URLs, collection-scoped settings                             | [configuration.md § Customize the config](configuration.md#customize-the-config)                                                          |
+| `_inputs`            | How fields appear in the editor (dropdowns, date pickers, image uploaders, hidden fields)                          | [inputs.md](inputs.md)                                                                                                                    |
+| `_structures`        | Reusable component structures for array and object inputs                                                          | [structures.md](structures.md)                                                                                                            |
+| `collection_groups`  | Sidebar grouping of collections                                                                                    | [configuration-gotchas.md § `collection_groups`](configuration-gotchas.md#collection_groups-requires-matching-collections_config-entries) |
+| `_editables`         | Rich text editor toolbars (per key: `content`, `block`, `text`, `image`, `link`)                                   | [configuration-gotchas.md § `_editables`](configuration-gotchas.md#_editables-key-to-schema-mapping)                                      |
+| `markdown`           | Markdown engine options — set `options.table: true` if content has Markdown-syntax tables (default is HTML tables) | [configuration-gotchas.md § Markdown tables](configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables)          |
+| `_snippets`          | Component syntax support in rich text content                                                                      | [cloudcannon-snippets skill](../cloudcannon-snippets/SKILL.md)                                                                            |
+| `_select_data`       | Shared dropdown options                                                                                            | [configuration-gotchas.md § Editor-owned option lists](configuration-gotchas.md#editor-owned-option-lists)                                |
+| `file_config`        | Per-file input overrides (array format only)                                                                       | [configuration.md § Customization checklist](configuration.md#customization-checklist)                                                    |
 
 The full set of configuration keys is defined in the CloudCannon Configuration JSON Schema, see [SKILL.md § Do this before writing any configuration](SKILL.md#do-this-before-writing-any-configuration) for schema details. For IDE autocomplete and validation, use an LSP that supports validating against JSON Schemas (see below) — **do not** add ad-hoc schema comments in YAML.
 

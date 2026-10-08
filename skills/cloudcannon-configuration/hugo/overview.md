@@ -1,6 +1,6 @@
 # Configuration (Hugo) — entry point
 
-Hugo-specific configuration guidance. The cross-SSG rules live one level up: [`../SKILL.md`](../SKILL.md) owns the CloudCannon CLI, Collections, Inputs, Structures and Select Data, and [`../configuration-gotchas.md`](../configuration-gotchas.md) owns the cross-SSG pitfalls. The files here carry only what differs for Hugo.
+Hugo-specific configuration guidance. The cross-SSG rules live in the root files in the reading order below, starting with [`../configuration.md`](../configuration.md); the files here carry only what differs for Hugo.
 
 **MUST:** download the JSON schemas before writing any configuration — see [`../SKILL.md`](../SKILL.md#do-this-before-writing-any-configuration). Training data hallucinates keys.
 
@@ -8,18 +8,14 @@ Hugo-specific configuration guidance. The cross-SSG rules live one level up: [`.
 
 | Order | File                                                       | Read when                                                                                         |
 | ----- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1     | [configuration.md](configuration.md)                       | Always — the Phase 2 workflow: CLI baseline, collections, data, build settings                    |
+| 1     | [../configuration.md](../configuration.md)                 | Always — the steps for writing config and the shared verification checklist                       |
 | 2     | [../schemas.md](../schemas.md)                             | Before writing a collection's `schemas`                                                           |
-| 3     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, `_index.md`, page bundles)                          |
-| 4     | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                               |
-| 5     | [configuration-gotchas.md](configuration-gotchas.md)       | Hugo-only pitfalls — markdown rendering, rich text inputs, taxonomies, config files, routing keys |
-
-## Cross-SSG deep-dives
-
-| File                                                       | Covers                                                     |
-| ---------------------------------------------------------- | ---------------------------------------------------------- |
-| [../inputs.md](../inputs.md)                               | Where `_inputs` live, cascade order, how keys match fields |
-| [../structures.md](../structures.md)                       | Structures — inline vs split, previews, field completeness |
-| [../collection-urls.md](../collection-urls.md)             | URL placeholders, filters, troubleshooting                 |
-| [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | CloudCannon CLI commands and options                       |
-| [../build-commands.md](../build-commands.md)               | Build and install commands — where each build step goes    |
+| 3     | [configuration.md](configuration.md)                       | Always — CLI baseline fixes, collections, data, build settings and the Hugo checklist             |
+| 4     | [../inputs.md](../inputs.md)                               | Before writing `_inputs`                                                                          |
+| 5     | [../structures.md](../structures.md)                       | Any field holds an array or an object                                                             |
+| 6     | [../collection-urls.md](../collection-urls.md)             | Any collection produces pages                                                                     |
+| 7     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, `_index.md`, page bundles)                          |
+| 8     | [../build-commands.md](../build-commands.md)               | The build has steps besides `hugo`                                                                |
+| 9     | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                               |
+| 10    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                               |
+| 11    | [configuration-gotchas.md](configuration-gotchas.md)       | Hugo-only pitfalls — markdown rendering, rich text inputs, taxonomies, config files, routing keys |
