@@ -83,14 +83,18 @@ from there.
 
 Two routes, and the user picks:
 
-| Route       | Run                                                                             | When                                                        |
-| ----------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Manual**  | The build command again, in a second terminal                                   | Slow builds, or a post-build step that rewrites the output  |
-| **Watched** | [`watch-build.mjs`](scripts/README.md) with `--watch` for each source directory | Editing in the browser, wanting the preview to follow along |
+| Route       | Run                                                                             | When                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Manual**  | The build command again, in a second terminal                                   | The default. Testing visual editing, slow builds, or a post-build step that rewrites the output       |
+| **Watched** | [`watch-build.mjs`](scripts/README.md) with `--watch` for each source directory | Following edits that editable regions don't re-render: source-editor content, data, templates, styles |
 
 Either way the preview reloads itself once the output directory changes — see
 [dev-server-api.md § Events](dev-server-api.md#events). Nothing needs to restart, and the manual
 route needs no script at all.
+
+A rebuild reloads the whole preview, which replaces the in-place re-render editable regions do
+after each edit. With a watcher running, every save in the Visual Editor triggers that reload, so
+stop it while testing visual editing.
 
 Every rebuild costs the whole build script, which is seconds to minutes when a post-build step
 rewrites the whole output — the Rosey pipeline from

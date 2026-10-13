@@ -16,16 +16,24 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 **MUST NOT:** add `source` to `cloudcannon.config.yml`, and remove it if the CloudCannon CLI generates one.
 **Why:** `source` is deployment-specific (monorepos). The CloudCannon root defaults to the repo root, so config can already reference any path in the repo.
 
-### Keep collection globs disjoint
+### Overlapping collections: each file lands in one
 
-**MUST:** make sure no file matches the `path` and `glob` of two collections.
-**Why:** a file belongs to one collection only. It appears in just one of them, and the other looks empty for that file with no error.
+A file belongs to one collection only. When collections overlap (`pages` at `src/content` with `**/*.md`, and `blog` at `src/content/blog`), the file goes to the collection with the most specific `path` whose `glob` matches it. Their order in the config doesn't matter.
+
+An exclusion doesn't hide a file. When `blog`'s glob excludes a file (`!index.md`), it falls through to the next collection whose `path` and `glob` match it — here `pages`, which then edits it with its own schemas and `url`. A glob of only exclusions matches everything else in the collection's `path`.
+
+**MUST:** check where every file lands after writing the globs. To hide a file from editors, exclude it from every collection that matches it.
+**Why:** a file that falls through opens with the wrong schema and `url`, and one excluded on purpose can reappear in `pages` with no error.
+
+A file that moves to another collection keeps its front matter, `_schema` included. Give that collection a schema that fits the file ([schemas.md](schemas.md)), or the first save drops the keys it lacks.
+
+A file that falls through brings its folder into the other collection's sidebar. **Add page** in that folder still creates a file of the section's collection: it gets that collection's schema and is saved there, but it previews at the `new_preview_url` of the collection where Add was clicked, which may not render it. If editors report an error on a new page there, tell them to add it from the section's own collection.
 
 ### Folder-per-post content and CC URL placeholders
 
 When content uses a folder-per-post structure (e.g. `blog/getting-started/index.md`), CC's `[slug]` placeholder resolves to an empty string, because the filename is `index`. So `url: "/blog/[slug]/"` produces `/blog/` for every post — wrong.
 
-The fix depends on how the SSG derives the output path from the folder — see your SSG's `collection-urls.md` or `configuration-gotchas.md`. Astro: [astro/configuration-gotchas.md § Folder-per-post](astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders). Hugo: [hugo/collection-urls.md § Page bundles](hugo/collection-urls.md#page-bundles).
+`[full_slug]` drops the `index` the same way, so it resolves to the folder: `blog/getting-started/index.md` gives `getting-started`. When the SSG builds the post from its folder name, `url: "/blog/[full_slug]/"` fits with no front matter changes ([collection-urls.md § The rule](collection-urls.md#the-rule)). Whether to flatten the folders during a migration, and the other fixes, depend on the SSG — see your SSG's `collection-urls.md` or `configuration-gotchas.md`. Astro: [astro/configuration-gotchas.md § Folder-per-post](astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders). Hugo: [hugo/collection-urls.md § Page bundles](hugo/collection-urls.md#page-bundles).
 
 #### A folder-per-post glob must also match a flat file
 

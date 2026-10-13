@@ -19,7 +19,7 @@ One `pages` collection holds every unique-layout page — see [../audit.md § Ce
 
 ### Steps
 
-1. **Create `src/content/pages/`** and add a `.md` file for each page. Extract the hardcoded data from the `.astro` template into YAML frontmatter. Add `_schema: <key>` to each file so CloudCannon matches the correct schema.
+1. **Create `src/content/pages/`** and add a `.md` file for each page. Extract the hardcoded data from the `.astro` template into YAML frontmatter. Add `_schema: <key>` to each file that doesn't use the `default` schema ([schemas.md § `default` and `_schema`](../../cloudcannon-configuration/schemas.md#default-and-_schema)).
 
 2. **Add a `pagesCollection`** to the content config with a `z.union` schema covering all page types. See [configuration.md § Merge unique pages with a z.union](../../cloudcannon-configuration/astro/configuration.md#fallback-merge-unique-pages-into-pages-with-a-union) for the pattern. Place the most specific schemas first in the union. Define shared Zod objects for common shapes that appear across page types.
 

@@ -14,7 +14,7 @@ Hugo-specific configuration guidance. The cross-SSG rules live in the root files
 | 4     | [../inputs.md](../inputs.md)                               | Before writing `_inputs`                                                                          |
 | 5     | [../structures.md](../structures.md)                       | Any field holds an array or an object                                                             |
 | 6     | [../collection-urls.md](../collection-urls.md)             | Any collection produces pages                                                                     |
-| 7     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, `_index.md`, page bundles)                          |
+| 7     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, permalinks, `_index.md`, page bundles)              |
 | 8     | [../build-commands.md](../build-commands.md)               | The build has steps besides `hugo`                                                                |
 | 9     | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                               |
 | 10    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                               |

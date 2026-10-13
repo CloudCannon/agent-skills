@@ -16,7 +16,7 @@ Use Astro 5+. The CloudCannon editable regions integration (`@cloudcannon/editab
 
 - Define collections in `src/content.config.ts` using `glob({ pattern, base })` loaders.
 - Use **flat files** (`blog/my-post.md`), not folder-per-post (`blog/my-post/index.md`).
-  **Why:** flat files work natively with CloudCannon's `[slug]` URL placeholder; folder-per-post requires workarounds.
+  **Why:** each post is one entry editors open directly, with no folder to create for a new post, and flat files work natively with CloudCannon's `[slug]` URL placeholder.
 - Co-locate images with content only when necessary — prefer `src/assets/` for optimized images (see Images below).
 
 ## Frontmatter

@@ -11,9 +11,12 @@ Astro's `glob()` loader has a built-in feature: if a content file's frontmatter 
 
 This is easy to miss because the `slug` field doesn't need to be in the Zod schema — the glob loader consumes it before validation. The application code doesn't reference `data.slug` either; it's already baked into `post.id`.
 
-**Implications for CC URLs:** When a template uses `post.id` for routing (common pattern: `params: { slug: post.id }` in `getStaticPaths`), and some content files have a `slug` frontmatter that differs from the filename, CC's `[slug]` placeholder (filename-based) will produce the wrong URL. Use `{slug}` (frontmatter-based) instead.
+**Implications for CC URLs:** When a template uses `post.id` for routing (common pattern: `params: { slug: post.id }` in `getStaticPaths`), and some content files have a `slug` frontmatter that differs from the filename, CC's `[slug]` placeholder (filename-based) gives the wrong URL for those files. Use `{slug}` (frontmatter-based) when every file in the collection sets `slug`.
 
-**Ensuring consistency:** If only some posts have `slug` frontmatter, add it to the rest (matching the filename) so `{slug}` works uniformly. Also add `slug` to the CC schema template so new posts get the field, and make the `slug` input visible so editors can control their URL.
+**When only some files set `slug`:** no single placeholder fits, because `{slug}` is empty for the rest. Prefer URLs that come from the file name ([../collection-urls.md § The rule](../collection-urls.md#the-rule)), and ask the user before either change:
+
+- **When few files set `slug`**, rename each one to its slug value and delete the key, so `[slug]` (or `[full_slug]` for an id that includes folders) fits every file.
+- **When most files set `slug`**, the site is committed to it. Add `slug` to the rest, matching the file name, add it to the collection's schema file, and use `{slug}`. Leave the `slug` input visible so editors can set the URL of new files.
 
 ## Trailing slash rule
 

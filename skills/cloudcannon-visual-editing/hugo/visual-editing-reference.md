@@ -99,7 +99,7 @@ The generic three-layer rule (array, array-item + component, nested editables) i
 **MUST:** put `data-editable="array-item"` on a wrapper element around the `partial` call, not inside the partial.
 **Why:** a Go template can't add attributes to the root element of a partial from the call site, and the generic rule puts the array-item host outside the component ([Page builder blocks](../visual-editing-reference.md#page-builder-blocks)).
 
-The wrapper becomes the flex or grid item in place of the partial's root. Run the checks in [../visual-editing-reference.md § Wrapper elements change the formatting context](../visual-editing-reference.md#wrapper-elements-change-the-formatting-context) before adding wrappers, and **keep** each partial single-root — a partial that renders an element plus a `<style>` or `<script>` has no single root to sit in the wrapper cleanly.
+The wrapper becomes the flex or grid item in place of the partial's root. Run the checks in [../visual-editing-reference.md § Wrapper elements change the formatting context](../visual-editing-reference.md#wrapper-elements-change-the-formatting-context) before adding wrappers, and **keep** each partial single-root — a partial that renders an element plus a `<style>`, `<link>` or `<script>` has no single root to sit in the wrapper cleanly. Move those inside the root element.
 
 **MUST NOT:** use `display: contents` on the wrapper — see [../visual-editing-reference.md § Don't mix array items with non-array siblings](../visual-editing-reference.md#dont-mix-array-items-with-non-array-siblings).
 

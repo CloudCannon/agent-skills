@@ -181,7 +181,26 @@ if [ -d "themes" ]; then
 fi
 [ -d "_vendor" ] && echo "_vendor/ present (vendored modules are bundled for the editor)"
 echo "### version keys on module imports (remove them — see hugo/audit.md § 1)"
-VERSION_KEYS=$(config_grep '^\s*(-\s*)?version\s*[:=]')
+# Only keys inside module imports — params.version and friends are unrelated.
+# Tracks a YAML `imports:` block, TOML [[module.imports]] tables and a JSON "imports" array.
+VERSION_KEYS=""
+if [ -n "$CONFIG_FILES" ]; then
+  # shellcheck disable=SC2086
+  VERSION_KEYS=$(awk '
+    function indent(s) { match(s, /^[ ]*/); return RLENGTH }
+    FNR == 1 { inyaml = 0; intoml = 0; injson = 0; depth = 0 }
+    {
+      line = $0
+      if (line ~ /^[ \t]*\[/) intoml = (line ~ /^[ \t]*\[\[[ \t]*(module\.)?imports[ \t]*\]\]/)
+      if (inyaml && line !~ /^[ \t]*(#|$)/ && (indent(line) < yind || (indent(line) == yind && line !~ /^[ ]*- /))) inyaml = 0
+      if (line ~ /"imports"[ \t]*:[ \t]*\[/) { injson = 1; depth = 0 }
+      if (injson) { o = gsub(/\[/, "[", line); c = gsub(/\]/, "]", line); depth += o - c }
+      if ((inyaml || intoml || injson) && $0 ~ /^[ \t]*(-[ \t]*)?"?version"?[ \t]*[:=]/) print FILENAME ":" FNR ":" $0
+      else if ($0 ~ /imports"?[ \t]*[:=].*version/) print FILENAME ":" FNR ":" $0
+      if (injson && depth <= 0) injson = 0
+      if ($0 ~ /^[ ]*imports:[ \t]*$/) { inyaml = 1; yind = indent($0) }
+    }' $CONFIG_FILES 2>/dev/null | cut -c1-200)
+fi
 if [ -n "$VERSION_KEYS" ]; then
   printf '%s\n' "$VERSION_KEYS"
   echo "WARNING: a module import has a version key — every component fails in the editor"

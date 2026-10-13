@@ -51,15 +51,17 @@ collections_config:
         name: Author
 ```
 
-## Set `_schema` on every file
+## `default` and `_schema`
 
-Set `_schema: <key>` in every file in a collection that has schemas — in the front matter, or at the top level of a data file — and hide it in `_inputs`.
+`default` is a special schema key: a file with no `_schema` uses the collection's `default` schema. A file that uses any other schema sets `_schema` to that schema's key, in the front matter or at the top level of a data file. Hide `_schema` in `_inputs`.
 
-**Why:** CloudCannon's matching of a file to a schema by its shape is unreliable. A file matched to the wrong schema shows the wrong fields, and loses the keys that schema lacks (see below).
+- **Omit** `_schema` on files that use `default`, unless the site's own code reads `_schema` (an Astro `z.discriminatedUnion("_schema", …)`), in which case every file sets it.
+- **MUST:** make every `_schema` value, and every `add_options[].schema`, exactly a key under that collection's `schemas`. It's the key, not the schema file's name: a file on `post: { path: .cloudcannon/schemas/post.md }` sets `_schema: post`, and one on `default: { path: .cloudcannon/schemas/post.md }` sets nothing.
+  **Why:** a file whose `_schema` names no schema in its collection doesn't open. The editor logs `SchemaNotFoundError` and stays on the collection list. `cloudcannon validate` doesn't check this.
 
 ```markdown
 ---
-_schema: default
+_schema: page_builder
 title: About us
 ---
 ```
@@ -68,6 +70,12 @@ title: About us
 _inputs:
   _schema:
     hidden: true
+```
+
+Check every collection's files against its keys. Any value that isn't a key under that collection's `schemas` is a broken file:
+
+```sh
+grep -rh '^_schema:' src/content/pages | sort | uniq -c
 ```
 
 ### Index pages

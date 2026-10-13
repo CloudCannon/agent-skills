@@ -9,7 +9,13 @@ Make content files CMS-friendly without changing what Hugo builds. Rebuild after
 ### Keep Hugo's file conventions
 
 - **MUST NOT:** rename `_index.md`. It is how Hugo makes a list page; `index.md` makes a leaf bundle instead, and the section stops listing its pages.
-- **MUST NOT:** flatten a leaf bundle (`post/index.md`) that still holds resources — its `.Resources` stop resolving. Once its images move out ([§ Page-bundle images](#page-bundle-images)), leave `index.md` where it is: `[full_slug]` already handles its URL ([collection-urls.md § Page bundles](../../cloudcannon-configuration/hugo/collection-urls.md#page-bundles)).
+- **MUST NOT:** flatten a leaf bundle (`post/index.md`) that still holds resources — its `.Resources` stop resolving.
+- **Flatten** each bundle once its images move out ([§ Page-bundle images](#page-bundle-images)): `post/index.md` becomes `post.md`. Skip this when the user chose to keep bundles.
+  **Why:** each post becomes one entry editors open directly, with no folder to create for a new post. Hugo builds `post.md` at the same URL as `post/index.md`.
+  1. **Move** each file with `git mv`, and delete the empty folder.
+  2. **Update** any `ref`/`relref` that names the old `post/index.md` path. The build reports the ones it can't resolve.
+  3. **Replace** the collection's bundle `create.path` with a flat one: `"[relative_base_path]/{title|slugify}.[ext]"`. Keep a `**/*.md` glob when the section has subsections, so their files stay in the collection. Only a section with no subfolders takes a flat `*.md` glob, with `disable_add_folder: true` ([configuration-gotchas.md § A flat glob needs `disable_add_folder`](../../cloudcannon-configuration/configuration-gotchas.md#a-flat-glob-needs-disable_add_folder)). Check the `url` still matches ([collection-urls.md](../../cloudcannon-configuration/hugo/collection-urls.md)).
+  4. **Rebuild** and compare against the parity baseline.
 - **Keep** each file's front matter format. Don't convert TOML to YAML to tidy up — it's a diff in every file for no editor benefit.
 
 ### Page-bundle images
@@ -19,7 +25,7 @@ Move images out of page bundles into `static/images/`, unless the user chose to 
 - **Move** each bundle image into `static/images/`, named `<post folder>-<file name>`: `content/blog/first-post/cover.jpg` becomes `static/images/first-post-cover.jpg`.
   **Why:** bundles reuse a few names (`cover.jpg`, `featured.png`), and one folder can't hold two files with one name. The prefix also tells editors in the image browser which post an image belongs to.
 - **Rewrite** each front matter value to the new path: `cover: cover.jpg` becomes `cover: /images/first-post-cover.jpg`.
-- **Rewrite** each relative image link in the body (`![](diagram.png)`, a shortcode's `src="diagram.png"`) to the new path.
+- **Rewrite** each relative image link in the body (`![](diagram.png)`, a shortcode's `src="diagram.png"`) to the new path. Quote a positional shortcode argument when you rewrite it: an unquoted value containing `.` fails the build (`period in shortcode name only allowed for inline identifiers`).
 - **Switch** every `.Resources.Get` and `.Page.Resources.Get` that reads a moved image to `resources.Get`, in templates, shortcodes and render hooks. Change a theme template by copying it to the same path under the project's `layouts/`.
 - **Replace** a lookup by pattern (`.Resources.GetMatch "*feature*"`, `.Resources.ByType "image"`) with an explicit front matter field.
 - **Set** `images: [/images/first-post-featured.jpg]` on each post whose featured image moved, when the site uses Hugo's built-in `opengraph` or `twitter_cards` template.
@@ -28,11 +34,12 @@ Move images out of page bundles into `static/images/`, unless the user chose to 
 
 ### Front matter consistency
 
+- **`draft`** — Hugo leaves drafts out of every build, with no template logic needed. In a collection where some files set `draft`, write `draft: false` on the rest ([../content.md](../content.md)). Don't add `draft` to a collection that doesn't use it unless the user asks for drafts there.
 - **Missing keys** — Hugo tolerates them, so templates often paper over them with `default` or `with`. Those fallbacks are invisible to editors.
 - **Hugo's own keys** — `params`, `menu`, `resources` and `cascade` count as keys any file uses, so they go in the schema file too.
 - **Image paths** — one convention per input, matching how the template reads it (see [configuration.md § Images](../../cloudcannon-configuration/hugo/configuration.md#images)).
 - **Numbers shown as text** — quote them ([configuration-gotchas.md § Quote numbers](../../cloudcannon-configuration/hugo/configuration-gotchas.md#quote-numbers-a-text-region-displays)).
-- **Routing overrides** — if some files in a section set `slug:` and others don't, make it uniform ([collection-urls.md § Front matter that changes the URL](../../cloudcannon-configuration/hugo/collection-urls.md#front-matter-that-changes-the-url)).
+- **Routing overrides** — if some files in a section set `slug:` and others don't, follow [collection-urls.md § When only some files set `slug`](../../cloudcannon-configuration/hugo/collection-urls.md#when-only-some-files-set-slug). Don't add `slug` or `url` to files just to steer the collection `url`.
 
 ### Field naming
 

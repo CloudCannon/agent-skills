@@ -246,6 +246,29 @@ Apply this pattern to every snippet that has an image `editor_key` — not just 
 
 ---
 
+## Snippet or layout field?
+
+A snippet edits a component's values, but the Visual Editor shows it as a card, not as the rendered component. A component the layout renders from a front matter field renders as on the site, and an editable region updates it live. So for each component in body content, decide whether it really belongs in the body.
+
+Make it an optional front matter field that the layout renders when **all** of these hold:
+
+| Test               | Holds when                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------ |
+| Fixed position     | It always sits at the same point in the body, at the start or the end, never mid-prose                 |
+| At most one a page | No file uses it twice                                                                                  |
+| Repeated           | 3 or more files in the same collection use it                                                          |
+| A few fields       | Its content is a short value or two (text, a variant, a link), not prose that carries on from the body |
+
+Keep it a snippet when **any** of these hold: its position varies, a file uses it more than once, it's part of the narrative, only one file uses it, or the layout can't be changed.
+
+A notice at the top of most docs pages, or an MDX `<Callout>` opening every post, usually passes. An alert in the middle of a how-to, or a figure, stays a snippet.
+
+**Ask the user** before moving one: it changes the content model. Recommend the layout field when every test passes.
+
+Shape it as one optional key holding its few fields (`notice: { text, style }`), which renders nothing when empty. Render it from the layout through a component editable region, and add the key to the collection's schema file.
+
+---
+
 ## When NOT to use a snippet
 
 If a rich text field contains structured HTML with a fixed layout and only a few changing values (e.g. a banner with specific classes for centering and link styling), don't define it as a snippet. Instead, decompose the HTML into explicit props and let the component own the markup. See [visual-editing-reference.md § Where does a value belong](../cloudcannon-visual-editing/visual-editing-reference.md#where-does-a-value-belong--frontmatter-structure-value-default-or-hardcoded) for the full pattern.

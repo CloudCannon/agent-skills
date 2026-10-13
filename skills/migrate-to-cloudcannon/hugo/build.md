@@ -19,13 +19,14 @@ Use `grep -o … | wc -l`, not `grep -c`, when counting in minified HTML — `--
 
 ## CloudCannon build command
 
-| Site has                                        | `build.build_command`                                                           | `build.install_command` |
-| ----------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------- |
-| No `package.json`                               | `hugo`                                                                          | —                       |
-| `package.json` with a production `build` script | `npm run build`                                                                 | `npm i`                 |
-| `package.json` without a `build` script         | `hugo`                                                                          | `npm i`                 |
-| A module-cache dependency the editor needs      | `hugo mod vendor && <the above>` (or the vendor step in the npm `build` script) | as above                |
-| An npm Hugo (`hugo-extended`, `hugo-bin`)       | `npm run build` — the npm Hugo runs, whatever `hugo_version` says               | `npm i`                 |
+| Site has                                           | `build.build_command`                                                                                                                                                                                         | `build.install_command` |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| No `package.json`                                  | `hugo`                                                                                                                                                                                                        | —                       |
+| `package.json` with a production `build` script    | `npm run build`                                                                                                                                                                                               | `npm i`                 |
+| `package.json` without a `build` script            | `hugo`                                                                                                                                                                                                        | `npm i`                 |
+| A module-cache dependency the editor needs         | `hugo mod vendor && <the above>` (or the vendor step in the npm `build` script)                                                                                                                               | as above                |
+| A module dependency `hugo mod vendor` can't vendor | The rows above, with no vendor step. Repeat what the editor needs in the project instead — see [When vendoring fails](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#when-vendoring-fails) | as above                |
+| An npm Hugo (`hugo-extended`, `hugo-bin`)          | `npm run build` — the npm Hugo runs, whatever `hugo_version` says                                                                                                                                             | `npm i`                 |
 
 - **Build** production with the site's real `baseURL`. Ignore the `hugo -b /` the CLI suggests: that's for the local dev server only. Absolute URLs point at `baseURL` even in the editor, so how well editing works depends on the theme using relative URLs — the image check above catches the worst case.
 - **Vendor** in the build command when the editor needs a module-cache dependency ([Themes, modules and vendoring](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#themes-modules-and-vendoring)), and gitignore `_vendor/`. Committing `_vendor/` instead also works, and removes the build's need for Go.

@@ -41,7 +41,9 @@ The preview reloads itself whenever the output directory changes, so a rebuild i
 | **Manual**  | Re-run the build after a batch of edits  | Nothing. Rebuild when they want a fresh preview |
 | **Watched** | Run [watch-build.mjs](scripts/README.md) | A full build per change                         |
 
-Default to manual when the build is slow or has a post-build step that rewrites the whole output. Default to watched when the user is editing in the browser and wants the page to follow along.
+Default to manual. A watched rebuild after each save changes the output directory, and the preview then reloads the whole page. The editable regions' own in-place re-render is hidden behind that reload, so testing visual editing feels jarring. Manual also suits a slow build, or a post-build step that rewrites the whole output.
+
+Offer watched when the user wants the preview to follow edits that editable regions don't re-render on their own: content edited in the source editor, data files, templates or styles.
 
 ## The build command
 

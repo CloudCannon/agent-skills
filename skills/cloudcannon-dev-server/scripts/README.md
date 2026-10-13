@@ -37,6 +37,10 @@ out static-asset directories such as `public/` unless you've checked the build n
 writing into `src/` — retriggers a watcher pointed at its target, forever. Watching only what a
 person edits is what makes that impossible, and it needs no per-site ignore list.
 
+When the build writes into a directory people also edit (a script generating `src/theme.json`),
+pass the subdirectories people edit (`--watch src/content --watch src/components`), not the
+directory itself.
+
 If a build does feed itself anyway, the script stops after five back-to-back rebuilds and says so,
 rather than looping silently.
 

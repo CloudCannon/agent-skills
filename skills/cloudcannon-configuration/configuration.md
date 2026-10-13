@@ -38,7 +38,7 @@ The baseline has collections and paths, but no input types, structures, select d
 
 ### Fix content when the config needs it
 
-Add or normalize a field in the content files when the config needs it to work: a `slug` key for a `{slug}` URL, `_schema` on every file, one `date` format. Leave structural changes (moving files, new fields that change rendering, reorganizing collections) to the content phase.
+Add or normalize a field in the content files when the config needs it to work: `_schema` on each file that doesn't use the `default` schema, one `date` format. Leave structural changes (moving files, new fields that change rendering, reorganizing collections) to the content phase.
 
 **Why:** settling for config that works around inconsistent content leaves it wrong or fragile.
 
@@ -93,18 +93,7 @@ Remove each collection that holds only one file. Move a lone page into the `page
 
 When `pages` holds subdirectories that are distinct groups with their own URL prefix (`pages/services/`, `pages/landing/`), give each its own collection. Each gets a sidebar entry and its own URL pattern.
 
-1. **Exclude** the subdirectories from `pages` with glob negation:
-
-   ```yaml
-   pages:
-     path: src/content/pages
-     glob:
-       - "!services/**"
-       - "!landing/**"
-     url: "/[slug]/"
-   ```
-
-2. **Add** a collection for each subdirectory, with its own `path` and `url`:
+1. **Add** a collection for each subdirectory, with its own `path` and `url`:
 
    ```yaml
    services:
@@ -115,7 +104,9 @@ When `pages` holds subdirectories that are distinct groups with their own URL pr
      url: "/landing/[slug]/"
    ```
 
-3. **Add** the new collections to `collection_groups`, under the same heading as `pages`.
+   Their files leave `pages` with no glob change, because the collection with the most specific `path` wins — see [configuration-gotchas.md § Overlapping collections](configuration-gotchas.md#overlapping-collections-each-file-lands-in-one).
+
+2. **Add** the new collections to `collection_groups`, under the same heading as `pages`.
 
 ## New files and the Add button
 
@@ -219,7 +210,7 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] No collection contains only a single file — see [§ Consolidate single-file collections](#consolidate-single-file-collections)
 - [ ] `collection_groups` organize collections into logical sidebar groups
 - [ ] Every collection has a `url` pattern with the correct trailing slash, or `disable_url: true` — see [collection-urls.md](collection-urls.md)
-- [ ] Collections with content in subdirectories: the build output matches the URL pattern
+- [ ] For every file in every collection with a `url`, the computed URL equals the built path. Check every file, not a sample — see [collection-urls.md § Check every file against the build](collection-urls.md#check-every-file-against-the-build)
 - [ ] Index pages whose fields differ from the items have their own schema — see [schemas.md § Index pages](schemas.md#index-pages)
 
 ### Inputs
@@ -259,6 +250,7 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 
 - [ ] `add_options` limits the Add button to schemas editors should create from
 - [ ] Every front matter key used in a collection with schemas is in its schema file, or the schema sets `remove_extra_inputs: false`
+- [ ] Every `_schema` value in a collection's files, and every `add_options[].schema`, is a key under that collection's `schemas` — see [schemas.md § `default` and `_schema`](schemas.md#default-and-_schema)
 - [ ] Collections where editors shouldn't create files have `disable_add: true`
 - [ ] Every creatable schema has `new_preview_url`, or its add option has `editor: content`
 - [ ] Collections with a `draft` field use `editor: content` on their add options

@@ -28,6 +28,12 @@ A content file whose body is mostly layout components (MDX components, Hugo shor
 | Layout component on page-like content (hero, feature grid, CTA) | A page-builder block: a component copying its markup, fed by the blocks array | In the Visual Editor a snippet inside the body shows as a card, not its rendered markup. Blocks render as on the site, with in-place editing and add, remove and reorder |
 | Inline or prose component (alert, badge, figure, button)        | A snippet                                                                     | Belongs in the body                                                                                                                                                      |
 
+### Components repeated at a fixed point in the body
+
+Record each component found in body content across every collection, with how many files use it and where in the body it sits (start, end, mid-prose).
+
+A component at the same point in 3 or more files of a collection (a notice at the top of docs pages) may belong in the layout as an optional front matter field: it renders and updates live in the Visual Editor, where a snippet shows as a card. Apply the tests in [snippets.md § Snippet or layout field?](../cloudcannon-snippets/snippets.md#snippet-or-layout-field), and **ask the user** before moving any.
+
 ### Census table
 
 Produce this **mandatory census table** in `.cloudcannon/migration/audit.md` for every page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:

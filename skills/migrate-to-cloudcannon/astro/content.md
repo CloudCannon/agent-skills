@@ -92,17 +92,17 @@ When migrating a component that originally used `import` statements for images (
 
 ### Flattening folder-per-post content
 
-Flatten folder-per-post content (`blog/my-post/index.md`) to flat files (`blog/my-post.md`) unless the folder structure encodes meaningful grouping beyond the slug. CC's `[slug]` placeholder resolves to an empty string when the filename is `index`, forcing `slug` frontmatter + `{slug}` data placeholder workarounds. Flat files let Astro auto-generate slugs from the filename and CC's `[slug]` works natively.
+Flatten folder-per-post content (`blog/my-post/index.md`) to flat files (`blog/my-post.md`) unless the folder structure encodes meaningful grouping beyond the slug. Each post is one file in the sidebar instead of a folder to open, and new posts don't need a folder created for them. Flat files let Astro auto-generate slugs from the filename and CC's `[slug]` works natively.
 
 **Checklist before flattening:**
 
 1. **Check for sibling assets** — images or other files co-located in the post's directory. Move images to `src/assets/images/` (preserving Astro's image optimization) and other static files to `public/`. Update references accordingly — imported images use the new `src/assets/images/` path, static files use absolute paths from `public/`.
 2. **Check for relative imports in MDX** — components imported with `./component.astro` paths. Move them to `src/components/` and make them available without explicit imports — `astro-auto-import` by default, or the shared `components` map (see [MDX setup pipeline](../../cloudcannon-snippets/astro/overview.md#mdx-setup-pipeline-must-complete-all-four)).
-3. **Rename files** — `dir/index.md` becomes `dir.md`. Remove the now-empty directories.
-4. **Remove `slug` frontmatter** — no longer needed since the filename provides the slug.
-5. **Update CC config** — switch URL patterns from `{slug}` to `[slug]`.
+3. **Rename files** — `dir/index.md` becomes `dir.md`, or `<slug>.md` when the post sets a `slug` that differs from its folder name. Remove the now-empty directories.
+4. **Remove `slug` frontmatter** — the file name now gives the same URL. Keep it when most posts set `slug` and the URL uses `{slug}` ([collection-urls.md § Glob loader](../../cloudcannon-configuration/astro/collection-urls.md#glob-loader-and-slug-frontmatter)).
+5. **Update CC config** — switch URL patterns to `[slug]` (unless step 4 kept `{slug}`), and replace the folder `create.path` with a flat one: `"[relative_base_path]/{title|slugify}.[ext]"`.
 
-When the folder structure encodes meaningful grouping beyond the slug, keep folder-per-post and use the `{slug}` workaround in [configuration-gotchas.md](../../cloudcannon-configuration/astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders).
+When the folder structure encodes meaningful grouping beyond the slug, keep folder-per-post and template its URL — see [configuration-gotchas.md](../../cloudcannon-configuration/astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders).
 
 ### API-driven content → a content collection
 

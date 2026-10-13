@@ -43,11 +43,12 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 
 ## Quick decision
 
-| Case                                         | Approach                                                                                                              |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Component syntax matches a built-in template | Template-based — see [template-based.md](template-based.md)                                                           |
-| Extra syntax, SSG directives, custom parsing | Raw — see [raw.md](raw.md)                                                                                            |
-| Inline HTML in `.md` (`<figure>`, `<video>`) | Raw snippets — see [snippets.md § Raw snippets for inline HTML](snippets.md#raw-snippets-for-inline-html-in-md-files) |
+| Case                                                           | Approach                                                                                                                                 |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Component syntax matches a built-in template                   | Template-based — see [template-based.md](template-based.md)                                                                              |
+| Extra syntax, SSG directives, custom parsing                   | Raw — see [raw.md](raw.md)                                                                                                               |
+| Inline HTML in `.md` (`<figure>`, `<video>`)                   | Raw snippets — see [snippets.md § Raw snippets for inline HTML](snippets.md#raw-snippets-for-inline-html-in-md-files)                    |
+| Same component at the start or end of 3+ files in a collection | Maybe a layout field — apply the tests in [snippets.md § Snippet or layout field?](snippets.md#snippet-or-layout-field) and ask the user |
 
 Most setups use template-based for simple components and raw for anything with SSG-specific directives.
 

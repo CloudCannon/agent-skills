@@ -22,17 +22,17 @@ A site that was on CloudCannon before usually has `cloudcannon.config.yaml` (or 
 
 The Hugo baseline is a starting point, not a working config. Check each row:
 
-| Key or area                | What the CLI produces                                                                | Fix                                                                                                                                                                                                                                         |
-| -------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `collections_config.*.url` | **Nothing.** No collection gets a `url`                                              | Add one to every collection that builds pages — see [collection-urls.md](collection-urls.md). Without it, no page opens in the Visual Editor                                                                                                |
-| `pages` collection         | `path: content` with no glob, so it also lists every file in each section collection | Exclude each section that has its own collection: `glob: ['**/*.md', '!blog/**']`                                                                                                                                                           |
-| A collection at `path: ''` | Sometimes emitted alongside a `content` collection — it lists the whole repo         | Delete it                                                                                                                                                                                                                                   |
-| Section collections        | Exclude `_index.md` (`glob: ['!_index.md']`)                                         | Decide per section — see [§ Section collections](#section-collections)                                                                                                                                                                      |
-| `paths`                    | `static: static`, `uploads: static/uploads`                                          | Point `uploads` where the site keeps images (often `static/images`) — see [§ Images](#images)                                                                                                                                               |
-| `markdown`                 | `engine: commonmark` with `table: false`, `strikethrough: false`                     | Match Hugo's Goldmark — see [configuration-gotchas.md § Match Goldmark](configuration-gotchas.md#match-goldmark-in-the-markdown-options)                                                                                                    |
-| `_snippets_imports`        | `hugo` with `exclude: [hugo_instagram]`                                              | Keep it, and narrow it to the shortcodes the site uses — see [cloudcannon-snippets/hugo/overview.md](../../cloudcannon-snippets/hugo/overview.md)                                                                                           |
-| `timezone`                 | The timezone of the machine running the CLI                                          | Set it to the site config's `timeZone` if it sets one; otherwise ask. **Why:** CloudCannon fills `NOW` dates in this zone, and Hugo skips future-dated pages unless `buildFuture` is set. A zone ahead of Hugo's hides a new post for hours |
-| `build.build_command`      | `hugo -b /`                                                                          | `hugo`, or `npm run build` — see [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson). `-b /` is for the local dev server only                                                                                          |
+| Key or area                | What the CLI produces                                                             | Fix                                                                                                                                                                                                                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `collections_config.*.url` | **Nothing.** No collection gets a `url`                                           | Add one to every collection that builds pages — see [collection-urls.md](collection-urls.md). Without it, no page opens in the Visual Editor                                                                                                                                                                |
+| `pages` collection         | `path: content` with no glob                                                      | Keep it. Section files land in their own collections; check where each excluded `_index.md` lands — see [§ Section collections](#section-collections)                                                                                                                                                       |
+| A collection at `path: ''` | Sometimes emitted alongside a `content` collection — it lists the whole repo      | Delete it                                                                                                                                                                                                                                                                                                   |
+| Section collections        | Exclude `_index.md` (`glob: ['!_index.md']`), which then falls through to `pages` | Decide per section — see [§ Section collections](#section-collections)                                                                                                                                                                                                                                      |
+| `paths`                    | `static: static`, `uploads: static/uploads`                                       | Point `uploads` where the site keeps images (often `static/images`) — see [§ Images](#images)                                                                                                                                                                                                               |
+| `markdown`                 | `engine: commonmark` with `table: false`, `strikethrough: false`                  | Match Hugo's Goldmark — see [configuration-gotchas.md § Match Goldmark](configuration-gotchas.md#match-goldmark-in-the-markdown-options)                                                                                                                                                                    |
+| `_snippets_imports`        | `hugo` with `exclude: [hugo_instagram]`                                           | Keep it, and narrow it to the shortcodes the site uses — see [cloudcannon-snippets/hugo/overview.md](../../cloudcannon-snippets/hugo/overview.md)                                                                                                                                                           |
+| `timezone`                 | The timezone of the machine running the CLI                                       | Set it to the site config's `timeZone` if it sets one; otherwise ask, recommending `Etc/UTC` — Hugo reads a date with no zone as UTC. **Why:** CloudCannon fills `NOW` dates in this zone, and Hugo skips future-dated pages unless `buildFuture` is set. A zone ahead of Hugo's hides a new post for hours |
+| `build.build_command`      | `hugo -b /`                                                                       | `hugo`, or `npm run build` — see [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson). `-b /` is for the local dev server only                                                                                                                                                          |
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
@@ -64,7 +64,6 @@ collections_config:
     path: content
     glob:
       - "**/*.md"
-      - "!blog/**"
     url: /[full_slug]/
     icon: wysiwyg
     _enabled_editors: [visual, content, data]
@@ -79,17 +78,19 @@ collections_config:
     _enabled_editors: [data]
 ```
 
-**MUST:** exclude every section collection's directory from `pages`.
-**Why:** collections can overlap. Without the negation a blog post appears in both collections, with two different schemas and two URL patterns.
+A blog post matches both globs, but it lands only in `blog`: the collection with the most specific `path` wins. A file `blog` excludes falls through to `pages` — see [../configuration-gotchas.md § Overlapping collections](../configuration-gotchas.md#overlapping-collections-each-file-lands-in-one).
 
 ### Section collections
 
 A section's `_index.md` is its list page (`/blog/`). Where it goes decides what editors can edit:
 
-| Choice                            | When                                                                        | Config                                                                                |
-| --------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Keep it in the section collection | Its front matter drives what the list page shows (a hero, an intro, blocks) | Give it its own schema, and leave it out of `add_options` — see [§ Schemas](#schemas) |
-| Exclude it (`!_index.md`)         | It only carries a title and the list page has nothing else to edit          | The CLI default                                                                       |
+| Choice                            | When                                                                                                                  | Config                                                                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Keep it in the section collection | Its front matter drives what the list page shows (a hero, an intro, blocks), and the collection's `url` fits its path | Give it its own schema, and leave it out of `add_options` — see [§ Schemas](#schemas)                                              |
+| Let it fall through to `pages`    | Editors need it, but the section's `url` can't express its path (a `permalinks` entry)                                | `!**/_index.md` in the section's glob. Give `pages` a schema for it, left out of `add_options`. `/[full_slug]/` gives its list URL |
+| Hide it                           | It only carries a title and the list page has nothing else to edit                                                    | `!**/_index.md` in the section's glob, and `!blog/**/_index.md` in `pages`                                                         |
+
+`!_index.md` matches only the section's own list page. `!**/_index.md` also covers subsection list pages (`blog/news/_index.md`).
 
 The URL pattern for `_index.md` is in [collection-urls.md § `_index.md`](collection-urls.md#_indexmd--list-pages-and-the-home-page).
 
@@ -390,13 +391,13 @@ On Hugo, the [editor README](../configuration.md#editor-readme) also tells edito
 
 - [ ] `.cloudcannon/initial-site-settings.json` has `"ssg": "hugo"`, `build.output_path` matching `publishDir`, and a `build.hugo_version` inside every declared version window
 - [ ] `build.build_command` builds with the site's real `baseURL`
-- [ ] Every collection that builds pages has a `url` using `[full_slug]` — see [collection-urls.md](collection-urls.md)
-- [ ] `pages` excludes every section that has its own collection
+- [ ] Every collection that builds pages has a `url` that resolves to Hugo's permalink for every file it holds, checked against `hugo list all` — see [collection-urls.md § Verify](collection-urls.md#verify-against-hugo-list-all). `[full_slug]` covers default routing only
+- [ ] Every file lands in the collection meant for it — section files in their section, and each `_index.md` in its section, in `pages`, or hidden from both
 - [ ] No collection at `path: ''`
 - [ ] Every `_index.md` is deliberately in or out of its section collection
 - [ ] The home page opens at `/` in the Visual Editor — through a title-only `content/_index.md` if the home page has no content file
 - [ ] Every section of leaf bundles has a glob that matches flat files, a bundle `create.path`, and `disable_add_folder: true`
-- [ ] `permalinks`, `slug:` and `url:` overrides are mirrored in the matching collection `url`
+- [ ] `permalinks`, `slug:` and `url:` overrides are mirrored in the matching collection `url`, with no `slug` or `url` added to files just to steer it — see [collection-urls.md § Front matter that changes the URL](collection-urls.md#front-matter-that-changes-the-url)
 - [ ] Every data file referenced by a region or a live partial has a `data_config` entry and inputs for its keys — see [../configuration-gotchas.md § Data inputs must follow the data file](../configuration-gotchas.md#data-inputs-must-follow-the-data-file-not-a-template)
 - [ ] Every string field's input type matches its template filter — `markdown` for `markdownify`, `html` for `safeHTML`, `text` or `textarea` otherwise — see [configuration-gotchas.md](configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter)
 - [ ] Taxonomy keys are top-level `multiselect` inputs with `values: data.<taxonomy>` from a seeded data file — no `values: []`

@@ -12,7 +12,9 @@ The problem — `[slug]` resolves to an empty string for `index.md` — is in [.
 
 **Preferred fix:** Flatten to flat files (`blog/01-getting-started.md`). This lets Astro auto-generate slugs from filenames and CC's `[slug]` works natively. See [content.md § Flattening folder-per-post content](../../migrate-to-cloudcannon/astro/content.md#flattening-folder-per-post-content) for the full checklist.
 
-**Fallback (when flattening isn't practical):** Add a `slug` field to each content file's frontmatter matching the folder name, then use `{slug}` (data placeholder) in the CC URL pattern. For legacy Astro collections, `slug` in frontmatter overrides the auto-generated slug without needing to be in the Zod schema. Include `slug` in the CC schema template so new posts get the field.
+**Fallback (when flattening isn't practical):** template the folder. When the route builds each post from its folder name, `/blog/[full_slug]/` resolves to it with no front matter changes — check every post against `dist/` ([../collection-urls.md § Check every file against the build](../collection-urls.md#check-every-file-against-the-build)).
+
+Use `{slug}` only when the route already reads a `slug` field that every post sets. Don't add `slug` to posts just to steer the URL ([../collection-urls.md § The rule](../collection-urls.md#the-rule)). For legacy Astro collections, `slug` in frontmatter overrides the auto-generated slug without needing to be in the Zod schema.
 
 ## TypeScript config files are not CC-editable
 

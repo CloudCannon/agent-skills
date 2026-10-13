@@ -332,7 +332,7 @@ Before adding the wrapper:
 - **Grep** for child combinators on the container (`.row > *`, `.content > p`) and `align-items`/`justify-*` rules — they now match the wrapper, or nothing.
 - **Grep** for `:first-child`, `:last-child` and `:nth-child` rules on the children — the wrapper shifts which element they match.
 - **Check** each child for a `display` it only had because its parent was flex or grid (a flex container blockifies its children). Give the child its own `display` rather than styling the wrapper.
-- **Give** a body wrapper the parent's class when the theme styles the body through it, and cancel any rule that mustn't now apply twice (margins on both the old parent and the wrapper).
+- **Give** a body wrapper the parent's class when the theme styles the body through it, and cancel any rule that mustn't now apply twice (margins on both the old parent and the wrapper). Check the class for box rules first (`max-width`, `width`, padding): nested, they apply twice and shrink the body. When it has them, give the wrapper its own class instead, and copy the parent's child-combinator rules (`.content > p`) to it.
 
 ## Sub-arrays within widget components
 
