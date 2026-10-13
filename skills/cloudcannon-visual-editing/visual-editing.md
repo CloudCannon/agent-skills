@@ -6,7 +6,9 @@ The SSG-agnostic half of the Phase 4 workflow: the section census, the completen
 
 > **Hard gate.** Do not write a `data-editable` attribute in a page template until a section census exists at `.cloudcannon/migration/visual-editing.md` and covers every key page. An empty or TODO'd census fails this gate — produce the table first, then implement.
 >
-> The gate covers the templates that already render the site. Block components written new for a page builder in Phase 3 can carry their region attributes from the start, since the census rows for them are the block list itself.
+> The gate covers the templates that already render the site. Block components written new for a page builder in Phase 3 may carry region attributes from the start. Treat those attributes as drafts: in Phase 4, give each block its census rows and recheck it like any other template — every `data-prop` path against the final structure, and every `data-type` against the field's input.
+>
+> **Why:** the census exists to stop region attributes being written before their treatment is decided. Phase 3 blocks are written before the inputs and structures settle, so their paths and types are the likeliest to be wrong.
 
 Before adding regions to existing templates, produce a census of every visible section on every key page. The census prevents sections from being skipped — every section must have an explicit treatment decision.
 
@@ -98,9 +100,9 @@ Work through every item after implementing editable regions, then the extra item
       → [Component editables backed by data files](visual-editing-reference.md#component-editables-backed-by-data-files)
 - [ ] **Cross-collection select wiring**: Every `select` input that references another data file (`author`, `category`, `team_member`) renders through a **registered component** that does the slug lookup _internally_, wrapped in `<editable-component data-component="..." data-prop="<slug-field>">`.
       → [Cross-collection select inputs](visual-editing-reference.md#cross-collection-select-inputs)
-- [ ] **`_inputs` type audit:** grep `data-prop=` in every template and check each field's inferred input against its region. A field needs an `_inputs` entry only when CloudCannon would infer the wrong type (a bare number bound to a `text` region), not one per region (see [structures.md § Scoped `_inputs`](../cloudcannon-configuration/structures.md#scoped-_inputs)). Which mismatches show an error card is in [editable-regions.md § Value types per region](editable-regions.md#value-types-per-region). When the same key has different types in different places, scope the entry to the collection or file (`collections_config.<c>._inputs`, `file_config`) instead of the global `_inputs`.
+- [ ] **`_inputs` audit:** grep `data-prop=` in every template and confirm each field has an explicit `_inputs` entry whose type matches its region (see [configuration.md § Configure every field explicitly](../cloudcannon-configuration/configuration.md#configure-every-field-explicitly)). Which mismatches show an error card is in [editable-regions.md § Value types per region](editable-regions.md#value-types-per-region). When the same key has different types in different places, scope the entry to the collection or file (`collections_config.<c>._inputs`, `file_config`) instead of the global `_inputs`.
 - [ ] **Schema-file seed audit:** every field the template wires must appear in `.cloudcannon/schemas/<collection>.md` default frontmatter with a sensible placeholder. Otherwise "Add new" creates pages missing half their editable regions.
-- [ ] **Markdown body content**: Pages rendering the markdown body have `data-editable="text" data-type="block" data-prop="@content"` on the wrapper element
+- [ ] **Markdown body content**: Pages rendering the markdown body have `data-editable="text" data-prop="@content"` on the wrapper element
       → [Text editing](visual-editing-reference.md#text-editing)
 - [ ] **Source editables**: Hardcoded text in page templates has `data-editable="source"` with `data-path` and `data-key`.
       → [Source editables](visual-editing-reference.md#source-editables-for-hardcoded-content)

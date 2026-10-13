@@ -146,6 +146,7 @@ node .cloudcannon/fix-rosey-pages.mjs --source _untranslated_site --dest public 
 ```
 
 - **Remove every locale directory** from `_rosey_source` (`rm -rf _rosey_source/fr _rosey_source/de`).
+- **`--sitemap public/{locale}/sitemap.xml`**, if the user wants translated pages in the sitemap — Hugo writes one sitemap per language. See [../setup.md § Fix the head and sitemap](../setup.md#fix-the-head-and-sitemap-on-generated-pages).
 - **`--pager-segment page`** deletes Rosey's `/fr/blog/page/3/` when Hugo built `/fr/blog/` itself. Rosey builds it from the English listing, so it lists English posts and nothing links to it. Change `page` if the site sets `paginatePath` / `pagination.path`.
 - **Don't add `set -e` or other shell options.** CloudCannon sources the postbuild, so they leak into its runner.
 - **Add `_rosey_source/` to `.gitignore`**, next to `_untranslated_site/` ([Phase 4](../setup.md#phase-4-make-the-site-rosey-ready-the-pipeline)).

@@ -378,7 +378,7 @@ Every structure value must include a discriminator key so CloudCannon can match 
 **MUST:** put `_inputs` on each structure value, not on the structure (`_structures.<name>._inputs`).
 **Why:** a structure has no `_inputs` key — `cloudcannon validate` reports `$._structures.<name>: unexpected property _inputs`. Share one definition between values with a YAML alias (`_inputs: *link_inputs`, anchor defined first) or `_inputs_from_glob`.
 
-Field type configuration inside a structure-value file is scoped to that component. Only include fields that need non-default types — strings, arrays, and objects work without explicit configuration.
+Field type configuration inside a structure-value file is scoped to that component. Give every field in the value an entry, as for any other field — see [configuration.md § Configure every field explicitly](configuration.md#configure-every-field-explicitly).
 
 **Nested object inputs need preview icons too.** Object fields within a structure (e.g. `callToAction`, `image`) show a generic icon in the data editor without explicit `type: object` + `options.preview.icon`. This applies to **both** co-located structure-value files **and** inline `_structures` entries in `cloudcannon.config.yml` (e.g. `prices`, `testimonials`, `items`):
 

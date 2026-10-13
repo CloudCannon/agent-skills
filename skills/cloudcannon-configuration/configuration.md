@@ -55,7 +55,7 @@ Add or normalize a field in the content files when the config needs it to work: 
 - **Select options:** configure the options of every `select` and `multiselect`, in a dataset or `_select_data` — see [configuration-gotchas.md § Editor-owned option lists](configuration-gotchas.md#editor-owned-option-lists). For values with friendly display names, use objects with `value_key: id` — see [configuration-gotchas.md § Configure icon fields as select inputs](configuration-gotchas.md#configure-icon-fields-as-select-inputs). When the values are a collection's files, read [inputs.md § Select values from a collection](inputs.md#select-values-from-a-collection).
 - **Schemas:** define each collection's schemas per [schemas.md](schemas.md), and what editors can create per [§ New files and the Add button](#new-files-and-the-add-button).
 - **Data files:** register datasets in `data_config` and put editable data files in a collection — see [configuration-gotchas.md § Data files: editing and datasets are separate](configuration-gotchas.md#data-files-editing-and-datasets-are-separate).
-- **`file_config`:** write it as an array of entries, each with a `glob` (`- glob: data/theme.json`). The map keyed by file path is invalid. Use it for inputs on data and config files, and where key names would collide at a broader level; `$` is the file root — see [inputs.md § The file root](inputs.md#the-file-root).
+- **`file_config`:** write it as an array of entries, each with a `glob` (`- glob: src/data/theme.json`). The map keyed by file path is invalid. Use it for inputs on data and config files, and where key names would collide at a broader level; `$` is the file root — see [inputs.md § The file root](inputs.md#the-file-root).
 
 ### Configure every field explicitly
 
@@ -79,6 +79,10 @@ _inputs:
 
 Scope `hidden` as narrowly as the fields need: a global `hidden` on a common key such as `url` also hides fields that editors need elsewhere — see [inputs.md § Where `_inputs` live](inputs.md#where-_inputs-live).
 
+### Upload name clashes
+
+A name clash needs no config. When an upload's name already exists, CloudCannon asks whether to use the existing file or upload it again. Uploading again saves a numbered copy (`photo-1.jpg`) and leaves the existing file alone.
+
 ### Consolidate single-file collections
 
 Remove each collection that holds only one file. Move a lone page into the `pages` collection, with its own schema when its fields differ (see [schemas.md](schemas.md)), and move section data shared across pages (a CTA, testimonials) into a data file. The SSG's `configuration.md` has the steps.
@@ -93,7 +97,7 @@ When `pages` holds subdirectories that are distinct groups with their own URL pr
 
    ```yaml
    pages:
-     path: content/pages
+     path: src/content/pages
      glob:
        - "!services/**"
        - "!landing/**"
@@ -104,10 +108,10 @@ When `pages` holds subdirectories that are distinct groups with their own URL pr
 
    ```yaml
    services:
-     path: content/pages/services
+     path: src/content/pages/services
      url: "/services/[slug]/"
    landing:
-     path: content/pages/landing
+     path: src/content/pages/landing
      url: "/landing/[slug]/"
    ```
 
@@ -126,7 +130,7 @@ Use `add_options` when:
 ```yaml
 collections_config:
   people:
-    path: data/people
+    path: src/data/people
     add_options:
       - name: Staff Member
         schema: staff

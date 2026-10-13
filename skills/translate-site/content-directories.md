@@ -51,7 +51,7 @@ The script:
 - Skips **structural fields**: dates, paths and URLs, tags, booleans, numbers, colours, icons, classes, layout and menu settings, CMS metadata, and single lowercase identifiers (`primary`, `top`). Check the manifest for a one-word lowercase value that is real text
 - Lists any frontmatter value it can't read safely (an anchor, an unclosed quote) under the file's **`manual_frontmatter`**. Translate those by hand in the locale file; the merge won't touch them. A file whose only work is manual gets `"status": "manual_only"`
 - Reports TOML and JSON frontmatter as **`unsupported_format`**: translate those files with the Manual fallback
-- Writes a task manifest to the working directory, named after the locale directory: `.translation-task-{code}-content-{locale-dir}.json` (for example `.translation-task-fr-content-content_fr.json`)
+- Writes a task manifest to the working directory, named after the locale directory: `.translation-task-{code}-content-{locale-dir}.json` (for example `.translation-task-fr-content-src-content-blog_fr.json`). It prints the path as `Task manifest written to …`; pass that path to the merge
 
 Flags: `--source-dir <dir>` (required), `--locale-dir <dir>` (required), `--locale <code>` (required), `--output <path>`.
 
@@ -107,7 +107,7 @@ Write the manifest back with `translated_frontmatter` / `translated_body` added.
 
 ```bash
 node <skills-dir>/translate-site/scripts/merge-content-translation.mjs \
-  --input .translation-task-fr-content-content_fr.json
+  --input .translation-task-fr-content-src-content-blog_fr.json
 ```
 
 The script replaces each translated field's lines in the YAML, keeping the key, indentation and quoting style, and replaces the body. It then reads the frontmatter back: if a translated field doesn't come back as its translation, or any other field changed, it **leaves that file unchanged**, warns, and keeps the manifest so you can fix the entry and rerun. Otherwise it deletes the manifest. Flags: `--input <path>` (required), `--dry-run`.

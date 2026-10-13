@@ -4,7 +4,23 @@ Read when the audit's census sends pages to a `pages` collection or a page build
 
 ## When to reach for a page builder
 
-Classify each page with [audit.md § Classifying static pages](audit.md#classifying-static-pages) first. For a page the census sends to the `pages` collection, pick the approach here:
+Classify each page with [audit.md § Classifying static pages](audit.md#classifying-static-pages) first. For a page the census sends to the `pages` collection, pick the approach here.
+
+**MUST:** default to a page builder for unique-layout pages the project owns. Source editables are the exception.
+**Why:** a page builder lets editors add, remove and reorder sections and create new pages without a developer. Source editables allow none of that: the structure is frozen in the template, and editors and developers share one file. Choosing a page builder that turns out bigger than needed costs little; choosing source editables for a page editors outgrow means migrating it again.
+
+Any one of these signs means a page builder:
+
+- The page has 2+ distinct content sections (hero, features, testimonials, CTA)
+- 5+ separate strings on the page would need source editables
+- Its sections look like ones on other pages, or could become blocks other pages use
+
+Use source editables only when all of these hold:
+
+- The page is one of only 1–2 pages like it
+- Its content rarely changes
+- Editors won't need to add pages like it
+- Its structure stays with the developer, and editors only change text in place
 
 | Signal                                                                  | Use                                                | Why                                                                                                                                                       |
 | ----------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -13,7 +29,7 @@ Classify each page with [audit.md § Classifying static pages](audit.md#classify
 | Editors should be able to create more pages like it                     | Page builder                                       | A creatable schema lets editors build new pages without a developer.                                                                                      |
 | Several pages need a page builder                                       | One `pages` collection with a schema per page type | One collection with several schemas scales; a collection per page doesn't.                                                                                |
 | Page is structurally unique and mostly free prose (a long-form article) | `default` schema in `pages`                        | A markdown body is enough.                                                                                                                                |
-| One-off page whose structure stays with the developer                   | Source editables                                   | See [visual-editing-reference.md § When to use source editables](../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables). |
+| Every source-editable condition above holds                             | Source editables (the exception)                   | See [visual-editing-reference.md § When to use source editables](../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables). |
 
 A section that needs rendered components is blocks — see the source-editable caveats in [visual-editing-reference.md § When to use source editables](../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables).
 
@@ -27,7 +43,7 @@ Review the audit's component inventory for components used on more than one page
 
 Check whether the base layout supports a generic title-and-body page. If it does, add a `default` schema for simple markdown pages.
 
-One-off pages with their own route (homepage, contact, 404) get a schema for editing, but stay off the Add button — see the same section.
+One-off pages with their own route (homepage, contact, 404) get a schema for editing, but stay off the Add button: a second copy would have no route of its own. See [configuration.md § New files and the Add button](../cloudcannon-configuration/configuration.md#new-files-and-the-add-button).
 
 ## Array-based page builder
 

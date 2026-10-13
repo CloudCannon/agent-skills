@@ -49,6 +49,14 @@ Canonical example: `cloudcannon-configuration/collection-urls.md` owns placehold
 
 **Common miss:** the same problem from the root side — a root file that links into one SSG's file for a general rule. Root files link into `<ssg>/` only to route, such as a table listing each SSG side by side.
 
+### Shared scripts take SSG conventions as arguments
+
+**MUST NOT:** hardcode one SSG's paths or conventions — an output directory, a sitemap filename, a content folder — in a script that runs on every SSG. Take the location as an argument, and have the doc that runs the script tell the agent how to find it on the site.
+
+**Why:** a guessed convention works on the SSG it was written for and fails silently on the rest, and every new SSG adds another case to the list. The agent can see the site; the script can't.
+
+A script for one SSG only (`audit-astro.sh`) may use that SSG's conventions. Name it after the SSG and say so in the skill's `scripts/README.md`.
+
 ### Every skill belongs to one of three tiers
 
 **MUST:** pick the tier before creating a skill. It fixes the name, the entry shape, and whether the skill keeps state.
@@ -83,7 +91,11 @@ The full list of skills and their tiers is in [ARCHITECTURE.md § Skills by tier
 
 **Why:** `SKILL.md` is matched against the user's request before anything else is read. Skills here share vocabulary — configure, collection, content, build — so anti-triggers are the cheapest defence against routing to the wrong skill, and they only work if every skill carries them.
 
-**Review at about 1,000 words.** This is a prompt to check each section against the first rule, not a limit. Move what fails the check into a deep-dive. Don't compress what passes it into wider tables or terser prose to get under the number. Run `wc -w` to measure; lines undercount, because one wide table row can cost as much as ten lines of prose.
+**Review on every addition.** When you add to `SKILL.md`, check the new content and the section it lands in against the first rule: is it routing, or a rule that most tasks through the skill need? If not, it belongs in a deep-dive, however short `SKILL.md` is. If it is, it stays, however long `SKILL.md` gets.
+
+**MUST NOT:** shorten passing content to make `SKILL.md` smaller — no wider tables, terser prose or merged rules. The cost of `SKILL.md` is irrelevant lines, not total length.
+
+**When `SKILL.md` feels long,** that is a reason to recheck every section against the first rule, not to compress it. If every section passes, the length is correct.
 
 ### Design for the reading path, not the file
 

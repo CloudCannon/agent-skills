@@ -129,7 +129,7 @@ data_config:
 **MUST:** add a `data_config` entry for every data file a template's editable regions reference as `@data[<name>]`, and for every file a partial reads with `hugo.Data.<name>` (`site.Data` on Hugo < 0.156) that should update in the Visual Editor. A `collections_config` entry for `data/` is not enough.
 **Why:** `data_config` is what the Visual Editor loads. A region on an unregistered file never resolves, and the in-browser Hugo has no copy of the file to render from.
 
-To make data files editable, put them in one `data` collection — see [../configuration-gotchas.md § Single `data` collection or split?](../configuration-gotchas.md#single-data-collection-or-split).
+To make data files editable, put them in one `data` collection with `path: data` — see [../configuration-gotchas.md § Single `data` collection or split?](../configuration-gotchas.md#single-data-collection-or-split).
 
 Data files that hold select options (tags, authors, icons) follow [../configuration-gotchas.md § Editor-owned option lists](../configuration-gotchas.md#editor-owned-option-lists). On a site whose templates come from a theme or module, check the theme's `data/` before naming one: a project file with the same name replaces the theme's.
 
@@ -162,23 +162,57 @@ When `_structures` grow past a handful of values, split them into files per [../
 
 ## Images
 
-Hugo sites serve images one of two ways. Configure each input for the way its template reads it:
+Keep images in `static/`, with `static` mounted into `assets`. Values are root-relative (`/images/photo.jpg`). The same value is a working URL for an image region on any page, and `resources.Get` finds it for `.Resize` and `.Fill`.
 
-| Template reads the image with                             | Image lives in | Front matter value  | Input config                                                                                                                            |
-| --------------------------------------------------------- | -------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `<img src="{{ .image }}">`                                | `static/`      | `/images/photo.jpg` | Global `paths.static: static`, `paths.uploads: static/images`                                                                           |
-| `resources.Get .image` (with a `static` → `assets` mount) | `static/`      | `/images/photo.jpg` | Same as above — the mount makes one path work in both                                                                                   |
-| `resources.Get .image` (no mount)                         | `assets/`      | `images/photo.jpg`  | Per-input `paths.uploads: assets/images`, `paths.static: assets`                                                                        |
-| `.Resources.Get .image` (page bundle)                     | The bundle     | `cover.jpg`         | `options.paths` on each image input, and `_editables.content.paths` on the collection — see [Page-bundle uploads](#page-bundle-uploads) |
+```yaml
+# hugo.yaml
+module:
+  mounts:
+    - source: assets
+      target: assets
+    - source: static
+      target: assets
+```
 
-An image stored relative to a page bundle or to `assets/` gets no image region in the Visual Editor — editors change it in the sidebar. See [Image editing in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#image-editing-in-hugo).
+```yaml
+# cloudcannon.config.yml
+paths:
+  static: static
+  uploads: static/images
+```
+
+**MUST:** list `source: assets, target: assets` beside the `static` mount, and merge both into any `module.mounts` the site config already has.
+**Why:** a mount replaces Hugo's default mount for the same target. The `static` mount alone hides the project's `assets/` folder, and `resources.Get` stops finding its CSS, JS and SCSS. `hugo config mounts` lists the result.
+
+Set `build.noJSConfigInAssets: true` when the site has no `assets/` folder. Hugo writes a generated `jsconfig.json` for `js.Build`, which the editable-regions module uses, into the project's `assets/`. Without that folder it lands in `static/`, where it gets committed and then published, with paths from the build machine.
+
+`resources.Get` accepts the leading slash, so templates pass the stored value unchanged. Hugo publishes every `static/` file as is, so each original ships beside its processed copies.
+
+Configure each input for where its images are now:
+
+| Images are in                                   | Front matter value  | Do                                                                                                                                    |
+| ----------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `static/`, read with `<img src="{{ .image }}">` | `/images/photo.jpg` | The global `paths` above. The mount is needed only once a template calls `resources.Get`                                              |
+| `static/`, read with `resources.Get`            | `/images/photo.jpg` | The global `paths` and the mount above                                                                                                |
+| `assets/`, read with `resources.Get`            | `images/photo.jpg`  | Per-input `paths.uploads: assets/images`, `paths.static: assets`. Offer the user a move to `static/images/`, which adds image regions |
+| A page bundle, read with `.Resources.Get`       | `cover.jpg`         | Move the images to `static/images/` — see [§ Page bundles](#page-bundles)                                                             |
+
+Image regions work on root-relative `static/` values only. See [Image editing in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#image-editing-in-hugo).
 
 Check the configured paths against a real upload before moving on: upload an image in CloudCannon, then build and confirm the template finds it.
 
-### Page-bundle uploads
+### Page bundles
 
-**MUST:** configure bundle uploads on the inputs and the collection's `_editables`, not with a collection-level `paths` key.
-**Why:** `paths` isn't a `collections_config` key — `cloudcannon validate` reports `unexpected property paths`. It is valid at the root, in file, rich text and URL input `options`, and on `_editables.*`.
+Recommend moving bundle images to `static/images/` ([migrate-to-cloudcannon/hugo/content.md § Page-bundle images](../../migrate-to-cloudcannon/hugo/content.md#page-bundle-images)). Keep bundles only when the user chooses them after hearing what they cost editors:
+
+- **Image regions work only on the post's own page.** List cards and the home page change the image in the sidebar.
+- **A new upload shows only after the next build.**
+- **The image browser opens in the post's folder.** Reusing another post's image breaks it.
+- **A new post must be saved before it takes images.**
+
+A bundle keeps a post's images with it when the post moves or is deleted, and relative links preview in Git hosts and code editors. Neither reaches editors in CloudCannon. SEO is sometimes given as a reason: moving an image changes only the folder in its URL, and its alt text, file name and size stay the same.
+
+To keep bundles, configure uploads on the inputs and the collection's `_editables`:
 
 ```yaml
 collections_config:
@@ -203,7 +237,7 @@ collections_config:
     _inputs:
       image:
         type: image
-        comment: Save a new post before adding its image.
+        comment: Save a new post before adding its image. A new image shows after the next build.
         options:
           paths:
             uploads: content/blog/[full_slug]/
@@ -211,9 +245,16 @@ collections_config:
             uploads_use_relative_path: true
 ```
 
+**MUST:** set `static: ""` on every bundle image input and toolbar.
+**Why:** `static` doesn't fill in placeholders, so `[full_slug]` stays literal. With relative paths on, any other value opens the image browser at `static` + `uploads`, a folder that doesn't exist, and can store broken `../../../photo.jpg` values.
+
+**MUST:** configure them there, not with a collection-level `paths` key.
+**Why:** `paths` isn't a `collections_config` key — `cloudcannon validate` reports `unexpected property paths`. It is valid at the root, in file, rich text and URL input `options`, and on `_editables.*`.
+
+- **Use** `uploads: content/<section>/[full_slug]/`. In upload paths, a bundle's folder is its `[slug]`, and `[full_slug]` adds any parent folders: `content/blog/2024/post/index.md` uploads to `content/blog/2024/post/`. `[relative_base_path]` is the folder that contains the bundle, so it saves next to the bundle instead of inside it. `""` uploads to the repo root.
+- **Keep** `uploads_use_relative_path: true`. It stores the bare filename (`cover.jpg`) that `.Resources.Get` expects; it sets how the value is written, not where the file goes.
 - **Repeat** the whole toolbar in a collection-level `_editables.content`. It replaces the root toolbar, and every option left out becomes `false`. Share it between collections with a plain alias (`content: *body_toolbar`) — see [../configuration-gotchas.md § No YAML merge keys](../configuration-gotchas.md#no-yaml-merge-keys).
-- **Use** `[full_slug]` for the bundle folder. In upload paths, a bundle's folder is its `[slug]`, and `[full_slug]` adds any parent folders: `content/blog/2024/post/index.md` uploads to `content/blog/2024/post/`. `[relative_base_path]` is the folder that contains the bundle, so it saves next to the bundle instead of inside it.
-- **Tell** editors to save a new post before adding its images, in the input `comment` and the editor README. Until the entry is saved it has no folder, and an upload lands in the section folder instead of the bundle.
+- **Tell** editors in the input `comment` and the editor README to save a new post before adding its images, and that a new image shows after the next build. Until the entry is saved it has no folder, and an upload lands in the section folder instead of the bundle.
 
 ## Taxonomies
 
@@ -340,7 +381,7 @@ Hugo itself needs no pre-build step. Search indexers (Pagefind) and CSS builds t
 
 On Hugo, the [editor README](../configuration.md#editor-readme) also tells editors:
 
-- **Save** a new post before adding its images, in a section of page bundles
+- **Save** a new post before adding its images, and expect a new image after the next build, in a section of page bundles
 - **Find** site settings (menus, social links, the footer) under the settings collection — see [configuration-gotchas.md § Config files in a collection must be YAML](configuration-gotchas.md#config-files-in-a-collection-must-be-yaml) for the theme's TOML examples
 
 ## Verification checklist
@@ -361,4 +402,5 @@ On Hugo, the [editor README](../configuration.md#editor-readme) also tells edito
 - [ ] Taxonomy keys are top-level `multiselect` inputs with `values: data.<taxonomy>` from a seeded data file — no `values: []`
 - [ ] A settings collection over config files has `include_developer_files: true`, and every file it matches is YAML
 - [ ] `markdown` options match the site's Goldmark config — see [configuration-gotchas.md](configuration-gotchas.md#match-goldmark-in-the-markdown-options)
-- [ ] Image inputs upload where their template reads from, and page-bundle uploads are configured on inputs and `_editables`, not the collection
+- [ ] Images are in `static/images/`, with `static` mounted into `assets` beside a re-added `assets` mount, or the user chose to keep page bundles
+- [ ] Page-bundle uploads are configured on inputs and `_editables`, with `static: ""`

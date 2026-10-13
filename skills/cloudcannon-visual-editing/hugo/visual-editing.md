@@ -127,7 +127,7 @@ Run through these after setup, before starting on editable regions:
       → [List pages](visual-editing-reference.md#list-pages)
 - [ ] **Shared partials**: a partial rendered for both the current page and list items emits regions only for the current page
       → [Partials shared by the page and its lists](visual-editing-reference.md#partials-shared-by-the-page-and-its-lists)
-- [ ] **Bundle images**: no image region binds a value relative to a page bundle or `assets/`
+- [ ] **Image regions**: every image region binds a root-relative `static/` value, or a bundle image on the bundle's own page
       → [Image editing in Hugo](visual-editing-reference.md#image-editing-in-hugo)
 - [ ] **Config-driven partials**: no component partial reads an edited value from `site.Params` or `site.Menus`
       → [Site config values](visual-editing-reference.md#site-config-values)

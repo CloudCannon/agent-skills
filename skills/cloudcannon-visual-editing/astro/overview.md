@@ -4,13 +4,13 @@ Astro-specific Visual Editor guidance, built on `@cloudcannon/editable-regions`.
 
 ## Reading order
 
-| Order | File                                                             | Read when                                                   |
-| ----- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
-| 1     | [visual-editing.md](visual-editing.md)                           | Always — the Phase 4 workflow, census and checklists        |
-| 2     | [../visual-editing.md](../visual-editing.md)                     | Always — the census format and the Universal checklist      |
-| 3     | [../visual-editing-reference.md](../visual-editing-reference.md) | On demand — the generic pattern behind a checklist item     |
-| 4     | [visual-editing-reference.md](visual-editing-reference.md)       | On demand — what Astro does differently from that pattern   |
-| 5     | [troubleshooting.md](troubleshooting.md)                         | An Astro-specific symptom, after checking the generic table |
+| Order | File                                                             | Read when                                                                                                  |
+| ----- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1     | [visual-editing.md](visual-editing.md)                           | Always, first — setup and the Astro-only checklist items                                                   |
+| 2     | [../visual-editing.md](../visual-editing.md)                     | Always, before writing any `data-editable` — the census, the Universal checklist and the pre-handoff sweep |
+| 3     | [../visual-editing-reference.md](../visual-editing-reference.md) | On demand — the generic pattern behind a checklist item                                                    |
+| 4     | [visual-editing-reference.md](visual-editing-reference.md)       | On demand — what Astro does differently from that pattern                                                  |
+| 5     | [troubleshooting.md](troubleshooting.md)                         | An Astro-specific symptom, after checking the generic table                                                |
 
 **MUST NOT:** read `visual-editing-reference.md` front to back. It is a pattern reference; `visual-editing.md` links into the section you need.
 

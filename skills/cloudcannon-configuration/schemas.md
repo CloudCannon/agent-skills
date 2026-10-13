@@ -15,7 +15,7 @@ Give one collection several schemas when its files need different fields. Don't 
 ```yaml
 collections_config:
   pages:
-    path: content/pages
+    path: src/content/pages
     url: "/[slug]/"
     schemas:
       default:
@@ -41,7 +41,7 @@ A data collection's schemas are data files of the same type:
 ```yaml
 collections_config:
   people:
-    path: data/people
+    path: src/data/people
     schemas:
       staff:
         path: .cloudcannon/schemas/staff.json
@@ -76,7 +76,7 @@ An index file whose front matter differs from the collection's items, such as `b
 
 ```yaml
 blog:
-  path: content/blog
+  path: src/content/blog
   url: "/blog/[slug]/"
   schemas:
     default:

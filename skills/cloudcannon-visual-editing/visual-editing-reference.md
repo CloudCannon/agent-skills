@@ -134,7 +134,7 @@ For block-level rich text (paragraphs, headings, lists) in a frontmatter field, 
 
 Also watch for content working around element limitations — `<br>` tags inside a `<p>` faking a list, or repeated inline markup mimicking separate blocks. That signals the element is semantically wrong. Refactor the element to match what the content represents.
 
-**Rich text regions save markdown.** A `data-type="text"` or `"block"` region writes markdown into the field, so the template must render that field through its markdown step. A field rendered raw needs `data-type="span"`. Keep `data-type` and the field's `_inputs` type in agreement — a rich-text input over a `span` region, or a plain `text` input over a `block` region, lets one side save what the other can't show. Each SSG's reference names its markdown step.
+**A rich text region saves in its input's format.** A `data-type="text"` or `"block"` region on a `markdown` input saves markdown; on an `html` input it saves HTML. Pick the input from how the template outputs the field — see [configuration-gotchas.md § Choose text, markdown or html inputs](../cloudcannon-configuration/configuration-gotchas.md#choose-text-markdown-or-html-inputs-from-how-the-template-renders-the-field). A field the template outputs as escaped plain text needs a `span` region, which is the default on a `text` or `textarea` input. Keep `data-type` and the input type in agreement — a rich text input over a `span` region, or a plain `text` input over a `block` region, lets one side save what the other can't show. Each SSG's reference gives its syntax for each kind of output.
 
 **Regions inside interactive elements:**
 
@@ -417,13 +417,15 @@ Source editables read and write the raw source file directly. They need no conte
 
 ### When to use source editables
 
+**Page builder is the default; source editables are the exception.** The numeric signs and the conditions that must all hold before choosing source editables are in [migrate-to-cloudcannon/page-building.md § When to reach for a page builder](../migrate-to-cloudcannon/page-building.md#when-to-reach-for-a-page-builder).
+
 Pick the mechanism by who owns the page's structure:
 
-| Use                      | When                                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Page builder             | Editors need to add, remove or reorder sections, a section appears on other pages, or editors should be able to create more pages like it. |
-| Schema with fixed fields | Several pages share one layout and editors change content but not structure.                                                               |
-| Source editables         | A one-off page whose structure stays with the developer, where editors change text in place, from short strings to rich-text sections.     |
+| Use                      | When                                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page builder             | Editors need to add, remove or reorder sections, a section appears on other pages, or editors should be able to create more pages like it.            |
+| Schema with fixed fields | Several pages share one layout and editors change content but not structure.                                                                          |
+| Source editables         | The exception: a one-off page whose structure stays with the developer, where editors change text in place, from short strings to rich-text sections. |
 
 Source editables fit short strings, such as an `<h1>` hero title, and rich-text sections alike — see [Syntax](#syntax) for `data-type`. Before choosing them, weigh the trade-offs:
 

@@ -45,7 +45,7 @@ A top-level array of objects gets a structure, like any other array of objects:
 
 ```yaml
 file_config:
-  - glob: data/offices.json
+  - glob: src/data/offices.json
     _inputs:
       $:
         type: array
@@ -57,7 +57,7 @@ A top-level array of primitives sets its item type with `$[*]`:
 
 ```yaml
 file_config:
-  - glob: data/tags.yaml
+  - glob: src/data/tags.yaml
     _inputs:
       $:
         type: array
@@ -71,7 +71,7 @@ A top-level object can take a preview icon, which gives each data file its own i
 
 ```yaml
 file_config:
-  - glob: data/footer.yaml
+  - glob: src/data/footer.yaml
     _inputs:
       $:
         type: object
@@ -86,12 +86,12 @@ file_config:
 
 Read when a `select` or `multiselect` takes its values from a collection (`values: collections.posts`). `value_key` decides what is stored in the file:
 
-| `value_key`                            | Stored value                                                                                                                                       |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| omitted                                | The default checks `id`, `uuid`, `path`, `title` and `name` in that order, so it usually stores the file path, such as `/content/posts/my-post.md` |
-| `filename_without_ext`                 | `my-post`                                                                                                                                          |
-| `filename`                             | `my-post.md`                                                                                                                                       |
-| `url`                                  | The file's collection URL                                                                                                                          |
-| any front matter key (`title`, `slug`) | That key's value                                                                                                                                   |
+| `value_key`                            | Stored value                                                                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| omitted                                | The default checks `id`, `uuid`, `path`, `title` and `name` in that order, so it usually stores the file path, such as `/src/content/posts/my-post.md` |
+| `filename_without_ext`                 | `my-post`                                                                                                                                              |
+| `filename`                             | `my-post.md`                                                                                                                                           |
+| `url`                                  | The file's collection URL                                                                                                                              |
+| any front matter key (`title`, `slug`) | That key's value                                                                                                                                       |
 
 Match the stored value to how the template looks the entry up: `filename_without_ext` or a `slug` key when it finds the entry by file name or slug.

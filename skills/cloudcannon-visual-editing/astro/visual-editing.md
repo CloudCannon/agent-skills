@@ -45,7 +45,7 @@ When the site uses a page builder with a `BlockRenderer`, create a shared `src/c
 
 ## Section census
 
-> **Hard gate.** Do not write a `data-editable` attribute in a page template until a section census exists at `.cloudcannon/migration/visual-editing.md` and covers every key page.
+> **Hard gate.** Do not write a `data-editable` attribute in a page template until a section census exists at `.cloudcannon/migration/visual-editing.md` and covers every key page. The one exception, new page-builder blocks written in Phase 3, is in [../visual-editing.md § Section census](../visual-editing.md#section-census).
 
 The census format — columns, treatments, binding plans and the `sidebar-only` rules — is in [../visual-editing.md § Section census](../visual-editing.md#section-census). In Astro, a registered component is one registered in `src/cloudcannon/registerComponents.ts`, and a loop is a `.map()`.
 

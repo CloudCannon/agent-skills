@@ -18,7 +18,7 @@ Hugo-specific URL pattern guidance. For the general collection URL reference (pl
 
 A leaf bundle — `content/blog/first-post/index.md` with its images beside it — builds to `/blog/first-post/`. `[slug]` is empty for a file named `index`, and `[full_slug]` is its directory, so `/blog/[full_slug]/` resolves correctly with no front matter changes.
 
-**MUST NOT:** flatten a page bundle to fix its URL. Its page resources (`.Resources.Get "cover.jpg"`) live in the bundle directory and stop resolving if the file moves.
+**MUST NOT:** flatten a page bundle to fix its URL. Any page resources (`.Resources.Get "cover.jpg"`) live in the bundle directory and stop resolving if the file moves, and `[full_slug]` already gives the right URL.
 
 ## `_index.md` — list pages and the home page
 

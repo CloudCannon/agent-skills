@@ -16,14 +16,9 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 ### Phase 2: Configuration
 
 1. `cloudcannon-configuration/SKILL.md` → download the JSON schemas first; this is a gate
-2. `cloudcannon-configuration/<ssg>/overview.md` → the SSG's reading order
-3. `cloudcannon-configuration/cloudcannon-cli-guide.md` → generate baseline
-4. `cloudcannon-configuration/configuration.md`, then `cloudcannon-configuration/<ssg>/configuration.md` → customize config
-5. `cloudcannon-configuration/collection-urls.md` → if any collection produces pages
-6. `migrate-to-cloudcannon/page-building.md`, then `migrate-to-cloudcannon/<ssg>/page-building.md` → if audit identified pages for a pages collection or page builder
-7. `cloudcannon-configuration/structures.md` → if the site has an array-based page builder — threshold in [page-building.md § Array-based page builder](page-building.md#array-based-page-builder)
-8. `cloudcannon-snippets/SKILL.md` → if content uses components (MDX components, Hugo shortcodes) or inline HTML
-9. `cloudcannon-configuration/configuration-gotchas.md` and `cloudcannon-configuration/<ssg>/configuration-gotchas.md` → reference during and after configuration
+2. `cloudcannon-configuration/<ssg>/overview.md` → follow its reading order. It lists every configuration file for the SSG, shared and SSG-only, with when to read each
+3. `migrate-to-cloudcannon/page-building.md`, then `migrate-to-cloudcannon/<ssg>/page-building.md` → if audit identified pages for a pages collection or page builder
+4. `cloudcannon-snippets/SKILL.md` → if content uses components (MDX components, Hugo shortcodes) or inline HTML
 
 ### Phase 3: Content
 
@@ -33,10 +28,8 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 ### Phase 4: Visual Editing
 
 1. `cloudcannon-visual-editing/SKILL.md` → region types and quick reference
-2. `cloudcannon-visual-editing/<ssg>/overview.md` → the SSG's reading order
-3. `cloudcannon-visual-editing/<ssg>/visual-editing.md` → full integration workflow
-4. `cloudcannon-visual-editing/visual-editing.md` → section census, completeness checklist, pre-handoff sweep
-5. `migrate-to-cloudcannon/<ssg>/page-building.md` → if page builder (block dispatcher, array editables); its base rules are in `migrate-to-cloudcannon/page-building.md`
+2. `cloudcannon-visual-editing/<ssg>/overview.md` → follow its reading order. It covers setup, the section census and every checklist
+3. `migrate-to-cloudcannon/<ssg>/page-building.md` → if page builder (block dispatcher, array editables); its base rules are in `migrate-to-cloudcannon/page-building.md`
 
 ### Phase 5: Build
 

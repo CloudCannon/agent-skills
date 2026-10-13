@@ -46,12 +46,31 @@ Query recipes, the `.gitignore` rule, and the `yaml-language-server` rule are in
 
 Check for an existing config in any format — `cloudcannon.config.{yml,yaml,json,js,cjs,mjs}`, not only `.yml`. If one exists, customize it, and run `configure generate` only with `--dry-run`, for reference; without `--dry-run` the CLI writes a second `cloudcannon.config.yml` beside it. If none exists, generate a baseline — see [configuration.md § Generate a baseline](configuration.md#generate-a-baseline).
 
+## Invalid keys
+
+Check this table before writing config. These are keys agents have written that the schema doesn't have; the JSON schemas are authoritative.
+
+| Wrong                                                                               | Correct                                                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_url_preview: true`                                                         | `disable_url: true`, which turns off the collection's output URL.                                                                                                                                                       |
+| `output: false`                                                                     | Omit `url` and set `disable_url: true`, or use `data_config` instead of a collection.                                                                                                                                   |
+| `type: hidden`                                                                      | `hidden: true` beside `type`, on any input; `hidden: "<query>"` hides it conditionally.                                                                                                                                 |
+| `options.max` on a `text` or `textarea` input                                       | `options.max_length`, paired with `min_length`.                                                                                                                                                                         |
+| `_editables.text` with block keys (`bulletedlist`, `blockquote`, `format`, `table`) | `_editables.text` is inline-only — see [§ `_editables` key-to-schema mapping](configuration-gotchas.md#_editables-key-to-schema-mapping).                                                                               |
+| `heading2: true`, `heading3: true`                                                  | `format: "p h1 h2 h3"`, a space-separated string — see [§ `_editables` key-to-schema mapping](configuration-gotchas.md#_editables-key-to-schema-mapping).                                                               |
+| `options.collections: [team]`                                                       | `values: collections.team` with `value_key` and `preview` — see [inputs.md § Select values from a collection](inputs.md#select-values-from-a-collection).                                                               |
+| `options.structures: my_blocks`                                                     | The full path, `_structures.my_blocks` — see [structures.md § The four rules](structures.md#the-four-rules-read-first).                                                                                                 |
+| `timezone: "+10:00"`                                                                | A top-level IANA name such as `Australia/Melbourne`, defaulting to `Etc/UTC` — see [configuration.md § Review the generated config](configuration.md#review-the-generated-config).                                      |
+| `paths.collections`, `paths.data`                                                   | `collections_config.<name>.path` and `data_config.<name>.path`.                                                                                                                                                         |
+| `paths.output`                                                                      | No such key: the build tool sets the output directory. `paths` holds asset directories only: `static`, `uploads`, `uploads_filename`, `dam_uploads`, `dam_uploads_filename`, `dam_static`, `uploads_use_relative_path`. |
+| A Material Symbols name outside the schema's enum, such as `place`                  | A name from the enum, such as `location_on`; an invalid name falls back to the default icon — check it with the icon recipe in [json-schemas.md](json-schemas.md#query-recipes).                                        |
+
 ## Rules for every task
 
 - **Read** the [Verification checklist](configuration.md#verification-checklist) and the SSG's checklist before starting, so you know what to aim for.
 - **Finish** only when every item in both checklists is verified.
 - **Give** every field editors see an explicit `_inputs` entry; type inference is a fallback — see [configuration.md § Configure every field explicitly](configuration.md#configure-every-field-explicitly).
-- **Run** `npx @cloudcannon/cli validate` after every round of changes. When it flags a key, look up the correct one in [configuration-gotchas.md § Invalid keys](configuration-gotchas.md#invalid-keys).
+- **Run** `npx @cloudcannon/cli validate` after every round of changes. When it flags a key, look up the correct one in [§ Invalid keys](#invalid-keys).
 
 ## Contents
 
@@ -65,7 +84,7 @@ Check for an existing config in any format — `cloudcannon.config.{yml,yaml,jso
 | [structures.md](structures.md)                       | Any field holds an array or an object, since editors can't add items without a structure.                                     |
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
 | [build-commands.md](build-commands.md)               | The build has generators or post-build steps.                                                                                 |
-| [configuration-gotchas.md](configuration-gotchas.md) | Looking up a cross-SSG pitfall while configuring, or a key that `validate` flagged.                                           |
+| [configuration-gotchas.md](configuration-gotchas.md) | Looking up a cross-SSG pitfall while configuring.                                                                             |
 | [troubleshooting.md](troubleshooting.md)             | Configuration is already wrong and you're working from a symptom.                                                             |
 
 **SSG-specific:** enter through the SSG's `overview.md`; it gives the reading order and lists every file for that SSG.

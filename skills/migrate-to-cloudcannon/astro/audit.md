@@ -142,8 +142,8 @@ Note anything that needs special handling in later phases:
 
 Once the census table and collection inventory are filled in, record:
 
-- Content-backed pages (pages with a content file or collection entry behind them — not generated taxonomy or pagination pages)
+- Total pages, including generated taxonomy and pagination pages
 - Rows in the census table recommending page-builder or fixed-schema collection (the hardcoded `.astro`→YAML conversions)
 - Distinct collections (existing + proposed in census)
 
-If any 2 of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet.** Read [SKILL.md § Sectioning large migrations](../chunking.md), draft a proposed sectioning, and present it to the user for a one-pass-vs-sectioned decision before continuing.
+If any 2 of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet.** Read [chunking.md](../chunking.md), draft a proposed sectioning, and present it to the user for a one-pass-vs-sectioned decision before continuing.

@@ -27,21 +27,21 @@ Step-by-step workflow for making a single-language site translatable with **Rose
 
 ## Contents
 
-| File                                                       | Covers                                                                      |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **SKILL.md** (this file)                                   | When this skill applies, the two layers, starting point, SSG detection      |
-| [setup.md](setup.md)                                       | **The main workflow** — nine phases, audit through locale picker, checklist |
-| [tagging.md](tagging.md)                                   | **Phase 3 in full** — every `data-rosey` / `-ns` / `-root` authoring rule   |
-| [gotchas.md](gotchas.md)                                   | Preventative one-line rules, framework-agnostic and SSG-specific            |
-| [troubleshooting.md](troubleshooting.md)                   | Symptom → cause → fix for things that build cleanly and translate wrongly   |
-| [migrating-from-i18n.md](migrating-from-i18n.md)           | Replacing an existing i18n system, before the main workflow                 |
-| [rcc-v1-to-v2-upgrade.md](rcc-v1-to-v2-upgrade.md)         | Moving a site from RCC v1 to v2 — an alternative to the main workflow       |
-| [astro/overview.md](astro/overview.md)                     | Astro implementations, plus the Astro i18n migration supplement             |
-| [eleventy/overview.md](eleventy/overview.md)               | Eleventy implementations, incl. taxonomy scoping and link localization      |
-| [hugo/overview.md](hugo/overview.md)                       | Hugo: choosing one of three setups, root derivation, setup C (Rosey only)   |
-| [hugo/native-multilingual.md](hugo/native-multilingual.md) | Hugo setup A: Hugo languages and `i18n` tables, no Rosey                    |
-| [hugo/hybrid.md](hugo/hybrid.md)                           | Hugo setup B: Hugo languages for content, Rosey for UI strings              |
-| [scripts/fix-rosey-pages.mjs](scripts/fix-rosey-pages.mjs) | Postbuild fix for canonical, `og:url` and sitemaps on Rosey-generated pages |
+| File                                                       | Covers                                                                                                  |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **SKILL.md** (this file)                                   | When this skill applies, the two layers, starting point, SSG detection                                  |
+| [setup.md](setup.md)                                       | **The main workflow** — nine phases, audit through locale picker, checklist                             |
+| [tagging.md](tagging.md)                                   | **Phase 3 in full** — every `data-rosey` / `-ns` / `-root` authoring rule                               |
+| [gotchas.md](gotchas.md)                                   | Preventative one-line rules, framework-agnostic and SSG-specific                                        |
+| [troubleshooting.md](troubleshooting.md)                   | Symptom → cause → fix for things that build cleanly and translate wrongly                               |
+| [migrating-from-i18n.md](migrating-from-i18n.md)           | Replacing an existing i18n system, before the main workflow                                             |
+| [rcc-v1-to-v2-upgrade.md](rcc-v1-to-v2-upgrade.md)         | Moving a site from RCC v1 to v2 — an alternative to the main workflow                                   |
+| [astro/overview.md](astro/overview.md)                     | Astro implementations, plus the Astro i18n migration supplement                                         |
+| [eleventy/overview.md](eleventy/overview.md)               | Eleventy implementations, incl. taxonomy scoping and link localization                                  |
+| [hugo/overview.md](hugo/overview.md)                       | Hugo: choosing one of three setups, root derivation, setup C (Rosey only)                               |
+| [hugo/native-multilingual.md](hugo/native-multilingual.md) | Hugo setup A: Hugo languages and `i18n` tables, no Rosey                                                |
+| [hugo/hybrid.md](hugo/hybrid.md)                           | Hugo setup B: Hugo languages for content, Rosey for UI strings                                          |
+| [scripts/fix-rosey-pages.mjs](scripts/fix-rosey-pages.mjs) | Postbuild fix for canonical and `og:url` on Rosey-generated pages, and sitemap entries with `--sitemap` |
 
 ## The two layers
 

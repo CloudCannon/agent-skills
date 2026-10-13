@@ -11,8 +11,22 @@ Skip it when every section's front matter is already consistent, no page needs c
 ### Keep Hugo's file conventions
 
 - **MUST NOT:** rename `_index.md`. It is how Hugo makes a list page; `index.md` makes a leaf bundle instead, and the section stops listing its pages.
-- **MUST NOT:** flatten a leaf bundle (`post/index.md` + resources) — its `.Resources` stop resolving. `[full_slug]` already handles its URL ([collection-urls.md § Page bundles](../../cloudcannon-configuration/hugo/collection-urls.md#page-bundles)).
+- **MUST NOT:** flatten a leaf bundle (`post/index.md`) that still holds resources — its `.Resources` stop resolving. Once its images move out ([§ Page-bundle images](#page-bundle-images)), leave `index.md` where it is: `[full_slug]` already handles its URL ([collection-urls.md § Page bundles](../../cloudcannon-configuration/hugo/collection-urls.md#page-bundles)).
 - **Keep** each file's front matter format. Don't convert TOML to YAML to tidy up — it's a diff in every file for no editor benefit.
+
+### Page-bundle images
+
+Move images out of page bundles into `static/images/`, unless the user chose to keep bundles in the audit ([audit.md § 2](audit.md#2-content-sections)). The mount and upload paths are in [configuration.md § Images](../../cloudcannon-configuration/hugo/configuration.md#images).
+
+- **Move** each bundle image into `static/images/`, named `<post folder>-<file name>`: `content/blog/first-post/cover.jpg` becomes `static/images/first-post-cover.jpg`.
+  **Why:** bundles reuse a few names (`cover.jpg`, `featured.png`), and one folder can't hold two files with one name. The prefix also tells editors in the image browser which post an image belongs to.
+- **Rewrite** each front matter value to the new path: `cover: cover.jpg` becomes `cover: /images/first-post-cover.jpg`.
+- **Rewrite** each relative image link in the body (`![](diagram.png)`, a shortcode's `src="diagram.png"`) to the new path.
+- **Switch** every `.Resources.Get` and `.Page.Resources.Get` that reads a moved image to `resources.Get`, in templates, shortcodes and render hooks. Change a theme template by copying it to the same path under the project's `layouts/`.
+- **Replace** a lookup by pattern (`.Resources.GetMatch "*feature*"`, `.Resources.ByType "image"`) with an explicit front matter field.
+- **Set** `images: [/images/first-post-featured.jpg]` on each post whose featured image moved, when the site uses Hugo's built-in `opengraph` or `twitter_cards` template.
+  **Why:** those templates take the image from `images`, or else from a bundle file named `*feature*`, `*cover*` or `*thumbnail*`. Once the file moves, `og:image` disappears with no error.
+- **Delete** each moved file from its bundle.
 
 ### Front matter consistency
 
@@ -58,4 +72,5 @@ Align each `archetypes/<section>.md` with the section's schema file, so `hugo ne
 - [ ] `hugo` builds with no new warnings
 - [ ] Page count in `public/` matches the parity baseline
 - [ ] Text and `<img>` count per page match the parity baseline
+- [ ] No `<img>` in `public/` has an empty `src`, and `og:image` tags match the parity baseline, after moving bundle images
 - [ ] `.cloudcannon/migration/content.md` records every structural change

@@ -113,6 +113,8 @@ When you split `src/content/pages/` subdirectories into collections, nothing cha
 
 ## Data config for shared data
 
+Astro has no fixed data directory. Use the folder the site already keeps its data files in — usually `src/data/` — for the `data` collection and every `data_config` path. Create `src/data/` when the site has none.
+
 Import a `data_config` file's JSON directly in Astro templates:
 
 ```astro

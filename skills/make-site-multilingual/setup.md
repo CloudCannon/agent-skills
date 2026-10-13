@@ -61,7 +61,7 @@ The manual steps below (Phases 3–4) are still needed for tagging templates. `i
 
 > **Re-read the config `init` rewrote.** Its `source`-removal pass doesn't reach every `source`-relative path — confirm each one moved before relying on it. See the [`source` gotcha](troubleshooting.md#cloudcannon-cant-reach-roseylocales).
 
-> **Fix the postbuild `init` wrote.** Add `rm -rf ./_untranslated_site` before its `mv` (without it, a second local run moves the build _into_ the old copy and Rosey rebuilds from stale HTML). Add [Phase 4's fix script](#fix-the-head-and-sitemap-on-generated-pages) if the layout emits a canonical or `og:url`, or the site has a sitemap. If the postbuild already had steps, check their order ([Phase 4](#existing-postbuild-steps)).
+> **Fix the postbuild `init` wrote.** Add `rm -rf ./_untranslated_site` before its `mv` (without it, a second local run moves the build _into_ the old copy and Rosey rebuilds from stale HTML). Add [Phase 4's fix script](#fix-the-head-and-sitemap-on-generated-pages) if the layout emits a canonical or `og:url`, or the user wants translated pages in the sitemap. If the postbuild already had steps, check their order ([Phase 4](#existing-postbuild-steps)).
 
 > **Reconcile the URL-structure choice (Phase 1 step 5).** `init` writes a postbuild that serves the default language at root (`--default-language-at-root`). If the user chose **all languages prefixed**, remove that flag from `.cloudcannon/postbuild` and add the `/{defaultLang}/` prefix to collection URLs (Phase 5e) before the first build.
 
@@ -167,15 +167,26 @@ What each step does:
 
 ### Fix the head and sitemap on generated pages
 
-**MUST add the fix script when the layout emits a canonical or `og:url`, or the site has a sitemap.** Copy [`scripts/fix-rosey-pages.mjs`](scripts/fix-rosey-pages.mjs) into `.cloudcannon/` and add it after `rosey build`:
+**MUST add the fix script when the layout emits a canonical or `og:url`, or the user wants translated pages in the sitemap.** Copy [`scripts/fix-rosey-pages.mjs`](scripts/fix-rosey-pages.mjs) into `.cloudcannon/` and add it after `rosey build`:
 
 ```bash
 node .cloudcannon/fix-rosey-pages.mjs --source _untranslated_site --dest dist --locales fr,de
 ```
 
-**Why:** every page Rosey generates is a copy of the default-language page, head included. Without the fix, each `/fr/` page declares the English URL as its canonical, which tells search engines not to index it, and no `/fr/` page appears in any sitemap.
+**Why:** every page Rosey generates is a copy of the default-language page, head included. Without the fix, each `/fr/` page declares the English URL as its canonical, which tells search engines not to index it.
 
-The script only touches pages Rosey generated. It localizes a canonical or `og:url` that points at the page's own default-language URL (a canonical set to another site is left alone), points alias redirects at the locale copy, and adds each page to the sitemap if its default-language URL is listed there. It covers default-language-at-root mode only.
+The script only touches pages Rosey generated. It localizes a canonical or `og:url` that points at the page's own default-language URL (a canonical set to another site is left alone) and points alias redirects at the locale copy. It covers default-language-at-root mode only.
+
+**Sitemaps: ask the user** whether translated pages should be listed in the sitemap. Rosey writes none, so without this no `/fr/` page appears in any sitemap. If they do:
+
+1. **Find** the sitemap the build wrote: `find dist -name '*.xml' | xargs grep -l '<urlset'`. Pick the file that lists page URLs, not an index that lists other sitemaps.
+2. **Pass** it to the script with `--sitemap`. Use `{locale}` when the build writes one sitemap per locale (`--sitemap dist/{locale}/sitemap.xml`).
+
+```bash
+node .cloudcannon/fix-rosey-pages.mjs --source _untranslated_site --dest dist --locales fr,de --sitemap dist/sitemap-0.xml
+```
+
+The script adds a locale page only when the default-language page is in a sitemap, so pages the build left out stay out.
 
 > **Not on CloudCannon?** The `.cloudcannon/postbuild` filename is a CloudCannon convention, but the four commands are plain shell — run them in any CI step or build hook. `write-locales` and `rosey build` don't require CloudCannon.
 
@@ -477,7 +488,7 @@ Add this to the picker's client-side script: the editor branch hides every `nav[
 - [ ] No page renders two `<title>` tags (check if you suppressed an SEO component's version to emit your own)
 - [ ] `.cloudcannon/postbuild` (or CI hook) runs the full Rosey pipeline, with no `set -e` or other shell options
 - [ ] `write-locales --dest` generates the locale manifest at `{build_dir}/_rcc/locales.json`
-- [ ] The fix script runs after `rosey build` if the layout emits a canonical or `og:url`, or the site has a sitemap; a `/{locale}/` page's canonical is the locale URL
+- [ ] The fix script runs after `rosey build` if the layout emits a canonical or `og:url`, or the user wants translated pages in the sitemap (with `--sitemap`); a `/{locale}/` page's canonical is the locale URL
 - [ ] Internal links are root-relative (`/about/`), so Rosey can localize them
 - [ ] `rosey/base.json` generates with correct keys, passes the 6a assertions, and is **committed** as the baseline
 - [ ] A translated page has been opened and read — not just `/`

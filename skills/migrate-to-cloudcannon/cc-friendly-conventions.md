@@ -22,4 +22,4 @@ Every site has most of these. For each row, the default treatment is non-negotia
 | Author card                         | data-file                                 | An `authors` data file holding a top-level array, each item with a `slug`; front matter `author: <slug>`; `select` input with `values: data.authors` and `value_key: slug`                                 |
 | Cookie banner / announcement bar    | data-file                                 | An `announcement` data file or similar                                                                                                                                                                     |
 
-The SSG's guide says where data files live (Astro: `src/data/`; Hugo: `data/`).
+Where data files live is the SSG's convention — see [cloudcannon-configuration/configuration-gotchas.md § Data files](../cloudcannon-configuration/configuration-gotchas.md#data-files-editing-and-datasets-are-separate).

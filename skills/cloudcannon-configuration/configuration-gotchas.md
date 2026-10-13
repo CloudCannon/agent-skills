@@ -76,21 +76,23 @@ A common case: data files handled via `data_config` still need to belong to a co
 
 ### Data files: editing and datasets are separate
 
+A data file is one the site reads as data rather than building into a page — navigation, footer, authors, icons. It is usually shared across the site rather than tied to one page. Where these files live is the SSG's convention: some SSGs have a fixed data directory, others keep data in a folder like any other collection. Examples here use `src/data/`; the SSG's `configuration.md` gives the real location.
+
 A data file is registered in two independent ways. Each fails silently when missing.
 
 - **To edit it**, it belongs to a collection like any other, with no output URL: a `collections_config` entry, inputs per file or on the collection, and a `collection_groups` reference to show it in a sidebar group.
-- **To use it as data**, it needs a `data_config` entry (`icons: { path: data/icons.json }`). This exposes it as a dataset to `values: data.<name>` selects, `@data[<name>]` editable regions, and the Visual Editor API.
+- **To use it as data**, it needs a `data_config` entry (`icons: { path: src/data/icons.json }`). This exposes it as a dataset to `values: data.<name>` selects, `@data[<name>]` editable regions, and the Visual Editor API.
 
 A file can need either or both. **Common miss:** a select with `values: data.icons` or a region bound to `@data[icons]` with no `data_config` entry. There's no error; the options or the region are just empty.
 
 ### Single `data` collection or split?
 
-Default: **one `data` collection** for the site's data directory, with `disable_url: true` and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface. Set the glob to the formats the data files use.
+Default: **one `data` collection** for the folder holding the site's data files, with `disable_url: true` and per-file `file_config` overrides. One sidebar entry, tailored inputs per file, low config surface. Set the glob to the formats the data files use.
 
 ```yaml
 collections_config:
   data:
-    path: data
+    path: src/data
     glob:
       - "**/*.json"
     disable_url: true
@@ -99,7 +101,7 @@ collections_config:
       - data
 
 file_config:
-  - glob: data/theme.json
+  - glob: src/data/theme.json
     _inputs:
       $:
         type: object
@@ -107,7 +109,7 @@ file_config:
           preview:
             icon: palette
       # ... per-file inputs
-  - glob: data/navigation.json
+  - glob: src/data/navigation.json
     _inputs:
       $:
         type: object
@@ -180,7 +182,7 @@ _inputs:
 
 A dotted key takes precedence over a plain key that also matches: `menu.main.weight` wins over `weight` for that field. Use it to scope a short, common name (`weight`, `url`, `name`) that means different things in different places.
 
-The same applies inside one structure value's `_inputs`. A contact block whose `email` is an object holding `heading` and its own `email` string can't type both with a plain `email` key — it matches the object and the string. Type the object with `email` and the string with `email.email`, or leave `type` off both and let CloudCannon infer them from the value.
+The same applies inside one structure value's `_inputs`. A contact block whose `email` is an object holding `heading` and its own `email` string can't type both with a plain `email` key — it matches the object and the string. Type the object with `email` and the string with `email.email`.
 
 ### Data inputs must follow the data file, not a template
 
@@ -206,19 +208,22 @@ Every path should either match an `_inputs` key at a level that covers the file,
 
 ### The first edit writes every schema key
 
-**MUST:** make every key whose schema default would change what the site builds (`draft: true`, a boolean a template filters on) explicit in the existing files before editors start.
-**Why:** the first edit to a file fills in every field its schema defines, with the schema's default. A file that relied on a key being absent — and a template that treats "absent" differently from `false` — changes on that first edit, before the editor touched the field.
+**MUST:** give every schema key a default that means the same to the site as the key being absent — `draft: false` where files without `draft` are published.
+**Why:** the first edit to a file fills in every field its schema defines, with the schema's default. A default that means something different from "absent" changes what the site builds before the editor touched the field.
 
-- **Check** each boolean and enum the schema adds against how the templates read it. A template that compares against a string (`"true"`) or tests whether the key exists treats a written `false` differently from no key.
-- **Leave** a key out of the schema when that difference matters and the template can't be changed.
+Templates should read a key's value, not test whether it exists. Where a template checks for the key's presence, or compares a boolean against a string (`"true"`), a written `false` behaves differently from no key:
+
+- **Fix** the template to read the value, when the project owns it.
+- **Leave** the key out of the schema only when the template can't change, such as one a theme owns.
 - **Say** "the first edit", not "the first save": on the local dev server every edit is written to disk at once.
 
-The SSG's gotchas file gives the grep for its template syntax — Hugo: [hugo/configuration-gotchas.md § Booleans compared as strings](hugo/configuration-gotchas.md#booleans-compared-as-strings).
+The SSG's gotchas file gives the grep for its template syntax, where it has one — Hugo: [hugo/configuration-gotchas.md § Booleans compared as strings](hugo/configuration-gotchas.md#booleans-compared-as-strings).
 
 ### Dated content: `instance_value: NOW`
 
-**MUST:** give the date input on a schema for dated content (posts, events, news) `instance_value: NOW`.
-**Why:** a new file otherwise gets an empty date. Hugo builds an empty date as year 0001, so the new post sorts last.
+Give the date input on a schema for dated content (posts, events, news) `instance_value: NOW`, so a new file starts with the time it was created. Use another default, or none, when the templates expect one — check what they do with a missing date first.
+
+**Why:** a new file otherwise gets an empty date, so it sorts or displays wrongly on most sites.
 
 ```yaml
 _inputs:
@@ -293,7 +298,7 @@ _inputs:
 
 When editors add icons, or the list is long or carries more than an ID, move it into a dataset ([§ Editor-owned option lists](#editor-owned-option-lists)):
 
-1. Create a data file (e.g. `data/icons.json`) containing the icon objects:
+1. Create a data file (e.g. `src/data/icons.json`) containing the icon objects:
 
 ```json
 [
@@ -308,7 +313,7 @@ When editors add icons, or the list is long or carries more than an ID, move it 
 ```yaml
 data_config:
   icons:
-    path: data/icons.json
+    path: src/data/icons.json
 ```
 
 3. If editors should add icons, add the data file to a collection in `collections_config` so they can open it. Skip this step for a developer-owned list:
@@ -316,7 +321,7 @@ data_config:
 ```yaml
 collections_config:
   data:
-    path: data
+    path: src/data
     glob:
       - icons.json
     disable_add: true
@@ -670,22 +675,3 @@ collections_config:
 
 **MUST:** keep comments out of the data, config and content files editors change. Put explanations in an `_inputs` `comment`, or in the editor README.
 **Why:** saving a file reserialises it. Comments are lost and formatting is normalised; key order is kept. See [cloudcannon-dev-server/troubleshooting.md § Writing](../cloudcannon-dev-server/troubleshooting.md#writing).
-
-## Invalid keys
-
-Look up a key here when `npx @cloudcannon/cli validate` flags it. These are keys agents have written that the schema doesn't have; the JSON schemas are authoritative — see [json-schemas.md](json-schemas.md).
-
-| Wrong                                                                               | Correct                                                                                                                                                                            |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `disable_url_preview: true`                                                         | `disable_url: true`, which turns off the collection's output URL.                                                                                                                  |
-| `output: false`                                                                     | Omit `url` and set `disable_url: true`, or use `data_config` instead of a collection.                                                                                              |
-| `type: hidden`                                                                      | `hidden: true` beside `type`, on any input; `hidden: "<query>"` hides it conditionally.                                                                                            |
-| `options.max` on a `text` or `textarea` input                                       | `options.max_length`, paired with `min_length`.                                                                                                                                    |
-| `_editables.text` with block keys (`bulletedlist`, `blockquote`, `format`, `table`) | `_editables.text` is inline-only — see [§ `_editables` key-to-schema mapping](#_editables-key-to-schema-mapping).                                                                  |
-| `heading2: true`, `heading3: true`                                                  | `format: "p h1 h2 h3"`, a space-separated string — see [§ `_editables` key-to-schema mapping](#_editables-key-to-schema-mapping).                                                  |
-| `options.collections: [team]`                                                       | `values: collections.team` with `value_key` and `preview` — see [inputs.md § Select values from a collection](inputs.md#select-values-from-a-collection).                          |
-| `options.structures: my_blocks`                                                     | The full path, `_structures.my_blocks` — see [structures.md § The four rules](structures.md#the-four-rules-read-first).                                                            |
-| `timezone: "+10:00"`                                                                | A top-level IANA name such as `Australia/Melbourne`, defaulting to `Etc/UTC` — see [configuration.md § Review the generated config](configuration.md#review-the-generated-config). |
-| `paths.collections`, `paths.data`                                                   | `collections_config.<name>.path` and `data_config.<name>.path`.                                                                                                                    |
-| `paths.output`                                                                      | No such key: `paths` holds asset directories only, and the build tool sets the output directory.                                                                                   |
-| A Material Symbols name outside the schema's enum, such as `place`                  | A name from the enum, such as `location_on`; an invalid name falls back to the default icon — check it with the icon recipe in [json-schemas.md](json-schemas.md#query-recipes).   |

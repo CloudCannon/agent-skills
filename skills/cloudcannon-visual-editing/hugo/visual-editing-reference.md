@@ -141,16 +141,7 @@ The module defines `site.Params.ENV_CLIENT`: `false` in a normal build, `true` i
 **MUST:** keep the `ENV_CLIENT` guard around image processing even when the image's directory is in `additional_dirs`.
 **Why:** a binary file listed there is found by `resources.Get` but arrives unreadable, and `.Resize` fails with `image: unknown format`. Use `additional_dirs` for text assets only.
 
-The `ENV_CLIENT` branch serves a plain path, so the same path must work in both branches. If images live in `static/`, mount `static` into `assets` so `resources.Get` finds them at build time:
-
-```yaml
-module:
-  mounts:
-    - source: assets
-      target: assets
-    - source: static
-      target: assets
-```
+The `ENV_CLIENT` branch serves a plain path, so the same path must work in both branches. Images in `static/images/`, with `static` mounted into `assets`, do — see [cloudcannon-configuration/hugo/configuration.md § Images](../../cloudcannon-configuration/hugo/configuration.md#images).
 
 How much of this a site needs depends on its pipeline. A site whose components use plain `<img src>` against `static/` needs no image guard at all.
 
@@ -182,7 +173,7 @@ The in-browser Hugo is not a copy of the build — module v0.0.21's renderer is 
 
 ## Text regions and markdown in Hugo
 
-A rich text region saves markdown ([../visual-editing-reference.md § Text editing](../visual-editing-reference.md#text-editing)). Hugo's markdown step is `markdownify`:
+A rich text region on a `markdown` input saves markdown ([../visual-editing-reference.md § Text editing](../visual-editing-reference.md#text-editing)). Hugo's markdown step is `markdownify`:
 
 | `data-type`         | Render the field as                                                |
 | ------------------- | ------------------------------------------------------------------ |
@@ -290,16 +281,24 @@ A partial rendered both for the current page and for each item of a `range` over
 
 ## Image editing in Hugo
 
-**MUST NOT:** put an image region on an image whose stored value is relative to a page bundle or to `assets/` — anything the template resolves with `.Resources` or `resources.Get`. Edit it in the sidebar instead.
-**Why:** on load the image region compares the rendered `src` (resolved and absolute) with the raw stored value. They never match, so it replaces the `src` with a preview URL built from the raw value, which drops the bundle directory. The image breaks on first paint in the editor.
+When the editor loads, an image region sets the image's `src` to the raw stored value. The image shows only if that value already works as a URL from the page it's on. Root-relative `static/` values work on every page, which is why images belong in `static/images/` — see [cloudcannon-configuration/hugo/configuration.md § Images](../../cloudcannon-configuration/hugo/configuration.md#images).
 
-| Stored value                                                    | Image region?            |
-| --------------------------------------------------------------- | ------------------------ |
-| Root-relative path to a file in `static/` (`/images/cover.jpg`) | Yes                      |
-| A filename in the page bundle (`cover.jpg`)                     | No — sidebar image input |
-| A path under `assets/` (`images/cover.jpg`)                     | No — sidebar image input |
+| Stored value                                                    | Image region?                 |
+| --------------------------------------------------------------- | ----------------------------- |
+| Root-relative path to a file in `static/` (`/images/cover.jpg`) | Yes, on any page              |
+| A filename in the page bundle (`cover.jpg`)                     | Only on the bundle's own page |
+| A path under `assets/` (`images/cover.jpg`)                     | No — sidebar image input      |
 
-Moving bundle or `assets/` images into `static/` makes them region-editable, but it is a content migration and loses Hugo's image processing. Offer it to the user; don't make it the default. Upload paths for bundle images are in [cloudcannon-configuration/hugo/configuration.md § Images](../../cloudcannon-configuration/hugo/configuration.md#images).
+An `assets/` value resolves against the page URL, never against `assets/`, so its region breaks on load on every page. Setting `paths.static: assets` doesn't change that.
+
+### Page-bundle images
+
+On a site that keeps page bundles ([configuration.md § Page bundles](../../cloudcannon-configuration/hugo/configuration.md#page-bundles)):
+
+**MUST NOT:** put an image region on a bundle image anywhere except the bundle's own page — not on list cards, the home page, or any `@file` binding. Editors change it in the sidebar there.
+**Why:** Hugo publishes a bundle's images next to its page, so `cover.jpg` resolves there and nowhere else. On any other page the image breaks on load, and choosing a new image stores a path relative to the page being edited (`<post>/photo.jpg`), not the bundle. `.Resources.Get` then can't find it, and the post's image breaks after the save.
+
+A new bundle upload shows only after the next build. The file lands in the bundle and the stored value is right; the region shows the raw filename until the site rebuilds.
 
 ## Themes, modules and vendoring
 

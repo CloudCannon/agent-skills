@@ -83,12 +83,19 @@ The [base guard rule](../visual-editing-reference.md#guard-optional-fields) in A
 
 See [base § Text editing](../visual-editing-reference.md#text-editing) for host choice and the `data-type` rules.
 
-`data-type="block"` applies to any frontmatter field rendered as HTML — via `set:html` directly, or through a markdown parser like `markdownify()` or `marked()` whose output then goes through `set:html`.
+How the template outputs a field decides its region and input:
+
+| Template output                                                       | Input                                       | Region                                                     |
+| --------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| `{field}` — Astro escapes it                                          | `text` or `textarea`                        | `span`, the default — no `data-type` needed                |
+| `set:html={markdownify(field)}`, or another parser such as `marked()` | `markdown`                                  | `text`, the default; `data-type="block"` for block content |
+| `set:html={field}` — raw HTML, no markdown step                       | `html`                                      | `text`, the default; `data-type="block"` for block content |
+| `<Content />` — the markdown body                                     | None; `_editables.content` sets the toolbar | `data-prop="@content"`, no `data-type`                     |
 
 ```astro
 <h1 set:html={markdownify(title)} class="mb-4" data-editable="text" data-prop="title" />
 
-<div class="content" data-editable="text" data-type="block" data-prop="@content">
+<div class="content" data-editable="text" data-prop="@content">
   <Content />
 </div>
 ```
@@ -319,7 +326,7 @@ A blog detail page typically has a hero driven by top-level frontmatter plus a m
 <h1 data-editable="text" data-prop="title">{title}</h1>
 <img data-editable="image" data-prop-src="image" src={image} alt={title} />
 
-<div data-editable="text" data-type="block" data-prop="@content">
+<div data-editable="text" data-prop="@content">
   <Content />
 </div>
 ```
@@ -482,7 +489,7 @@ Import only the renderers for frameworks the site uses — each pulls its framew
 
 To register a React, Vue or Svelte component as a top-level editable component, use that framework's integration (`registerReactComponent`, `registerVueComponent`, `registerSvelteComponent` from `@cloudcannon/editable-regions/react`, `/vue`, `/svelte`).
 
-**Solid has no renderer.** Convert Solid components to `.astro` or another supported framework, or keep the original and use `ENV_CLIENT` to render an [editing fallback](#editing-fallbacks-solid-or-complex-components).
+**Solid has no renderer.** Convert Solid components — to `.astro` unless the component needs complex client-side state, otherwise to another supported framework — or keep the original and use `ENV_CLIENT` to render an [editing fallback](#editing-fallbacks-solid-or-complex-components).
 
 #### React components
 

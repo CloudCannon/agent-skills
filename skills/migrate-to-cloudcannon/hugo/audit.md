@@ -40,7 +40,8 @@ For each directory under `content/`:
 - **Layout** that renders it (`layouts/<section>/single.html`, `list.html`, or the defaults — `_default/`, or top-level `single.html` and `list.html` on Hugo 0.146+)
 - **`_index.md`** — does it exist, and does its front matter drive the list page?
   **Why:** decides whether it joins the section collection — see [configuration.md § Section collections](../../cloudcannon-configuration/hugo/configuration.md#section-collections).
-- **Leaf bundles** (`<name>/index.md` with resources beside it) — keep them as bundles. Each is one entry of its section's collection: ignore the per-bundle sub-collections `detect-collections` lists under a section (`<section>_<slug>`, `suggested: false`). Treat the CLI's collection list as a starting point — it can also miss sections.
+- **Leaf bundles** (`<name>/index.md` with resources beside it) — each is one entry of its section's collection: ignore the per-bundle sub-collections `detect-collections` lists under a section (`<section>_<slug>`, `suggested: false`). Treat the CLI's collection list as a starting point — it can also miss sections. List the images each bundle holds, and the templates, shortcodes and render hooks that read them.
+- **Bundle-image decision.** Recommend moving bundle images to `static/images/` in Phase 3. Tell the user what keeping bundles costs editors ([configuration.md § Page bundles](../../cloudcannon-configuration/hugo/configuration.md#page-bundles)), and **ask the user** before moving any files.
 - **Front matter format** (YAML, TOML, JSON) and whether it is mixed
 - **Front matter fields** — list every key, with its type, whether it is always present, which template reads it, and — for strings — whether it prints escaped or through `markdownify` or `safeHTML`, which sets its input type ([configuration-gotchas.md § Choose rich text inputs](../../cloudcannon-configuration/hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter)). Hugo has no content schema, so this list becomes the CloudCannon schema file.
 - **Routing overrides** — `slug:` or `url:` in front matter, and any `permalinks` in the site config
@@ -130,4 +131,4 @@ In Hugo the usual outcome is:
 
 ## 7. Sectioning recommendation
 
-Record content-backed pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet** — read [../chunking.md](../chunking.md) and put a sectioning proposal to the user.
+Record total pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet** — read [../chunking.md](../chunking.md) and put a sectioning proposal to the user.

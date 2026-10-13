@@ -102,9 +102,14 @@ collections_config:
 
 Leave `draft`, `weight` and `date` visible — editors legitimately change them — with a `comment` on `draft` noting that draft pages are not built and can't open in the Visual Editor. Leave `slug` and `url` visible only if the collection's `url` pattern uses them ([collection-urls.md § Front matter that changes the URL](collection-urls.md#front-matter-that-changes-the-url)).
 
+## Dated content needs a date
+
+**MUST:** keep `instance_value: NOW` on the date input of a dated content schema ([../configuration-gotchas.md § Dated content](../configuration-gotchas.md#dated-content-instance_value-now)).
+**Why:** Hugo builds a page with an empty date as year 0001, so a new post sorts last and shows that date.
+
 ## Booleans compared as strings
 
-**MUST:** before a schema adds a boolean, grep the templates for how it's read, and leave it out of the schema if a template compares it with a string.
+**MUST:** before a schema adds a boolean, grep the templates for how it's read. Where a template compares it with a string, fix the template to read the value; if a theme owns the template, leave the key out of the schema instead.
 **Why:** the first edit writes every schema key into the file ([../configuration-gotchas.md § The first edit writes every schema key](../configuration-gotchas.md#the-first-edit-writes-every-schema-key)). A comparison such as `where .Pages "Params.hidden" "!=" "true"` or `eq .Params.featured "true"` treats a real boolean — `false` included — differently from an absent key, so a written `false` can drop a page from a list.
 
 ```sh

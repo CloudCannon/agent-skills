@@ -91,7 +91,7 @@ eleventy/overview.md                    Eleventy: tagging, taxonomy scoping, lin
 hugo/overview.md                        Hugo: choosing a setup (A/B/C), shared rules, setup C
 hugo/native-multilingual.md             Hugo setup A: Hugo languages + i18n tables, no Rosey
 hugo/hybrid.md                          Hugo setup B: Hugo languages for content, Rosey for UI
-scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url, sitemap on generated pages
+scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url; sitemap with --sitemap
 
 ── cloudcannon-configuration (capability) ────────────────────
 SKILL.md                                ENTRY POINT — the schema gate, invalid keys, symptoms
