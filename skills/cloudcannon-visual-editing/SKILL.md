@@ -52,9 +52,9 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 
 **Scripts:**
 
-| Script                                                                 | Purpose                                                                                                                                                                      |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [scripts/setup-editable-regions.sh](scripts/setup-editable-regions.sh) | **Astro only.** Installs package, wires Astro integration, creates `registerComponents.ts` stub. Hugo needs no script — see [hugo/visual-editing.md](hugo/visual-editing.md) |
+| Script                                                                             | Purpose                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [scripts/setup-editable-regions-astro.sh](scripts/setup-editable-regions-astro.sh) | **Astro only.** Installs package, wires Astro integration, creates `registerComponents.ts` stub. Hugo needs no script — see [hugo/visual-editing.md](hugo/visual-editing.md) |
 
 **Other skills:**
 

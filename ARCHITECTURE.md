@@ -76,7 +76,7 @@ hugo/audit.md                           Phase 1: site analysis
 hugo/content.md                         Phase 3: content restructuring
 hugo/build.md                           Phase 5: build verification
 hugo/page-building.md                   Phase 2/4: pages collection, content_blocks dispatcher
-scripts/*.sh                            Automation (audit-astro, audit-hugo, rename)
+scripts/*.sh                            Automation (audit-astro, audit-hugo)
 
 ── make-site-multilingual (journey) ──────────────────────────
 SKILL.md                                ENTRY POINT — the two layers, starting point, SSG detection
@@ -91,7 +91,7 @@ eleventy/overview.md                    Eleventy: tagging, taxonomy scoping, lin
 hugo/overview.md                        Hugo: choosing a setup (A/B/C), shared rules, setup C
 hugo/native-multilingual.md             Hugo setup A: Hugo languages + i18n tables, no Rosey
 hugo/hybrid.md                          Hugo setup B: Hugo languages for content, Rosey for UI
-scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url; sitemap with --sitemap
+scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url, alias redirects
 
 ── cloudcannon-configuration (capability) ────────────────────
 SKILL.md                                ENTRY POINT — the schema gate, invalid keys, symptoms
@@ -139,7 +139,7 @@ hugo/overview.md                        ENTRY POINT for Hugo — reading order
 hugo/visual-editing.md                  Phase 4: module setup, infrastructure checklist, Hugo items, local checks
 hugo/visual-editing-reference.md        ON DEMAND — partials-only re-render, ENV_CLIENT, editor's Hugo
 hugo/troubleshooting.md                 Hugo: symptom → fix
-scripts/setup-editable-regions.sh       Astro only — installs package, wires Astro integration
+scripts/setup-editable-regions-astro.sh Astro only — installs package, wires Astro integration
 
 ── cloudcannon-bookshop (capability) ─────────────────────────
 SKILL.md                                ENTRY POINT — detection, SSG support, maintain or migrate

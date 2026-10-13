@@ -7,7 +7,7 @@ Workflow for adding CloudCannon Visual Editor support to an Astro site using `@c
 Run the setup script to handle steps 1-3 automatically:
 
 ```bash
-bash <skills-dir>/cloudcannon-visual-editing/scripts/setup-editable-regions.sh .
+bash <skills-dir>/cloudcannon-visual-editing/scripts/setup-editable-regions-astro.sh .
 ```
 
 Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).

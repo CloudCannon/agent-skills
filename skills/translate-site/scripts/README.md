@@ -56,6 +56,8 @@ node <skills-dir>/translate-site/scripts/prepare-content-translation.mjs \
 | `-l, --locale <code>` | Locale code (required)                                |
 | `-o, --output <path>` | Task manifest output path                             |
 
+It skips fields that are structural on any site by name (`url`, `src`, `class`…), by suffix (`_url`, `_color`…) and by value (paths, dates, numbers). Fields structural on one site go in `translate-site-skip-fields.json` in the working directory, which the script reads automatically: a JSON array of field names (`tags`) and dotted paths with `*` for any one segment (`menu.*.parent`). See [content-directories.md § Review the fields before translating](../content-directories.md#review-the-fields-before-translating). Commit that file.
+
 ### `merge-content-translation.mjs`
 
 Replaces each translated field's lines in the YAML and the body, then reads the frontmatter back. A file whose translated fields don't read back exactly, or whose other fields changed, is left unchanged with a warning, and the manifest is kept. Otherwise the manifest is deleted.

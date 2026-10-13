@@ -83,45 +83,23 @@ if (!outputPath) {
 
 const CONTENT_EXTENSIONS = new Set([".md", ".mdx", ".markdown"]);
 
-// Field names whose values are never prose. Matched against the nearest named
-// segment of the path, so `content_blocks.0.buttons.1.url` checks `url`.
+// Field names whose values are never prose on any site. Matched against the
+// nearest named segment of the path, so `content_blocks.0.buttons.1.url` checks
+// `url`. Anything a particular site or SSG treats as structural goes in its
+// skip list (SKIP_PATH below), not here.
 const STRUCTURAL_FIELD_NAMES = new Set([
-	"_schema",
-	"_name",
-	"_uuid",
-	"_bookshop_name",
 	"date",
-	"publish_date",
-	"created_date",
-	"updated_date",
-	"lastmod",
-	"expirydate",
-	"tags",
-	"categories",
-	"author",
-	"authors",
 	"image",
-	"thumb_image_path",
-	"featured_image",
-	"canonical_url",
 	"href",
 	"url",
 	"link",
 	"src",
 	"slug",
-	"full_slug",
-	"aliases",
-	"open_graph_type",
-	"author_twitter_handle",
-	"no_index",
+	"permalink",
 	"draft",
 	"published",
 	"layout",
 	"type",
-	"permalink",
-	"weight",
-	"identifier",
-	"parent",
 	"id",
 	"target",
 	"rel",
@@ -146,6 +124,7 @@ const STRUCTURAL_FIELD_NAMES = new Set([
 
 // Suffixes that mark a field as structural: text_color, button_icon, body_class, image_path …
 const STRUCTURAL_SUFFIXES = [
+	"_date",
 	"_color",
 	"_colour",
 	"_icon",
@@ -176,14 +155,37 @@ function namedLeaf(dottedPath) {
 	).toLowerCase();
 }
 
+// The site's own structural fields: a JSON array in the working directory, of
+// field names (`tags`) and dotted paths where `*` is any one segment
+// (`menu.*.parent`). Kept with the site, so it survives skill updates.
+const SKIP_PATH = "translate-site-skip-fields.json";
+const skipEntries = existsSync(SKIP_PATH) ? JSON.parse(readFileSync(SKIP_PATH, "utf-8")) : [];
+if (!Array.isArray(skipEntries) || skipEntries.some((e) => typeof e !== "string")) {
+	console.error(`Error: ${SKIP_PATH} must be a JSON array of field names or dotted paths`);
+	process.exit(1);
+}
+const skipNames = new Set(skipEntries.filter((e) => !e.includes(".")).map((e) => e.toLowerCase()));
+const skipPaths = skipEntries
+	.filter((e) => e.includes("."))
+	.map((e) => {
+		const pattern = e
+			.split(".")
+			.map((seg) => (seg === "*" ? "[^.]+" : seg.replace(/[\\^$*+?()[\]{}|-]/g, "\\$&")))
+			.join("\\.");
+		return new RegExp(`^${pattern}$`, "i");
+	});
+
+function isSkipped(dottedPath, leaf) {
+	return skipNames.has(leaf) || skipPaths.some((re) => re.test(dottedPath));
+}
+
 function isStructuralField(dottedPath, value) {
 	const leaf = namedLeaf(dottedPath);
 
 	if (leaf.startsWith("_")) return true;
 	if (STRUCTURAL_FIELD_NAMES.has(leaf)) return true;
 	if (STRUCTURAL_SUFFIXES.some((suffix) => leaf.endsWith(suffix))) return true;
-	// Hugo menus in front matter: only the label is text
-	if (/^menus?\./.test(dottedPath) && leaf !== "name" && leaf !== "title") return true;
+	if (isSkipped(dottedPath, leaf)) return true;
 
 	if (/^(\/|https?:|mailto:|tel:|#[0-9a-f]{3,8}$)/i.test(value)) return true;
 	if (/^(true|false|yes|no|null|~)$/i.test(value)) return true;
@@ -355,6 +357,9 @@ console.log(`  Already translated:  ${translatedCount}`);
 console.log(`  Needs translation:   ${untranslatedCount}`);
 if (noSourceCount > 0) {
 	console.log(`  No source file:      ${noSourceCount}`);
+}
+if (skipEntries.length > 0) {
+	console.log(`  Skip list:           ${skipEntries.length} entries (${SKIP_PATH})`);
 }
 if (keptFieldCount > 0) {
 	console.log(`  Fields kept as source: ${keptFieldCount} (${KEEP_PATH})`);

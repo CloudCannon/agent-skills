@@ -83,10 +83,10 @@ from there.
 
 Two routes, and the user picks:
 
-| Route       | Run                                           | When                                                        |
-| ----------- | --------------------------------------------- | ----------------------------------------------------------- |
-| **Manual**  | The build command again, in a second terminal | Slow builds, or a post-build step that rewrites the output  |
-| **Watched** | [`watch-build.mjs`](scripts/README.md)        | Editing in the browser, wanting the preview to follow along |
+| Route       | Run                                                                             | When                                                        |
+| ----------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Manual**  | The build command again, in a second terminal                                   | Slow builds, or a post-build step that rewrites the output  |
+| **Watched** | [`watch-build.mjs`](scripts/README.md) with `--watch` for each source directory | Editing in the browser, wanting the preview to follow along |
 
 Either way the preview reloads itself once the output directory changes — see
 [dev-server-api.md § Events](dev-server-api.md#events). Nothing needs to restart, and the manual

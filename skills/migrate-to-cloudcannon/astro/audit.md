@@ -33,7 +33,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
   **Why:** folder-per-post is a candidate for flattening — see [content.md § Flattening folder-per-post content](content.md#flattening-folder-per-post-content).
 - **Base directory** and glob pattern
 - **Schema fields** with Zod types, defaults (`z.default()`), and optionality (`z.optional()`)
-- **File naming conventions** (e.g. `-index.md` for listing page metadata -- these get renamed to `index.md` in the content phase)
+- **File naming conventions** (e.g. a listing page's metadata in a file not named `index` — see [content.md § Listing-page files not named `index`](content.md#listing-page-files-not-named-index))
 - **How it's consumed**: `getCollection()`, `getEntry()`, or helper functions wrapping these
 - **Body content usage**: is the markdown file rendered as a page, or used only for its data on other pages?
   **Why:** data-only `.md` collections (team members, testimonials, authors) need `_enabled_editors: [data]` if only frontmatter is used, or `_enabled_editors: [content, data]` if the body is rendered elsewhere but doesn't build to its own page. Note how body content is rendered in templates — `<Content />` from `entry.render()`, `<slot />` in layouts — these are candidates for `@content` visual editing in Phase 4.

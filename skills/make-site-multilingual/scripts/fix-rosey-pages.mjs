@@ -4,18 +4,14 @@
 // exists. Default-language-at-root mode only.
 //
 // A generated page is one in <dest>/<locale>/ with no file at the same path in
-// <source>/<locale>/. On each one it:
+// <source>/<locale>/. On each one it points <link rel="canonical">, og:url and
+// alias redirects (<meta http-equiv="refresh">) at the locale copy of the page
+// they name, when that copy exists: its own URL, or another page's (a paginator
+// page whose canonical is its listing). A URL with no locale copy, such as a
+// canonical on another site, is left alone.
 //
-// 1. Points <link rel="canonical">, og:url and alias redirects
-//    (<meta http-equiv="refresh">) at the locale copy of the page they name,
-//    when that copy exists: its own URL, or another page's (a paginator page
-//    whose canonical is its listing). A URL with no locale copy, such as a
-//    canonical on another site, is left alone.
-// 2. With --sitemap, adds the page to that sitemap when its default-language
-//    URL is in one of the SSG's sitemaps, so pages the SSG left out stay out.
-//    --sitemap names a <urlset> file the SSG wrote, not a <sitemapindex>;
-//    {locale} in it is replaced per locale. Without --sitemap, no sitemap is
-//    touched.
+// Sitemaps are left to the site: how they are split and written varies too much
+// to handle here.
 //
 // With --pager-segment page, it also deletes generated paginator pages
 // (<listing>/page/N/) whose listing the SSG built in the locale itself, and
@@ -24,7 +20,7 @@
 // links to them.
 //
 // Usage:
-//   node fix-rosey-pages.mjs --source _untranslated_site --dest dist --locales fr,de [--sitemap dist/sitemap.xml] [--pager-segment page]
+//   node fix-rosey-pages.mjs --source _untranslated_site --dest dist --locales fr,de [--pager-segment page]
 
 import fs from "node:fs";
 import path from "node:path";
@@ -36,12 +32,11 @@ const { values } = parseArgs({
 		dest: { type: "string" },
 		locales: { type: "string" },
 		"pager-segment": { type: "string" },
-		sitemap: { type: "string" },
 	},
 });
 if (!values.source || !values.dest || !values.locales) {
 	console.error(
-		"Usage: fix-rosey-pages.mjs --source <dir> --dest <dir> --locales fr,de [--sitemap <file>] [--pager-segment page]",
+		"Usage: fix-rosey-pages.mjs --source <dir> --dest <dir> --locales fr,de [--pager-segment page]",
 	);
 	process.exit(1);
 }
@@ -108,45 +103,10 @@ function removeHreflangLinks(dir, urls) {
 	}
 }
 
-// Every URL path listed in any sitemap*.xml in the untranslated site
-function sitemapPathsIn(dir) {
-	const paths = new Set();
-	const files = fs
-		.readdirSync(dir, { recursive: true })
-		.filter((f) => /(^|\/)sitemap[^/]*\.xml$/.test(f));
-	for (const file of files) {
-		for (const m of fs.readFileSync(path.join(dir, file), "utf8").matchAll(/<loc>(.*?)<\/loc>/g)) {
-			const u = splitUrl(m[1]);
-			if (u) paths.add(u.path);
-		}
-	}
-	return paths;
-}
-
-function addToSitemap(sitemap, paths) {
-	const xml = fs.readFileSync(sitemap, "utf8");
-	if (!xml.includes("<urlset")) {
-		console.warn(`fix-rosey-pages: ${sitemap} is not a <urlset>; add the locale pages yourself`);
-		return 0;
-	}
-	// Reuse the origin the SSG wrote into its own <loc> values (empty if they are root-relative)
-	const firstLoc = xml.match(/<loc>(.*?)<\/loc>/)?.[1] ?? "";
-	const origin = splitUrl(firstLoc)?.origin ?? "";
-	const existing = new Set([...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]));
-	const entries = paths.map((p) => origin + p).filter((loc) => !existing.has(loc));
-	if (!entries.length) return 0;
-	const urls = entries.map((loc) => `<url><loc>${loc}</loc></url>`).join("\n  ");
-	fs.writeFileSync(sitemap, xml.replace("</urlset>", `  ${urls}\n</urlset>`));
-	return entries.length;
-}
-
-const listedPaths = values.sitemap ? sitemapPathsIn(values.source) : new Set();
-
 for (const locale of values.locales.split(",")) {
 	const srcDir = path.join(values.source, locale);
 	const destDir = path.join(values.dest, locale);
 	const generated = htmlFiles(destDir).filter((f) => !fs.existsSync(path.join(srcDir, f)));
-	const sitemapPaths = [];
 	const deleted = new Set();
 
 	for (const file of generated) {
@@ -159,22 +119,12 @@ for (const locale of values.locales.split(",")) {
 		}
 
 		const html = fs.readFileSync(full, "utf8");
-		const ownPath = urlPath(file);
 		fs.writeFileSync(full, fixHead(html, locale, destDir));
-
-		if (listedPaths.has(ownPath)) sitemapPaths.push(`/${locale}${ownPath}`);
 	}
 
 	if (deleted.size) removeHreflangLinks(values.dest, deleted);
 
-	const sitemap = values.sitemap?.replaceAll("{locale}", locale);
-	if (sitemap && !fs.existsSync(sitemap)) {
-		console.error(`fix-rosey-pages: --sitemap ${sitemap} does not exist`);
-		process.exit(1);
-	}
-	const added = sitemap && sitemapPaths.length ? addToSitemap(sitemap, sitemapPaths) : 0;
-
 	console.log(
-		`fix-rosey-pages [${locale}]: ${generated.length} generated pages, ${deleted.size} paginator pages deleted, ${sitemap ? `${added} added to ${sitemap}` : "no --sitemap, sitemap untouched"}`,
+		`fix-rosey-pages [${locale}]: ${generated.length} generated pages, ${deleted.size} paginator pages deleted`,
 	);
 }

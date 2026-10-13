@@ -48,12 +48,24 @@ The script:
 > **MUST finish source-post edits before translating.** A field counts as untranslated only while it still equals the source, and the body likewise — there is no stale state and no equivalent of Part 1's `_base_original`. Edit a source post _after_ its locale copy is translated and the copy still differs from source, so it stays classified "already translated" and is **silently skipped on every later run**, with nothing flagging it. Remedy: re-translate that file explicitly, or diff it against its source file to find what changed. See [make-site-multilingual/troubleshooting.md](../make-site-multilingual/troubleshooting.md#a-split-by-directory-file-is-skipped-on-every-later-translation-run).
 
 - Extracts **translatable frontmatter fields** (title, headings, descriptions, alt text, page-builder text) by path, with array items numbered: `content_blocks.0.buttons.1.text`
-- Skips **structural fields**: dates, paths and URLs, tags, booleans, numbers, colours, icons, classes, layout and menu settings, CMS metadata, and single lowercase identifiers (`primary`, `top`). Check the manifest for a one-word lowercase value that is real text
+- Skips **structural fields**: dates, paths and URLs, booleans, numbers, colours, icons, classes, layout settings, CMS metadata (`_`-prefixed keys), single lowercase identifiers (`primary`, `top`), and anything in the site's skip list (below). Check the manifest for a one-word lowercase value that is real text
 - Lists any frontmatter value it can't read safely (an anchor, an unclosed quote) under the file's **`manual_frontmatter`**. Translate those by hand in the locale file; the merge won't touch them. A file whose only work is manual gets `"status": "manual_only"`
 - Reports TOML and JSON frontmatter as **`unsupported_format`**: translate those files with the Manual fallback
 - Writes a task manifest to the working directory, named after the locale directory: `.translation-task-{code}-content-{locale-dir}.json` (for example `.translation-task-fr-content-src-content-blog_fr.json`). It prints the path as `Task manifest written to …`; pass that path to the merge
 
 Flags: `--source-dir <dir>` (required), `--locale-dir <dir>` (required), `--locale <code>` (required), `--output <path>`.
+
+### Review the fields before translating
+
+**MUST read the `translatable_frontmatter` paths in the first manifest before translating anything.** The script only skips fields that are structural on every site. Each site has its own: taxonomy terms whose values are URLs, author names that match files, menu settings, keys a template compares against a fixed value.
+
+For each path whose value must stay the same in every language, add the field name (`tags`) or a dotted path with `*` for any one segment (`menu.*.parent`) to `translate-site-skip-fields.json` in the working directory, then rerun the prepare script. Commit that file. Ask the user about taxonomies: some sites translate tags and categories, others build URLs from them.
+
+```json
+["tags", "categories", "author", "menu.*.parent", "menu.*.identifier"]
+```
+
+On Hugo, front-matter menu entries are settings except their `name` (the label): skip `menu.*.parent` and `menu.*.identifier` (and the same under `menus`).
 
 ## Phase 2.2: Translate
 
@@ -76,7 +88,7 @@ For each file with `"status": "untranslated"` in the manifest:
 }
 ```
 
-Translate: `title`, headings (`*.heading`, `*.subheading`), descriptions (`*.description`, `*.page_description`), image alt text (`*_alt`, `*.image_alt`, `*.featured_image_alt`), and any other human-readable text. The script already excluded CMS metadata (`_schema`, `_name`, `_uuid`), dates, image paths, tags, author names, URLs, booleans.
+Translate: `title`, headings (`*.heading`, `*.subheading`), descriptions (`*.description`, `*.page_description`), image alt text (`*_alt`, `*.image_alt`, `*.featured_image_alt`), and any other human-readable text. The script already excluded CMS metadata (`_schema`, `_name`, `_uuid`), dates, image paths, URLs, booleans, and the skip list.
 
 **Body** — if the manifest includes `body`, add `translated_body` with the translated markdown:
 
@@ -116,6 +128,7 @@ The script replaces each translated field's lines in the YAML, keeping the key, 
 
 - [ ] Identify source and locale content directories
 - [ ] Run `prepare-content-translation.mjs` per locale directory; review counts
+- [ ] Review the `translatable_frontmatter` paths; add site-specific structural fields to `translate-site-skip-fields.json` and rerun
 - [ ] Translate all `translatable_frontmatter` (add `translated_frontmatter`)
 - [ ] Translate any `manual_frontmatter` fields and `unsupported_format` files by hand
 - [ ] Translate body (add `translated_body`)
@@ -128,7 +141,7 @@ The script replaces each translated field's lines in the YAML, keeping the key, 
 
 1. **Detect collections** — find `{collection}_{locale}/` dirs, a locale config file, or per-locale entries in `cloudcannon.config.yml`; the source collection is the one with no locale suffix.
 2. **Classify files** — compare each locale file against the source file with the same slug. Untranslated = frontmatter text + body identical to source. Report counts.
-3. **Translate** each untranslated file. Frontmatter: translate title/headings/descriptions/alt text; leave `_schema`/`_name`/`_uuid`, dates, image paths, tags, author names, URLs, booleans. Body: translate prose/headings/list items; preserve formatting, code blocks, link URLs, MDX components.
+3. **Translate** each untranslated file. Frontmatter: translate title/headings/descriptions/alt text; leave `_schema`/`_name`/`_uuid`, dates, image paths, URLs, booleans, and any field the site uses as a value rather than text (ask the user about tags, categories and author names). Body: translate prose/headings/list items; preserve formatting, code blocks, link URLs, MDX components.
 4. **Write back in place** — preserve exact YAML structure (field order, nesting, indentation), the file extension (`.mdx`/`.md`), any MDX imports, and a trailing newline.
 
 ## Edge cases

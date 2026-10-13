@@ -55,7 +55,15 @@ Canonical example: `cloudcannon-configuration/collection-urls.md` owns placehold
 
 **Why:** a guessed convention works on the SSG it was written for and fails silently on the rest, and every new SSG adds another case to the list. The agent can see the site; the script can't.
 
-A script for one SSG only (`audit-astro.sh`) may use that SSG's conventions. Name it after the SSG and say so in the skill's `scripts/README.md`.
+**MUST NOT:** tell the agent to edit a script in `<skills-dir>` to fit a site. That directory is shared by every site and replaced on update. Site-specific values go in the site: as arguments in a file the site commits (the postbuild), or in a site-owned file the script reads (`translate-site-skip-fields.json`).
+
+A script for one SSG only (`audit-astro.sh`) may use that SSG's conventions. Name it after the SSG and say so wherever the skill lists its scripts.
+
+### Leave per-site implementations to the agent
+
+**MUST NOT:** grow a shared script's flags and fallbacks to cover the different ways sites implement the same thing — how sitemaps are split, how menus are stored. Keep the script to what is the same on every site. For the rest, write the requirements in the doc that runs the script, and have the agent write the step for the site it is on.
+
+**Why:** every variant adds a flag for the agent to choose and for us to maintain, and the list of variants never ends. The agent can read how this site does it and write a few lines that fit; the requirements keep the result consistent. A list of names or paths a script needs per site goes in a site-owned file, not in the script.
 
 ### Every skill belongs to one of three tiers
 

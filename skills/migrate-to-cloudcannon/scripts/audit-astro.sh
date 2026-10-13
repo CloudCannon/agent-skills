@@ -151,19 +151,6 @@ for dir in src/config src/data data; do
 done
 echo ""
 
-# --- Dash-index files ---
-echo "## Dash-Index Files (-index.md)"
-dash_files=$(find src/content -name '-index.md' -o -name '-index.mdx' 2>/dev/null || true)
-if [ -n "$dash_files" ]; then
-  echo "$dash_files" | while read -r f; do echo "- $f"; done
-  echo ""
-  echo "These should be renamed to index.md during the content phase."
-  echo "Run: bash rename-dash-index.sh"
-else
-  echo "None found."
-fi
-echo ""
-
 echo "=== End of automated audit ==="
 echo "The agent should now analyze schema fields, component hierarchy,"
 echo "visual editing candidates, and flags/gotchas manually."

@@ -54,27 +54,11 @@ Don't move optimized images from `src/assets/` to `public/`. See [configuration.
 - Avoid name collisions with CloudCannon reserved keys (e.g. `_inputs`, `_structures`, `_schema`).
 - Keep field names descriptive and consistent across collections (e.g. always `image`, not sometimes `image` and sometimes `thumbnail`).
 
-### Index files and the `-index` convention
+### Listing-page files not named `index`
 
-Some Astro templates use a `-index.md` file to hold listing/index page metadata (title, description, image for the `/blog` listing page, for example). This pattern works by:
+Some templates keep a listing page's metadata in a file with another name, such as `-index.md`, and filter it out of the item list in code. `[slug]` is empty only for a file named `index`, so with `url: "/blog/[slug]/"` that file opens at `/blog/-index/` instead of `/blog/`.
 
-1. The glob loader in `content.config.ts` picks up all `.md` files including `-index.md`
-2. A helper like `getSinglePage()` filters out IDs starting with `-` (so `-index` never appears as a regular item)
-3. A helper like `getListPage(collection, "-index")` fetches it by exact ID for listing page metadata
-
-**Migration action:** Rename `-index.md` to `index.md` in every collection that uses this convention and refactor the helpers accordingly:
-
-1. **Rename the files.** Run the rename script to handle this automatically:
-   ```bash
-   bash <skills-dir>/migrate-to-cloudcannon/scripts/rename-dash-index.sh .
-   ```
-   Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).
-2. **Update `getSinglePage()`** to filter on `id === "index"` instead of `id.startsWith("-")`.
-3. **Update `getListPage()` callers** from `"-index"` to `"index"`.
-
-**Why `index`:** CloudCannon's `[slug]` placeholder collapses `index` to an empty string. A collection with `url: "/blog/[slug]/"` produces `/blog/` for `index.md` and `/blog/my-post/` for `my-post.md`. This means the index page gets the correct listing URL without any special-case URL config.
-
-**CloudCannon implications:** The index file stays in the same collection as its siblings -- no separate collection or filter needed. In Phase 2 (configuration), define a separate schema on the collection for the index page so editors get the right fields when editing it vs. a regular item. See the "Schemas for index pages" section in configuration.md.
+Rename it to `index.md` (or `index.mdx`), then update every query that fetches it or filters it out by the old ID. It stays in the same collection as its siblings, with its own schema — see [schemas.md § Index pages](../../cloudcannon-configuration/schemas.md#index-pages).
 
 ### Mixed-type fields
 
