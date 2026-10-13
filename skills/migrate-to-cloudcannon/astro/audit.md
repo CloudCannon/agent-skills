@@ -129,7 +129,7 @@ Note anything that needs special handling in later phases:
 - Existing CMS or deployment configuration (`.sitepins/`, `netlify.toml`, `vercel.json`)
 - `set:html` directives in templates (these render raw HTML and affect how content editing works)
 - **Styled HTML in content fields** -- flag fields that contain inline HTML with CSS classes (`<span class="text-accent">`), HTML entities (`&nbsp;`), or `<br>` tags with responsive classes (`<br class="block sm:hidden" />`) when migrating hardcoded `.astro` pages to content collection frontmatter.
-  **Why:** these render on the live site but are uneditable in CloudCannon's rich text editors (custom HTML shows red outlines). They need resolution during the content phase -- see [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter).
+  **Why:** these render on the live site but are uneditable in CloudCannon's rich text editors (custom HTML shows red outlines). They need resolution during the content phase -- see [../content.md § Styled HTML in front matter](../content.md#styled-html-in-front-matter).
 - **Scroll-reveal / entrance animations** -- search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and class names like `reveal`, `aos`, `animate-on-scroll`, `fade-in`, `scroll-fade`.
   **Why:** these hide content until scrolled into view and break in the visual editor. Note the files responsible so they can be patched in Phase 4. See [visual-editing-reference.md § Scroll-reveal](../../cloudcannon-visual-editing/visual-editing-reference.md#scroll-reveal-and-entrance-animations).
 - Pre-build code generation that must run for the site to build

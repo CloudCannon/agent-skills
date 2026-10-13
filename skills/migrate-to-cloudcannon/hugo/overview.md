@@ -31,7 +31,7 @@ Generate a baseline with the CloudCannon CLI, then customize it from the audit. 
 
 Restructure content files where needed so they work in the CMS.
 
-See [content.md](content.md). For pages that become page-builder entries, read [../page-building.md](../page-building.md), then [page-building.md](page-building.md).
+Read [../content.md](../content.md), then [content.md](content.md) for Hugo's file conventions, page bundles and data files. For pages that become page-builder entries, read [../page-building.md](../page-building.md), then [page-building.md](page-building.md).
 
 ### Phase 4: Visual editing
 
@@ -41,7 +41,7 @@ Add the `editable-regions` Hugo module for inline editing in CloudCannon's Visua
 
 ### Phase 5: Build and test
 
-Validate the migration end to end — [build.md](build.md) — then hand off using [../handoff.md](../handoff.md) so the user can verify in CloudCannon.
+Validate the migration end to end with [../build.md](../build.md), then [build.md](build.md) for parity checks and Hugo's build command. Then hand off using [../handoff.md](../handoff.md) so the user can verify in CloudCannon.
 
 ## Notes
 

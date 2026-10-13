@@ -22,8 +22,9 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 
 ### Phase 3: Content
 
-1. `migrate-to-cloudcannon/<ssg>/content.md`
-2. `cloudcannon-configuration/structures.md` → field completeness rule
+1. `migrate-to-cloudcannon/content.md`
+2. `migrate-to-cloudcannon/<ssg>/content.md`
+3. `cloudcannon-configuration/structures.md` → field completeness rule
 
 ### Phase 4: Visual Editing
 
@@ -33,7 +34,8 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 
 ### Phase 5: Build
 
-1. `migrate-to-cloudcannon/<ssg>/build.md`
+1. `migrate-to-cloudcannon/build.md`
+2. `migrate-to-cloudcannon/<ssg>/build.md`
 
 ## When to read the optional docs
 

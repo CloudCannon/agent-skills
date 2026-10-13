@@ -64,17 +64,19 @@ chunking.md                             Splitting a large migration across conve
 handoff.md                              Closing with the user — testing boundaries, what to ask
 audit.md                                Phase 1 shared rules — classifying static pages
 page-building.md                        Phase 2/4 shared rules — pages collection, page builder, blocks
+content.md                              Phase 3 shared rules — front matter, styled HTML, block extraction
+build.md                                Phase 5 shared rules — build verification, build command
 cc-friendly-conventions.md              Shared-UI treatment table
 astro/overview.md                       ENTRY POINT for Astro — phase links
 astro/audit.md                          Phase 1: site analysis
-astro/content.md                        Phase 3: content restructuring
-astro/build.md                          Phase 5: build verification
+astro/content.md                        Phase 3: Zod schema, .astro extraction, src/assets images
+astro/build.md                          Phase 5: cache, bundle and typography checks
 astro/page-building.md                  Phase 2/4: catch-all route, Zod union, BlockRenderer
 astro/cc-friendly-conventions.md        Pre-migration scaffolding conventions
 hugo/overview.md                        ENTRY POINT for Hugo — phase links
 hugo/audit.md                           Phase 1: site analysis
-hugo/content.md                         Phase 3: content restructuring
-hugo/build.md                           Phase 5: build verification
+hugo/content.md                         Phase 3: file conventions, page bundles, data files
+hugo/build.md                           Phase 5: parity checks, build command table
 hugo/page-building.md                   Phase 2/4: pages collection, content_blocks dispatcher
 scripts/*.sh                            Automation (audit-astro, audit-hugo)
 

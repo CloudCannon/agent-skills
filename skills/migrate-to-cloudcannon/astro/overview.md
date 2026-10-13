@@ -35,7 +35,7 @@ If the audit's census sends pages to a `pages` collection or page builder, read 
 
 Review and restructure content files if needed so they work well in the CMS.
 
-See [content.md](content.md).
+Read [../content.md](../content.md), then [content.md](content.md) for the Zod schema, `.astro` extraction and `src/assets` images.
 
 ### Phase 4: Visual editing
 
@@ -45,9 +45,7 @@ Add `@cloudcannon/editable-regions` for inline editing in CloudCannon's Visual E
 
 ### Phase 5: Build and test
 
-Validate the migration works end-to-end (local build and SSG-specific checks in [build.md](build.md)), then hand off using [handoff.md](../handoff.md) so the user can verify in CloudCannon.
-
-See [build.md](build.md).
+Validate the migration works end-to-end with [../build.md](../build.md), then [build.md](build.md) for the Astro cache, bundle and typography checks. Hand off using [handoff.md](../handoff.md) so the user can verify in CloudCannon.
 
 ## Notes
 

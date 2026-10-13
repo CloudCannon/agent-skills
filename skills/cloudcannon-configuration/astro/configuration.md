@@ -33,7 +33,6 @@ Put the pre-build steps the audit identified (theme generation, JSON generation,
 - **Map every Zod field:** cross-reference every field in the Zod schemas from the audit against `_inputs`, and give each user-facing field an input per [../configuration.md § Configure every field explicitly](../configuration.md#configure-every-field-explicitly).
 - **String inputs:** a plain expression such as `<p>{description}</p>` (escaped) → `text` or `textarea`; `set:html={markdownify(description)}` or another markdown parser → `markdown`; `set:html={description}` with no parser → `html`.
 - **`_snippets`:** these are usually MDX components in rich text content. Built-in templates such as `mdx_component` resolve automatically, with no `_snippets_imports` — see the `cloudcannon-snippets` skill.
-- **Styled HTML in front matter:** how to convert it is in [content.md § Handling styled HTML in frontmatter](../../migrate-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter).
 - **Selects over a collection:** when the component looks entries up by Astro entry id or slug, use `value_key: filename_without_ext`, or a `slug` front matter key — see [../inputs.md § Select values from a collection](../inputs.md#select-values-from-a-collection).
 
 ### Schemas
@@ -200,7 +199,6 @@ See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-
 
 ### Content specifics
 
-- [ ] Styled HTML and `<br />` lists in front matter are handled per [content.md § Handling styled HTML in frontmatter](../../migrate-to-cloudcannon/astro/content.md#handling-styled-html-in-frontmatter)
 - [ ] When an array data file's items each correspond to a page route, the route is a single dynamic `[slug].astro` with `getStaticPaths` reading the data file — not one hardcoded `.astro` per known slug.
 
 ### Schemas

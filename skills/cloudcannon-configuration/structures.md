@@ -87,7 +87,7 @@ value:
 
 Reconcile: rule #1 means "if any **existing** item has a field a template reads, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
 
-**Migrating an existing page?** A field the original page never passed may still be rendering a component default — write that resolved default, not an empty value. See [content.md § Extraction pattern](../migrate-to-cloudcannon/astro/content.md#extraction-pattern-per-block).
+**Migrating an existing page?** A field the original page never passed may still be rendering a component default — write that resolved default, not an empty value. See [content.md § Extraction pattern](../migrate-to-cloudcannon/content.md#extraction-pattern-per-block).
 
 ### Handling null values from empty YAML fields
 
