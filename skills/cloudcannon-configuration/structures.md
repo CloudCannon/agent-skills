@@ -376,7 +376,7 @@ Every structure value must include a discriminator key so CloudCannon can match 
 ### Scoped `_inputs`
 
 **MUST:** put `_inputs` on each structure value, not on the structure (`_structures.<name>._inputs`).
-**Why:** a structure has no `_inputs` key — `cloudcannon validate` reports `$._structures.<name>: unexpected property _inputs`. Share one definition between values with a YAML alias (`_inputs: *link_inputs`, anchor defined first) or `_inputs_from_glob`.
+**Why:** a structure has no `_inputs` key — `cloudcannon validate` reports `$._structures.<name>: unexpected property _inputs`. Share one definition between values with `_inputs_from_glob`, not a YAML alias ([configuration-gotchas.md § No YAML anchors or aliases](configuration-gotchas.md#no-yaml-anchors-or-aliases)).
 
 Field type configuration inside a structure-value file is scoped to that component. Give every field in the value an entry, as for any other field — see [configuration.md § Configure every field explicitly](configuration.md#configure-every-field-explicitly).
 

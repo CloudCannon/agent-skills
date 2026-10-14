@@ -22,7 +22,7 @@ Read before writing `_inputs`. This covers where an input can be defined, how it
 - **Global:** keys that mean the same thing everywhere on the site.
 - **Collection or schema:** keys specific to one kind of content.
 - **File config:** data and config files, and anything that needs the file root (`$`).
-- **Structure value:** the fields of a structure. Inputs from outside a structure value reach into it today, but that could change. Defining them on the structure value keeps it portable, behaving the same wherever it is used, and easier to maintain, usually for little extra config: share a definition with `_inputs_from_glob` or a YAML alias.
+- **Structure value:** the fields of a structure. Inputs from outside a structure value reach into it today, but that could change. Defining them on the structure value keeps it portable, behaving the same wherever it is used, and easier to maintain, usually for little extra config: share a definition with `_inputs_from_glob`.
 
 ## How a key matches a field
 

@@ -240,7 +240,8 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] `markdown.options.table` is `true` if any content file has Markdown-syntax tables
 - [ ] Every boolean, switch or enum field in `_inputs` has a conditional render in the template. A switch that toggles nothing is a broken field
 - [ ] For every `data-editable="text"` region with a template fallback (`|| "default"`), the schema or structure-value default sets the same text as a real value, and existing content files are backfilled. Editors can't see a template fallback
-- [ ] `grep -n "type: markdown" cloudcannon.config.yml`: every hit has an `options:` block, inline or through an alias
+- [ ] `grep -n "type: markdown" cloudcannon.config.yml`: every hit has its own `options:` block
+- [ ] `grep -nE '(: |- )[&*][A-Za-z_]|<<:' cloudcannon.config.yml` finds no YAML anchors, aliases or merge keys — see [configuration-gotchas.md § No YAML anchors or aliases](configuration-gotchas.md#no-yaml-anchors-or-aliases)
 - [ ] Every schema-default change is paired with a backfill across existing content files
 - [ ] Every array or multiselect backed by a data file uses `values: data.<name>`, with no hard-coded copy of the values
 - [ ] Every data file that holds a list of like-shaped items is a top-level array with an explicit `slug` or `id` per item, wired to a `_structures` entry so editors get an Add button
