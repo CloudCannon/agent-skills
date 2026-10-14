@@ -3,7 +3,7 @@ name: cloudcannon-bookshop
 description: >-
   Use when a CloudCannon site uses Bookshop — `*.bookshop.yml` files,
   `@bookshop/*` packages, `_bookshop_name` keys, `bookshop:live`, or
-  `partial "bookshop"` calls. Covers how Bookshop works, maintaining a site
+  `partial "bookshop"` calls or `{% bookshop %}` tags. Covers how Bookshop works, maintaining a site
   that stays on it, and migrating it to editable regions.
 ---
 
@@ -41,12 +41,12 @@ Any one signal means the site uses Bookshop.
 
 Migrate when editable regions can re-render the SSG's components. Otherwise the site stays on Bookshop.
 
-| SSG      | Bookshop engine             | Path                                                                                                           | Docs                                   |
-| -------- | --------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| Astro    | `@bookshop/astro-engine`    | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [astro/overview.md](astro/overview.md) |
-| Hugo     | `@bookshop/hugo-engine`     | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [hugo/overview.md](hugo/overview.md)   |
-| Eleventy | `@bookshop/eleventy-engine` | Migrate — the base files apply; no `eleventy/` delta yet                                                       | —                                      |
-| Jekyll   | `@bookshop/jekyll-engine`   | **Stay on Bookshop** — [maintaining.md](maintaining.md). Editable regions have no Jekyll component support yet | —                                      |
+| SSG      | Bookshop engine             | Path                                                                                                           | Docs                                         |
+| -------- | --------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Astro    | `@bookshop/astro-engine`    | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [astro/overview.md](astro/overview.md)       |
+| Hugo     | `@bookshop/hugo-engine`     | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [hugo/overview.md](hugo/overview.md)         |
+| Eleventy | `@bookshop/eleventy-engine` | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [eleventy/overview.md](eleventy/overview.md) |
+| Jekyll   | `@bookshop/jekyll-engine`   | **Stay on Bookshop** — [maintaining.md](maintaining.md). Editable regions have no Jekyll component support yet | —                                            |
 
 ## Maintain or migrate?
 
@@ -72,10 +72,11 @@ Migrate when editable regions can re-render the SSG's components. Otherwise the 
 
 Enter through the SSG's `overview.md`; it gives the reading order for that SSG's files.
 
-| SSG   | Doc                                    | Purpose                  |
-| ----- | -------------------------------------- | ------------------------ |
-| Astro | [astro/overview.md](astro/overview.md) | **Start here for Astro** |
-| Hugo  | [hugo/overview.md](hugo/overview.md)   | **Start here for Hugo**  |
+| SSG      | Doc                                          | Purpose                     |
+| -------- | -------------------------------------------- | --------------------------- |
+| Astro    | [astro/overview.md](astro/overview.md)       | **Start here for Astro**    |
+| Hugo     | [hugo/overview.md](hugo/overview.md)         | **Start here for Hugo**     |
+| Eleventy | [eleventy/overview.md](eleventy/overview.md) | **Start here for Eleventy** |
 
 **Other skills:**
 

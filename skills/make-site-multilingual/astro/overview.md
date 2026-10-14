@@ -62,7 +62,7 @@ The same principle applies to a top-level `content_blocks` loop, where each bloc
 
 ```astro
 {blocks.map((block) => (
-  <div data-editable="array-item" data-component={block._name}>
+  <div data-editable="array-item" data-component={block._type}>
     <BlockComponent {...block} />  {/* data-rosey-ns={block._uuid} lives on this component's root */}
   </div>
 ))}
@@ -73,7 +73,7 @@ This requires a `_uuid` input in `cloudcannon.config.yml` and `_uuid:` in every 
 
 **Structural wrappers get no namespace.** A grid cell, column, slide, or tab panel that only positions its children MUST NOT carry `data-rosey-ns` — destructure `_uuid` so it doesn't reach the DOM, but don't use it. Otherwise dragging a block between columns re-keys every string inside it ([§3g](../tagging.md#rule-the-namespace-goes-on-the-component-that-renders-its-own-text)).
 
-**Fallback (non-CloudCannon):** if `instance_value` isn't available, use `data-rosey-ns={`${block._name}-${i}`}` — but this is fragile, reordering shifts keys, and you lose the clone-safety above.
+**Fallback (non-CloudCannon):** if `instance_value` isn't available, use `data-rosey-ns={`${block._type}-${i}`}` — but this is fragile, reordering shifts keys, and you lose the clone-safety above.
 
 ## Auto-Derive `data-rosey` from `data-prop`
 

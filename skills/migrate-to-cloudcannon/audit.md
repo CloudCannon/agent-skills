@@ -1,6 +1,6 @@
 # Audit — shared rules
 
-The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md) — and links here for the decisions below.
+The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md) — and links here for the decisions below.
 
 ## Classifying static pages
 
@@ -21,7 +21,7 @@ Use this decision table for every page that isn't already content in a collectio
 
 ### Content files whose body is layout components
 
-A content file whose body is mostly layout components (MDX components, Hugo shortcodes) counts as a static page for the census. Classify each component used in content:
+A content file whose body is mostly layout components (MDX components, Hugo or Eleventy shortcodes) counts as a static page for the census. Classify each component used in content:
 
 | Component kind                                                  | Becomes                                                                       | Why                                                                                                                                                                      |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

@@ -41,7 +41,7 @@ Symptom-driven diagnosis for a Rosey/RCC site. Preventative one-line rules live 
 
 **Fix:** run the seeding pass in [tagging.md § Seeding `_uuid` into existing content](tagging.md#seeding-_uuid-into-existing-content-rcc-layer), then rebuild and re-run `rosey generate` + `write-locales`.
 
-**Common miss:** the seeding pass anchors on a discriminator key (`_component`/`_name`/`_bookshop_name`), so array items that carry text but have no discriminator — counters, icon lists, image `alt` values — are skipped silently and still render `undefined`. Grep the built output for `data-rosey-ns="undefined"` rather than trusting the pass.
+**Common miss:** the seeding pass anchors on a discriminator key (`_type`/`_component`/`_name`/`_bookshop_name`), so array items that carry text but have no discriminator — counters, icon lists, image `alt` values — are skipped silently and still render `undefined`. Grep the built output for `data-rosey-ns="undefined"` rather than trusting the pass.
 
 ## A split-by-directory page's translated title reverted to English
 

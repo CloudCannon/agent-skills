@@ -371,7 +371,7 @@ _inputs:
 
 ### The `_type` discriminator
 
-Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard — the name is arbitrary (`_name`, `_component`) but must be consistent across all values in a given array. The discriminator value must match the component key the SSG resolves — Astro: the key used in `componentMap` and `registerAstroComponent` calls; Hugo: the partial path (Bookshop sites keep `_name`).
+Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard, and it's the default `id_key`, so structures need no `id_key` line. The name is arbitrary, but it must be consistent across all values in a given array. An existing site that already uses another key (`_name`, `_component`) keeps it, and sets `id_key` to that key on every structure, nested ones included. The discriminator value must match the component key the SSG resolves — Astro: the key used in `componentMap` and `registerAstroComponent` calls; Hugo: the partial path; Eleventy: the include path relative to the includes directory, such as `components/hero`.
 
 ### Scoped `_inputs`
 

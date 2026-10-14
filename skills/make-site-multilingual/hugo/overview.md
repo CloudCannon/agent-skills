@@ -93,7 +93,7 @@ Record the choice. **A** leaves the Rosey workflow: follow [native-multilingual.
 
 **Why:** an item rendered inline in the `range` isn't re-rendered when an editor adds one — CloudCannon clones its markup, `data-rosey-ns` included, so the new item shares the original's keys until the next build. A component re-renders with the new item's own `_uuid`. `data-component` is the partial's path, with no registration step, and the wrapper changes the layout context — see [`cloudcannon-visual-editing/hugo`](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#component-names-are-partial-paths).
 
-Seed `_uuid` into existing content first, nested items included ([§3g](../tagging.md#seeding-_uuid-into-existing-content-rcc-layer)), and give every structure value, at every level, an empty `_uuid:`. Most nested items have no `_name` to anchor on, so a seeder that anchors on the discriminator misses them; anchor on every mapping inside an array that renders text. Edit line by line, and skip lines inside multi-line strings.
+Seed `_uuid` into existing content first, nested items included ([§3g](../tagging.md#seeding-_uuid-into-existing-content-rcc-layer)), and give every structure value, at every level, an empty `_uuid:`. Most nested items have no `_type` to anchor on, so a seeder that anchors on the discriminator misses them; anchor on every mapping inside an array that renders text. Edit line by line, and skip lines inside multi-line strings.
 
 ### Links must be root-relative
 

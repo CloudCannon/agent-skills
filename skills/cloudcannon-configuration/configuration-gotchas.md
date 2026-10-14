@@ -1,6 +1,6 @@
 # Configuration Gotchas
 
-Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SSG lives in that SSG's own `configuration-gotchas.md` — [Astro](astro/configuration-gotchas.md), [Hugo](hugo/configuration-gotchas.md).
+Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SSG lives in that SSG's own `configuration-gotchas.md` — [Astro](astro/configuration-gotchas.md), [Hugo](hugo/configuration-gotchas.md), [Eleventy](eleventy/configuration-gotchas.md).
 
 **Quick reference for the four most-missed rules:**
 
@@ -33,7 +33,7 @@ A file that falls through brings its folder into the other collection's sidebar.
 
 When content uses a folder-per-post structure (e.g. `blog/getting-started/index.md`), CC's `[slug]` placeholder resolves to an empty string, because the filename is `index`. So `url: "/blog/[slug]/"` produces `/blog/` for every post — wrong.
 
-`[full_slug]` drops the `index` the same way, so it resolves to the folder: `blog/getting-started/index.md` gives `getting-started`. When the SSG builds the post from its folder name, `url: "/blog/[full_slug]/"` fits with no front matter changes ([collection-urls.md § The rule](collection-urls.md#the-rule)). Whether to flatten the folders during a migration, and the other fixes, depend on the SSG — see your SSG's `collection-urls.md` or `configuration-gotchas.md`. Astro: [astro/configuration-gotchas.md § Folder-per-post](astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders). Hugo: [hugo/collection-urls.md § Page bundles](hugo/collection-urls.md#page-bundles).
+`[full_slug]` drops the `index` the same way, so it resolves to the folder: `blog/getting-started/index.md` gives `getting-started`. When the SSG builds the post from its folder name, `url: "/blog/[full_slug]/"` fits with no front matter changes ([collection-urls.md § The rule](collection-urls.md#the-rule)). Whether to flatten the folders during a migration, and the other fixes, depend on the SSG — see your SSG's `collection-urls.md` or `configuration-gotchas.md`. Astro: [astro/configuration-gotchas.md § Folder-per-post](astro/configuration-gotchas.md#folder-per-post-content-and-cc-url-placeholders). Hugo: [hugo/collection-urls.md § Page bundles](hugo/collection-urls.md#page-bundles). Eleventy: [eleventy/collection-urls.md § Default routing](eleventy/collection-urls.md#default-routing-full_slug).
 
 #### A folder-per-post glob must also match a flat file
 
@@ -148,7 +148,7 @@ Split into per-file collections only when:
 | Through a markdown renderer, then as HTML | `markdown`                                   |
 | As raw HTML, with no markdown step        | `html`                                       |
 
-The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter).
+The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter), [Eleventy](eleventy/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-engine).
 
 - **Expect** template and content to agree. Markdown or HTML in a field the template escapes already prints literally on the live site — a bug in the original. Record it and ask the user whether to fix the template or the content; don't pick the input from the content alone. Plain text in a field the template renders as markdown is not a mismatch — `markdown` is still right.
 - **Scope** the input per structure when the same key renders differently in different blocks (`hero.description` as `markdown`, `description` as `textarea` elsewhere) — see [§ Where the input definition goes](#where-the-input-definition-goes).

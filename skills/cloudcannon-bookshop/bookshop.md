@@ -1,6 +1,6 @@
 # How Bookshop works
 
-The concepts every Bookshop site shares. Template syntax and file locations differ per SSG — [Astro](astro/bookshop.md), [Hugo](hugo/bookshop.md).
+The concepts every Bookshop site shares. Template syntax and file locations differ per SSG — [Astro](astro/bookshop.md), [Hugo](hugo/bookshop.md), [Eleventy](eleventy/bookshop.md).
 
 ## The pieces
 
@@ -71,7 +71,7 @@ It fails without `_cloudcannon/info.json` in the output, so it only runs on Clou
 
 Bookshop wraps each component call in HTML comments at build time. In the Visual Editor, the live engine reads those comments, re-renders the components whose data changed, and swaps the new markup into the page.
 
-- **Only the library reaches the editor.** The live engine renders library components and shared helpers; site templates outside the library aren't available. Hugo sites can add files through `extraFiles` in `bookshop.config.cjs`.
+- **Only the library reaches the editor.** The live engine renders library components and shared helpers; site templates outside the library, and helpers the site registers with the SSG, aren't available. The SSG's `bookshop.md` says what can be added.
 - **Data passes straight through.** Logic in a layout between front matter and the component call (reassigning, filtering) breaks live editing for that component. Put the logic inside the component.
 - **Site data needs `data_config`** in `cloudcannon.config.yml` to be available to live renders.
 - **Templates can branch on live editing** through the SSG's flag (`env_bookshop_live`, `ENV_BOOKSHOP_LIVE`) — for code that can't run in the browser.

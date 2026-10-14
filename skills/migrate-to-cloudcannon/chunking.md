@@ -56,7 +56,7 @@ listed phase doc, then works the listed scope.
 - Collection URL patterns
 - Shared structures (`_structures`)
 - Snippet configs (if MDX components, shortcodes or inline HTML)
-- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial)
+- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial; Eleventy: the plugin and the bundle script tag on the Liquid path, nothing on the Nunjucks path)
 ```
 
 **Resumption brief** (paste into a fresh conversation): "Read `.cloudcannon/migration/audit.md`, `.cloudcannon/migration/plan.md`, and the phase doc(s) listed for chunk N. Work chunk N's scope. Write the output artefact and stop."

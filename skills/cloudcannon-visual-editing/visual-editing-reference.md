@@ -565,7 +565,7 @@ Add an optional prop naming the image path, and only render the image region whe
 
 ## Component re-rendering
 
-For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro, partial lookup in Hugo; the resolved key is what `data-component` refers to.
+For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro, partial lookup in Hugo, include lookup in Eleventy's Liquid; the resolved key is what `data-component` refers to.
 
 **What re-runs and what doesn't.** Registered components re-render in the browser with the props CloudCannon passes. Parent page-level logic does **not** re-run — top-level data loading in a page template, layout-level fetches, and anything else outside the component. If the component needs data its parent normally loads, pass it via props or load it inside the component.
 
@@ -580,6 +580,22 @@ Text and image regions provide the most value with the least complexity. Compone
 The access syntax differs per integration — a build-time environment value in some stacks, a template global in others. See your SSG's reference, and [editable-regions-internals.md § Detecting the Visual Editor](editable-regions-internals.md#detecting-the-visual-editor) for all three detection mechanisms and when each applies.
 
 **Components whose JS fights the editor** — carousels and animation libraries that manage their own DOM, components with shadow DOM that doesn't serialize cleanly, or anything too complex for the editor to re-render — need an editing fallback: a display-only component that resembles the real one and carries the editable attributes. The live site keeps the real component; only the editor's renderer is swapped. A fallback duplicates markup, so keep the two side by side and mirror structural changes.
+
+## SSGs without component support
+
+Applies only when the SSG's `overview.md` says its integration can't render the site's templates. Currently that means Eleventy sites on Nunjucks. Everywhere else, a section that needs re-rendering becomes a component, and this section doesn't apply.
+
+A template language without component support can still be visually editable, as long as no section needs live re-rendering. Nunjucks usually qualifies, and its sites keep their includes. Its includes read the caller's context rather than taking props, so each region's `data-prop` is the real front-matter path. Props only pass through macros, which few sites use.
+
+On Nunjucks:
+
+- **Primitive regions work** (`text`, `image`, `array`, `source`, `@content`, `@data`), and need no integration installed, because the editor loads the runtime itself.
+- **Page builders use template arrays**: one `<template>` blueprint per block type instead of per-item `data-component` — see [§ When HTML `<template>` blueprints are needed](#when-html-template-blueprints-are-needed).
+- **Computed output updates only after a rebuild** — filtered values, conditionals, class and style bindings. Record those sections in the census with a rebuild note rather than a `component` treatment.
+
+**MUST NOT:** port templates to another template language to get component regions without asking the user.
+
+The full rules are in [eleventy/visual-editing-reference.md § Nunjucks sites](eleventy/visual-editing-reference.md#nunjucks-sites).
 
 ## Schema file gates prop forwarding on re-render
 

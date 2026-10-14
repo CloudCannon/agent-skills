@@ -2,7 +2,7 @@
 
 Framework-specific implementation details for making an Eleventy (11ty) site multilingual with Rosey/RCC/CloudCannon. Read alongside [`setup.md`](../setup.md) and [`tagging.md`](../tagging.md).
 
-**Reference implementation:** [`CloudCannon/eleventy-multilingual-starter`](https://github.com/CloudCannon/eleventy-multilingual-starter) — all-languages-prefixed URLs, split-by-directory blog, per-locale taxonomy, translated head.
+**Reference implementation:** [`CloudCannon/rosey-eleventy-starter`](https://github.com/CloudCannon/rosey-eleventy-starter) — all-languages-prefixed URLs, split-by-directory blog, per-locale taxonomy, translated head.
 
 ## Root Derivation
 
@@ -51,7 +51,7 @@ For sites using `content_blocks`, the shared page template loops the blocks; use
 ```liquid
 {% for block in content_blocks %}
   <div data-rosey-ns="{{ block._uuid }}">
-    {% include block._name %}
+    {% include block._type %}
   </div>
 {% endfor %}
 ```
@@ -61,7 +61,7 @@ This requires a `_uuid` input in `cloudcannon.config.yml` and `_uuid:` in every 
 **Fallback (non-CloudCannon):** block name + index — fragile, reordering shifts keys:
 
 ```liquid
-{% assign block_ns = block._name | append: "-" | append: forloop.index0 %}
+{% assign block_ns = block._type | append: "-" | append: forloop.index0 %}
 <div data-rosey-ns="{{ block_ns }}">
 ```
 
@@ -74,7 +74,7 @@ For Bookshop sites, the shared `page.eleventy.liquid` template renders blocks vi
 ```liquid
 {% for block in content_blocks %}
   <div data-rosey-ns="{{ block._uuid }}">
-    {% bookshop "{{ block._bookshop_name }}" bind: block %}
+    {% bookshop "{{block._bookshop_name}}" bind: block %}
   </div>
 {% endfor %}
 ```

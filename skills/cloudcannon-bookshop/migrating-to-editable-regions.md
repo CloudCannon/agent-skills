@@ -1,6 +1,6 @@
 # Migrating to editable regions
 
-Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Bookshop components. This file owns the step order and the cross-SSG mapping. What differs per SSG lives in that SSG's `migrating-to-editable-regions.md` — [Astro](astro/migrating-to-editable-regions.md), [Hugo](hugo/migrating-to-editable-regions.md).
+Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Bookshop components. This file owns the step order and the cross-SSG mapping. What differs per SSG lives in that SSG's `migrating-to-editable-regions.md` — [Astro](astro/migrating-to-editable-regions.md), [Hugo](hugo/migrating-to-editable-regions.md), [Eleventy](eleventy/migrating-to-editable-regions.md).
 
 **MUST:** check the SSG's row in [SKILL.md § SSG support](SKILL.md#ssg-support) first. If editable regions can't re-render that SSG's components, stop — the site stays on Bookshop; see [maintaining.md](maintaining.md).
 
@@ -35,7 +35,7 @@ Run these in order. Each ends with a build that matches the baseline.
 | Rendered components live in the editor through its engine                            | Component regions. The component must be resolvable by the SSG's editable-regions integration — see [editable-regions.md § EditableComponent](../cloudcannon-visual-editing/editable-regions.md#editablecomponent) |
 | Made every component clickable through bindings                                      | Explicit `data-editable` regions on every field and list. Run the section census as for any site                                                                                                                   |
 | Synthesised `_structures` from `*.bookshop.yml` at build time (`@bookshop/generate`) | Hand-authored `_structures` in `cloudcannon.config.yml` — see [§ Writing `_structures` from `*.bookshop.yml`](#writing-_structures-from-bookshopyml)                                                               |
-| Selected a component with `_bookshop_name`                                           | `_name`, used as the `id_key` of every structure and the array's `data-component-key` — see [§ Renaming `_bookshop_name`](#renaming-_bookshop_name)                                                                |
+| Selected a component with `_bookshop_name`                                           | `_type` as the array's `data-component-key`; it is `id_key`'s default, so structures need no `id_key` — see [§ Renaming `_bookshop_name`](#renaming-_bookshop_name)                                                |
 | Passed props its dispatcher computed (an index, a count, the page body)              | Region attributes on the component's wrapper — the SSG file says which                                                                                                                                             |
 | Exposed a live-editing flag to templates                                             | The SSG's `ENV_CLIENT` — see [visual-editing-reference.md § Detecting the editor](../cloudcannon-visual-editing/visual-editing-reference.md#detecting-the-editor-and-skipping-build-only-logic)                    |
 | Collected co-located component styles (Hugo, Jekyll, Eleventy)                       | The site's own stylesheet pipeline — the SSG file says how                                                                                                                                                         |
@@ -73,7 +73,7 @@ Each `*.bookshop.yml` with a non-empty `spec.structures` became one structure va
 | `spec.icon`                                | `icon` — validate it against the schema's icon enum                                                                           |
 | `spec.tags`                                | `tags`                                                                                                                        |
 | Any other `spec.*` key                     | The same key on the structure value — validate it                                                                             |
-| `blueprint`                                | `value`, plus the component key (`_name: <component name>`), in the shape the generated output had                            |
+| `blueprint`                                | `value`, plus the component key (`_type: <component name>`), in the shape the generated output had                            |
 | `_inputs`, any other `_*`                  | The same key on the structure value — or on an item structure, see below                                                      |
 | The YAML `preview:` key                    | Drop it — it only fed Bookshop's component browser                                                                            |
 | `<name>.preview.*` / `<name>.icon.*` image | Move it to a path the site serves and set `picker_preview.gallery.image`, or drop it — Bookshop only copied it into the build |
@@ -89,13 +89,12 @@ Each `*.bookshop.yml` with a non-empty `spec.structures` became one structure va
 ```yaml
 _structures:
   content_blocks:
-    id_key: _name
     values:
       - label: Counter
         description: Counter section
         icon: functions
         value:
-          _name: global/counter
+          _type: global/counter
           title: Scale your
           numbers: []
         _inputs:
@@ -119,7 +118,7 @@ _structures:
 
 Then, for each structure value:
 
-- **Validate** the result against the configuration schema — see [cloudcannon-configuration](../cloudcannon-configuration/SKILL.md). Bookshop never validated `spec.icon` or input options, so invalid values carried over are common.
+- **Validate** the result against the configuration schema — see [cloudcannon-configuration](../cloudcannon-configuration/SKILL.md). Bookshop never validated `spec.icon` or input options, so invalid values carried over are common: icons not in the enum, `_instance_value` (now `instance_value`), lowercase `instance_value: now` (now `NOW`), inputs with `instance_value` or `hidden` but no `type`, and `_structures.<key>` references to structures that never existed.
 - **Place** every `_inputs` key where its field is. Keys may name fields at any depth, or dotted paths. A key that names no field in `value` often names a field of an array item — Bookshop cascaded it into the item structure — so move it there. Delete it only if nothing has the field — see [configuration-gotchas.md § An `_inputs` key that names no field is ignored](../cloudcannon-configuration/configuration-gotchas.md#an-_inputs-key-that-names-no-field-is-ignored).
 - **Diff** the keys in content against `value`. Keys content has and the blueprint never did are either dead (no template reads them — leave them out) or live (add them to `value`).
 - **Check** blueprint values against the region type that will edit them. Bookshop rendered a bare number (`number: 200`) fine; a text region bound to it shows an error card — see [editable-regions.md § Value types per region](../cloudcannon-visual-editing/editable-regions.md#value-types-per-region).
@@ -127,11 +126,11 @@ Then, for each structure value:
 
 ## Renaming `_bookshop_name`
 
-**MUST:** rename the key and keep the value. `_bookshop_name: home/hero` becomes `_name: home/hero`.
+**MUST:** rename the key and keep the value. `_bookshop_name: home/hero` becomes `_type: home/hero`.
 **Why:** the value is the component path, and a grouped path (`home/hero`, `about/hero`) keeps components with the same short name apart. Flattening them means renaming components and rewriting every content value.
 
 - **Rename** the key everywhere it appears — content files, schema files, structure values, pages outside any collection, and component code that reads it (nested buttons often do). `grep -rn _bookshop_name . --exclude-dir=node_modules` lists them.
-- **Set** `id_key: _name` on every structure, nested ones included, and `data-component-key="_name"` on each component array.
+- **Set** `data-component-key="_type"` on each component array. `_type` is `id_key`'s default, so structures, nested ones included, need no `id_key`.
 - **Keep** each component resolvable under the same name — the SSG file says how.
 
 **Common miss:** a dispatcher that guards its lookup (`Component && …`) makes a missed rename vanish silently rather than fail the build. Only the baseline diff catches it.

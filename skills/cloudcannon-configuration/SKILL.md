@@ -89,10 +89,11 @@ Check this table before writing config. These are keys agents have written that 
 
 **SSG-specific:** enter through the SSG's `overview.md`; it gives the reading order and lists every file for that SSG.
 
-| The site uses | Start at                               |
-| ------------- | -------------------------------------- |
-| Astro         | [astro/overview.md](astro/overview.md) |
-| Hugo          | [hugo/overview.md](hugo/overview.md)   |
+| The site uses | Start at                                     |
+| ------------- | -------------------------------------------- |
+| Astro         | [astro/overview.md](astro/overview.md)       |
+| Hugo          | [hugo/overview.md](hugo/overview.md)         |
+| Eleventy      | [eleventy/overview.md](eleventy/overview.md) |
 
 **Other skills:**
 

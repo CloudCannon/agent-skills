@@ -235,6 +235,9 @@ The RCC clones a boundary container when switching locales. Default is `<main>`.
 
 `<body>` itself **cannot** be the boundary — it hosts the RCC's own UI, CloudCannon's editing infrastructure, and `<script>` tags. If only `<main>` is translatable, omit `data-rcc` and rely on the fallback.
 
+**MUST:** when `<body>` lays out the header, main and footer itself (`display: grid` or `flex`), add `[data-rcc] { display: contents; }` to the site's CSS.
+**Why:** the wrapper otherwise becomes the body's only grid or flex item, and the page layout collapses into one cell.
+
 ### 5c. Add `data_config` for locale files
 
 Phases 5c–5e all write `cloudcannon.config.yml`. The [`cloudcannon-configuration`](../cloudcannon-configuration/SKILL.md) skill owns that file — in particular [§ Do this before writing any configuration](../cloudcannon-configuration/SKILL.md#do-this-before-writing-any-configuration), which requires downloading the JSON schemas first. Follow it rather than writing keys from memory.

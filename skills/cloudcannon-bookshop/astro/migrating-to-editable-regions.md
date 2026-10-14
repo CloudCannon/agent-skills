@@ -14,7 +14,7 @@ Astro's delta from [../migrating-to-editable-regions.md](../migrating-to-editabl
 
 ## Keep Bookshop's names in a component map
 
-**MUST:** key the map with the dispatcher's own rule, so every `_name` value in content still resolves.
+**MUST:** key the map with the dispatcher's own rule, so every `_type` value in content still resolves.
 **Why:** content stores `heroes/hero`, not a new key. Reusing the rule means no content value changes.
 
 ```ts
@@ -54,7 +54,7 @@ The eager glob imports every file it matches, and each imported component's CSS 
 | `<Page bookshop:live contentBlocks={…} />` + `src/shared/astro/page.*`     | A loop component with the array regions — [§ The page-builder loop](#the-page-builder-loop)                                                                                                                                                                                  |
 | `<HeroBlock bookshop:live heroBlock={…} />` — one slot, several structures | A registered dispatcher — [§ One slot, several structures](#one-slot-several-structures)                                                                                                                                                                                     |
 | `<PostHero bookshop:live {...post_hero} />` — one slot, one component      | `<editable-component data-component="blog/post-hero" data-prop="post_hero">` around the call                                                                                                                                                                                 |
-| `button._bookshop_name` lookups inside components                          | The same lookup on `_name`. Wrap an array of them in `data-editable="array" data-component-key="_name"` with an `<editable-array-item data-component={button._name}>` per item; wrap a single one in `<editable-component data-component={button._name} data-prop="button">` |
+| `button._bookshop_name` lookups inside components                          | The same lookup on `_type`. Wrap an array of them in `data-editable="array" data-component-key="_type"` with an `<editable-array-item data-component={button._type}>` per item; wrap a single one in `<editable-component data-component={button._type} data-prop="button">` |
 | `ENV_BOOKSHOP_LIVE`                                                        | `ENV_CLIENT` — a bare global, not `import.meta.env.ENV_CLIENT`                                                                                                                                                                                                               |
 
 ### The page-builder loop
@@ -68,12 +68,12 @@ The eager glob imports every file it matches, and each imported component's CSS 
 import { componentMap } from "../cloudcannon/componentMap";
 const blocks = Astro.props.blocks ?? [];
 ---
-<div data-editable="array" data-prop="content_blocks" data-component-key="_name">
+<div data-editable="array" data-prop="content_blocks" data-component-key="_type">
   {blocks.map((block) => {
-    const Block = componentMap[block._name];
-    if (!Block) throw new Error(`Unknown component: ${block._name}`);
+    const Block = componentMap[block._type];
+    if (!Block) throw new Error(`Unknown component: ${block._type}`);
     return (
-      <div data-editable="array-item" data-component={block._name}>
+      <div data-editable="array-item" data-component={block._type}>
         <Block {...block} />
       </div>
     );
@@ -88,7 +88,7 @@ const blocks = Astro.props.blocks ?? [];
 
 ### One slot, several structures
 
-A single object that can be any of several components (`hero_block` from `_structures.hero_blocks`) can't use `data-component={hero_block._name}` — that is fixed at build, so switching the structure in the editor renders the new data through the old component and shows an error card.
+A single object that can be any of several components (`hero_block` from `_structures.hero_blocks`) can't use `data-component={hero_block._type}` — that is fixed at build, so switching the structure in the editor renders the new data through the old component and shows an error card.
 
 **MUST:** register a thin dispatcher and name it instead.
 
@@ -96,7 +96,7 @@ A single object that can be any of several components (`hero_block` from `_struc
 ---
 // src/components/BlockRenderer.astro
 import { componentMap } from "../cloudcannon/componentMap";
-const Component = componentMap[Astro.props._name];
+const Component = componentMap[Astro.props._type];
 ---
 {Component && <Component {...Astro.props} />}
 ```

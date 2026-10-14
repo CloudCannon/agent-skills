@@ -43,7 +43,7 @@ The editor bundles only files inside the project. A dependency in `themes/`, or 
 </div>
 ```
 
-Name components so the content discriminator is the partial path. Then `_name: home/hero` both selects the structure and names the partial, and the page builder needs no lookup table.
+Name components so the content discriminator is the partial path. Then `_type: home/hero` both selects the structure and names the partial, and the page builder needs no lookup table.
 
 ## The partial's context is the `data-prop` value
 
@@ -74,21 +74,21 @@ Name components so the content discriminator is the partial path. Then `_name: h
 
 ## Page builder blocks in Hugo
 
-The block dispatcher is a `range` in the page template, with each item's `_name` naming its partial:
+The block dispatcher is a `range` in the page template, with each item's `_type` naming its partial:
 
 ```go-html-template
-<div data-editable="array" data-prop="content_blocks" data-component-key="_name">
+<div data-editable="array" data-prop="content_blocks" data-component-key="_type">
   {{ range .Params.content_blocks }}
-    <div data-editable="array-item" data-id="{{ ._name }}" data-component="{{ ._name }}">
-      {{ partial ._name . }}
+    <div data-editable="array-item" data-id="{{ ._type }}" data-component="{{ ._type }}">
+      {{ partial ._type . }}
     </div>
   {{ end }}
 </div>
 ```
 
-- `data-id-key` defaults to `data-component-key`, so it can be omitted when both are `_name`.
+- `data-id-key` defaults to `data-component-key`, so it can be omitted when both are `_type`.
 - A heterogeneous array with a component key needs no `<template>` — the component pipeline renders new rows.
-- A sub-array inside a block whose items are themselves partials (a `buttons` list mixing `buttons/primary` and `buttons/secondary`) takes the same attributes: `data-component-key="_name"` on its container, `data-component="{{ ._name }}"` on each item, and no `<template>`. Each item needs its own wrapper element, so run the [wrapper checks](#wrapper-elements-around-partials) on the sub-array too. A root that was block-level only because its flex parent made it so (an `<a>` button) becomes inline inside the wrapper, and often needs `display: block` or `inline-block`.
+- A sub-array inside a block whose items are themselves partials (a `buttons` list mixing `buttons/primary` and `buttons/secondary`) takes the same attributes: `data-component-key="_type"` on its container, `data-component="{{ ._type }}"` on each item, and no `<template>`. Each item needs its own wrapper element, so run the [wrapper checks](#wrapper-elements-around-partials) on the sub-array too. A root that was block-level only because its flex parent made it so (an `<a>` button) becomes inline inside the wrapper, and often needs `display: block` or `inline-block`.
 - The dispatcher's wrapper is the array-item host: it carries both `data-editable="array-item"` and `data-component`, and the partial's root stays plain markup — see [§ Wrapper elements around partials](#wrapper-elements-around-partials).
 - Put the dispatcher in every layout that renders `content_blocks` — usually `single.html` **and** `list.html` (under `_default/` on the older scheme), because section `_index.md` pages use the list layout.
 

@@ -2,7 +2,7 @@
 
 Which docs to read, in which phase, and when to skip them. The phases themselves are in [SKILL.md](SKILL.md).
 
-`<ssg>` is the directory for the detected SSG — `astro` or `hugo` (see [SKILL.md § Supported SSGs](SKILL.md#supported-ssgs)). A file listed under `<ssg>/` that does not exist for your SSG is not needed for it.
+`<ssg>` is the directory for the detected SSG — `astro`, `hugo` or `eleventy` (see [SKILL.md § Supported SSGs](SKILL.md#supported-ssgs)). A file listed under `<ssg>/` that does not exist for your SSG is not needed for it.
 
 ## Per-phase reading order
 
@@ -18,7 +18,7 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 1. `cloudcannon-configuration/SKILL.md` → download the JSON schemas first; this is a gate
 2. `cloudcannon-configuration/<ssg>/overview.md` → follow its reading order. It lists every configuration file for the SSG, shared and SSG-only, with when to read each
 3. `migrate-to-cloudcannon/page-building.md`, then `migrate-to-cloudcannon/<ssg>/page-building.md` → if audit identified pages for a pages collection or page builder
-4. `cloudcannon-snippets/SKILL.md` → if content uses components (MDX components, Hugo shortcodes) or inline HTML
+4. `cloudcannon-snippets/SKILL.md` → if content uses components (MDX components, Hugo or Eleventy shortcodes) or inline HTML
 
 ### Phase 3: Content
 
@@ -40,7 +40,7 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 ## When to read the optional docs
 
 ```
-Does the site use components in content (MDX components, Hugo shortcodes)?
+Does the site use components in content (MDX components, Hugo or Eleventy shortcodes)?
 ├─ Yes → read cloudcannon-snippets skill
 │        Does a component have nested children (e.g. Tabs > Tab)?
 │        ├─ Yes → read raw.md (repeating parser)

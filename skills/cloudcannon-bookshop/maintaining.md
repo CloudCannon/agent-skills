@@ -29,13 +29,13 @@ Changing a site that stays on Bookshop. Read [bookshop.md](bookshop.md) first fo
 
 The live engine renders in the browser, with only the library available. When a component needs something the editor can't provide — an asset pipeline, a page lookup, a site template outside the library — branch on the SSG's live-editing flag and render a stand-in:
 
-- **Branch** on the flag — see the SSG's `bookshop.md` for its name.
+- **Branch** on the flag — see the SSG's `bookshop.md` for its name and for what else the live engine lacks.
 - **Turn off** live rendering for one top-level call with `live_render: false` (also `_live_render` in a blueprint). It doesn't reach nested components.
 - **Pass** `--skip-live` to `@bookshop/generate` to turn live editing off site-wide, or `--disable-bindings` to keep live rendering without the click-to-edit overlays.
 
 ## Upgrading Bookshop
 
-- [ ] Run `npx @bookshop/up@latest` — it moves every npm package, the Hugo module or the Jekyll gem to one version, and runs Bookshop's own migrations.
+- [ ] Run `npx @bookshop/up@latest` — it moves every npm package (the Eleventy plugin among them), the Hugo module or the Jekyll gem to one version, and runs Bookshop's own migrations.
 - [ ] Check `package.json` pins every `@bookshop/*` package to the same exact version.
 - [ ] Build locally, then on CloudCannon, and check the editor's console for Bookshop's version error.
 
