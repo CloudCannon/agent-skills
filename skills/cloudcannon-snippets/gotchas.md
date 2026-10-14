@@ -44,7 +44,7 @@ models:
 
 ### `_snippets_imports` can match unintended content
 
-Don't use `_snippets_imports` during migrations — see [snippets.md § Configuration hierarchy](snippets.md#configuration-hierarchy) for the full rationale.
+Don't use `_snippets_imports` during migrations — see [snippets.md § Configuration hierarchy](snippets.md#configuration-hierarchy) for the full rationale. Hugo's built-in shortcodes are the exception: import them with an explicit `include` list — see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes).
 
 ---
 

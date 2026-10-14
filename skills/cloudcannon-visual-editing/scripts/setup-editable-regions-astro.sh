@@ -5,7 +5,7 @@ set -euo pipefail
 # Installs the package, adds the integration to astro.config.{mjs,ts},
 # and creates the registerComponents script.
 #
-# Usage: bash setup-editable-regions.sh [project-dir]
+# Usage: bash setup-editable-regions-astro.sh [project-dir]
 #   project-dir defaults to the current directory.
 
 PROJECT_DIR="${1:-.}"

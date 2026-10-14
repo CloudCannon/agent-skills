@@ -3,16 +3,19 @@
 Run the audit script first to gather data automatically:
 
 ```bash
-bash skills/migrate-to-cloudcannon/scripts/audit-astro.sh .
+bash <skills-dir>/migrate-to-cloudcannon/scripts/audit-astro.sh .
 ```
+
+Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).
 
 Use its output as a starting point, then fill in the sections below with findings that require judgment. Record findings in `.cloudcannon/migration/audit.md`.
 
 ## 1. Astro version and dependencies
 
 - Astro version (check `package.json`)
+- **Bookshop.** If the script reports Bookshop markers, read [cloudcannon-bookshop](../../cloudcannon-bookshop/SKILL.md) now. It changes Phases 2 to 4.
 - Framework integrations and versions (React, Vue, Svelte, Solid -- look for `@astrojs/*` packages).
-  **Why:** Vue/Svelte/Solid components are unsupported in editable regions (see [overview.md § Astro scope](overview.md)). For each, decide: convert to `.astro`/React, or keep and provide an editing fallback.
+  **Why:** React, Vue and Svelte each need their renderer imported in `registerComponents.ts`; Solid components are unsupported in editable regions (see [overview.md § Astro scope](overview.md)). For each Solid component, decide: convert to a supported framework, or keep it and provide an editing fallback.
 - CSS framework (Tailwind, etc.)
 - Markdown processing: remark/rehype plugins, MDX support (`@astrojs/mdx`)
 - Package manager (npm, pnpm, yarn) and any lockfile present
@@ -30,7 +33,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
   **Why:** folder-per-post is a candidate for flattening — see [content.md § Flattening folder-per-post content](content.md#flattening-folder-per-post-content).
 - **Base directory** and glob pattern
 - **Schema fields** with Zod types, defaults (`z.default()`), and optionality (`z.optional()`)
-- **File naming conventions** (e.g. `-index.md` for listing page metadata -- these get renamed to `index.md` in the content phase)
+- **File naming conventions** (e.g. a listing page's metadata in a file not named `index` — see [content.md § Listing-page files not named `index`](content.md#listing-page-files-not-named-index))
 - **How it's consumed**: `getCollection()`, `getEntry()`, or helper functions wrapping these
 - **Body content usage**: is the markdown file rendered as a page, or used only for its data on other pages?
   **Why:** data-only `.md` collections (team members, testimonials, authors) need `_enabled_editors: [data]` if only frontmatter is used, or `_enabled_editors: [content, data]` if the body is rendered elsewhere but doesn't build to its own page. Note how body content is rendered in templates — `<Content />` from `entry.render()`, `<slot />` in layouts — these are candidates for `@content` visual editing in Phase 4.
@@ -74,37 +77,15 @@ Also flag **presentational wrapper components** (e.g. a `<Link>` that just rende
 **Why:** these can't survive source editing and need either inlining as plain HTML + CSS or a snippet config. See [visual-editing-reference.md § Astro components in source editables](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#astro-components-in-source-editables).
 
 Also flag **hardcoded text in page templates**, but classify it through the census table below -- not by defaulting to source-editable.
-**Why:** hero sections, CTA copy, and section headings on listing pages almost always belong in a page-builder `pages` collection entry, not pinned to the `.astro` source. Source-editable is reserved for long-form prose where the layout _is_ the body. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables).
+**Why:** the mechanism depends on who owns the page's structure, not on the text being hardcoded. See [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables).
 
 ### Classifying static pages: source editables vs. content collection
 
-Use this decision table for every `.astro` page that isn't already in a collection. **Page builder is the default for unique-layout pages** -- source-editable is the exception, reserved for long-form prose.
+Classify every `.astro` page that isn't already in a collection, using the decision table and the mandatory census table in [../audit.md § Classifying static pages](../audit.md#classifying-static-pages). Name each census row by its page file (`src/pages/index.astro`, `src/pages/about.astro`). For a cross-collection reverse lookup, filter the owning collection: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`.
 
-| Page characteristics                                                                                                            | Pattern                                                                                                                                                                               | Why                                                                                                                                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Many entries, identical shape (blog posts, team profiles, products, articles)                                                   | **Fixed-schema collection**                                                                                                                                                           | Consistency matters; editors fill fields, not layout                                                                                                                                                                              |
-| Multiple "sibling" pages that share most structure (services, locations, team members)                                          | **Fixed-schema collection**                                                                                                                                                           | Shared shape benefits all entries; one template change updates all                                                                                                                                                                |
-| Unique layout per page, but multiple such pages exist (homepage, about, our-team, contact, landing pages, FAQ, marketing pages) | **Page builder `pages` collection** ← DEFAULT                                                                                                                                         | Editors compose from blocks. New pages addable from CMS. Multiple schemas in the same collection are fine.                                                                                                                        |
-| Long-form prose with minimal structure (legal, policy docs, terms)                                                              | **Fixed-schema collection with markdown body** (e.g. `legal`) -- only fall back to source-editable when there are 1-2 pages AND content rarely changes AND no new pages will be added | Body is the content; structure is minimal                                                                                                                                                                                         |
-| Truly one-shot, never edited by content team (404, system pages)                                                                | **Hardcoded `.astro`**                                                                                                                                                                | No editor value                                                                                                                                                                                                                   |
-| "Only n=2 pages — small enough to be a data file"                                                                               | ❌ Data file because count is low                                                                                                                                                     | ✅ Collection — if a route renders frontmatter-shaped content for ONE entity (its own URL, hero, body, sections), it's a collection even at n=2. Data files are for shared lookups.                                               |
-| Page re-declares an array that overlaps with a data file (`services`, `team`, `faq`)                                            | ❌ Local const array + data file both maintained                                                                                                                                      | Delete the local array, read from the data file via `import`. Editors change the data file, the page stays stale.                                                                                                                 |
-| Cross-collection membership (category ↔ posts) with both sides storing the list                                                 | ❌ Both sides own the list — drifts when one is updated                                                                                                                               | ✅ One canonical side owns the list (per-entity collection). Other side reverse-looks-up: `getCollection(C, e => e.data.x.some(r => r.id === currentId))`. Add a CMS comment: "X is pulled automatically — edit Y to add/remove". |
+For census rows that send a page to the `pages` collection, read [../page-building.md § When to reach for a page builder](../page-building.md#when-to-reach-for-a-page-builder), then [page-building.md](page-building.md).
 
-Then produce this **mandatory census table** in `.cloudcannon/migration/audit.md` for every `.astro` page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
-
-| Page file                        | Distinct content sections         | Layout repeated on other pages? | Editor will add similar pages? | Recommended pattern             |
-| -------------------------------- | --------------------------------- | ------------------------------- | ------------------------------ | ------------------------------- |
-| `src/pages/index.astro`          | hero, features, testimonials, cta | No                              | Maybe                          | Page builder                    |
-| `src/pages/about.astro`          | hero, story, team, cta            | No                              | Maybe                          | Page builder                    |
-| `src/pages/privacy-policy.astro` | title, long markdown body         | Yes (terms, etc.)               | No                             | Fixed-schema `legal` collection |
-| ...                              | ...                               | ...                             | ...                            | ...                             |
-
-Don't classify a unique-layout page as source-editable just because it's "the only one of its kind." The right question is whether it has 2+ distinct content sections. If yes, page builder. Source-editable is for long-form prose where the layout _is_ the body.
-
-Don't propose a CloudCannon "collection of one" (a `homepage` collection with one entry, an `about` collection with one entry, etc.). One `pages` collection holds homepage, about, contact, landing pages, etc. -- possibly with multiple schemas. The only exception is when the site genuinely has a single landmark page plus one repeating section (e.g. homepage + blog).
-
-This classification feeds directly into the configuration phase. For census rows that say "Page builder", go straight to [page-building.md § When to reach for page builder](page-building.md#when-to-reach-for-page-builder).
+The two follow-on censuses in Astro form:
 
 - [ ] **Primitive-vs-computed census** — for every page template / route file with ≥3 `{data.x}` interpolations, fill out:
 
@@ -148,7 +129,7 @@ Note anything that needs special handling in later phases:
 - Existing CMS or deployment configuration (`.sitepins/`, `netlify.toml`, `vercel.json`)
 - `set:html` directives in templates (these render raw HTML and affect how content editing works)
 - **Styled HTML in content fields** -- flag fields that contain inline HTML with CSS classes (`<span class="text-accent">`), HTML entities (`&nbsp;`), or `<br>` tags with responsive classes (`<br class="block sm:hidden" />`) when migrating hardcoded `.astro` pages to content collection frontmatter.
-  **Why:** these render on the live site but are uneditable in CloudCannon's rich text editors (custom HTML shows red outlines). They need resolution during the content phase -- see [content.md § Handling styled HTML in frontmatter](content.md#handling-styled-html-in-frontmatter).
+  **Why:** these render on the live site but are uneditable in CloudCannon's rich text editors (custom HTML shows red outlines). They need resolution during the content phase -- see [../content.md § Styled HTML in front matter](../content.md#styled-html-in-front-matter).
 - **Scroll-reveal / entrance animations** -- search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and class names like `reveal`, `aos`, `animate-on-scroll`, `fade-in`, `scroll-fade`.
   **Why:** these hide content until scrolled into view and break in the visual editor. Note the files responsible so they can be patched in Phase 4. See [visual-editing-reference.md § Scroll-reveal](../../cloudcannon-visual-editing/visual-editing-reference.md#scroll-reveal-and-entrance-animations).
 - Pre-build code generation that must run for the site to build
@@ -161,8 +142,8 @@ Note anything that needs special handling in later phases:
 
 Once the census table and collection inventory are filled in, record:
 
-- Total pages
+- Total pages, including generated taxonomy and pagination pages
 - Rows in the census table recommending page-builder or fixed-schema collection (the hardcoded `.astro`→YAML conversions)
 - Distinct collections (existing + proposed in census)
 
-If any 2 of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet.** Read [SKILL.md § Sectioning large migrations](../chunking.md), draft a proposed sectioning, and present it to the user for a one-pass-vs-sectioned decision before continuing.
+If any 2 of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet.** Read [chunking.md](../chunking.md), draft a proposed sectioning, and present it to the user for a one-pass-vs-sectioned decision before continuing.

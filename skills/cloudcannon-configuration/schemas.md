@@ -1,0 +1,118 @@
+# Schemas
+
+Read before writing a collection's `schemas`. A schema is a file template — usually front matter, but it can include body content, and in a data collection it's a whole data file. It gives new files their starting content, and it decides which fields an existing file shows in the editor. What differs per SSG is in that SSG's `configuration.md`.
+
+## Give editors a schema to add files from
+
+Define at least one schema for every collection where editors add files.
+
+**Why:** without a schema, **+ Add** builds new files from an existing file in the collection with its values cleared, so a new file inherits whatever fields that file happened to have. An empty collection can't create a file at all.
+
+## One collection, many schemas
+
+Give one collection several schemas when its files need different fields. Don't create a collection just to get a new schema. A `pages` collection can hold a markdown page, a page-builder page and a landing page side by side; editors pick the schema when they create a file.
+
+```yaml
+collections_config:
+  pages:
+    path: src/content/pages
+    url: "/[slug]/"
+    schemas:
+      default:
+        path: .cloudcannon/schemas/page.md
+        name: Page (markdown body)
+      page_builder:
+        path: .cloudcannon/schemas/page-builder.md
+        name: Page Builder
+      landing:
+        path: .cloudcannon/schemas/landing.md
+        name: Landing Page
+```
+
+## Schema files
+
+Put schema files in `.cloudcannon/schemas/`, in the same format as the collection's files: the same front matter delimiters (`---` YAML, `+++` TOML) for content files, or the same file type for data files.
+
+- **Include** every field a template reads, with a representative empty value — `content_blocks: []` for a page-builder page.
+- **List** the front matter keys in use across the collection with the recipe in [configuration-gotchas.md § An `_inputs` key that names no field is ignored](configuration-gotchas.md#an-_inputs-key-that-names-no-field-is-ignored), and diff them against each schema file.
+
+A data collection's schemas are data files of the same type:
+
+```yaml
+collections_config:
+  people:
+    path: src/data/people
+    schemas:
+      staff:
+        path: .cloudcannon/schemas/staff.json
+        name: Staff Member
+      author:
+        path: .cloudcannon/schemas/author.json
+        name: Author
+```
+
+## `default` and `_schema`
+
+`default` is a special schema key: a file with no `_schema` uses the collection's `default` schema. A file that uses any other schema sets `_schema` to that schema's key, in the front matter or at the top level of a data file. Hide `_schema` in `_inputs`.
+
+- **Omit** `_schema` on files that use `default`, unless the site's own code reads `_schema` (an Astro `z.discriminatedUnion("_schema", …)`), in which case every file sets it.
+- **MUST:** make every `_schema` value, and every `add_options[].schema`, exactly a key under that collection's `schemas`. It's the key, not the schema file's name: a file on `post: { path: .cloudcannon/schemas/post.md }` sets `_schema: post`, and one on `default: { path: .cloudcannon/schemas/post.md }` sets nothing.
+  **Why:** a file whose `_schema` names no schema in its collection doesn't open. The editor logs `SchemaNotFoundError` and stays on the collection list. `cloudcannon validate` doesn't check this.
+
+```markdown
+---
+_schema: page_builder
+title: About us
+---
+```
+
+```yaml
+_inputs:
+  _schema:
+    hidden: true
+```
+
+Check every collection's files against its keys. Any value that isn't a key under that collection's `schemas` is a broken file:
+
+```sh
+grep -rh '^_schema:' src/content/pages | sort | uniq -c
+```
+
+### Index pages
+
+An index file whose front matter differs from the collection's items, such as `blog/index.md` with a hero and intro beside `blog/post-1.md`, is a common reason for a second schema. Give it one when its fields differ; when they match the items, it uses the items' schema.
+
+```yaml
+blog:
+  path: src/content/blog
+  url: "/blog/[slug]/"
+  schemas:
+    default:
+      path: .cloudcannon/schemas/post.md
+      name: Blog Post
+    blog_index:
+      path: .cloudcannon/schemas/blog-index.md
+      name: Blog Index
+```
+
+The index file's URL needs no special handling: `[slug]` is empty for a file named `index` — see [collection-urls.md § Fixed placeholders](collection-urls.md#fixed-placeholders).
+
+## Keep every key in the schema
+
+**MUST:** put every key that any file in the collection uses into the schema that file uses, or set `remove_extra_inputs: false` on that schema.
+**Why:** `remove_extra_inputs` defaults to `true`. Keys missing from the schema, nested keys included, are hidden when the file loads and removed from the file when it's saved. An edit to one field can delete data the templates still read, and nothing reports an error. A key hidden in `_inputs` is kept; a key missing from the schema isn't.
+
+```yaml
+collections_config:
+  blog:
+    schemas:
+      default:
+        path: .cloudcannon/schemas/post.md
+        remove_extra_inputs: false
+```
+
+The same first edit also writes every schema key with its default — see [configuration-gotchas.md § The first edit writes every schema key](configuration-gotchas.md#the-first-edit-writes-every-schema-key).
+
+## Choosing what editors can create
+
+Which schemas appear in the **+ Add** menu, and where a new file opens, is in [configuration.md § New files and the Add button](configuration.md#new-files-and-the-add-button).

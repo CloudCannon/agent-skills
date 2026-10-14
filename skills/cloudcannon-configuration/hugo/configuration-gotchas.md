@@ -1,0 +1,119 @@
+# Configuration Gotchas (Hugo)
+
+Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values, `_editables`, markdown tables, data references, previews, schema defaults — live in [../configuration-gotchas.md](../configuration-gotchas.md). Read that file first.
+
+## Match Goldmark in the markdown options
+
+**MUST:** start from the `markdown` block the CloudCannon CLI writes. It reads the site's Goldmark config and handles Hugo-specific details such as attribute list positions.
+**Then:** compare it with the site's effective Goldmark settings (`hugo config | grep -A20 goldmark`) and adjust any key that differs. Where the site's config doesn't set a value, Hugo's default applies. With `renderer.unsafe: false`, also keep `_editables` toolbar options that save HTML turned off.
+**Why:** where CloudCannon and Goldmark disagree, content changes on save — for example, tables saved as raw HTML, which Goldmark's default `unsafe: false` drops as `<!-- raw HTML omitted -->` without an error. The generic rule is in [../configuration-gotchas.md § Markdown tables](../configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
+
+## Choose rich text inputs from the template filter
+
+The rule is in [../configuration-gotchas.md § Choose text, markdown or html inputs](../configuration-gotchas.md#choose-text-markdown-or-html-inputs-from-how-the-template-renders-the-field). Hugo escapes every string it prints, so the filter on the output decides the input:
+
+| Template renders the field                                                     | Input               |
+| ------------------------------------------------------------------------------ | ------------------- |
+| `{{ .description }}`, or through `plainify` or `htmlEscape`                    | `text` / `textarea` |
+| `{{ .description \| markdownify }}`, or `{{ page.RenderString .description }}` | `markdown`          |
+| `{{ .description \| safeHTML }}`, with no markdown step                        | `html`              |
+
+List the fields that need a rich text input — every other printed string field is `text` or `textarea`:
+
+```sh
+grep -rnE 'markdownify|RenderString|safeHTML' layouts themes/*/layouts
+```
+
+- **Read** the whole pipeline: `.x | markdownify | safeHTML` is still `markdown`.
+- **Match** the Goldmark settings — `markdownify` and `RenderString` render with the site's Goldmark, so a `markdown` input follows [§ Match Goldmark](#match-goldmark-in-the-markdown-options).
+- **Set** the `markdown` input's `options` on a field that also has a region — they set the toolbar for both the sidebar and the region. See [../configuration-gotchas.md § Set region toolbars on the input](../configuration-gotchas.md#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
+- **Set** the region's `data-type` separately, in the template — `text` for inline content, `block` for multi-paragraph. See [Text regions and markdown in Hugo](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#text-regions-and-markdown-in-hugo).
+- **Expect** a region on a field with no `markdown` input to save HTML, which `markdownify` drops as `<!-- raw HTML omitted -->` under Goldmark's default `renderer.unsafe: false` — see [§ Match Goldmark](#match-goldmark-in-the-markdown-options).
+
+## Keep taxonomies top-level
+
+**MUST NOT:** nest a taxonomy key (`tags`, `categories`, or anything under `taxonomies:` in the site config) inside an object, even to group it with a component's fields.
+**Why:** Hugo builds term pages only from top-level front matter keys. A nested `post_hero.tags` renders fine in the hero and silently drops the post from every tag page.
+
+```yaml
+# ✓ taxonomy at the top level; the hero reads it from the page
+tags: [hugo, cloudcannon]
+post_hero:
+  title: …
+```
+
+**Common miss:** nesting fields under one key so a component region can bind them (`data-prop="post_hero"`) and sweeping `tags` in with them. Pass the taxonomy to the partial separately instead.
+
+## Quote numbers a text region displays
+
+**MUST:** store a number shown through a text region as a string, and pin its input to `type: text`.
+**Why:** a text region rejects any value that isn't a string — a bare YAML number (`price: 199`) shows an error card in the Visual Editor. Quoting alone isn't enough: without `type: text`, CloudCannon infers a number input and writes a number back on the next save.
+
+```yaml
+# content
+price: "199"
+# cloudcannon.config.yml, on the structure value
+_inputs:
+  price:
+    type: text
+```
+
+Counters and prices are the usual cases. The figures still work anywhere the template does arithmetic on them — convert with `int` or `float` in the template (`{{ int .price }}`). The value types each region accepts are in [../../cloudcannon-visual-editing/editable-regions.md](../../cloudcannon-visual-editing/editable-regions.md); the cross-SSG rule for text inputs is [../configuration-gotchas.md § Quote numeric values](../configuration-gotchas.md#quote-numeric-values-that-map-to-text-inputs).
+
+## Match the site's front matter format
+
+Hugo accepts YAML (`---`), TOML (`+++`) and JSON (`{ }`) front matter, and a site can mix them. CloudCannon reads and writes all three, but writes back in the format each file already uses.
+
+- **Match** each schema file to the format of the collection it seeds.
+- **Check** for mixed formats (`grep -rl '^+++' content | head`) before writing `_inputs` — a key's type can differ between formats (TOML has native dates; YAML dates can be strings).
+
+## Hide Hugo's routing and build front matter
+
+Hide the keys that change how Hugo builds a page rather than what it shows — editors changing them move or remove pages. Put the list in each content collection's `_inputs`, not the root:
+
+```yaml
+collections_config:
+  blog:
+    _inputs:
+      layout:
+        hidden: true
+      type:
+        hidden: true
+      aliases:
+        hidden: true
+      build:
+        hidden: true
+      cascade:
+        hidden: true
+```
+
+**Why:** root `_inputs` cascade into data files, config files and structures, and Hugo reuses the same short names there — a menu item has a `url` and a `weight`, and theme params often have a `type`. A root `type: hidden` hides them everywhere. Where a key must be scoped more tightly still, use a dotted key (`menu.main.weight`) — see [../configuration-gotchas.md § `_inputs` key collision](../configuration-gotchas.md#_inputs-key-collision-across-nesting-levels).
+
+Leave `draft`, `weight` and `date` visible — editors legitimately change them — with a `comment` on `draft` noting that draft pages are not built and can't open in the Visual Editor. Leave `slug` and `url` visible only if the collection's `url` pattern uses them ([collection-urls.md § Front matter that changes the URL](collection-urls.md#front-matter-that-changes-the-url)).
+
+## Dated content needs a date
+
+**MUST:** keep `instance_value: NOW` on the date input of a dated content schema ([../configuration-gotchas.md § Dated content](../configuration-gotchas.md#dated-content-instance_value-now)).
+**Why:** Hugo builds a page with an empty date as year 0001, so a new post sorts last and shows that date.
+
+## Booleans compared as strings
+
+**MUST:** before a schema adds a boolean, grep the templates for how it's read. Where a template compares it with a string, fix the template to read the value; if a theme owns the template, leave the key out of the schema instead.
+**Why:** the first edit writes every schema key into the file ([../configuration-gotchas.md § The first edit writes every schema key](../configuration-gotchas.md#the-first-edit-writes-every-schema-key)). A comparison such as `where .Pages "Params.hidden" "!=" "true"` or `eq .Params.featured "true"` treats a real boolean — `false` included — differently from an absent key, so a written `false` can drop a page from a list.
+
+```sh
+grep -rnE '"(true|false)"' layouts themes/*/layouts
+```
+
+Fix the comparison in a project override if the field must stay in the schema.
+
+## Config files in a collection must be YAML
+
+**MUST:** make every Hugo config file inside a collection YAML — `config/_default/params.yaml`, not `params.toml`. Keep the theme's file names and split.
+**Why:** the Visual Editor mirrors every collection file into its in-browser Hugo as YAML front matter at the file's own path. A TOML or JSON config file then fails to parse, and since every render loads the config first, every component region shows an error card (`failed to unmarshal config for path "config/_default/<file>.toml"`). A YAML file mirrored the same way is still valid config.
+
+- **Convert** only the files the collection's glob matches. Developer-only config can stay TOML outside the glob.
+- **Tell** readers of the editor README that the theme docs' TOML examples map one-to-one onto the YAML files.
+- **Don't** route around it with `data_config`: a dataset file that isn't YAML or JSON is mirrored as `<name>.json` beside the original, which is no better.
+
+The settings collection that puts config files in front of editors is in [configuration.md § Site config as data](configuration.md#site-config-as-data).

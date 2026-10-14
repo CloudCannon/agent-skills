@@ -28,13 +28,15 @@ _inputs:
     type: text
 ```
 
-Editors get a plain list they can add to, delete from and drag-reorder, and it can be emptied: an empty array in content (`features: []`) still offers the right item on Add. **MUST NOT** rely on a bare `type: array` without the `[*]` entry — the Add button clones the previous item, so once the last one is deleted the array loses its item type. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `allow_create: true` and `values`.
+Editors get a plain list they can add to, delete from and drag-reorder, and it can be emptied: an empty array in content (`features: []`) still offers the right item on Add. **MUST NOT** rely on a bare `type: array` without the `[*]` entry — the Add button clones the previous item, so once the last one is deleted the array loses its item type. When the values come from a known or reusable set (tags, categories), prefer `type: multiselect` with `values` pointing at a data file of the options (`values: data.tags`) — never an empty `values: []`.
 
 These apply in both the main `cloudcannon.config.yml` AND inside co-located structure-value files. Define structures during the configuration phase and use them as the blueprint when creating content files in the content phase — not as a backfill step.
 
 ## Field completeness rule (rule #1)
 
 For each content block in a page's `content_blocks` array, open the structure definition and verify that **every single key** appears in the content. The rule covers any field that appears on any item — rare (1 of 10 items), conditional (only populated when `type: dropdown`), or purely decorative. Commonly forgotten: `tagline`, `content`, `subtitle`, and nested object fields like `callToAction.variant`, `callToAction.icon`, `callToAction.target`.
+
+**Exception — keys no template reads.** Content migrated from another system often carries dead keys (Bookshop: `heading.text_color`, `button_aria_label`). Grep the templates for each key first; if nothing reads it, drop it from the content instead of declaring it in the value.
 
 After creating or editing content files, cross-reference every block in every content file against its structure definition. Field omissions are the single most common source of CloudCannon editor errors.
 
@@ -83,9 +85,9 @@ value:
   primaryLabel: Schedule a Consultation
 ```
 
-Reconcile: rule #1 means "if any **existing** item has the field, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
+Reconcile: rule #1 means "if any **existing** item has a field a template reads, the value template must declare it (with empty default)." It does NOT mean "seed every nullable field as `''`." Audit `*.cloudcannon.structure-value.yml`, `_structures.*.values[].value` in `cloudcannon.config.yml`, and `.cloudcannon/schemas/<collection>.md` — every `: ""` is either a real default (keep) or an over-eager seed (delete).
 
-**Migrating an existing page?** A field the original page never passed may still be rendering a component default — write that resolved default, not an empty value. See [content.md § Extraction pattern](../migrate-to-cloudcannon/astro/content.md#extraction-pattern-per-block).
+**Migrating an existing page?** A field the original page never passed may still be rendering a component default — write that resolved default, not an empty value. See [content.md § Extraction pattern](../migrate-to-cloudcannon/content.md#extraction-pattern-per-block).
 
 ### Handling null values from empty YAML fields
 
@@ -177,6 +179,42 @@ _inputs:
 | `values_from_glob`      | Individual structure values into an array. One file = one structure value.               | Split co-located approach (one file per component). Default choice.                      |
 | `_structures_from_glob` | Named structure groups. One file defines an `_structures`-like block with multiple keys. | Grouping multiple related structures in one file (e.g. `header_links` + `footer_links`). |
 
+## Arrays of single-key maps
+
+An array whose items are maps with one key naming the kind — common for social links:
+
+```yaml
+social:
+  - github: https://github.com/example
+  - email: hello@example.com
+```
+
+becomes one structure value per key, each with its own preview and input. Editors choose the kind from Add:
+
+```yaml
+_structures:
+  social_links:
+    style: modal
+    values:
+      - label: GitHub
+        icon: code
+        value:
+          github:
+        preview:
+          text:
+            - key: github
+      - label: Email
+        icon: mail
+        value:
+          email:
+        preview:
+          text:
+            - key: email
+        _inputs:
+          email:
+            type: email
+```
+
 ## Shared sub-structures
 
 Structures used by multiple block types — like `actions` (button arrays), `items` (feature/step lists), `stats`, `prices`, `testimonials` — stay in the main `cloudcannon.config.yml` under `_structures`. They're referenced by name from within the structure-value files and from the config.
@@ -188,7 +226,7 @@ Structures used by multiple block types — like `actions` (button arrays), `ite
 A structure's `preview` applies wherever the structure is used — a shared `_nav_items` can't have different icons per consumer. Pick an icon meaningful to the structure's own identity (`link` for `_nav_items`, `help` for `_faq_items`), not to any one consumer's context.
 
 ❌ Forking `_nav_items` into `_nav_items_primary` / `_nav_items_footer` just to vary the icon — clutters `_structures` with near-duplicates.
-❌ Adding `[*]` overrides on the array per-consumer to "override" the preview — silently ignored when `structures:` is defined (see [configuration-gotchas.md § Array item previews](astro/configuration-gotchas.md#array-item-previews---vs-structure-value)).
+❌ Adding `[*]` overrides on the array per-consumer to "override" the preview — silently ignored when `structures:` is defined (see [configuration-gotchas.md § Array item previews](configuration-gotchas.md#array-item-previews---vs-structure-value)).
 ✓ One structure, one preview. If two consumers truly need different previews, they need different structures.
 
 ### Duplicated select values across structure-value files
@@ -243,7 +281,7 @@ The same applies to nested arrays inside shared sub-structures (e.g. if `prices`
 
 ## Previews
 
-Previews go on **every** structure value — co-located `*.cloudcannon.structure-value.yml` files, inline `_structures` entries in the main config, AND inline structures defined inside `file_config._inputs` for data files. If an array has `structures:`, its item previews live here, **not** on the array's `[*]` path — see [configuration-gotchas.md § Array item previews](astro/configuration-gotchas.md#array-item-previews---vs-structure-value).
+Previews go on **every** structure value — co-located `*.cloudcannon.structure-value.yml` files, inline `_structures` entries in the main config, AND inline structures defined inside `file_config._inputs` for data files. If an array has `structures:`, its item previews live here, **not** on the array's `[*]` path — see [configuration-gotchas.md § Array item previews](configuration-gotchas.md#array-item-previews---vs-structure-value).
 
 Every structure value should include both `picker_preview` and `preview`:
 
@@ -333,11 +371,14 @@ _inputs:
 
 ### The `_type` discriminator
 
-Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard — the name is arbitrary (`_name`, `_component`) but must be consistent across all values in a given array. The discriminator value must match the key used in `componentMap` and `registerAstroComponent` calls.
+Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard — the name is arbitrary (`_name`, `_component`) but must be consistent across all values in a given array. The discriminator value must match the component key the SSG resolves — Astro: the key used in `componentMap` and `registerAstroComponent` calls; Hugo: the partial path (Bookshop sites keep `_name`).
 
 ### Scoped `_inputs`
 
-Field type configuration inside a structure-value file is scoped to that component. Only include fields that need non-default types — strings, arrays, and objects work without explicit configuration.
+**MUST:** put `_inputs` on each structure value, not on the structure (`_structures.<name>._inputs`).
+**Why:** a structure has no `_inputs` key — `cloudcannon validate` reports `$._structures.<name>: unexpected property _inputs`. Share one definition between values with `_inputs_from_glob`, not a YAML alias ([configuration-gotchas.md § No YAML anchors or aliases](configuration-gotchas.md#no-yaml-anchors-or-aliases)).
+
+Field type configuration inside a structure-value file is scoped to that component. Give every field in the value an entry, as for any other field — see [configuration.md § Configure every field explicitly](configuration.md#configure-every-field-explicitly).
 
 **Nested object inputs need preview icons too.** Object fields within a structure (e.g. `callToAction`, `image`) show a generic icon in the data editor without explicit `type: object` + `options.preview.icon`. This applies to **both** co-located structure-value files **and** inline `_structures` entries in `cloudcannon.config.yml` (e.g. `prices`, `testimonials`, `items`):
 
@@ -355,7 +396,7 @@ _inputs:
         icon: image
 ```
 
-See [configuration.md § Object inputs need preview icons](astro/configuration.md#object-inputs-need-preview-icons).
+See [configuration-gotchas.md § Configure object inputs with preview icons](configuration-gotchas.md#configure-object-inputs-with-preview-icons).
 
 ## Deriving structures from components
 
@@ -366,13 +407,13 @@ See [configuration.md § Object inputs need preview icons](astro/configuration.m
 
 ### Field-to-YAML mapping
 
-| Prop type | YAML default                                                                                                 | Notes                                                                                                                                                                                                                                                                                               |
-| --------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| String    | bare key (`title:`)                                                                                          | Parses as `null`. If the field has a closed value set (variants, sizes, alignment), the input should be `type: select` — see [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](astro/configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs). |
-| Boolean   | `false`                                                                                                      |                                                                                                                                                                                                                                                                                                     |
-| Number    | the component default (e.g. `columns: 3`); omit rather than seeding `0` when the field is genuinely optional | Input must be `type: number`. If input is `type: text`, quote as string (`price: "29"`) — bare numbers with text inputs cause a "misconfigured" error.                                                                                                                                              |
-| Array     | `[]`                                                                                                         |                                                                                                                                                                                                                                                                                                     |
-| Object    | nested shape with empty fields                                                                               | E.g. `image:\n  src:\n  alt:`. Gives CC the field structure for the object input.                                                                                                                                                                                                                   |
+| Prop type | YAML default                                                                                                 | Notes                                                                                                                                                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| String    | bare key (`title:`)                                                                                          | Parses as `null`. If the field has a closed value set (variants, sizes, alignment), the input should be `type: select` — see [configuration-gotchas.md § Configure variant/enum-like fields as select inputs](configuration-gotchas.md#configure-variant--enum-like-fields-as-select-inputs). |
+| Boolean   | `false`                                                                                                      |                                                                                                                                                                                                                                                                                               |
+| Number    | the component default (e.g. `columns: 3`); omit rather than seeding `0` when the field is genuinely optional | Input must be `type: number`. If input is `type: text`, quote as string (`price: "29"`) — bare numbers with text inputs cause a "misconfigured" error.                                                                                                                                        |
+| Array     | `[]`                                                                                                         |                                                                                                                                                                                                                                                                                               |
+| Object    | nested shape with empty fields                                                                               | E.g. `image:\n  src:\n  alt:`. Gives CC the field structure for the object input.                                                                                                                                                                                                             |
 
 ### Fields to include vs exclude
 
@@ -386,7 +427,7 @@ See [configuration.md § Object inputs need preview icons](astro/configuration.m
 
 **Keep `id` when in-page links target it.** If nav, footer or button links point at a block's `id` (`href="#pricing"`), excluding it drops it from the extracted content and breaks those links. Keep `id` in the content and in the structure, and pick per site:
 
-- **Default:** `hidden: true`. Links keep working and editors can't break them — see [astro/configuration.md § Hide developer-only frontmatter fields](astro/configuration.md#hide-developer-only-frontmatter-fields).
+- **Default:** `hidden: true`. Links keep working and editors can't break them — see [configuration.md § Hide developer-only fields](configuration.md#hide-developer-only-fields).
 - **Visible:** a `type: text` input labelled "Anchor ID", when editors are expected to add sections they'll link to.
 
 ### Guarding empty objects and arrays in components
@@ -400,7 +441,7 @@ In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truth
 
 When iterating, filter items that have nothing visible to render: `actions.filter((a) => a?.text || a?.icon).map(...)`.
 
-Check and update these guards in the content phase, as the first content file for each block type is created. **Why:** an unguarded null is a build failure, not a cosmetic defect — `<Icon name={null}>` crashes `astro build`. Revisit during the visual-editing phase only to confirm every `data-editable` element is still conditionally rendered. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples.
+Check and update these guards in the content phase, as the first content file for each block type is created. **Why:** an unguarded null is a build failure, not a cosmetic defect — `<Icon name={null}>` crashes `astro build`. Revisit during the visual-editing phase only to confirm every `data-editable` element is still conditionally rendered. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples. The examples above are JavaScript; Hugo's idioms (`with`, `isset`) are in [hugo/visual-editing-reference.md § Nil safety](../cloudcannon-visual-editing/hugo/visual-editing-reference.md#nil-safety).
 
 ## Default values from components
 

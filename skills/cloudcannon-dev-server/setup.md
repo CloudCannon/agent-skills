@@ -4,10 +4,11 @@ Prerequisites, what `cloudcannon dev` does, and how to build a site for it.
 
 ## Prerequisites
 
-| Need            | Install                     | Notes                                             |
-| --------------- | --------------------------- | ------------------------------------------------- |
-| Node            | —                           | 24+ (the current LTS)                             |
-| CloudCannon CLI | `npm i -g @cloudcannon/cli` | `dev` needs **no** login — it never calls the API |
+| Need            | Install                     | Notes                                                                                                                                               |
+| --------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node            | —                           | 24+ (the current LTS)                                                                                                                               |
+| CloudCannon CLI | `npm i -g @cloudcannon/cli` | `dev` needs **no** login — it never calls the API                                                                                                   |
+| The site's SSG  | —                           | The version the site pins. For Hugo, check before starting — [Calling a pinned Hugo](../migrate-to-cloudcannon/hugo/audit.md#calling-a-pinned-hugo) |
 
 Where a global install is not possible, `npx @cloudcannon/cli dev` works, as does a local
 install plus `PATH="$PWD/node_modules/.bin:$PATH"`.
@@ -27,9 +28,19 @@ cloudcannon dev _site --port 10101
 | -------------------------------- | ----------- | --------------------------------------------------------------- |
 | `--host`                         | `127.0.0.1` | Bind address only                                               |
 | `--port`                         | `10101`     | Fails if the port is taken; it never falls back to another      |
-| `--live-sync` / `--no-live-sync` | on          | Push disk changes into the app over SSE                         |
+| `--live-sync` / `--no-live-sync` | on          | Push disk changes and rebuild notices into the app over SSE     |
 | `--app-sync` / `--no-app-sync`   | on          | Accept writes from the app. With it off, every POST returns 403 |
 | `--verbose`                      | off         | Log every request — method, path, status, duration              |
+
+The two sync flags work in opposite directions:
+
+| Flag          | Direction  | On (default)                                                                    | Off                                                                                        |
+| ------------- | ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `--app-sync`  | app → disk | Every editor change is written to the source file straight away                 | Every write returns `403 App sync is disabled` — use it for look-around or review sessions |
+| `--live-sync` | disk → app | A file edited on disk updates in the open editor; a rebuild reloads the preview | The editor keeps the old values and the preview doesn't reload, until the page is reloaded |
+
+**MUST:** have the user commit or stash before an editing session, and review with `git diff` after.
+**Why:** with app sync on, there's no save or review step — each edit reaches disk as it's made. Writes also normalise whitespace (front matter spacing, the trailing newline), so expect whitespace-only diffs alongside the real ones.
 
 The positional output path must resolve **inside** the current directory, and the source root is
 always the working directory — there is no `--source` flag. Run it from the site root.
@@ -72,14 +83,18 @@ from there.
 
 Two routes, and the user picks:
 
-| Route       | Run                                           | When                                                        |
-| ----------- | --------------------------------------------- | ----------------------------------------------------------- |
-| **Manual**  | The build command again, in a second terminal | Slow builds, or a post-build step that rewrites the output  |
-| **Watched** | [`watch-build.mjs`](scripts/README.md)        | Editing in the browser, wanting the preview to follow along |
+| Route       | Run                                                                             | When                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Manual**  | The build command again, in a second terminal                                   | The default. Testing visual editing, slow builds, or a post-build step that rewrites the output       |
+| **Watched** | [`watch-build.mjs`](scripts/README.md) with `--watch` for each source directory | Following edits that editable regions don't re-render: source-editor content, data, templates, styles |
 
 Either way the preview reloads itself once the output directory changes — see
 [dev-server-api.md § Events](dev-server-api.md#events). Nothing needs to restart, and the manual
 route needs no script at all.
+
+A rebuild reloads the whole preview, which replaces the in-place re-render editable regions do
+after each edit. With a watcher running, every save in the Visual Editor triggers that reload, so
+stop it while testing visual editing.
 
 Every rebuild costs the whole build script, which is seconds to minutes when a post-build step
 rewrites the whole output — the Rosey pipeline from

@@ -28,10 +28,10 @@ The trigger list is the same in every stack; only the syntax that produces the c
 
 ### Where does the registration go — component root or call site?
 
-| Component is rendered…        | Emit registration as                                                                                                                        | Why                                                                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Inside a page-builder array   | `data-editable="component"` on the component's own root element                                                                             | The `data-editable="array-item"` wrapper provides the parent editable that listener setup needs                             |
-| Directly from a page template | `<editable-component data-component="<name>" data-prop="<key>">…</editable-component>` **at the call site**, component root as plain markup | No array-item ancestor exists; without the wrapper, sidebar-only changes (switches, dropdowns) don't propagate to re-render |
+| Component is rendered…        | Emit registration as                                                                                                                        | Why                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Inside a page-builder array   | `data-component` on the `data-editable="array-item"` host that wraps the component; the component root stays plain markup                   | The array-item host provides the parent editable that listener setup needs — see [Page builder blocks](#page-builder-blocks) |
+| Directly from a page template | `<editable-component data-component="<name>" data-prop="<key>">…</editable-component>` **at the call site**, component root as plain markup | No array-item ancestor exists; without the wrapper, sidebar-only changes (switches, dropdowns) don't propagate to re-render  |
 
 **MUST NOT** self-mark a standalone component on its own root element. Sidebar boolean toggles then fail to update live, because there is no array-item ancestor to anchor the region.
 
@@ -46,14 +46,14 @@ Render two complete branches instead, each with its own static `data-prop`.
 
 ## Editable type — pick one
 
-| Field shape                                 | Editable type                                                | Section                                                                           |
-| ------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Single string/text (frontmatter or body)    | `data-editable="text"` or `<editable-text>`                  | [Text editing](#text-editing)                                                     |
-| Single image                                | `data-editable="image"` / `<editable-image>`                 | [Image editing](#image-editing)                                                   |
-| Array of items (uniform)                    | `data-editable="array"` + `array-item` children              | [Array editing](#array-editing)                                                   |
-| Page builder (heterogeneous blocks)         | `array` + per-item `data-component` + CRUD                   | [Page builder blocks](#page-builder-blocks)                                       |
-| Conditional/computed output, style bindings | Register the component; wrap with `<editable-component>`     | [When to use a component editable region](#when-to-use-data-editablecomponent)    |
-| Hardcoded string in a template              | `data-editable="source"` (last resort — prefer page-builder) | [Source editables for hardcoded content](#source-editables-for-hardcoded-content) |
+| Field shape                                 | Editable type                                            | Section                                                                           |
+| ------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Single string/text (frontmatter or body)    | `data-editable="text"` or `<editable-text>`              | [Text editing](#text-editing)                                                     |
+| Single image                                | `data-editable="image"` / `<editable-image>`             | [Image editing](#image-editing)                                                   |
+| Array of items (uniform)                    | `data-editable="array"` + `array-item` children          | [Array editing](#array-editing)                                                   |
+| Page builder (heterogeneous blocks)         | `array` + per-item `data-component` + CRUD               | [Page builder blocks](#page-builder-blocks)                                       |
+| Conditional/computed output, style bindings | Register the component; wrap with `<editable-component>` | [When to use a component editable region](#when-to-use-data-editablecomponent)    |
+| Hardcoded string in a template              | `data-editable="source"` on a one-off page               | [Source editables for hardcoded content](#source-editables-for-hardcoded-content) |
 
 Components that fetch, submit forms, or load third-party scripts need an editor-mode branch rather than a region type — see [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic).
 
@@ -61,14 +61,17 @@ Components that fetch, submit forms, or load third-party scripts need an editor-
 
 `data-prop` paths resolve against the file being edited, not against the template's local variables. This is the grammar.
 
-| Context                              | Syntax                    | Example                                           | Where it works                                                                                                             |
-| ------------------------------------ | ------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Same file, frontmatter               | Relative key              | `data-prop="title"`, `data-prop="banner.title"`   | Default case.                                                                                                              |
-| Same file, markdown body             | `@content`                | `data-prop="@content"` (with `data-type="block"`) | Blog bodies, rich-text body regions.                                                                                       |
-| Shared data file (via `data_config`) | `@data[key].path`         | `data-prop="@data[call-to-action].title"`         | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
-| Another content file by path         | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane].name"`  | Cross-collection items on a listing page. Path must start with `/`.                                                        |
-| Inside an `array-item`               | Relative (scope = item)   | `data-prop="title"` resolves to `items[N].title`  | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
-| Pass-through scope                   | Empty string              | `data-prop=""`                                    | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
+| Context                                | Syntax                    | Example                                          | Where it works                                                                                                             |
+| -------------------------------------- | ------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Same file, frontmatter                 | Relative key              | `data-prop="title"`, `data-prop="banner.title"`  | Default case.                                                                                                              |
+| Same file, markdown body               | `@content`                | `data-prop="@content"`                           | Blog bodies, rich-text body regions. Opens the content editor (`_editables.content`); no `data-type` needed.               |
+| Shared data file (via `data_config`)   | `@data[key].path`         | `data-prop="@data[call-to-action].title"`        | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
+| Another content file by path           | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane].name"` | Cross-collection items on a listing page. Path must start with `/`.                                                        |
+| Inside an `array-item`                 | Relative (scope = item)   | `data-prop="title"` resolves to `items.N.title`  | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
+| A specific array item, no array region | Numeric dot segment       | `data-prop="@data[footer].sections.0.title"`     | Fields of an array whose container can't be an array region. Inline editing, no add/remove/reorder.                        |
+| Pass-through scope                     | Empty string              | `data-prop=""`                                   | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
+
+**Paths are dot-separated, and nothing else.** The runtime splits a path on `.` and looks each segment up as a key, so a numeric segment indexes an array (`sections.0.title`). Brackets belong only to the prefix — `@data[key]`, `@collections[key]`, `@file[path]`. **MUST NOT** write `sections[0].title`: it looks up a literal key named `sections[0]`, finds nothing, and the region silently never mounts — no error card, no console warning.
 
 **`data-prop-*` lowercases its key.** The suffix after `data-prop-` is read as `propName.substring(4).toLowerCase()`, so a camelCase field name does not survive — `data-prop-pubDate` looks for `pubdate`. Bind camelCase fields with `data-prop` on an object, or rename the field.
 
@@ -83,7 +86,8 @@ Components that fetch, submit forms, or load third-party scripts need an editor-
 | Attach `data-editable` directly to a third-party component's output                    | The third-party component's rendered HTML may not accept `data-*` attributes where you need them | [Third-party component fields](#third-party-component-fields)                                     |
 | Use build-time cross-collection lookups with a static child component                  | Sidebar changes don't trigger a re-render                                                        | [Component editables backed by data files](#component-editables-backed-by-data-files)             |
 | Repeat the parent's `@data[...]` prefix on descendants                                 | Path resolves incorrectly                                                                        | [Arrays inside data files](#arrays-inside-data-files)                                             |
-| Use indexed paths on nested array-item editables (`@data[footer].columns[0].heading`)  | Path escapes the item's scope; edits don't round-trip                                            | [Arrays inside data files](#arrays-inside-data-files)                                             |
+| Bracket-index a path (`columns[0].heading`)                                            | Never resolves — the region silently doesn't mount                                               | [Data-prop paths](#data-prop-paths--pick-one)                                                     |
+| Use absolute indexed paths on editables inside an `array-item`                         | Path bypasses the item's scope, so edits no longer follow the item when it moves                 | [Arrays inside data files](#arrays-inside-data-files)                                             |
 
 ## Guard optional fields
 
@@ -105,6 +109,8 @@ See [structures.md § Guarding empty objects and arrays](../cloudcannon-configur
 
 Components that accept both a string and a structured object for the same slot need the string branch preserved when guards are tightened. See your SSG's reference for its own dual-shape idiom.
 
+The examples here are JavaScript. Hugo's idioms (`with`, `isset`, `path.Ext`) are in [hugo/visual-editing-reference.md § Nil safety](hugo/visual-editing-reference.md#nil-safety).
+
 ## Text editing
 
 **Where to put text regions:**
@@ -113,20 +119,31 @@ Components that accept both a string and a structured object for the same slot n
 - **Wrapper-only** — when extra markup exists only to host editable text, prefer `<editable-text>` over `<span data-editable="text">`: same behaviour, clearer intent, fewer clashes with generic `span` rules. See [editable-regions.md § Custom Element Equivalents](editable-regions.md#custom-element-equivalents).
 - **Stay primitive when needed** — keep `<span data-editable="text">` when CSS or legacy markup already targets `span`.
 
-For block-level rich text (paragraphs, headings, lists), add `data-type="block"`. The `@content` path targets the file's markdown body, not frontmatter:
+For block-level rich text (paragraphs, headings, lists) in a frontmatter field, add `data-type="block"`. The `@content` path targets the file's markdown body, not frontmatter, and always opens the content editor (`_editables.content`), so it needs no `data-type`:
 
 ```html
-<div class="content" data-editable="text" data-type="block" data-prop="@content">…</div>
+<div class="content" data-editable="text" data-prop="@content">…</div>
 ```
 
 **Choosing `data-type` for HTML-rendered fields.** This applies to any field rendered as HTML, whether inserted directly or produced by a markdown parser. Keep the original element and don't add `data-type` unless there's a reason to. Two signals that `data-type="block"` is needed:
 
 1. **The field's input config allows block-level content.** The CloudCannon input configuration (`_inputs` in `cloudcannon.config.yml` or schema files) is the source of truth for what a field accepts. If the input config permits block-level options (lists, headings), the on-page text editable needs `data-type="block"` to match — otherwise a user adds a list via the sidebar and the on-page editable can't handle it.
-2. **The existing content already contains block-level HTML.** Even without explicit input config, if the field already contains `<ul>`, `<ol>`, `<h*>` or similar, add `data-type="block"`.
+2. **The existing content already contains block-level HTML.** If the field already contains `<ul>`, `<ol>`, `<h*>` or similar, add `data-type="block"`, and give the field a `markdown` or `html` input with block-level `options`. A region on a field with no rich text input saves HTML into what the sidebar shows as a plain text field — see [configuration-gotchas.md § Set region toolbars on the input](../cloudcannon-configuration/configuration-gotchas.md#set-region-toolbars-on-the-input-not-in-_editablestext-or-block).
 
 **MUST host block content on an element that can hold it.** `<p>` cannot nest block elements — browsers auto-close the `<p>` before any `<ul>`/`<ol>`/`<h*>`, breaking the DOM and the editable region. Change to an element that can hold block content, e.g. `<div>`.
 
 Also watch for content working around element limitations — `<br>` tags inside a `<p>` faking a list, or repeated inline markup mimicking separate blocks. That signals the element is semantically wrong. Refactor the element to match what the content represents.
+
+**A rich text region saves in its input's format.** A `data-type="text"` or `"block"` region on a `markdown` input saves markdown; on an `html` input it saves HTML. Pick the input from how the template outputs the field — see [configuration-gotchas.md § Choose text, markdown or html inputs](../cloudcannon-configuration/configuration-gotchas.md#choose-text-markdown-or-html-inputs-from-how-the-template-renders-the-field). A field the template outputs as escaped plain text needs a `span` region, which is the default on a `text` or `textarea` input. Keep `data-type` and the input type in agreement — a rich text input over a `span` region, or a plain `text` input over a `block` region, lets one side save what the other can't show. Each SSG's reference gives its syntax for each kind of output.
+
+**Regions inside interactive elements:**
+
+| Host                              | What happens                                                                                              | Fix                                                                                                                                                                                                                               |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A text region on a `<summary>`    | The text is editable, but clicking it no longer toggles the `<details>`, so its contents are sidebar-only | Render `<details open>` in editor mode: in a re-rendered component, add `open` under the editor flag; in a page template, an editor-only script that sets `open` on marked `<details>` elements when `window.inEditorMode` is set |
+| A text region inside a `<button>` | Each click into the text also fires the button's click handler (keystrokes don't)                         | Guard the click action under `window.inEditorMode`, or keep the region off interactive elements                                                                                                                                   |
+
+For the page-template script, check `window.inEditorMode` immediately and again on `DOMContentLoaded` and `load`, and mark the elements with a neutral attribute (`data-open-in-editor`) rather than touching every `<details>`.
 
 **Editable text needs a single concrete host.** A text region must sit on one real DOM element so `data-editable` / `data-prop` (or the custom-element equivalent) has somewhere to live. A template construct that produces no DOM node, or a component with multiple roots, leaves nothing to attach the region to — use one wrapper element as the output. See your SSG's reference for the constructs that hit this.
 
@@ -176,6 +193,8 @@ When the user clicks the image in the visual editor, CloudCannon opens the image
 
 Where optimized images and upload paths are concerned, the rules are stack-specific — see your SSG's reference.
 
+**Known issue — `srcset` on a plain `<img>`.** An image region on an `<img srcset>` keeps showing the old image after a change: the update sets `src`, and only updates `srcset` on `<source>` elements inside a `<picture>`. Strip `srcset` and `sizes` from image-region `<img>` elements in the editor's render, or use `<picture>`.
+
 ### Button/link text
 
 For text inside links or buttons, wrap the label in `<editable-text>` (or `<span data-editable="text">` when CSS or existing markup already targets `span`) rather than putting the region on the `<a>` itself:
@@ -204,24 +223,35 @@ Array items get CRUD controls (reorder, add, delete) automatically. Without a re
 </ul>
 ```
 
+**Give an empty array container a box.** When the list is empty the editor puts its "Add item" button inside the container, which may have no height or width. Add editor-only CSS (under `.cms-editor-active`) with enough `min-height` and `min-width` for the button. On a site that ships precompiled utility CSS (Tailwind), a class the site doesn't already use isn't in the stylesheet — put this CSS in the site's own custom CSS file rather than adding utility classes.
+
 ### When HTML `<template>` blueprints are needed
 
 The runtime can create a new array row from three sources, tried in order: the in-flight update DOM, `<template>` children on the wrapper, then registered component rendering. Use this table to decide whether to author a `<template>`:
 
-| Array type                                           | Per-item `data-component` + all types registered? | Can be empty at build time? | `<template>` needed?                                                                               |
-| ---------------------------------------------------- | ------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Page builder**                                     | Yes                                               | Yes                         | **No** — the component pipeline handles it                                                         |
-| **Uniform primitive list**                           | No                                                | Yes                         | **Yes** — one `<template>` so "Add item" has structure                                             |
-| **Uniform primitive list**                           | No                                                | No (always has items)       | **Optional** — the runtime can clone the first item                                                |
-| **Heterogeneous rows without per-item registration** | No                                                | Varies                      | **Yes** — one `<template>` per variant with `data-id` matching, paired with CloudCannon structures |
+| Array type                                           | Per-item `data-component` + all types registered? | Can be empty at build time? | `<template>` needed?                                                                                            |
+| ---------------------------------------------------- | ------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Page builder**                                     | Yes                                               | Yes                         | **No** — the component pipeline handles it                                                                      |
+| **Uniform primitive list**                           | No                                                | Yes                         | **Yes** — one `<template>` so "Add item" has structure                                                          |
+| **Uniform primitive list**                           | No                                                | No (always has items)       | **Optional** — the runtime can clone the first item                                                             |
+| **Heterogeneous rows without per-item registration** | No                                                | Varies                      | **Yes** — one `<template>` per variant with `data-id` matching, paired with CloudCannon structures              |
+| **Uniform list, each item one component**            | Wrapper `data-component` names it                 | Yes                         | **No** — new items render through the wrapper's component                                                       |
+| **Sub-array inside a re-rendered block**             | The parent block is registered                    | Yes                         | **No** — if the block keeps the empty container when rendered for the editor, its re-render adds the first item |
 
 When you author a `<template>`, mirror the live item's HTML: same editable attributes, empty content. Include **all** region types used in the row — text, image, nested arrays. For **image** regions include an `<img>` the editor can target, either as the host or wrapped, matching the live item. Nested arrays inside a template row can include their own nested `<template>` elements.
+
+Blueprint rules:
+
+- **Use** `:nth-of-type` rather than `:first-child`, `:nth-child` or `:last-child` on the items. A `<template>` is a real child element and shifts positional selectors.
+- **Leave** `src` off a blueprint `<img>`, so the page doesn't request an empty or placeholder image.
+- **Keep** each blueprint single-root: one element, which becomes the new item.
+- **MUST NOT** set `data-editable="array-item"` on the `<template>` itself. The runtime marks the item it creates.
 
 See the [CloudCannon complex array documentation](https://cloudcannon.com/documentation/developer-guides/set-up-visual-editing/visually-edit-complex-arrays-and-page-building/) for the canonical reference.
 
 ### Arrays inside data files
 
-When the array lives inside a shared data file, the path on the **parent** array editable is the only place the `@data[key]` prefix appears. Child editables inside each `data-editable="array-item"` use **relative paths** — the same rule as frontmatter-backed arrays. The library uses the array-item context to resolve, so an indexed path such as `@data[footer].columns[0].heading` on a child editable is unrecognised and resolves to undefined.
+When the array lives inside a shared data file, the path on the **parent** array editable is the only place the `@data[key]` prefix appears. Child editables inside each `data-editable="array-item"` use **relative paths** — the same rule as frontmatter-backed arrays. The library uses the array-item context to resolve, so a child needs only its relative key. An absolute path from inside an item (`@data[footer].columns.0.heading`) bypasses that context and stops following the item when it is reordered; the bracketed form (`columns[0]`) never resolves at all.
 
 ```html
 <!-- DO: data-file array, relative paths inside items -->
@@ -241,7 +271,7 @@ Nested data-file arrays follow the same rule: the inner array uses its relative 
 
 A `data-editable="array"` wrapper treats every direct child as an `array-item` — including children that aren't part of the array. Putting a static element (a logo column, a summary block, a "see all" link) as a sibling of the mapped output inside the same array wrapper breaks the array context: the static child has no matching index, and the runtime errors trying to resolve it.
 
-Split the layout container from the array container:
+Split the layout container from the array container. When you can't — the static child is a grid column that must stay a sibling of the items — skip the array region and bind each item's fields by index (`@data[footer].sections.0.title`): inline editing without add/remove/reorder.
 
 ```html
 <!-- RIGHT -->
@@ -253,7 +283,7 @@ Split the layout container from the array container:
 </div>
 ```
 
-`display: contents` (`class="contents"`) is the right tool for an **array wrapper**: it keeps the grid or flex layout intact when you add a wrapper for array purity. **MUST NOT** use it on `array-item` elements or image hosts. **Why:** the editor draws its hover outline, item controls and drag/drop position from the element's own box, and `display: contents` removes that box, so move/delete controls vanish on items and images lose their outline and controls.
+`display: contents` (`class="contents"`) is the right tool for an **array wrapper**: it keeps the grid or flex layout intact when you add a wrapper for array purity. It doesn't rescue child combinators: `.row > *` still stops matching the items, because the DOM parent is now the wrapper. When the stylesheet relies on one, use the bind-by-index fallback above instead. **MUST NOT** use it on `array-item` elements or image hosts. **Why:** the editor draws its hover outline, item controls and drag/drop position from the element's own box, and `display: contents` removes that box, so move/delete controls vanish on items and images lose their outline and controls.
 
 ## Page builder blocks
 
@@ -278,11 +308,11 @@ When a suitable element exists, add both attributes directly. When none does, us
 
 **Nested editables** inside widget components go on the elements that render editable fields. Paths are relative to the component's data scope (the array item), so `data-prop="title"` resolves to `content_blocks[n].title`.
 
-**Array-item wrappers belong in the page template, not in the block dispatcher.** CloudCannon wraps each registered component in its own `data-editable="array-item"` element with tracking attributes. If the component's rendered output _also_ starts with a `data-editable="array-item"` element, you get double nesting — `array > array-item > array-item` — and the inner array-item can't find an `array` parent, throwing "Array item editable regions must be nested inside an array editable region."
+**The array-item host carries `data-component`; the component root stays plain.** One element per block holds both `data-editable="array-item"` and `data-component`, and it sits outside the component, in whatever template loops over the blocks. The component's own output starts with ordinary markup. If the component's output _also_ starts with a `data-editable="array-item"` element, you get double nesting — `array > array-item > array-item` — and the inner array-item can't find an `array` parent, throwing "Array item editable regions must be nested inside an array editable region."
 
 **Each block type should have its own component file**, owning its section markup and its editable attributes. A dispatcher should be a thin lookup that renders the matching component, never a markup container.
 
-**Every block type must have a matching registration**, and the registered key must match the type value in content exactly — `call_to_action` registers as `call_to_action`, not `call-to-action`.
+**Every block type must resolve to a renderer**, and the key must match the type value in content exactly — `call_to_action` registers (or names a partial) as `call_to_action`, not `call-to-action`.
 
 **Data-prop mismatch when a parent renames fields.** A shared component carries `data-prop="subtitle"`. A widget passes its own `description` field into that `subtitle` slot. CloudCannon resolves `data-prop="subtitle"` against the block's data, looks for `content_blocks[n].subtitle`, and finds nothing — the block has `description`. Result: a "received a value of type 'undefined'" error. Fix options, one per widget:
 
@@ -291,6 +321,18 @@ When a suitable element exists, add both attributes directly. When none does, us
 3. **Move the editable to the parent** — annotate the widget's own markup instead. Means duplicating the annotation per widget.
 
 Prefer option 1 when the shared component serves three or more widgets with different field mappings; option 2 when there is no semantic distinction between the names.
+
+### Wrapper elements change the formatting context
+
+**MUST:** check the stylesheet before adding an element between a container and its children — an array-item host around a component, or a new wrapper around a rendered body for a `@content` region.
+**Why:** the wrapper becomes the flex or grid item in place of the child, and child-combinator and position rules stop matching what they used to.
+
+Before adding the wrapper:
+
+- **Grep** for child combinators on the container (`.row > *`, `.content > p`) and `align-items`/`justify-*` rules — they now match the wrapper, or nothing.
+- **Grep** for `:first-child`, `:last-child` and `:nth-child` rules on the children — the wrapper shifts which element they match.
+- **Check** each child for a `display` it only had because its parent was flex or grid (a flex container blockifies its children). Give the child its own `display` rather than styling the wrapper.
+- **Give** a body wrapper the parent's class when the theme styles the body through it, and cancel any rule that mustn't now apply twice (margins on both the old parent and the wrapper). Check the class for box rules first (`max-width`, `width`, padding): nested, they apply twice and shrink the body. When it has them, give the wrapper its own class instead, and copy the parent's child-combinator rules (`.content > p`) to it.
 
 ## Sub-arrays within widget components
 
@@ -373,18 +415,27 @@ For a component used at exactly one call site, hardcode the `data-prop` on the w
 
 Source editables read and write the raw source file directly. They need no content collection and no data file — just a `data-path` naming the source file and a `data-key` identifying the region within it.
 
-**Source-editable is for long-form prose, not for any hardcoded string.** A unique-layout page with two or more structured sections belongs in a page-builder collection, not pinned to its template source.
-
 ### When to use source editables
 
-| Use source-editable when...                                                                    | Use page builder + nested editables instead when... |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| The page is mostly long-form prose and you need one or two inline string edits                 | The page has two or more structured sections        |
-| There are one or two pages of this type and editors won't add more                             | Editors might want to add similar pages             |
-| The site is genuinely simple — a homepage and a blog, no marketing or landing pages            | The site has multiple unique-layout pages           |
-| Refactoring to a content collection would change the rendered HTML in ways the user disallowed | Refactor freely; output should match                |
+**Page builder is the default; source editables are the exception.** The numeric signs and the conditions that must all hold before choosing source editables are in [migrate-to-cloudcannon/page-building.md § When to reach for a page builder](../migrate-to-cloudcannon/page-building.md#when-to-reach-for-a-page-builder).
 
-**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification — but the _mechanism_ defaults to a content collection or a page-builder block. Source-editable is the exception, reserved for long-form prose where the layout _is_ the body.
+Pick the mechanism by who owns the page's structure:
+
+| Use                      | When                                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page builder             | Editors need to add, remove or reorder sections, a section appears on other pages, or editors should be able to create more pages like it.            |
+| Schema with fixed fields | Several pages share one layout and editors change content but not structure.                                                                          |
+| Source editables         | The exception: a one-off page whose structure stays with the developer, where editors change text in place, from short strings to rich-text sections. |
+
+Source editables fit short strings, such as an `<h1>` hero title, and rich-text sections alike — see [Syntax](#syntax) for `data-type`. Before choosing them, weigh the trade-offs:
+
+- Editors can't add, remove or reorder anything.
+- The content stays in the template file, so editors and developers edit the same file.
+- Components inside a source editable appear as snippets, not rendered components. A section that needs rendered components belongs in a page builder.
+
+When refactoring to a content collection would change the rendered HTML in ways the user disallowed, use source editables.
+
+**Editors must still be able to edit visible text.** "Hardcoded so it's developer-only" is not a valid classification; pick a mechanism from the table above.
 
 Shared-UI text such as a footer tagline is not a source-editable candidate — it belongs in a data file.
 
@@ -396,7 +447,7 @@ Shared-UI text such as a footer tagline is not a source-editable candidate — i
 </h1>
 ```
 
-Add `data-type="block"` for multi-paragraph prose.
+With no `data-type` the region is inline text. Add `data-type="block"` for multi-paragraph rich text.
 
 ### How it works
 
@@ -497,8 +548,8 @@ Many sites use a `select` input to reference another data file — `author: <slu
 
 The select is editable in the sidebar by default, but **the rendered card won't update on change** unless the wiring is right. What works:
 
-1. **A data file keyed by slug.**
-2. **`data_config`** exposing that file, so the select's option source resolves, plus a `select` input with `value_key: ''` so the frontmatter stores the bare slug rather than an object.
+1. **A data file holding a top-level array**, each item with a `slug`.
+2. **`data_config`** exposing that file, so the select's option source resolves, plus a `select` input with `value_key: slug` so the frontmatter stores the bare slug rather than an object.
 3. **A dedicated registered component** that takes the slug as a prop and does the lookup **internally**. The lookup must live inside the registered component — not in the page template — because that is the code that re-runs when CloudCannon re-renders.
 4. **An editable wrapper at the call site** with `data-prop` pointing at the slug field.
 
@@ -514,7 +565,7 @@ Add an optional prop naming the image path, and only render the image region whe
 
 ## Component re-rendering
 
-For full live preview — not just text and image updates — components must be registered so the component region can re-render them in the browser when data changes. Every stack registers through its own `@cloudcannon/editable-regions` integration entry point; the registered key is what `data-component` refers to.
+For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro, partial lookup in Hugo; the resolved key is what `data-component` refers to.
 
 **What re-runs and what doesn't.** Registered components re-render in the browser with the props CloudCannon passes. Parent page-level logic does **not** re-run — top-level data loading in a page template, layout-level fetches, and anything else outside the component. If the component needs data its parent normally loads, pass it via props or load it inside the component.
 
@@ -569,7 +620,7 @@ This is the most reliable approach — pure CSS, no timing issues, and it works 
 
 **Fix (supplementary): an `ENV_CLIENT` guard in component code.** Skip the hidden class at render time in the editable-regions client bundle, so re-rendered output never carries it. This does not affect the initial production HTML — the CSS override above is what handles initial render. See [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic).
 
-**Inline `<script>` runtime checks.** For animation JS in inline scripts, branch on `window.inEditorMode` and mark the elements active immediately:
+**Inline `<script>` runtime checks.** `window.inEditorMode` is already `true` when the page's first inline `<head>` script runs, so it is set before deferred scripts, `DOMContentLoaded` and `load`. An early return under it works for any load-time script. For animation JS, branch on it and mark the elements active immediately:
 
 ```javascript
 if (window.inEditorMode) {
@@ -578,7 +629,16 @@ if (window.inEditorMode) {
 }
 ```
 
-**Other scripts that fight editing.** The same rule applies beyond reveal animations. Any script that mutates editable DOM (count-up numbers that rewrite `textContent`, text rotators, typewriter effects) or intercepts clicks on editable elements (lightboxes, video players) **MUST** early-return under `window.inEditorMode`. **Why:** a mutating script overwrites what the editor just wrote, or leaves the region showing a value that isn't the field's, and a click handler steals the click the editor needs to open the region.
+### Other scripts
+
+Scripts don't re-run on markup the editor re-renders:
+
+- **Inline scripts** inside a re-rendered component are inert — the diffed-in `<script>` never executes.
+- **Global bindings** (`DOMContentLoaded` handlers, `querySelectorAll` over component classes, jQuery `ready`) bind once at load and miss the fresh DOM.
+- **Prefer** CSS state selectors (`:checked`, `:target`, `[open]`, `details`) over JS-toggled classes for anything an editor should see, so re-rendered markup behaves without a script.
+- **Scope** per-instance `<style>` and scripts to the instance (an id or data attribute), so a component used twice doesn't collide.
+
+**Scripts that fight editing.** The same rule applies beyond reveal animations. Any script that mutates editable DOM (count-up numbers that rewrite `textContent`, text rotators, typewriter effects) or intercepts clicks on editable elements (lightboxes, video players) **MUST** early-return under `window.inEditorMode`. **Why:** a mutating script overwrites what the editor just wrote, or leaves the region showing a value that isn't the field's, and a click handler steals the click the editor needs to open the region.
 
 **Audit flag:** flag any scroll-reveal or entrance animation pattern, and any script from the paragraph above, early. Search for `opacity: 0` in CSS, `IntersectionObserver`, `textContent =`, `setInterval` and click listeners in JS, and the common class names above, and note the files responsible so they can be patched when regions are wired up.
 

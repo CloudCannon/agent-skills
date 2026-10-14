@@ -42,6 +42,9 @@ growing the chain.
 (Markdown, data files) runs before the SSG. A tool that crawls the built HTML runs after it,
 because the HTML does not exist until then: `astro build && pagefind --site dist`.
 
+**MUST:** chain a step that reads the output after the SSG with `&&`. Never run the two in parallel (`&`, `npm-run-all --parallel`, `concurrently`).
+**Why:** a parallel step reads the output while the SSG is still writing it, and indexes a partial or stale site.
+
 A pipeline that rewrites or multiplies the whole output is the same shape and runs after the SSG.
 A localisation pass that regenerates the build as a per-locale tree is one example.
 
@@ -64,6 +67,14 @@ editors work on.
 **Why:** CloudCannon's editor works from the repository, while the preview comes from the output.
 Rewriting the **output** is safe. Reaching back into the repository puts the editor and the
 deployed site out of step.
+
+## Steps before the build MUST NOT rewrite tracked files
+
+**MUST NOT** let a step that runs before the SSG (a theme or token generator, a config writer) overwrite a file that git tracks.
+**Why:** the step runs on every rebuild in the `cloudcannon dev` loop and every local build, so the working tree shows a change nobody made, and it gets committed by accident or fights an editor's edit to the same file.
+
+- **Write** the generated file to a path in `.gitignore` and import it from the tracked source, or
+- **Make** the output deterministic and commit it, so a rebuild with unchanged inputs leaves the file byte-for-byte the same.
 
 ## `.cloudcannon/` hook files
 

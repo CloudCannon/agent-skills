@@ -94,6 +94,20 @@ if [ -f "package.json" ]; then
 fi
 echo ""
 
+# --- Bookshop ---
+echo "## Bookshop"
+BOOKSHOP=0
+[ -f "package.json" ] && grep -q '@bookshop/' package.json && { echo "- @bookshop/* in package.json"; BOOKSHOP=1; }
+BS_YML=$( { find src -name '*.bookshop.yml' 2>/dev/null || true; } | wc -l | tr -d ' ')
+[ "$BS_YML" != "0" ] && { echo "- $BS_YML *.bookshop.yml files under src/"; BOOKSHOP=1; }
+[ -f ".cloudcannon/postbuild" ] && grep -q 'bookshop' .cloudcannon/postbuild && { echo "- @bookshop/generate in .cloudcannon/postbuild"; BOOKSHOP=1; }
+if [ "$BOOKSHOP" = "1" ]; then
+  echo "BOOKSHOP SITE → read cloudcannon-bookshop/SKILL.md"
+else
+  echo "No Bookshop markers"
+fi
+echo ""
+
 # --- Content config location ---
 echo "## Content Config"
 if [ -f "src/content.config.ts" ]; then
@@ -135,19 +149,6 @@ for dir in src/config src/data data; do
     done
   fi
 done
-echo ""
-
-# --- Dash-index files ---
-echo "## Dash-Index Files (-index.md)"
-dash_files=$(find src/content -name '-index.md' -o -name '-index.mdx' 2>/dev/null || true)
-if [ -n "$dash_files" ]; then
-  echo "$dash_files" | while read -r f; do echo "- $f"; done
-  echo ""
-  echo "These should be renamed to index.md during the content phase."
-  echo "Run: bash rename-dash-index.sh"
-else
-  echo "None found."
-fi
 echo ""
 
 echo "=== End of automated audit ==="

@@ -8,8 +8,10 @@
  * between releases without anything in review or CI noticing.
  *
  *   1. Every `--flag` on a `cloudcannon …` invocation exists on *that* command.
- *   2. Every `--flag` named elsewhere exists on some command.
- *   3. Every `receiver.method()` in the SDK skill's prose exists on that client.
+ *   2. Every `receiver.method()` in the SDK skill's prose exists on that client.
+ *
+ * A flag named in prose, away from an invocation, is not checked: telling a
+ * CLI flag from another tool's by the words around it is guesswork.
  *
  * It checks one direction only. A flag the package gained and the skills never
  * mention is invisible here; `diff-surface.mjs` covers that.
@@ -110,18 +112,6 @@ for (const [name, dir, flagPrefix] of [
   }
 }
 
-/**
- * Flags the dev-server script defines for itself, parsed from its own --help
- * text, so a line documenting them is not read as a claim about the CLI.
- */
-function readServeFlags() {
-  const path = join(SKILLS, "cloudcannon-dev-server", "scripts", "watch-build.mjs");
-  if (!existsSync(path)) return [];
-  const src = readFileSync(path, "utf8");
-  const usage = src.match(/const USAGE = `([\s\S]*?)`;/)?.[1] ?? "";
-  return [...usage.matchAll(/^\s*--([a-z][a-z0-9-]*)/gm)].map((m) => m[1]);
-}
-
 const CLI_COMMANDS = readCliCommands(CLI_DIR);
 
 /** Accepted everywhere, so absent from `documentation.json`'s per-command options. */
@@ -132,23 +122,13 @@ const CLI_ALL_FLAGS = new Set([
   ...CLI_GLOBAL_FLAGS,
 ]);
 
-/** Flags of other tools the skills legitimately invoke. Extend as they appear. */
-const NPM_FLAGS = "legacy-peer-deps save-dev no-save no-package-lock global prefix";
-const ROSEY_FLAGS = "yes locales dest exclusions default-language-at-root base-url tag";
-const NODE_FLAGS = "env-file check test";
-
-const OTHER_TOOL_FLAGS = new Set([
-  ...`${NPM_FLAGS} ${ROSEY_FLAGS} ${NODE_FLAGS}`.split(" "),
-  ...readServeFlags(),
-]);
-
 const SDK_CLIENTS = readSdkClients(SDK_DIR);
 
 /* --- Reading the skills --- */
 
 const FILES = walkMarkdown(SKILLS).sort();
 
-/* --- 1 + 2. CLI flags --- */
+/* --- 1. CLI flags on an invocation --- */
 
 /** The longest command path matching the words after `cloudcannon`, or null. */
 function matchCommand(words) {
@@ -170,36 +150,27 @@ for (const file of FILES) {
 
       const invocation = line.match(/cloudcannon(?:\/cli)?\s+((?:[a-z][a-z0-9-]*\s*){1,3})/);
       const command = invocation ? matchCommand(invocation[1].trim().split(/\s+/)) : null;
+      if (!command) return;
 
       for (const flag of flags) {
-        if (CLI_GLOBAL_FLAGS.has(flag) || OTHER_TOOL_FLAGS.has(flag)) continue;
-
-        // 1. On a resolvable invocation, the flag must be on *that* command.
-        if (command) {
-          if (CLI_COMMANDS.get(command).has(flag)) continue;
-          const elsewhere = [...CLI_COMMANDS]
-            .filter(([, opts]) => opts.has(flag))
-            .map(([name]) => name);
-          fail(
-            file,
-            i,
-            `--${flag}`,
-            elsewhere.length
-              ? `\`cloudcannon ${command}\` has no --${flag}. It is on: ${elsewhere.join(", ")}`
-              : `--${flag} does not exist on any command (near \`cloudcannon ${command}\`)`,
-          );
-          continue;
-        }
-
-        // 2. Named away from an invocation: must exist somewhere.
-        if (!CLI_ALL_FLAGS.has(flag)) {
-          fail(file, i, `--${flag}`, `--${flag} does not exist on any CloudCannon CLI command`);
-        }
+        if (CLI_GLOBAL_FLAGS.has(flag)) continue;
+        if (CLI_COMMANDS.get(command).has(flag)) continue;
+        const elsewhere = [...CLI_COMMANDS]
+          .filter(([, opts]) => opts.has(flag))
+          .map(([name]) => name);
+        fail(
+          file,
+          i,
+          `--${flag}`,
+          elsewhere.length
+            ? `\`cloudcannon ${command}\` has no --${flag}. It is on: ${elsewhere.join(", ")}`
+            : `--${flag} does not exist on any command (near \`cloudcannon ${command}\`)`,
+        );
       }
     });
 }
 
-/* --- 3. SDK methods named in prose --- */
+/* --- 2. SDK methods named in prose --- */
 
 /**
  * Prose backticks only — never fenced code. In prose, `site.getFile(path)`

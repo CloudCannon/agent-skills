@@ -132,7 +132,7 @@ Do the same for the blog listing, RSS feeds, sitemaps, and "recent posts" — an
 
 ## Localizing Internal Links
 
-Split-by-directory pages already sit at the locale URL, so Rosey never rewrites their links (Phase 8 step 7). Add a filter with both guards:
+`rosey build` prefixes root-relative `<a href>` on split-by-directory pages too, so plain `/about/` links are right in the deployed site (Phase 8 step 7). Add a filter only for the Eleventy dev server, which serves the pages without the postbuild, or for URLs Rosey can't reach. Give it both guards:
 
 ```js
 // .eleventy.js

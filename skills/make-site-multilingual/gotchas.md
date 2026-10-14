@@ -26,7 +26,10 @@ Preventative one-line rules for Rosey/RCC sites. Symptom-driven diagnosis lives 
 - **Split-by-directory pages need `data-rcc-exclude` listing every locale** _(RCC layer)_. Otherwise the Visual Editor offers a locale switch that can't change anything — the body has no keys — and editors read that as broken translation. Apply it in the shared post layout so the default-language page is covered too (Phase 8).
 - **Rosey's default exclusions block JSON files.** Use `--exclusions "\.(html?)$"` so `_rcc/locales.json` and `_cloudcannon/info.json` flow through to the output.
 - **Rosey merges with pre-existing locale pages.** At an already-built locale URL, `rosey build` respects existing content and only translates `data-rosey` elements — the basis of split-by-directory.
-- **Rosey rewrites internal links on generated pages, not pre-existing ones.** Copied pages get `<a href>` values prefixed with the locale; split-by-directory pages (already at the locale URL) keep their links as-is, so those templates must prefix their own (Phase 8 step 7).
+- **Rosey rewrites root-relative `<a href>` on every locale page**, generated or pre-existing — but not absolute URLs, relative URLs, extensioned paths or `data-rosey-ignore` links. Emit root-relative internal links and let Rosey prefix them (Phase 8 step 7).
+- **Rosey 2.3.10 decodes one level of HTML entities in values containing markup.** A keyed body with code samples (`&lt;head&gt;`) breaks on every locale page. Don't key elements that contain escaped markup ([troubleshooting](troubleshooting.md#code-samples-break-on-locale-pages)).
+- **Rosey copies the head verbatim onto generated pages and writes no sitemap.** Canonical, `og:url` and alias redirects keep the default-language URL until the Phase 4 fix script runs.
+- **Import the RCC from `/_rcc/client.mjs`** unless the framework bundles the layout's scripts. A bare package import never resolves in the browser on Eleventy, Hugo or Jekyll (Phase 5a).
 - **Suppress `data-rosey` on frontmatter-driven fields in shared split-by-directory templates**, or Rosey overwrites the natively-translated content.
 - **Split-by-directory slugs come from the filename, never the translated title** — one URL path per post across every locale (Phase 8 step 3).
 - **Scope every content query to one locale once per-locale directories exist** — ambient queries build fine and quietly mix languages (Phase 8 step 6).
@@ -40,7 +43,7 @@ Preventative one-line rules for Rosey/RCC sites. Symptom-driven diagnosis lives 
 - **Sanitise `.` to `_` in keys derived from `data-prop`** — a dotted key renders correctly and silently drops every Visual Editor save ([§3f](tagging.md#sanitise-dots-out-of-derived-keys-rcc-layer)).
 - **Per-instance opt-out** — `data-rosey={false}` (JSX) or a template conditional for values that shouldn't be translated.
 - **Non-editable components need explicit `data-rosey`** — with no `data-prop`, auto-derive produces nothing.
-- **Rich-text body content: target the inner text element** (e.g. `<editable-text data-prop="@content">`), not a parent wrapper.
+- **Rich-text body content: tag the region element itself** (the element carrying `data-prop="@content"`), not a wrapper around the region, and not the blocks inside it ([§3c](tagging.md#3c-add-data-rosey-to-translatable-elements)).
 - **Markdown regions need a matching `data-type` and a rich bound input**, or they are permanently stale and their formatting is uneditable ([§3c](tagging.md#markdown-regions-need-a-matching-data-type-and-a-rich-bound-input-rcc-layer)).
 
 ## SSG-specific gotchas

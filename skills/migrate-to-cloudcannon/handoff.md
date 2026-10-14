@@ -4,11 +4,11 @@ How to close a migration with the user: who tests what, when to stop, and what t
 
 ## Testing boundaries
 
-| Check                                                              | Owner |
-| ------------------------------------------------------------------ | ----- |
-| Local build (`npm run build` or whatever `package.json` defines)   | Agent |
-| Builds, greps, small scripts, `dist/` inspection                   | Agent |
-| Fidelity checks in CloudCannon (preview, inline edit, save-to-git) | Human |
+| Check                                                                      | Owner |
+| -------------------------------------------------------------------------- | ----- |
+| Local build (`npm run build`, `hugo`, or whatever the project defines)     | Agent |
+| Builds, greps, small scripts, build output inspection (`dist/`, `public/`) | Agent |
+| Fidelity checks in CloudCannon (preview, inline edit, save-to-git)         | Human |
 
 The agent does not stand up a dev server to verify its own work, or run heavy end-to-end testing in session. Starting one **for the user** is a different act: it gives them the local CloudCannon they need to run the fidelity checks they own. See [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md).
 

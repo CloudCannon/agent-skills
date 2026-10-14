@@ -18,9 +18,9 @@ Each file is a flat JSON object keyed by Rosey translation keys:
 ```json
 {
   "hero:title": {
-    "original": "Welcome to Sendit",
-    "value": "Welcome to Sendit",
-    "_base_original": "Welcome to Sendit"
+    "original": "Welcome to our site",
+    "value": "Welcome to our site",
+    "_base_original": "Welcome to our site"
   },
   "hero:subtitle": {
     "original": "The best email platform",
@@ -50,12 +50,12 @@ This skill ships helper scripts that do the mechanical work (classification, tra
 2. **Translate** — the AI reads the task file and fills in translations.
 3. **Merge** — a script merges translations back into the full locale file.
 
-**Locate the scripts before running them.** The commands below assume the skills were copied to `skills/` in the project root. Depending on the install route they may be under `.agents/skills/`, `.cursor/skills/`, or a plugin directory outside the project — adjust the path to wherever this skill's `scripts/` sits. If they aren't present at all, use the **Manual Fallback** at the end of Part 1.
+**Locate the scripts before running them.** In the commands below, `<skills-dir>` is wherever the skills are installed — `.agents/skills/`, `.cursor/skills/`, or a plugin directory outside the project. Run them from the project root. If they aren't present at all, use the **Manual Fallback** at the end of Part 1.
 
 ## Phase 1.1: Prepare
 
 ```bash
-node skills/translate-site/scripts/prepare-translation.mjs --locale fr
+node <skills-dir>/translate-site/scripts/prepare-translation.mjs --locale fr
 ```
 
 The script:
@@ -97,16 +97,18 @@ Read the task file. It contains:
 
 **Match tone and register** using `_meta.tone_examples`: formal vs informal address (vous/tu, Sie/du, usted/tú), and terminology consistency (if "Sign up" is already "S'inscrire", don't switch to "Créer un compte").
 
-**Intentional non-translations.** Brand names ("CloudCannon"), product names ("Rosey"), proper nouns, technical terms, URLs, email addresses, and code snippets stay identical — set `value` equal to `original`. Signals: the key contains `brand`/`name`/`logo`/`copyright`, or the value is a single proper noun/trademark/URL/code. When in doubt, translate — a reviewer can revert one entry more easily than spot a missing translation.
+**Intentional non-translations.** Brand names ("CloudCannon"), product names ("Rosey"), proper nouns, technical terms, URLs, email addresses, and code snippets stay identical — set `value` equal to `original`. The merge records each one in `rosey/translate-site-keep.json`, so later runs count it as done until its original changes; commit that file with the locale files. Signals: the key contains `brand`/`name`/`logo`/`copyright`, or the value is a single proper noun/trademark/URL/code. When in doubt, translate — a reviewer can revert one entry more easily than spot a missing translation.
 
-**Whitespace.** `write-locales` preserves whitespace from the HTML (entries may be `" Blog "`). Preserve the same leading/trailing whitespace — Rosey substitutes the value directly into HTML and altered whitespace can break rendering.
+**Whitespace.** `write-locales` trims leading and trailing whitespace from each original (`base.json` keeps it). Don't add any to the value, and keep inner line breaks and spacing as they are in the original.
+
+**Not translating an entry yet** (a post that stays in English for now): leave its `value` out of the task file. The merge skips it, and the next run offers it again. Don't set it to the original — that records it as kept for good.
 
 After translating, write the task file back to the same path with `value` fields added.
 
 ## Phase 1.3: Merge
 
 ```bash
-node skills/translate-site/scripts/merge-translation.mjs --locale fr
+node <skills-dir>/translate-site/scripts/merge-translation.mjs --locale fr
 ```
 
 The script:

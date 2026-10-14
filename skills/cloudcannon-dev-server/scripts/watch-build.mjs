@@ -6,7 +6,7 @@
 // this small enough to delete in one commit — anything a different --build-cmd
 // or --watch can already express does not get an option.
 //
-// Usage: node watch-build.mjs --build-cmd "npm run build" [--watch DIR]... [--root DIR]
+// Usage: node watch-build.mjs --build-cmd "npm run build" --watch DIR [--watch DIR]... [--root DIR]
 
 import { spawn } from "node:child_process";
 import { existsSync, statSync, watch } from "node:fs";
@@ -15,35 +15,13 @@ import { join, resolve } from "node:path";
 const USAGE = `
 watch-build.mjs — rebuild a site when its source changes
 
-  node watch-build.mjs --build-cmd CMD [flags]
+  node watch-build.mjs --build-cmd CMD --watch DIR [flags]
 
   --build-cmd CMD   Shell command that builds the site (required)
-  --watch DIR       Extra directory to watch; repeatable
+  --watch DIR       Source directory to watch; repeatable (at least one required)
   --root DIR        Project root (default: cwd)
   --debounce MS     Quiet period before rebuilding (default: 300)
 `;
-
-// Directories a source edit plausibly lands in. An allowlist, not "everything
-// except the output directory": a build that writes back into the tree cannot
-// retrigger a watcher that was never pointed at its target. Static-asset
-// directories are deliberately absent — they are what builds write back into
-// (pagefind copying into `public/`) — so `--watch public` is opt-in.
-const SOURCE_DIRS = [
-	"src",
-	"content",
-	"data",
-	"_data",
-	"layouts",
-	"_layouts",
-	"includes",
-	"_includes",
-	"_posts",
-	"pages",
-	"i18n",
-	"archetypes",
-	"themes",
-	"config",
-];
 
 /** Root-level churn that is never an edit: editor scratch, and build lock files. */
 const NOISE = /^(\.DS_Store|Thumbs\.db|\.hugo_build\.lock|4913)$|^\.#|~$|\.sw[a-p]$/;
@@ -72,9 +50,22 @@ if (typeof buildCmd !== "string") {
 	process.exit(1);
 }
 
+// The directories a source edit lands in, named by whoever knows the site. An
+// allowlist, not "everything except the output directory": a build that writes
+// back into the tree cannot retrigger a watcher that was never pointed at its
+// target.
+if (watchDirs.length === 0 || watchDirs.some((dir) => typeof dir !== "string")) {
+	console.error("error: --watch DIR is required; pass each source directory the site edits");
+	process.exit(1);
+}
+
 const root = resolve(typeof flags.root === "string" ? flags.root : ".");
 const debounceMs = Number.parseInt(flags.debounce ?? "300", 10);
-const targets = [...SOURCE_DIRS, ...watchDirs].filter((dir) => existsSync(join(root, dir)));
+const missing = watchDirs.filter((dir) => !existsSync(join(root, dir)));
+if (missing.length) {
+	console.error(`error: --watch directory not found under ${root}: ${missing.join(" ")}`);
+	process.exit(1);
+}
 
 let building = false;
 let pending = false;
@@ -125,7 +116,7 @@ function queue() {
 	timer = setTimeout(build, debounceMs);
 }
 
-for (const dir of targets) {
+for (const dir of watchDirs) {
 	watch(join(root, dir), { recursive: true }, (_event, name) => {
 		if (name && !NOISE.test(name)) queue();
 	});
@@ -144,6 +135,6 @@ watch(root, { recursive: false }, (_event, name) => {
 	queue();
 });
 
-console.log(`watching: ${targets.join(" ") || "(project root only)"}`);
+console.log(`watching: ${watchDirs.join(" ")} (and files in the project root)`);
 console.log(`build:    ${buildCmd}`);
 build();

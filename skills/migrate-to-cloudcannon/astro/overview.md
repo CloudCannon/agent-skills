@@ -9,7 +9,7 @@ This guide covers Astro sites that use:
 - Astro content collections (`src/content/` with `content.config.ts` or `src/content/config.ts`)
 - `.astro` single-file components
 - Static output (`output: "static"` -- the default)
-- Islands architecture with optional framework integrations. Only `.astro` and React components are supported in editable regions -- Vue, Svelte, and Solid components throw runtime errors in the visual editor even when nested inside supported components. Convert to a supported framework, or use `ENV_CLIENT` editing fallbacks (see the `cloudcannon-visual-editing` skill)
+- Islands architecture with optional framework integrations. `.astro`, React, Vue and Svelte components are supported in editable regions (React, Vue and Svelte need their renderer imported). Solid components throw runtime errors in the visual editor even when nested inside supported components. Convert them to a supported framework, or use `ENV_CLIENT` editing fallbacks (see the `cloudcannon-visual-editing` skill)
 
 Server-rendered Astro sites (`output: "server"` or `output: "hybrid"`) are not covered -- CloudCannon requires static output.
 
@@ -19,33 +19,33 @@ Server-rendered Astro sites (`output: "server"` or `output: "hybrid"`) are not c
 
 Analyze the site before making any changes. Map content collections, routing, components, and the build pipeline.
 
-See [audit.md](audit.md).
+See [audit.md](audit.md). It sends you to [../audit.md](../audit.md) for classifying static pages.
 
 ### Phase 2: Configuration
 
 Generate a baseline `cloudcannon.config.yml` using the CloudCannon CLI, then customize based on the audit findings. If the site uses MDX components in content, configure snippets as part of this phase.
 
-**Read the `cloudcannon-configuration` skill** for CloudCannon CLI, structures, collection URLs, and Astro-specific configuration guidance.
+**Read the `cloudcannon-configuration` skill** — its Astro entry point is [cloudcannon-configuration/astro/overview.md](../../cloudcannon-configuration/astro/overview.md). Follow its reading order.
 
 If the site uses MDX components or inline HTML in content, also **read the `cloudcannon-snippets` skill**.
+
+If the audit's census sends pages to a `pages` collection or page builder, read [../page-building.md](../page-building.md), then [page-building.md](page-building.md).
 
 ### Phase 3: Content
 
 Review and restructure content files if needed so they work well in the CMS.
 
-See [content.md](content.md).
+Read [../content.md](../content.md), then [content.md](content.md) for the Zod schema, `.astro` extraction and `src/assets` images.
 
 ### Phase 4: Visual editing
 
 Add `@cloudcannon/editable-regions` for inline editing in CloudCannon's Visual Editor.
 
-**Read the `cloudcannon-visual-editing` skill** for editable regions API, setup workflow, and Astro-specific patterns.
+**Read the `cloudcannon-visual-editing` skill** — its Astro entry point is [cloudcannon-visual-editing/astro/overview.md](../../cloudcannon-visual-editing/astro/overview.md). Follow its reading order.
 
 ### Phase 5: Build and test
 
-Validate the migration works end-to-end (local build and SSG-specific checks in [build.md](build.md)), then hand off using [SKILL.md § Handoff and verification](../handoff.md) so the user can verify in CloudCannon.
-
-See [build.md](build.md).
+Validate the migration works end-to-end with [../build.md](../build.md), then [build.md](build.md) for the Astro cache, bundle and typography checks. Hand off using [handoff.md](../handoff.md) so the user can verify in CloudCannon.
 
 ## Notes
 

@@ -4,19 +4,21 @@ Strip an existing i18n system (astro-i18n, astro-i18next, next-intl, i18next, vu
 
 **MUST:** finish this before starting [setup.md](setup.md). Running both at once leaves two translation systems half-wired.
 
+**Hugo multilingual is usually kept, not stripped.** A Hugo site already on `languages` and `i18n` tables goes to [hugo/overview.md § Choose a setup](hugo/overview.md#choose-a-setup) instead: setup A keeps it as it is, and setup B keeps its content directories. Strip it only for setup C.
+
 Use this when the site already has an i18n system (astro-i18n, astro-i18next, next-intl, i18next, vue-i18n, path-based routing, dictionaries + `t()`, etc.). The goal is to get to a **clean single-language site**, then apply the main workflow. Astro has a companion supplement (`astro/overview.md`) with concrete before/after code.
 
 ## A1. Identify the current method
 
-| Signal                | What to look for                                                                                                             |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **package.json**      | `astro-i18n`, `astro-i18next`, `next-intl`, `i18next`, `vue-i18n`, `react-intl`, `@nuxtjs/i18n`                              |
-| **Framework config**  | `astro.config.mjs` `i18n` block (routing only — no translation runtime), `next.config.js` i18n, `nuxt.config.ts` i18n module |
-| **Recipe helpers**    | `src/i18n/ui.ts` dictionary, `getLangFromUrl()`, `useTranslations()`, `getRelativeLocaleUrl()`                               |
-| **Folder structure**  | Per-locale content folders (`/en/`, `/fr/`), or `locales/` dirs with JSON/YAML                                               |
-| **Routing**           | Locale-prefixed routes (`/fr/about`), locale-detecting middleware, `[locale]` segments                                       |
-| **Translation files** | `.json`, `.yaml`, `.po` key/value pairs                                                                                      |
-| **Template usage**    | `t("key")`, `$t("key")`, `useTranslation()`, `<Trans>`, `Astro.currentLocale`                                                |
+| Signal                | What to look for                                                                                                                                                                             |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **package.json**      | `astro-i18n`, `astro-i18next`, `next-intl`, `i18next`, `vue-i18n`, `react-intl`, `@nuxtjs/i18n`                                                                                              |
+| **Framework config**  | `astro.config.mjs` `i18n` block (routing only — no translation runtime), `next.config.js` i18n, `nuxt.config.ts` i18n module, Hugo `languages` / `defaultContentLanguage` in the site config |
+| **Recipe helpers**    | `src/i18n/ui.ts` dictionary, `getLangFromUrl()`, `useTranslations()`, `getRelativeLocaleUrl()`                                                                                               |
+| **Folder structure**  | Per-locale content folders (`/en/`, `/fr/`), `locales/` dirs with JSON/YAML, or Hugo per-language files (`about.fr.md`) and `contentDir` per language                                        |
+| **Routing**           | Locale-prefixed routes (`/fr/about`), locale-detecting middleware, `[locale]` segments                                                                                                       |
+| **Translation files** | `.json`, `.yaml`, `.po` key/value pairs; Hugo `i18n/*.{toml,yaml,json}`                                                                                                                      |
+| **Template usage**    | `t("key")`, `$t("key")`, `useTranslation()`, `<Trans>`, `Astro.currentLocale`; Hugo `{{ i18n "key" }}` / `{{ T "key" }}`, `.Translations`, `.Lang`                                           |
 
 Document: which locales are supported, where translation files live and their format, how routing works, which components call translation functions.
 
