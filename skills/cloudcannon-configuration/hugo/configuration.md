@@ -29,7 +29,7 @@ The Hugo baseline is a starting point, not a working config. Check each row:
 | A collection at `path: ''` | Sometimes emitted alongside a `content` collection — it lists the whole repo      | Delete it                                                                                                                                                                                                                                                                                                   |
 | Section collections        | Exclude `_index.md` (`glob: ['!_index.md']`), which then falls through to `pages` | Decide per section — see [§ Section collections](#section-collections)                                                                                                                                                                                                                                      |
 | `paths`                    | `static: static`, `uploads: static/uploads`                                       | Point `uploads` where the site keeps images (often `static/images`) — see [§ Images](#images)                                                                                                                                                                                                               |
-| `markdown`                 | `engine: commonmark` with `table: false`, `strikethrough: false`                  | Match Hugo's Goldmark — see [configuration-gotchas.md § Match Goldmark](configuration-gotchas.md#match-goldmark-in-the-markdown-options)                                                                                                                                                                    |
+| `markdown`                 | `engine: commonmark` with `table: false`, `strikethrough: false`                  | Keep it as the starting point; adjust keys that differ from the site's Goldmark settings — see [configuration-gotchas.md § Match Goldmark](configuration-gotchas.md#match-goldmark-in-the-markdown-options)                                                                                                 |
 | `_snippets_imports`        | `hugo` with `exclude: [hugo_instagram]`                                           | Keep it, and narrow it to the shortcodes the site uses — see [cloudcannon-snippets/hugo/overview.md](../../cloudcannon-snippets/hugo/overview.md)                                                                                                                                                           |
 | `timezone`                 | The timezone of the machine running the CLI                                       | Set it to the site config's `timeZone` if it sets one; otherwise ask, recommending `Etc/UTC` — Hugo reads a date with no zone as UTC. **Why:** CloudCannon fills `NOW` dates in this zone, and Hugo skips future-dated pages unless `buildFuture` is set. A zone ahead of Hugo's hides a new post for hours |
 | `build.build_command`      | `hugo -b /`                                                                       | `hugo`, or `npm run build` — see [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson). `-b /` is for the local dev server only                                                                                                                                                          |
@@ -220,7 +220,7 @@ collections_config:
   blog:
     path: content/blog
     _editables:
-      content: &body_toolbar
+      content:
         blockquote: true
         bold: true
         bulletedlist: true
@@ -254,7 +254,7 @@ collections_config:
 
 - **Use** `uploads: content/<section>/[full_slug]/`. In upload paths, a bundle's folder is its `[slug]`, and `[full_slug]` adds any parent folders: `content/blog/2024/post/index.md` uploads to `content/blog/2024/post/`. `[relative_base_path]` is the folder that contains the bundle, so it saves next to the bundle instead of inside it. `""` uploads to the repo root.
 - **Keep** `uploads_use_relative_path: true`. It stores the bare filename (`cover.jpg`) that `.Resources.Get` expects; it sets how the value is written, not where the file goes.
-- **Repeat** the whole toolbar in a collection-level `_editables.content`. It replaces the root toolbar, and every option left out becomes `false`. Share it between collections with a plain alias (`content: *body_toolbar`) — see [../configuration-gotchas.md § No YAML merge keys](../configuration-gotchas.md#no-yaml-merge-keys).
+- **Repeat** the whole toolbar in a collection-level `_editables.content`. It replaces the root toolbar, and every option left out becomes `false`. Write it out in full in each collection, not as a YAML alias — see [../configuration-gotchas.md § No YAML anchors or aliases](../configuration-gotchas.md#no-yaml-anchors-or-aliases).
 - **Tell** editors in the input `comment` and the editor README to save a new post before adding its images, and that a new image shows after the next build. Until the entry is saved it has no folder, and an upload lands in the section folder instead of the bundle.
 
 ## Taxonomies

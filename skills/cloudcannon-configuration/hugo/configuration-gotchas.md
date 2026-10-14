@@ -4,20 +4,9 @@ Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values,
 
 ## Match Goldmark in the markdown options
 
-**MUST:** set each CloudCannon `markdown.options` key to match the site's Goldmark setting.
-**Why:** CloudCannon converts between HTML and Markdown when editors use the rich text editor; Hugo renders the saved Markdown with Goldmark. Where they disagree, content changes on save — tables turn into raw HTML, which Goldmark's default `unsafe: false` then drops as `<!-- raw HTML omitted -->` without an error.
-
-| Hugo setting (`markup.goldmark.…`) | Hugo default | CloudCannon `markdown.options` key                                                                 |
-| ---------------------------------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| `renderer.unsafe`                  | `false`      | `html` — same value. With `false`, also keep toolbar options that emit HTML off                    |
-| `renderer.hardWraps`               | `false`      | `breaks` — same value                                                                              |
-| `extensions.table`                 | `true`       | `table` — same value, plus `table: true` in `_editables.content`                                   |
-| `extensions.strikethrough`         | `true`       | `strikethrough` — same value                                                                       |
-| `extensions.linkify`               | `true`       | `linkify` — same value                                                                             |
-| `extensions.typographer`           | `true`       | `typographer: false` — Goldmark curls quotes at render time, so keep straight quotes in the source |
-| `parser.attribute.block`           | `false`      | `attributes` — same value                                                                          |
-
-Read the site config (`hugo config | grep -A20 goldmark` prints the effective values) and set every row; the CLI baseline sets `table`, `strikethrough` and `linkify` to `false`. The generic rule is in [../configuration-gotchas.md § Markdown tables](../configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
+**MUST:** start from the `markdown` block the CloudCannon CLI writes. It reads the site's Goldmark config and handles Hugo-specific details such as attribute list positions.
+**Then:** compare it with the site's effective Goldmark settings (`hugo config | grep -A20 goldmark`) and adjust any key that differs. Where the site's config doesn't set a value, Hugo's default applies. With `renderer.unsafe: false`, also keep `_editables` toolbar options that save HTML turned off.
+**Why:** where CloudCannon and Goldmark disagree, content changes on save — for example, tables saved as raw HTML, which Goldmark's default `unsafe: false` drops as `<!-- raw HTML omitted -->` without an error. The generic rule is in [../configuration-gotchas.md § Markdown tables](../configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
 
 ## Choose rich text inputs from the template filter
 

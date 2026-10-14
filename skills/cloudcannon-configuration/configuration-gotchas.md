@@ -662,22 +662,10 @@ _inputs:
 
 ## File hygiene
 
-### No YAML merge keys
+### No YAML anchors or aliases
 
-**MUST NOT:** use YAML merge keys (`<<: *anchor`) in `cloudcannon.config.yml`. Reuse a block with a plain alias (`key: *anchor`), and define each anchor above its first use.
-**Why:** the CloudCannon CLI parses YAML 1.2, which has no merge keys — `validate` reports `unexpected property <<`. An alias used before its anchor fails with `Unresolved alias`.
-
-```yaml
-_editables:
-  content: &toolbar
-    bold: true
-    italic: true
-    link: true
-collections_config:
-  blog:
-    _editables:
-      content: *toolbar
-```
+**MUST NOT:** use anchors (`&name`), aliases (`*name`) or merge keys (`<<: *name`) in `cloudcannon.config.yml` or any other file CloudCannon reads config from. Write each block out in full where it's used, or split a shared definition into its own file and pull it in with a `*_from_glob` key (`_inputs_from_glob`, `values_from_glob`).
+**Why:** saving the file in CloudCannon reserialises it, which writes every alias out as a full copy and drops the anchors. The next change then has to be made in every copy. Merge keys also fail before that: the CloudCannon CLI parses YAML 1.2, which has no merge keys, and `validate` reports `unexpected property <<`.
 
 ### Keep edited files free of comments
 
