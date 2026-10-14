@@ -202,7 +202,7 @@ SKILL.md                                Single file — design dialogue, then ha
 
 **Every change** — `npm run check` must pass. It verifies formatting, that every relative link and `#anchor` resolves, and that each `SKILL.md`'s frontmatter `name` matches its directory.
 
-**Any change touching the CLI or the SDK** — `npm run check:claims` must also pass. It reads the shipped `@cloudcannon/cli` and `@cloudcannon/sdk` packages and verifies that every flag and method the skills mention still exists. It needs those packages present, which is why it is separate from `npm run check`.
+**Any change touching the CLI or the SDK** — `npm run check:claims` must also pass. It reads the shipped `@cloudcannon/cli` and `@cloudcannon/sdk` packages and verifies that every flag on a `cloudcannon …` command, and every SDK method named in prose, still exists. A flag mentioned in prose without its command is not checked. It needs those packages present, which is why it is separate from `npm run check`.
 
 `--install` fetches the pinned versions under a temp prefix outside the repo and runs the check against them:
 
@@ -222,7 +222,7 @@ CI runs the same `--install` command, so a PR fails only when a doc is wrong and
 
 ### Before bumping a pin
 
-`check:claims` runs one direction only: every flag and method the skills name has to exist. It is blind to the opposite case — surface the package gained that the skills have never mentioned. Nothing fails, because there is no claim to falsify.
+`check:claims` runs one direction only: every flag and method it checks has to exist. It is blind to the opposite case — surface the package gained that the skills have never mentioned. Nothing fails, because there is no claim to falsify.
 
 ```sh
 npm run diff:surface                      # pinned → latest published
