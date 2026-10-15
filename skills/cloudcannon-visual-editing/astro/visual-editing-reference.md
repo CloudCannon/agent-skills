@@ -197,7 +197,7 @@ Pass `editable={false}` when rendering cross-collection content that isn't backe
 
 For the three layers, the `array-item` versus `data-component` split, and the wrapper key attributes, see [base § Page builder blocks](../visual-editing-reference.md#page-builder-blocks). For the structural setup — array wrapper, catch-all route, CC config — see [page-building.md](../../migrate-to-cloudcannon/astro/page-building.md).
 
-Our examples use `_type` as the component key; the CloudCannon docs use `_name`. Either works.
+Our examples use `_type` as the component key, which is the default `id_key` for structures. A site that uses another key (the CloudCannon docs use `_name`) sets `id_key` to it on every structure.
 
 ### BlockRenderer architecture
 

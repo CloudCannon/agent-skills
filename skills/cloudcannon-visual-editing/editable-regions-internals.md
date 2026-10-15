@@ -235,7 +235,7 @@ Guidance:
 │                                                                     │
 │  ┌─ Astro ──────────────────────┐  ┌─ Eleventy ──────────────────┐ │
 │  │ Vite plugin:                 │  │ esbuild bundle:              │ │
-│  │ • shims astro:* modules      │  │ • discovers .liquid files    │ │
+│  │ • shims astro:* modules      │  │ • discovers .liquid + .html  │ │
 │  │ • enables client-side SSR    │  │ • bundles as text strings    │ │
 │  │ • patches astro:build plugin │  │ • imports filters/shortcodes │ │
 │  └──────────────────────────────┘  └──────────────────────────────┘ │

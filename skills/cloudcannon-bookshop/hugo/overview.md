@@ -5,7 +5,7 @@ Hugo-specific Bookshop guidance. The cross-SSG rules live one level up; the file
 **Two differences shape everything else:**
 
 - **The library is a Hugo module.** `component-library/` is mounted into `layouts/partials/bookshop`, and the site reaches components through Bookshop's partials — `partial "bookshop"`, `bookshop_partial`, `bookshop_bindings`.
-- **Editable regions resolve components as partials.** Migrating moves every component into `layouts/partials/` under the same path, so `_name` stays the component name and the partial path at once.
+- **Editable regions resolve components as partials.** Migrating moves every component into `layouts/partials/` under the same path, so `_type` stays the component name and the partial path at once.
 
 ## Reading order
 

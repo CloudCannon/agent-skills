@@ -88,7 +88,7 @@ For each file with `"status": "untranslated"` in the manifest:
 }
 ```
 
-Translate: `title`, headings (`*.heading`, `*.subheading`), descriptions (`*.description`, `*.page_description`), image alt text (`*_alt`, `*.image_alt`, `*.featured_image_alt`), and any other human-readable text. The script already excluded CMS metadata (`_schema`, `_name`, `_uuid`), dates, image paths, URLs, booleans, and the skip list.
+Translate: `title`, headings (`*.heading`, `*.subheading`), descriptions (`*.description`, `*.page_description`), image alt text (`*_alt`, `*.image_alt`, `*.featured_image_alt`), and any other human-readable text. The script already excluded CMS metadata (`_schema`, `_type`, `_uuid`), dates, image paths, URLs, booleans, and the skip list.
 
 **Body** — if the manifest includes `body`, add `translated_body` with the translated markdown:
 
@@ -141,7 +141,7 @@ The script replaces each translated field's lines in the YAML, keeping the key, 
 
 1. **Detect collections** — find `{collection}_{locale}/` dirs, a locale config file, or per-locale entries in `cloudcannon.config.yml`; the source collection is the one with no locale suffix.
 2. **Classify files** — compare each locale file against the source file with the same slug. Untranslated = frontmatter text + body identical to source. Report counts.
-3. **Translate** each untranslated file. Frontmatter: translate title/headings/descriptions/alt text; leave `_schema`/`_name`/`_uuid`, dates, image paths, URLs, booleans, and any field the site uses as a value rather than text (ask the user about tags, categories and author names). Body: translate prose/headings/list items; preserve formatting, code blocks, link URLs, MDX components.
+3. **Translate** each untranslated file. Frontmatter: translate title/headings/descriptions/alt text; leave `_schema`, the discriminator key (`_type` or the site's own), `_uuid`, dates, image paths, URLs, booleans, and any field the site uses as a value rather than text (ask the user about tags, categories and author names). Body: translate prose/headings/list items; preserve formatting, code blocks, link URLs, MDX components.
 4. **Write back in place** — preserve exact YAML structure (field order, nesting, indentation), the file extension (`.mdx`/`.md`), any MDX imports, and a trailing newline.
 
 ## Edge cases

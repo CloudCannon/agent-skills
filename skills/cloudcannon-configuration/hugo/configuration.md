@@ -157,7 +157,7 @@ collections_config:
 
 When `_structures` grow past a handful of values, split them into files per [../structures.md](../structures.md). On Hugo:
 
-- **Put** them under `.cloudcannon/structures/<array key>/`, mirroring the partial path: `.cloudcannon/structures/content_blocks/home/hero.cloudcannon.structure-value.yml` for `_name: home/hero`.
+- **Put** them under `.cloudcannon/structures/<array key>/`, mirroring the partial path: `.cloudcannon/structures/content_blocks/home/hero.cloudcannon.structure-value.yml` for `_type: home/hero`.
 - **Don't** put them in `layouts/partials/`, even though "next to the component" suggests it — keep the layouts tree to templates.
 - **Collect** them with `values_from_glob: ['/.cloudcannon/structures/content_blocks/**/*.cloudcannon.structure-value.yml']`.
 

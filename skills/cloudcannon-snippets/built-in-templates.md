@@ -6,7 +6,7 @@ Reference for built-in snippet templates shipped with CloudCannon's snippet pars
 
 For how to use templates in migrations, see [template-based.md](template-based.md). For raw snippet syntax, see [raw.md](raw.md).
 
-> MDX and Hugo templates are documented here. Templates for Jekyll, Eleventy, and Markdoc exist in CloudCannon but are not covered until those SSGs are added to this skill.
+> MDX, Hugo and Eleventy templates are documented here. Templates for Jekyll and Markdoc exist in CloudCannon but are not covered until those SSGs are added to this skill.
 
 ---
 
@@ -98,6 +98,46 @@ Definitions each template takes:
 A paired shortcode that takes no arguments (`{{< note >}}…{{< /note >}}`) uses `hugo_paired_shortcode_named_args` with `named_args: []`. Hugo's own built-in shortcodes are pre-built snippets rather than templates — load them with `_snippets_imports.hugo`, see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes).
 
 Source: [Snippets using Hugo shortcodes](https://cloudcannon.com/documentation/articles/snippets-using-hugo-shortcodes/).
+
+---
+
+## Eleventy shortcodes and includes
+
+Built-in templates for Eleventy's Liquid and Nunjucks tags. Pick by four questions: which engine processes the content, is it a shortcode or an include, does it wrap content (paired), and does it take named or positional arguments.
+
+| Template                                             | Matches                                                               |
+| ---------------------------------------------------- | --------------------------------------------------------------------- |
+| `eleventy_liquid_shortcode_positional_args`          | A Liquid shortcode with positional arguments                          |
+| `eleventy_liquid_paired_shortcode_positional_args`   | The same, wrapping content: `{% name … %}…{% endname %}`              |
+| `eleventy_nunjucks_shortcode_positional_args`        | A Nunjucks shortcode with positional arguments                        |
+| `eleventy_nunjucks_paired_shortcode_positional_args` | The same, wrapping content                                            |
+| `eleventy_nunjucks_shortcode_named_args`             | A Nunjucks shortcode with keyword arguments: `{% name key="value" %}` |
+| `eleventy_nunjucks_paired_shortcode_named_args`      | The same, wrapping content                                            |
+| `eleventy_liquid_include`                            | `{% include 'name', key: "value" %}`                                  |
+| `eleventy_liquid_render`                             | `{% render 'name' key="value" %}`                                     |
+| `eleventy_nunjucks_include`                          | `{% include 'name.njk' %}` — no arguments                             |
+| `eleventy_liquid_bookshop_component`                 | `{% bookshop 'name' key="value" %}` — Bookshop sites only             |
+| `eleventy_liquid_bookshop_include`                   | `{% bookshop_include 'name' key="value" %}` — Bookshop sites only     |
+
+Liquid has no named-argument shortcode template: Eleventy passes Liquid shortcode arguments positionally.
+
+Definitions each template takes:
+
+| Definition        | Used by                                                     | Holds                                                                                                                                                         |
+| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shortcode_name`  | Shortcode templates                                         | The shortcode's name as written in content                                                                                                                    |
+| `include_name`    | `*_include`, `*_bookshop_include`                           | The include's name as written in the tag                                                                                                                      |
+| `render_name`     | `eleventy_liquid_render`                                    | The rendered file's name as written in the tag                                                                                                                |
+| `component_name`  | `eleventy_liquid_bookshop_component`                        | The Bookshop component name                                                                                                                                   |
+| `positional_args` | `*_positional_args`                                         | One entry per argument, in order: `editor_key`, `type`, and optionally `default`, `optional`, `allowed_values`, `implied_boolean`                             |
+| `named_args`      | Named-args templates, Liquid includes and renders, Bookshop | One entry per argument: `editor_key`, `source_key` (defaults to `editor_key`), `type`, and optionally `default`, `optional`, `remove_empty`, `allowed_values` |
+| `content_key`     | `*_paired_*`                                                | The editor key that holds the inner content                                                                                                                   |
+
+`type` is one of `string`, `boolean`, `number`, `array`.
+
+The `{% raw %}` tag is not a template: `eleventy_liquid_raw` and `eleventy_nunjucks_raw` are pre-built snippets in the `eleventy_liquid` and `eleventy_nunjucks` import bundles — see [eleventy/overview.md § Raw tags in content](eleventy/overview.md#raw-tags-in-content).
+
+Source: [Snippets using Eleventy shortcodes](https://cloudcannon.com/documentation/developer-articles/snippets-using-eleventy-shortcodes/).
 
 ---
 

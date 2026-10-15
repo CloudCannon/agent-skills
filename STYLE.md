@@ -39,6 +39,10 @@ There are exactly two axes, and each is expressed differently:
 
 **Why:** an SSG file with no real delta pads the reading path, and it tempts the next author to fill it by restating base rules.
 
+**MUST:** use Astro's paths (`src/content/`, `src/data/`) when a root file needs a concrete example, and say in prose that the location is the SSG's. Each SSG's real paths and syntax go in its `<ssg>/` file.
+
+**Why:** most sites are Astro. When another SSG's layout (`content/`, `data/`) or syntax stands in as the generic example, Astro agents copy the wrong paths.
+
 Canonical example: `cloudcannon-configuration/collection-urls.md` owns placeholders, filters and troubleshooting; `cloudcannon-configuration/astro/collection-urls.md` covers only the glob-loader `slug` quirk and the `trailingSlash` rule, and links back in its first line.
 
 ### SSG directories never depend on each other
@@ -126,7 +130,7 @@ The full list of skills and their tiers is in [ARCHITECTURE.md § Skills by tier
 
 **MUST:** before adding a rule, check whether an existing rule caused the failure by being wrong, vague or contradicted. If one did, edit it instead of adding a new one.
 
-**MUST NOT:** carry rules, examples or names from one template into a shared file. Write the rule in terms any site would recognise.
+**MUST NOT:** carry rules, examples or names from one template into a shared file. Write the rule in terms any site would recognise. No theme, customer or test-site names anywhere in a shipped skill, including example strings, asides and "tested on" notes.
 
 **Why:** each rule competes for the agent's attention with every other rule on the path. Contradictions do more damage than length, because the agent has to guess which one is current.
 
@@ -142,7 +146,7 @@ The full list of skills and their tiers is in [ARCHITECTURE.md § Skills by tier
 
 **MUST:** test each SSG file against real sites built with that SSG before it ships. A delta written only from the SSG's docs is a guess.
 
-**Partial coverage is allowed, silent partial coverage is not.** If an SSG directory does not yet cover the whole workflow, say so in a coverage note at the top of its `overview.md` and mark it Partial in the README matrix.
+**Partial coverage is allowed, silent partial coverage is not.** If an SSG directory does not yet cover the whole workflow, say so in a coverage note at the top of its `overview.md` and mark it Partial in the README matrix. A coverage note only explains the Partial label: remove it once the SSG is marked Yes, and keep any real limitation in the file that owns that topic.
 
 Then:
 
@@ -162,6 +166,7 @@ Then:
 - **A table cell holds a sentence at most.** A cell that needs a paragraph is a section disguised as a table — write it as a section, and link to it from the table if needed.
 - **Checklists for procedures.** Imperative bullets starting with a verb — `Run`, `Verify`, `Remove`, `Add`. No narrative intros ("First, let's…", "Now we need to…").
 - **MUST / MUST NOT for critical rules only.** Rules where getting it wrong breaks the site or the migration get a `**MUST**` or `**MUST NOT**` callout at the top of their section. Pointers, preferences and defaults are plain prose. When everything is MUST, nothing stands out.
+- **State claims to the best of our knowledge.** No "[untested]" or "unverified" caveats. If a claim isn't solid enough to state plainly, cut it.
 - **Include a `**Why:**` when the rule isn't self-evident.** **Why:** the reason lets agents judge edge cases the rule didn't anticipate; without it, rules get over- or under-applied. If the reason is genuinely obvious from the rule, skip it.
 
 ### SKILL.md entrypoint shape

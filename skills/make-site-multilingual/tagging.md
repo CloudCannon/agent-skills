@@ -182,7 +182,7 @@ _structures:
     values:
       - label: Hero
         value:
-          _name: Hero
+          _type: Hero
           _uuid:
           heading:
 ```
@@ -201,7 +201,7 @@ CloudCannon only populates `_uuid` on creation, so existing content needs a seed
 **Why it matters:** an unseeded item silently falls back to an index namespace — or renders `data-rosey-ns="undefined"`, which **collides across every unseeded item on the page**. It builds cleanly and passes a prose "the keys look right" review, then remaps every translation on the first reorder.
 
 - **Edit line-level; never round-trip through a YAML library.** It reflows `>-` block scalars, drops comments, and produces an unreviewable diff.
-- **Anchor on the discriminator key** (`_component` / `_name` / `_bookshop_name`), idempotently — skip any mapping that already has a `_uuid` sibling. Confine the pass to frontmatter.
+- **Anchor on the discriminator key** (`_type` / `_component` / `_name` / `_bookshop_name`), idempotently — skip any mapping that already has a `_uuid` sibling. Confine the pass to frontmatter.
 - **Expect the anchor to miss things.** Array items with no discriminator that still carry text get skipped silently — counters, icon lists, image `alt` values.
 - **Cover structure _defaults_ and data files** (`src/data/*.json`, `*.structure-value.yml`) too. A frontmatter-only pass leaves those unseeded, so the gap reappears the next time an editor adds a block.
 - **Verify, per file:** every mapping with a discriminator has a `_uuid` and vice versa; all UUIDs are unique; and no rendered page contains `data-rosey-ns="undefined"` or an empty ns.

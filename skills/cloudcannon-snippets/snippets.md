@@ -7,7 +7,7 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 - **SSG layer**: The component implementation, how it's imported/registered, build directives (`client:load` in Astro, etc.). This is what makes the component work at build time.
 - **CloudCannon layer**: The `_snippets` config that teaches the Content Editor the component's syntax — its name, attributes, whether it wraps content, and what editor inputs to show. This is purely for the editing experience.
 
-Agents must handle both layers during a migration, but keep them conceptually separate. SSG-specific snippet guidance lives in each SSG's `overview.md` — [Astro](astro/overview.md), [Hugo](hugo/overview.md).
+Agents must handle both layers during a migration, but keep them conceptually separate. SSG-specific snippet guidance lives in each SSG's `overview.md` — [Astro](astro/overview.md), [Hugo](hugo/overview.md), [Eleventy](eleventy/overview.md).
 
 ---
 
@@ -17,7 +17,7 @@ Agents must handle both layers during a migration, but keep them conceptually se
 | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | [Template-based snippets](template-based.md) | Component syntax matches a built-in template (most common). Covers MDX templates, snippet model reference, example lifecycle. |
 | [Raw snippets](raw.md)                       | Component needs custom syntax (e.g. `client:load`). Covers parser types, snippet format reference, custom templates.          |
-| [Built-in templates](built-in-templates.md)  | Built-in MDX templates vs MDX default import bundle; patterns, definitions, `mdx_format`, parser internals.                   |
+| [Built-in templates](built-in-templates.md)  | Built-in MDX, Hugo and Eleventy templates vs the import bundles; patterns, definitions, `mdx_format`, parser internals.       |
 | [Gotchas](gotchas.md)                        | Debugging or reviewing. Common pitfalls and workarounds.                                                                      |
 
 ---
@@ -34,7 +34,7 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#_snippets_imports-can-match-unintended-content). The exception is Hugo's built-in shortcodes, which are only available through it — see [hugo/overview.md § Built-in shortcodes](hugo/overview.md#built-in-shortcodes). Import handling in MDX content is an SSG concern: use `astro-auto-import` (or equivalent) — see [astro/overview.md § Auto-import](astro/overview.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
+`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#_snippets_imports-can-match-unintended-content). The exception is a pre-built snippet only an import provides, imported by name — [Hugo's built-in shortcodes](hugo/overview.md#built-in-shortcodes), [Eleventy's `{% raw %}` tag](eleventy/overview.md#raw-tags-in-content). Import handling in MDX content is an SSG concern: use `astro-auto-import` (or equivalent) — see [astro/overview.md § Auto-import](astro/overview.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
 
 ---
 
@@ -278,3 +278,5 @@ If a rich text field contains structured HTML with a fixed layout and only a few
 **SSG-specific guidance:**
 
 - Astro: [astro/overview.md](astro/overview.md)
+- Hugo: [hugo/overview.md](hugo/overview.md)
+- Eleventy: [eleventy/overview.md](eleventy/overview.md)

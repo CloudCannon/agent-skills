@@ -2,7 +2,7 @@
 
 Symptoms you hit when editable regions do not appear, do not update, or write to the wrong field. Region types and the attribute reference live in [editable-regions.md](editable-regions.md); the patterns behind these fixes live in [visual-editing-reference.md](visual-editing-reference.md); deeper lifecycle traces live in [editable-regions-internals.md](editable-regions-internals.md).
 
-SSG-specific rows are in that SSG's `troubleshooting.md` — [Astro](astro/troubleshooting.md), [Hugo](hugo/troubleshooting.md).
+SSG-specific rows are in that SSG's `troubleshooting.md` — [Astro](astro/troubleshooting.md), [Hugo](hugo/troubleshooting.md), [Eleventy](eleventy/troubleshooting.md).
 
 ## Regions that do not appear or bind
 

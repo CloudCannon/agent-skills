@@ -27,7 +27,7 @@ _snippets:
 
 ## MDX templates
 
-Built-in templates for Astro and generic MDX sites. No `_snippets_imports` required — these resolve automatically when referenced by name. Hugo shortcode templates are listed in [built-in-templates.md § Hugo shortcodes](built-in-templates.md#hugo-shortcodes), with worked examples in [hugo/overview.md](hugo/overview.md).
+Built-in templates for Astro and generic MDX sites. No `_snippets_imports` required — these resolve automatically when referenced by name. Hugo shortcode templates are listed in [built-in-templates.md § Hugo shortcodes](built-in-templates.md#hugo-shortcodes), with worked examples in [hugo/overview.md](hugo/overview.md). Eleventy shortcode and include templates are in [built-in-templates.md § Eleventy shortcodes and includes](built-in-templates.md#eleventy-shortcodes-and-includes), with worked examples in [eleventy/overview.md](eleventy/overview.md).
 
 ### `mdx_component` (self-closing)
 

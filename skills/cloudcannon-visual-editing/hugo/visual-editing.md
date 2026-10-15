@@ -113,7 +113,7 @@ Run through these after setup, before starting on editable regions:
 1. **Work through** [../visual-editing.md § Completeness checklist](../visual-editing.md#completeness-checklist) — the Universal items and, if the site has a page builder, the Page builder items — using the term mapping above.
 2. **Then work through** the Hugo items:
 
-- [ ] **Component names resolve**: every `data-component` value, and every `_name` in content and structures, names an existing partial (the project's `layouts/partials/`, or a theme's or module's partials folder)
+- [ ] **Component names resolve**: every `data-component` value, and every `_type` in content and structures, names an existing partial (the project's `layouts/partials/`, or a theme's or module's partials folder)
       → [Component names are partial paths](visual-editing-reference.md#component-names-are-partial-paths)
 - [ ] **Dispatcher in every layout**: every layout that renders `content_blocks` (`single.html` and `list.html`) has the array + array-item dispatcher
       → [Page builder blocks in Hugo](visual-editing-reference.md#page-builder-blocks-in-hugo)
