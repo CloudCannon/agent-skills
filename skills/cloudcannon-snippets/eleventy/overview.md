@@ -2,8 +2,6 @@
 
 Eleventy-specific snippet guidance: shortcodes and includes in the Content Editor. The cross-SSG model — the SSG layer vs the CloudCannon layer, `_snippets` properties, toolbar setup, raw HTML snippets — is in [../snippets.md](../snippets.md). Read that first.
 
-> **Coverage: Partial.** The template choice and the configuration come from CloudCannon's Eleventy snippet docs and Eleventy's own behaviour. Round-trips in the editor haven't yet been run on a real Eleventy site.
-
 ## The SSG layer is already done
 
 A shortcode registered in the Eleventy config (`addShortcode`, `addPairedShortcode`, and their Liquid-, Nunjucks- and async-specific variants) is available in every content file the template engine processes, and an include is any file in the includes directory. Content needs no import. The only work is the CloudCannon layer: a `_snippets` entry per tag that teaches the editor its syntax.

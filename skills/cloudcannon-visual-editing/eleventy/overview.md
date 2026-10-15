@@ -2,8 +2,6 @@
 
 Eleventy-specific Visual Editor guidance, built on the `@cloudcannon/editable-regions` Eleventy plugin (Eleventy 3, Node ≥ 20.19). The cross-SSG rules live one level up: [`../editable-regions.md`](../editable-regions.md) owns the region types and the attribute reference, and [`../visual-editing-reference.md`](../visual-editing-reference.md) owns the patterns that use them. The files here carry only what differs for Eleventy.
 
-> **Coverage: Partial.** The plugin setup, the Liquid component rules and the Nunjucks primitive-region rules come from real Eleventy sites and the plugin source. A full migration hasn't yet been run end to end with these files.
-
 **Two differences shape everything else:**
 
 - **Component regions are Liquid only.** The plugin bundles a Liquid engine, your Liquid includes and your config's filters and shortcodes for the editor. A component is an include, named by its include path, with no registration step. Nunjucks templates can't re-render in the editor, but their includes stay reusable and editable through primitive regions — see [visual-editing-reference.md § Nunjucks sites](visual-editing-reference.md#nunjucks-sites).

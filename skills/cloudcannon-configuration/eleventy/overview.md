@@ -2,8 +2,6 @@
 
 Eleventy-specific configuration guidance. The cross-SSG rules live in the root files in the reading order below, starting with [`../configuration.md`](../configuration.md); the files here carry only what differs for Eleventy.
 
-> **Coverage: Partial.** The CLI baseline, routing, data and image rules come from Eleventy 3 builds and the CloudCannon CLI. A full migration hasn't yet been run end to end with these files.
-
 **MUST:** download the JSON schemas before writing any configuration — see [`../SKILL.md`](../SKILL.md#do-this-before-writing-any-configuration). Training data hallucinates keys.
 
 **Find the input directory first.** Eleventy reads templates from its input directory (`dir.input` in the config file, or `--input` in the build script; `.` when neither sets it). Every path in `cloudcannon.config.yml` starts with it: `src/blog`, `src/_data/nav.json`. The includes, layouts and data directories are relative to it (`src/_includes`, `src/_data` by default).

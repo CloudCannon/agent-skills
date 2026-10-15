@@ -2,8 +2,6 @@
 
 Eleventy-specific Bookshop guidance. The cross-SSG rules live one level up; the files here carry only what differs for Eleventy.
 
-> **Coverage: Partial.** The mapping comes from a full migration of a large Bookshop component library and from the Bookshop and editable-regions source. These files haven't yet been run end to end on another site.
-
 **Two differences shape everything else:**
 
 - **Bookshop on Eleventy is Liquid only, and so are component regions.** Every Bookshop component is a `.eleventy.liquid` file, so every one can become a Liquid include that the editable-regions plugin re-renders. No Nunjucks rules apply to a former Bookshop library.

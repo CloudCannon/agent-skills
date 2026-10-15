@@ -2,8 +2,6 @@
 
 Guidance for migrating an Eleventy site to CloudCannon. Follow the phases in order. Before starting, run the [quick checks](#quick-checks) below to gather site information.
 
-> **Coverage: Partial.** These files cover the Eleventy differences in each phase, from Eleventy's own behaviour and real Eleventy sites. A full migration hasn't yet been run end to end with them.
-
 ## Eleventy scope
 
 This guide covers Eleventy sites that:
