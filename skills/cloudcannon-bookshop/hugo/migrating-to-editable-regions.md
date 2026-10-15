@@ -82,6 +82,6 @@ path = 'github.com/cloudcannon/bookshop/hugo/v3'
 path = 'github.com/CloudCannon/editable-regions'
 ```
 
-- [ ] Run `hugo mod get github.com/CloudCannon/editable-regions@v0.0.21`, then `hugo mod tidy` to drop Bookshop from `go.mod` and `go.sum`.
+- [ ] Run `hugo mod get github.com/CloudCannon/editable-regions@latest`, then `hugo mod tidy` to drop Bookshop from `go.mod` and `go.sum`.
 - [ ] Delete `component-library/` (it may have its own `config.toml` and `go.mod`).
 - [ ] Remove the npm scripts that ran `@bookshop/browser` alongside `hugo server`.

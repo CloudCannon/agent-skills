@@ -1,6 +1,6 @@
 # Handoff and verification
 
-How to close a migration with the user: who tests what, when to stop, and what to ask for back. Read at the end of Phase 5, or whenever the user stops earlier at a milestone.
+How to close a migration with the user: who tests what, when to stop, and what to ask for back. Read at the end of Phase 5, or whenever the user stops earlier at a milestone. The orchestrator closes with the user, from the phase notes and returns.
 
 ## Testing boundaries
 

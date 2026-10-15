@@ -8,10 +8,10 @@ It's a Hugo module, not an npm package. Nothing goes in `package.json`, and ther
 
 1. **Check** the Hugo version (`hugo version`), locally and in `.cloudcannon/initial-site-settings.json` (`hugo_version`). The module's declared minimum is 0.120; a recent Hugo is safer. If the site is well behind, **ask the user** before upgrading — see [§ Upgrading Hugo first](#upgrading-hugo-first).
 2. **Check** the site is a Hugo module project (`go.mod` at the root). If not, run `hugo mod init <module path>` — any path works, e.g. `github.com/<owner>/<repo>`.
-3. **Install** the module at a pinned release tag:
+3. **Install** the latest release of the module:
 
    ```sh
-   hugo mod get github.com/CloudCannon/editable-regions@v0.0.21
+   hugo mod get github.com/CloudCannon/editable-regions@latest
    ```
 
 4. **Import** it in the site config. The config file name doesn't matter — `hugo.*`, `config.*` and a `config/` directory all work:
@@ -56,7 +56,7 @@ Moving up surfaces removed APIs unrelated to editable regions. **Build the unmod
 | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | `resources.ToCSS` is gone                                          | `css.Sass`                                                                                   |
 | `"tailwindcss" is not whitelisted in policy "security.exec.allow"` | Add `^tailwindcss$` to `security.exec.allow` in the site config, keeping the default entries |
-| `.Site.Data` or `site.Data` deprecation warning (0.156)            | `hugo.Data` — safe in partials the editor re-renders, whose renderer is Hugo 0.164           |
+| `.Site.Data` or `site.Data` deprecation warning (0.156)            | `hugo.Data` — safe in partials the editor re-renders, whose renderer is Hugo 0.156 or later  |
 | `languageCode` deprecation warning (0.158)                         | `locale`                                                                                     |
 
 ```yaml
@@ -93,7 +93,7 @@ Add one Hugo-specific column to the census: **Partial?** — whether the section
 Run through these after setup, before starting on editable regions:
 
 - [ ] `hugo version` matches `hugo_version` in `.cloudcannon/initial-site-settings.json`, and any upgrade was agreed with the user
-- [ ] `go.mod` requires `github.com/CloudCannon/editable-regions` at a release tag (`v0.0.21`), not a pseudo-version
+- [ ] `go.mod` requires `github.com/CloudCannon/editable-regions` at a release tag, not a pseudo-version
 - [ ] The site config imports the module, and existing `module.mounts` are intact
 - [ ] No `module.imports` entry has a `version` key
 - [ ] `{{ partial "editable-regions" . }}` is in `<head>` of every base layout (check each `baseof.html`, including section-specific ones), or in the theme's head hook
@@ -104,7 +104,6 @@ Run through these after setup, before starting on editable regions:
 - [ ] Every `resources.Get` and image-processing call in a component partial, or in a partial it calls, is guarded by `site.Params.ENV_CLIENT` or reads a text asset listed in `additional_dirs` → [`ENV_CLIENT` in Hugo](visual-editing-reference.md#env_client-in-hugo)
 - [ ] No partial that will be a component renders `.Content` → [What the editor's Hugo has](visual-editing-reference.md#what-the-editors-hugo-has)
 - [ ] Every module-cache dependency that a re-rendered template or the site config depends on is vendored in the build command → [Themes, modules and vendoring](visual-editing-reference.md#themes-modules-and-vendoring)
-- [ ] Project partials the editor re-renders are in `layouts/partials/`, not `layouts/_partials/` → [What the editor can re-render](visual-editing-reference.md#what-the-editor-can-re-render)
 
 ## Completeness checklist
 
@@ -163,7 +162,7 @@ Run these before handing off. None needs CloudCannon.
   Expect no image processing from the partials the editor re-renders. `Processed images` in the build summary can still be above 0: calls in templates the editor never re-renders, and shortcodes in content bodies, still process images. Then compare `<img` counts per page against `public/`. A drop is an image that vanishes in the editor; an increase is usually an empty `<img src="">` from an unguarded fallback branch.
 
 - [ ] **Bundle contents (gate).** This is the only local check that exercises the editor's config load and template lookup. Build into a clean `public/` (old fingerprinted bundles are never removed), open `public/_cloudcannon/live-editing.*.js`, and confirm:
-  - every partial named in `data-component` appears as a bundled key — search for the `"layouts/partials/<name>.html"` (or a theme's `layouts/_partials/<name>.html`) key form, because template comments are bundled verbatim and a bare path gives false hits
+  - every partial named in `data-component` appears as a bundled key — search for the `"layouts/partials/<name>.html"` (or `layouts/_partials/<name>.html`) key form, because template comments are bundled verbatim and a bare path gives false hits
   - each theme's or module's root config file appears under `themes/` or `_vendor/`
   - the bundled site config has no `version` key on any import
 - [ ] **Build grep.** Count region types in the HTML only, tolerating the unquoted attributes `--minify` produces:

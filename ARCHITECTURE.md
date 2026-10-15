@@ -60,7 +60,7 @@ Short, symptom- or task-driven, run against a site that already works.
 ── migrate-to-cloudcannon (journey) ──────────────────────────
 SKILL.md                                ENTRY POINT — phases, handoff readiness, common mistakes
 reading-order.md                        Which docs to read in which phase, and when
-chunking.md                             Splitting a large migration across conversations
+orchestration.md                        Running phases in subagents, verification, sizing
 handoff.md                              Closing with the user — testing boundaries, what to ask
 audit.md                                Phase 1 shared rules — classifying static pages
 page-building.md                        Phase 2/4 shared rules — pages collection, page builder, blocks

@@ -676,7 +676,7 @@ A common example of a third-party virtual module that works — except for one v
 
 On ≥ 1.2.0, in this order:
 
-1. **Check whether `@cloudcannon/editable-regions` supplies `Astro.locals` yet.** As of `0.0.21` it does not. A release that does fixes this for every package at once and makes the rest of this section unnecessary — check before adding project plumbing.
+1. **Check whether `@cloudcannon/editable-regions` supplies `Astro.locals` yet.** A release that does fixes this for every package at once and makes the rest of this section unnecessary — check before adding project plumbing.
 2. **Pin `astro-icon` to `1.1.x`** if nothing on the site needs 1.2.
 3. **Alias astro-icon's cache module in the client environment only.** `Icon.astro` imports `{ cache } from "./cache.js"`, which is a bare `new WeakMap()`. Point that import at a cache that ignores unkeyable keys:
 
