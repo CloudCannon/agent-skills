@@ -152,8 +152,8 @@ Then:
 
 - Add a row to the SSG table in each affected `SKILL.md`, and `Contents` rows for the new files where the skill lists `<ssg>/` files
 - Add a column to the table in [migrate-to-cloudcannon/SKILL.md § Cross-references for known pitfalls](skills/migrate-to-cloudcannon/SKILL.md#cross-references-for-known-pitfalls)
-- Add the SSG to each `SKILL.md` frontmatter `description` that names SSGs (`cloudcannon-snippets`, `translate-site`); those names drive skill matching
-- Grep the skills' root files for an existing SSG's name, and add the new SSG wherever each SSG has its own entry: build commands in `migrate-to-cloudcannon/handoff.md`, setup in `orchestration.md`, component syntax in `reading-order.md`, `translate-site`'s content directories, `cloudcannon-snippets/built-in-templates.md`
+- Grep the `SKILL.md` frontmatter `description`s for an existing SSG's name, and add the new SSG to each that names SSGs; those names drive skill matching
+- Grep the skills' root files for an existing SSG's name, and add the new SSG wherever each SSG has its own entry, such as the build commands in `migrate-to-cloudcannon/handoff.md`
 - Add a column to the coverage matrix in [README.md](README.md#ssg-coverage)
 - Add the SSG to `keywords` in `.claude-plugin/plugin.json`
 - Add the new files to the file map in [ARCHITECTURE.md](ARCHITECTURE.md#file-map)

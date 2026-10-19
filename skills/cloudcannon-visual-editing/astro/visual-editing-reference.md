@@ -229,7 +229,34 @@ const Component = componentMap[_type]
 
 **`componentMap` is the single source of truth.** Both `BlockRenderer.astro` and `registerComponents.ts` import from `src/cloudcannon/componentMap.ts`. Keys are the `_type` values from content files; values are the actual component imports — not BlockRenderer itself, which would defeat the purpose.
 
-**Registration:** every `_type` value needs a matching `registerAstroComponent` call whose key matches exactly — `_type: call_to_action` → `registerAstroComponent('call_to_action', CallToAction)`, not `'call-to-action'`.
+**Registration:** every `_type` value needs a registration whose key matches exactly — `_type: call_to_action` → `registerAstroComponent('call_to_action', CallToAction)`, not `'call-to-action'`.
+
+**MUST:** register each block with its own framework's function. Keep one map per framework in `componentMap.ts`, merge them into `componentMap` for BlockRenderer, and loop over each in `registerComponents.ts`.
+**Why:** `registerAstroComponent` renders through Astro's `renderToString`, which calls the component as an Astro component, so a React, Vue or Svelte block registered with it fails.
+
+```typescript
+// src/cloudcannon/componentMap.ts
+export const astroComponents = { call_to_action: CallToAction };
+export const reactComponents = { announcement: Announcement };
+export const vueComponents = { testimonial: Testimonial };
+export const svelteComponents = { pricing: Pricing };
+export const componentMap = {
+  ...astroComponents,
+  ...reactComponents,
+  ...vueComponents,
+  ...svelteComponents,
+};
+```
+
+```typescript
+// registerComponents.ts
+for (const [key, c] of Object.entries(astroComponents)) registerAstroComponent(key, c);
+for (const [key, c] of Object.entries(reactComponents)) registerReactComponent(key, c);
+for (const [key, c] of Object.entries(vueComponents)) registerVueComponent(key, c);
+for (const [key, c] of Object.entries(svelteComponents)) registerSvelteComponent(key, c);
+```
+
+Keep only the maps for frameworks the site uses. The imports for each function are in [§ React, Vue and Svelte components](#react-vue-and-svelte-components).
 
 **Shared sub-components.** When a component like `Headline.astro` renders title/subtitle for many widgets, adding `data-editable` there is correct — inside a page builder block the editables scope to the parent component, so `data-prop="title"` resolves to the block's title. For the prop-renaming failure and its three fixes, see [base § Page builder blocks](../visual-editing-reference.md#page-builder-blocks).
 
@@ -464,7 +491,7 @@ See [base § Component re-rendering](../visual-editing-reference.md#component-re
 
 ### Astro components
 
-For page builder sites, add the component to `src/cloudcannon/componentMap.ts` — `registerComponents.ts` registers it automatically (see [setup steps in visual-editing.md](visual-editing.md#setup-steps)). For standalone components not in the page builder, register directly:
+For page builder sites, add the component to its framework's map in `src/cloudcannon/componentMap.ts` — `registerComponents.ts` registers it from there (see [§ BlockRenderer architecture](#blockrenderer-architecture)). For standalone components not in the page builder, register directly:
 
 ```typescript
 import { registerAstroComponent } from "@cloudcannon/editable-regions/astro";
@@ -487,6 +514,8 @@ import "@cloudcannon/editable-regions/astro-svelte-renderer";
 
 Import only the renderers for frameworks the site uses — each pulls its framework into the editor bundle. A component with a `client:*` directive is mounted in the browser after the re-render rather than rendered to a string, so it shows its client-side state, not the server output.
 
+**State resets on every re-render.** Each re-render mounts a new app, for a `client:*` island inside a registered Astro component and for a registered React, Vue or Svelte component alike. `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
+
 **Solid has no renderer.** Convert Solid components — to `.astro` unless the component needs complex client-side state, otherwise to another supported framework — or keep the original and use `ENV_CLIENT` to render an [editing fallback](#editing-fallbacks-solid-or-complex-components).
 
 #### React, Vue and Svelte components
@@ -506,9 +535,7 @@ registerVueComponent("testimonial", Testimonial);
 registerSvelteComponent("pricing", Pricing);
 ```
 
-Each function mounts the component into a detached `<div>` and copies that `<div>`'s children into the region host, so the host is always outside the component → [base § Where does the registration go](../visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
-
-**State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
+Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [base § Where does the registration go](../visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
 
 To make nested content editable within a framework component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
 
