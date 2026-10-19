@@ -1,6 +1,6 @@
 # Visual Editing (Hugo) — entry point
 
-Hugo-specific Visual Editor guidance, built on the `github.com/CloudCannon/editable-regions` Hugo module (v0.0.21, which declares Hugo ≥ 0.120). The cross-SSG rules live one level up: [`../editable-regions.md`](../editable-regions.md) owns the region types and the attribute reference, and [`../visual-editing-reference.md`](../visual-editing-reference.md) owns the patterns that use them. The files here carry only what differs for Hugo.
+Hugo-specific Visual Editor guidance, built on the `github.com/CloudCannon/editable-regions` Hugo module. The cross-SSG rules live one level up: [`../editable-regions.md`](../editable-regions.md) owns the region types and the attribute reference, and [`../visual-editing-reference.md`](../visual-editing-reference.md) owns the patterns that use them. The files here carry only what differs for Hugo.
 
 **Two differences shape everything else:**
 

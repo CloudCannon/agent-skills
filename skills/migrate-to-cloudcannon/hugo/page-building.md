@@ -16,7 +16,7 @@ For pages a theme or module renders, see [audit.md § Classifying static pages](
 
 ## Steps
 
-1. **Create** a partial per block type under `layouts/partials/` — even on a site that uses `layouts/_partials/`, see [What the editor can re-render](../../cloudcannon-visual-editing/hugo/visual-editing-reference.md#what-the-editor-can-re-render) — grouping related ones in subdirectories (`blocks/hero.html`, `home/hero.html`). The partial receives the block's front matter as `.`.
+1. **Create** a partial per block type in the site's partials folder (`layouts/partials/` or `layouts/_partials/`), grouping related ones in subdirectories (`blocks/hero.html`, `home/hero.html`). The partial receives the block's front matter as `.`.
 2. **Add** the dispatcher to every layout that renders page-builder pages — typically `_default/single.html` for leaf pages and `_default/list.html` (or `index.html`) for the home page and section list pages:
 
    ```go-html-template

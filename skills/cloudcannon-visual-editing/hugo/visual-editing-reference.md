@@ -2,7 +2,7 @@
 
 What Hugo does differently from the generic pattern reference in [../visual-editing-reference.md](../visual-editing-reference.md). Read sections on demand, when [visual-editing.md](visual-editing.md) links here — don't read it front to back.
 
-Targets `github.com/CloudCannon/editable-regions` **v0.0.21**, which declares Hugo **≥ 0.120**. The editor renders with its own Hugo, whatever the site builds with — see [§ What the editor's Hugo has](#what-the-editors-hugo-has) and [visual-editing.md § Upgrading Hugo first](visual-editing.md#upgrading-hugo-first).
+The editor renders with its own Hugo, whatever the site builds with — see [§ What the editor's Hugo has](#what-the-editors-hugo-has) and [visual-editing.md § Upgrading Hugo first](visual-editing.md#upgrading-hugo-first).
 
 ## What the editor can re-render
 
@@ -20,8 +20,7 @@ Hugo has two layout-folder schemes, and themes use either:
 
 Shortcodes and partials can come from the project or from any theme or module; `hugo config mounts` lists every directory Hugo reads them from.
 
-**MUST:** put project partials, shortcodes and render hooks that the editor re-renders in `layouts/partials/`, `layouts/shortcodes/` and `layouts/_default/_markup/`, even on a site whose theme uses the new scheme. A project `layouts/partials/card.html` still overrides a theme's `layouts/_partials/card.html`.
-**Why:** the module bundles only those three project folders. A partial in the project's `layouts/_partials/` builds fine and fails only in the editor, with `No Hugo partial found for component`. A theme's or module's `_partials/` is bundled with the rest of its `layouts/`.
+The module bundles the project's partials, shortcodes and render hooks from either scheme, and a theme's or module's with the rest of its `layouts/`. Keep a project override in the same scheme as the theme file it replaces.
 
 | Region in a page template           | Works?                                                   |
 | ----------------------------------- | -------------------------------------------------------- |
@@ -155,7 +154,7 @@ Editors add blocks with empty fields, and a template error in the editor's rende
 
 ## What the editor's Hugo has
 
-The in-browser Hugo is not a copy of the build — module v0.0.21's renderer is Hugo 0.164.0, whatever version the site builds with. Plan partials around what it has:
+The in-browser Hugo is not a copy of the build — each module release fixes the renderer's Hugo version (`integrations/hugo/renderer/go.mod`), whatever version the site builds with. Plan partials around what it has:
 
 | Available in the editor                                                                                                                         | Not available                                                                                           |
 | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -195,7 +194,7 @@ Read each hit: the script only looks up to the first closing tag. Every real one
 
 Shared partials — header, footer, navigation — render from `baseof.html` and read a data file. Their regions use `@data[<name>]` selectors, which edit the shared data file from any page.
 
-The examples use `hugo.Data`, which needs Hugo 0.156 or later. On an older Hugo, write `site.Data` instead — the editor's renderer (Hugo 0.164) accepts both, so match the version the site builds with.
+The examples use `hugo.Data`, which needs Hugo 0.156 or later. On an older Hugo, write `site.Data` instead — the editor's renderer accepts both, so match the version the site builds with.
 
 **Primitives only** — when the partial has no conditionals or computed values, keep its context as it is and put `@data` selectors on the fields:
 
@@ -328,7 +327,7 @@ Committing `_vendor/` instead also works, and removes the build's need for Go an
 
 When templates come from a theme or module, add regions through a minimal project override:
 
-1. **Copy** the theme template to the same path under the project's `layouts/` (a theme `layouts/_partials/hero.html` goes to the project's `layouts/partials/hero.html` — see [§ What the editor can re-render](#what-the-editor-can-re-render)).
+1. **Copy** the theme template to the same path under the project's `layouts/`.
 2. **Add** only the region attributes, plus the smallest structural change a region needs (a wrapper around `{{ .Content }}`, a partial call that passes the item itself).
 3. **Head** the file with a comment naming the theme version it was copied from and what changed.
 4. **List** every override in `.cloudcannon/migration/visual-editing.md` and the site README, with the command to diff it against the upstream file when the theme is updated (`diff themes/<theme>/layouts/<path> layouts/<path>`).

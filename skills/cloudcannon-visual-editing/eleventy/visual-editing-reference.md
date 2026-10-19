@@ -2,7 +2,7 @@
 
 What Eleventy does differently from the generic pattern reference in [../visual-editing-reference.md](../visual-editing-reference.md). Read sections on demand, when [visual-editing.md](visual-editing.md) links here — don't read it front to back.
 
-Targets `@cloudcannon/editable-regions` **v0.0.21** on Eleventy 3. Sections are about the Liquid path unless they say otherwise. [§ Data paths](#data-paths-in-eleventy), [§ Text regions and markdown](#text-regions-and-markdown-in-eleventy) and the empty-array guard in [§ `ENV_CLIENT`](#env_client-in-eleventy) apply to both paths, and [§ Nunjucks sites](#nunjucks-sites) only to Nunjucks. [overview.md § Which path the site takes](overview.md#which-path-the-site-takes) decides the path.
+Targets Eleventy 3. Sections are about the Liquid path unless they say otherwise. [§ Data paths](#data-paths-in-eleventy), [§ Text regions and markdown](#text-regions-and-markdown-in-eleventy) and the empty-array guard in [§ `ENV_CLIENT`](#env_client-in-eleventy) apply to both paths, and [§ Nunjucks sites](#nunjucks-sites) only to Nunjucks. [overview.md § Which path the site takes](overview.md#which-path-the-site-takes) decides the path.
 
 ## What the editor can re-render
 

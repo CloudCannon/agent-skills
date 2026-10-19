@@ -132,4 +132,4 @@ In Hugo the usual outcome is:
 
 ## 7. Sectioning recommendation
 
-Record total pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, **do not start Phase 2 yet** — read [../chunking.md](../chunking.md) and put a sectioning proposal to the user.
+Record total pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.

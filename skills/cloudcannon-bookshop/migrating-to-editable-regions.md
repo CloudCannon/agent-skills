@@ -19,7 +19,7 @@ Run these in order. Each ends with a build that matches the baseline.
 
 **Inside `migrate-to-cloudcannon`** — the site is joining CloudCannon in the same task — the steps land in its phases: step 1 in Phase 1, step 2 in Phase 2, steps 3 and 4 in Phase 3, step 5 in Phase 4, step 6 in Phase 5.
 
-**Large sites** — split the work across conversations as [migrate-to-cloudcannon/chunking.md](../migrate-to-cloudcannon/chunking.md) describes. Step 3 is one unit: don't split it.
+**Large sites** — run the steps in subagents as [migrate-to-cloudcannon/orchestration.md](../migrate-to-cloudcannon/orchestration.md) describes. Step 3 is one unit: don't split it.
 
 ## Baseline
 

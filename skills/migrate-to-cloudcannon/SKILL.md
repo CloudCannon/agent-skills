@@ -12,6 +12,8 @@ This skill orchestrates a full migration of an existing SSG site to CloudCannon.
 
 > **Model recommendation:** Migrations involve multi-file architectural decisions across five phases. Use a high-reasoning model (not a fast/lightweight one) for best results.
 
+**MUST:** run the migration as its orchestrator. Read [orchestration.md](orchestration.md) before Phase 1, then dispatch each phase to a subagent and keep the user conversation yourself. On a host without subagents, run the phases yourself in order.
+
 ## When to use
 
 - An existing SSG site needs to work with CloudCannon end to end
@@ -35,7 +37,7 @@ This skill orchestrates a full migration of an existing SSG site to CloudCannon.
 | [audit.md](audit.md)                                     | Shared audit rules — classifying static pages                            |
 | [page-building.md](page-building.md)                     | Read when the census sends pages to a `pages` collection or page builder |
 | [cc-friendly-conventions.md](cc-friendly-conventions.md) | Shared-UI treatment table                                                |
-| [chunking.md](chunking.md)                               | Splitting a large migration across several conversations                 |
+| [orchestration.md](orchestration.md)                     | Running phases in subagents, questions, verification, sizing             |
 | [handoff.md](handoff.md)                                 | Closing with the user — who tests what, and what to ask back             |
 | [reading-order.md](reading-order.md)                     | Which docs to read in which phase, and when to skip them                 |
 | [scripts/README.md](scripts/README.md)                   | Automation scripts for the deterministic steps                           |
@@ -79,23 +81,25 @@ Not every site needs all phases. Small sites may skip Phase 3 if content is alre
 
 ### Per-phase workflow
 
-For each phase, in order:
+The phase subagent does steps 1–4; the orchestrator does step 5. See [orchestration.md](orchestration.md).
 
 1. **Read** the phase doc end-to-end before touching any files.
 2. **Track** one task per checklist item in that phase doc, using the host's task/todo tool. If there is none, keep the checklist in the phase's migration note and tick items off there. Set the task `in_progress` before starting it; mark `completed` only when the checklist item is satisfied. Do not batch-complete tasks at the end of the phase.
-3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
-4. **Write** `.cloudcannon/migration/<phase>.md` documenting decisions, findings, and anything the user should review.
-5. **Check the handoff readiness row below.** If it's met, the phase is safe to hand off to a fresh conversation. Whether you actually open a fresh conversation is a judgment call (see [chunking.md](chunking.md)) — within one conversation, just continue.
+3. **Do the work** — small, mechanical cross-phase fixes (adding a missing field, normalizing a value) are fine in any phase; list each in the return. Structural changes (moving files, reorganizing collections, altering rendering) wait for their proper phase.
+4. **Write** `.cloudcannon/migration/<phase>.md` with findings, plus two sections later phases rely on:
+   - **Decisions and why** — each choice and the reason, so later phases follow it instead of re-deciding
+   - **Open questions** — non-blocking questions for the user, each with the default taken
+5. **Verify the handoff readiness row below**, by the orchestrator or a fresh verifier per [orchestration.md § Verification](orchestration.md#verification). Never by the subagent that did the phase.
 
 **Why:** checklists catch things agents otherwise skim past — data collections missing from `collections_config`, `data_config` entries missing for referenced data files, blog/detail page editables skipped while focusing on page-builder blocks, arrays not linked to structures. Per-item tracking makes the skim visible.
 
 ### Phase handoff readiness
 
-These rows define what must be true for a phase to be safely picked up by a fresh conversation. They are **not** walls inside one conversation — cross-phase fixes (per step 3 above) are still fine. They exist so a chunked migration's later runs have a clean starting point.
+These rows define what must be true before the next phase's subagent starts. Cross-phase fixes (per step 3 above) are still fine.
 
 | After phase           | Ready for handoff when…                                                                                                                                                                                                                                                                                                                                                                                         |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1. Audit**          | `.cloudcannon/migration/audit.md` exists, contains the census table, and lists every collection + every page route. Sectioning thresholds (below) have been evaluated; if tripped, `.cloudcannon/migration/plan.md` exists.                                                                                                                                                                                     |
+| **1. Audit**          | `.cloudcannon/migration/audit.md` exists, contains the census table, and lists every collection + every page route. Sizing thresholds ([orchestration.md § Sizing](orchestration.md#sizing)) have been evaluated; if tripped, `.cloudcannon/migration/plan.md` exists.                                                                                                                                          |
 | **2. Configuration**  | `cloudcannon.config.yml` validates against the published JSON schema (no IDE red squigglies). Every collection in the audit has a `collections_config` entry; every referenced data file has a `data_config` entry. `.cloudcannon/migration/configuration.md` written.                                                                                                                                          |
 | **3. Content**        | All structural content changes from Phase 2 are reflected in the files. `npm run build` (or project equivalent) succeeds. `.cloudcannon/migration/content.md` written.                                                                                                                                                                                                                                          |
 | **4. Visual editing** | Every audit census row with a yes in **Needs editable region?** has been wired or has a documented justification for not being wired. Every component used inside a wrapped section can re-render — registered (Astro: `registerComponents.ts`) or resolvable (Hugo: a partial; Eleventy: a Liquid include — Nunjucks sections use primitive regions only). `.cloudcannon/migration/visual-editing.md` written. |
