@@ -1,6 +1,6 @@
 # Visual Editing Workflow
 
-The SSG-agnostic half of the Phase 4 workflow: the section census, the completeness checklist and the pre-handoff sweep. Setup, infrastructure checks and each SSG's extra checklist items live in that SSG's `visual-editing.md` — [astro/visual-editing.md](astro/visual-editing.md), [hugo/visual-editing.md](hugo/visual-editing.md), [eleventy/visual-editing.md](eleventy/visual-editing.md). A **registered component** is a component the SSG's integration can re-render ([editable-regions.md § EditableComponent](editable-regions.md#editablecomponent)).
+The SSG-agnostic half of the Phase 4 workflow: the section census, the completeness checklist and the pre-handoff sweep. Setup, infrastructure checks and each SSG's extra checklist items live in that SSG's `visual-editing.md` — [astro/visual-editing.md](astro/visual-editing.md), [hugo/visual-editing.md](hugo/visual-editing.md), [eleventy/visual-editing.md](eleventy/visual-editing.md), [nextjs/visual-editing.md](nextjs/visual-editing.md). A **registered component** is a component the SSG's integration can re-render ([editable-regions.md § EditableComponent](editable-regions.md#editablecomponent)).
 
 ## Section census
 

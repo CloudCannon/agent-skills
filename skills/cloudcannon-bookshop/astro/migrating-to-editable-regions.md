@@ -133,7 +133,7 @@ Add the matching loop for a `vueComponents` or `svelteComponents` map.
 Register the `block-renderer` dispatcher too, if the site has one. A React, Vue or Svelte block renders from the `.astro` loop with no `client:` directive.
 
 **MUST:** give a React, Vue or Svelte component's region a wrapper around its root — the array-item `<div>` in the loop is one. Never put `data-component` on the component's own root.
-**Why:** `registerReactComponent`, `registerVueComponent` and `registerSvelteComponent` each render into a detached element and copy that element's children into the region host, so the host must be outside the component.
+**Why:** the region host must be outside the component — see [cloudcannon-visual-editing § React, Vue and Svelte components](../../cloudcannon-visual-editing/visual-editing-reference.md#react-vue-and-svelte-components).
 
 ## Props the dispatcher computed
 

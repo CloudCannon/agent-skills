@@ -1,6 +1,6 @@
 # Audit — shared rules
 
-The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md) — and links here for the decisions below.
+The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md), [nextjs/audit.md](nextjs/audit.md) — and links here for the decisions below.
 
 ## Classifying static pages
 

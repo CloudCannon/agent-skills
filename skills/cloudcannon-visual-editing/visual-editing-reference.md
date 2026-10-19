@@ -2,7 +2,7 @@
 
 Pattern reference for editable region types, data paths, component re-rendering, and edge cases. Read this doc on demand when a checklist item links here — don't read it front to back.
 
-Everything here is SSG-agnostic. For the region types, the full attribute table, and the custom-element equivalents, see [editable-regions.md](editable-regions.md). For the JavaScript API, see [editable-regions-internals.md](editable-regions-internals.md). For what differs in one stack, see that SSG's `visual-editing-reference.md` — Astro's is [astro/visual-editing-reference.md](astro/visual-editing-reference.md).
+Everything here is SSG-agnostic. For the region types, the full attribute table, and the custom-element equivalents, see [editable-regions.md](editable-regions.md). For the JavaScript API, see [editable-regions-internals.md](editable-regions-internals.md). For what differs in one stack, see that SSG's `visual-editing-reference.md` — [Astro](astro/visual-editing-reference.md), [Hugo](hugo/visual-editing-reference.md), [Eleventy](eleventy/visual-editing-reference.md), [Next.js](nextjs/visual-editing-reference.md).
 
 ## Quick rules — read before adding regions
 
@@ -55,7 +55,7 @@ Render two complete branches instead, each with its own static `data-prop`.
 | Conditional/computed output, style bindings | Register the component; wrap with `<editable-component>` | [When to use a component editable region](#when-to-use-data-editablecomponent)    |
 | Hardcoded string in a template              | `data-editable="source"` on a one-off page               | [Source editables for hardcoded content](#source-editables-for-hardcoded-content) |
 
-Components that fetch, submit forms, or load third-party scripts need an editor-mode branch rather than a region type — see [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic).
+Components that fetch, submit forms, or load third-party scripts need an editor-mode branch rather than a region type — see [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic) and, for React, Vue and Svelte, [§ React, Vue and Svelte components](#react-vue-and-svelte-components).
 
 ## Data-prop paths — pick one
 
@@ -565,7 +565,7 @@ Add an optional prop naming the image path, and only render the image region whe
 
 ## Component re-rendering
 
-For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro, partial lookup in Hugo, include lookup in Eleventy's Liquid; the resolved key is what `data-component` refers to.
+For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro and Next.js, partial lookup in Hugo, include lookup in Eleventy's Liquid; the resolved key is what `data-component` refers to.
 
 **What re-runs and what doesn't.** Registered components re-render in the browser with the props CloudCannon passes. Parent page-level logic does **not** re-run — top-level data loading in a page template, layout-level fetches, and anything else outside the component. If the component needs data its parent normally loads, pass it via props or load it inside the component.
 
@@ -580,6 +580,64 @@ Text and image regions provide the most value with the least complexity. Compone
 The access syntax differs per integration — a build-time environment value in some stacks, a template global in others. See your SSG's reference, and [editable-regions-internals.md § Detecting the Visual Editor](editable-regions-internals.md#detecting-the-visual-editor) for all three detection mechanisms and when each applies.
 
 **Components whose JS fights the editor** — carousels and animation libraries that manage their own DOM, components with shadow DOM that doesn't serialize cleanly, or anything too complex for the editor to re-render — need an editing fallback: a display-only component that resembles the real one and carries the editable attributes. The live site keeps the real component; only the editor's renderer is swapped. A fallback duplicates markup, so keep the two side by side and mirror structural changes.
+
+### React, Vue and Svelte components
+
+Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses. The calls go in the file the SSG's setup loads in editor mode — in Astro, `src/cloudcannon/registerComponents.ts`.
+
+| Import path                            | Function                                  |
+| -------------------------------------- | ----------------------------------------- |
+| `@cloudcannon/editable-regions/react`  | `registerReactComponent(key, component)`  |
+| `@cloudcannon/editable-regions/vue`    | `registerVueComponent(key, component)`    |
+| `@cloudcannon/editable-regions/svelte` | `registerSvelteComponent(key, component)` |
+
+```typescript
+import { registerReactComponent } from "@cloudcannon/editable-regions/react";
+import { registerVueComponent } from "@cloudcannon/editable-regions/vue";
+import { registerSvelteComponent } from "@cloudcannon/editable-regions/svelte";
+import Announcement from "@/components/Announcement";
+import Testimonial from "@/components/Testimonial.vue";
+import Pricing from "@/components/Pricing.svelte";
+
+registerReactComponent("announcement", Announcement);
+registerVueComponent("testimonial", Testimonial);
+registerSvelteComponent("pricing", Pricing);
+```
+
+Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [§ Where does the registration go](#where-does-the-registration-go--component-root-or-call-site).
+
+**State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
+
+To make nested content editable within a framework component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
+
+**Hydration gotcha.** Content inside a hydrated component can be overwritten when its framework hydrates. If an editable region modifies static server-rendered HTML but the framework then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by component state may not be a good candidate for inline editable regions.
+
+**Gate side effects with `window.inEditorMode`.** A component that fetches, submits forms, or loads third-party scripts renders the same markup in the editor but skips the API calls and script loads. Editable regions do not block runtime `fetch()`, but the preview iframe often differs from production (CORS, auth cookies, relative URLs); test in the Visual Editor if the UI depends on it.
+
+### Whole-page framework sites — the `EditableRegions` root
+
+Applies when React, Vue or Svelte renders and hydrates the whole page, from the root layout down. Sites that hydrate only islands inside static HTML don't use it.
+
+**MUST:** wrap every editable region on the page in one `EditableRegions` root, placed in the root layout.
+**Why:** the runtime connects regions as soon as it loads. A region with no editable ancestor connects as an orphan and writes its value into the DOM straight away, which can be before the framework hydrates that markup. Regions inside the root don't mount until the root connects, and the root connects only once its component has mounted, after hydration.
+
+Each framework entry point exports the root:
+
+| Import path                            | Export            | Connects in |
+| -------------------------------------- | ----------------- | ----------- |
+| `@cloudcannon/editable-regions/react`  | `EditableRegions` | `useEffect` |
+| `@cloudcannon/editable-regions/vue`    | `EditableRegions` | `onMounted` |
+| `@cloudcannon/editable-regions/svelte` | `EditableRegions` | `onMount`   |
+
+How it behaves:
+
+- It renders one element, set by the `tag` prop (default `div`), with `data-editable="_dynamic" data-prop=""`. Other props and attributes are forwarded, except `data-prop*` and `data-literal*`, which it drops.
+- The runtime's page scan skips `_dynamic` elements, so nothing connects the root except the component itself. If the runtime hasn't loaded when the component mounts, the root waits for the `editable-regions:load` event.
+- A region inside the root that connects first queues on the root element and stays unmounted. The root replays the queue when it connects.
+- `data-prop=""` binds the root to the current file, so `data-prop` paths inside it resolve exactly as they would at the top of the page.
+- The root disconnects when its component unmounts.
+
+Layout elements that render no regions, such as a component that only triggers the editor-only registration import, can sit outside the root.
 
 ## SSGs without component support
 

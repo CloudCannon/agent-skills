@@ -69,15 +69,15 @@ Not sure where to start? [ARCHITECTURE.md](ARCHITECTURE.md#which-skill-do-i-star
 
 Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory covering that SSG's differences.
 
-| Skill                        | Astro | Hugo | Eleventy |
-| ---------------------------- | ----- | ---- | -------- |
-| `migrate-to-cloudcannon`     | Yes   | Yes  | Yes      |
-| `make-site-multilingual`     | Yes   | Yes  | Yes      |
-| `cloudcannon-configuration`  | Yes   | Yes  | Yes      |
-| `cloudcannon-snippets`       | Yes   | Yes  | Yes      |
-| `cloudcannon-visual-editing` | Yes   | Yes  | Yes      |
-| `cloudcannon-bookshop`       | Yes   | Yes  | Yes      |
-| `cloudcannon-dev-server`     | Yes   | Yes  | Yes      |
+| Skill                        | Astro | Hugo | Eleventy | Next.js |
+| ---------------------------- | ----- | ---- | -------- | ------- |
+| `migrate-to-cloudcannon`     | Yes   | Yes  | Yes      | Partial |
+| `make-site-multilingual`     | Yes   | Yes  | Yes      | —       |
+| `cloudcannon-configuration`  | Yes   | Yes  | Yes      | Partial |
+| `cloudcannon-snippets`       | Yes   | Yes  | Yes      | Partial |
+| `cloudcannon-visual-editing` | Yes   | Yes  | Yes      | Partial |
+| `cloudcannon-bookshop`       | Yes   | Yes  | Yes      | —       |
+| `cloudcannon-dev-server`     | Yes   | Yes  | Yes      | Yes     |
 
 `cloudcannon-cli`, `cloudcannon-sdk`, `translate-site` and `brainstorming` are SSG-agnostic — they work the same everywhere and have no SSG directories.
 
@@ -85,7 +85,7 @@ Coverage is per skill: a skill supports an SSG once it has a `<ssg>/` directory 
 `cloudcannon configure detect-build-commands` for the build command and output directory, so it
 covers whatever the CLI covers. Anything it gets wrong, you pass yourself.
 
-"Partial" means the SSG directory exists but does not yet cover the whole workflow; each such file carries its own coverage note. More SSGs are planned — each gets a `<ssg>/` directory inside the skills that need one, never a skill of its own.
+"Partial" means the SSG directory exists but does not yet cover the whole workflow; each such file carries its own coverage note. A dash means the skill does not cover that SSG. More SSGs are planned — each gets a `<ssg>/` directory inside the skills that need one, never a skill of its own.
 
 ## How a migration works
 

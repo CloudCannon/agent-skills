@@ -94,6 +94,7 @@ Check this table before writing config. These are keys agents have written that 
 | Astro         | [astro/overview.md](astro/overview.md)       |
 | Hugo          | [hugo/overview.md](hugo/overview.md)         |
 | Eleventy      | [eleventy/overview.md](eleventy/overview.md) |
+| Next.js       | [nextjs/overview.md](nextjs/overview.md)     |
 
 **Other skills:**
 

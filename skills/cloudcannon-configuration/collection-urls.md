@@ -56,7 +56,7 @@ Common filters for URLs:
 
 **Nested keys and arrays** are supported: `{seo.description}` for nested objects, `{tags[0]}` for specific array items, `{tags[*]}` for all items (joined with `, `).
 
-**When to use data placeholders:** During the audit, check how the SSG generates output URLs. If the routing uses a frontmatter field (e.g. Astro's `getStaticPaths` returns `params: { slug: post.data.slug }`, or a Hugo page sets `slug:` or `url:` in front matter, rather than using the filename), use `{field}` in the CloudCannon `url`. Compare every file against its path in the build output (`dist/`, `public/`, `_site/`) -- if they don't match, the URL is frontmatter-driven.
+**When to use data placeholders:** During the audit, check how the SSG generates output URLs. If the routing uses a frontmatter field (e.g. Astro's `getStaticPaths` returns `params: { slug: post.data.slug }`, or a Hugo page sets `slug:` or `url:` in front matter, rather than using the filename), use `{field}` in the CloudCannon `url`. Compare every file against its path in the build output (`dist/`, `public/`, `_site/`, `out/`) -- if they don't match, the URL is frontmatter-driven.
 
 ## Content in subdirectories within a collection
 
@@ -99,8 +99,8 @@ Then check where the excluded file lands. A collection whose `path` is a parent 
 
 If a page doesn't load in the visual editor:
 
-1. **Check the `url` pattern** -- compare the configured URL against the actual build output (`dist/`, `public/`, `_site/`). The most common issues are wrong placeholders (`[slug]` vs `{slug}`) and wrong prefix paths.
-2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`; Eleventy: none, only a `permalink` ending in a file name).
+1. **Check the `url` pattern** -- compare the configured URL against the actual build output (`dist/`, `public/`, `_site/`, `out/`). The most common issues are wrong placeholders (`[slug]` vs `{slug}`) and wrong prefix paths.
+2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`; Eleventy: none, only a `permalink` ending in a file name; Next.js: `trailingSlash`).
 3. **Check fixed vs data placeholders** -- `[slug]` is the filename; `{slug}` is the frontmatter `slug` field. If the SSG uses a frontmatter field for routing, you need curly braces.
 4. **Build and inspect** -- when in doubt, build the site and inspect the output directory to see the actual output paths.
 
@@ -109,3 +109,4 @@ If a page doesn't load in the visual editor:
 - **Astro**: [astro/collection-urls.md](astro/collection-urls.md) — glob loader `slug` override, trailing slash rules.
 - **Hugo**: [hugo/collection-urls.md](hugo/collection-urls.md) — `[full_slug]`, `_index.md`, page bundles, overlapping collections.
 - **Eleventy**: [eleventy/collection-urls.md](eleventy/collection-urls.md) — default paths, `permalink` front matter and directory data files, `--to=json`.
+- **Next.js**: [nextjs/collection-urls.md](nextjs/collection-urls.md) — route segments, `trailingSlash`, `.html` paths, the home page.

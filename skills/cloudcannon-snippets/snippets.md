@@ -34,7 +34,7 @@ Root-level config keys that relate to snippets:
 
 Most migrations only need `_snippets`.
 
-`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#_snippets_imports-can-match-unintended-content). The exception is a pre-built snippet only an import provides, imported by name — [Hugo's built-in shortcodes](hugo/overview.md#built-in-shortcodes), [Eleventy's `{% raw %}` tag](eleventy/overview.md#raw-tags-in-content). Import handling in MDX content is an SSG concern: use `astro-auto-import` (or equivalent) — see [astro/overview.md § Auto-import](astro/overview.md#auto-import-keeping-import-statements-out-of-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
+`_snippets_imports` exists but should not be used during migrations — see [gotchas.md § Do not use `_snippets_imports` during migrations](gotchas.md#_snippets_imports-can-match-unintended-content). The exception is a pre-built snippet only an import provides, imported by name — [Hugo's built-in shortcodes](hugo/overview.md#built-in-shortcodes), [Eleventy's `{% raw %}` tag](eleventy/overview.md#raw-tags-in-content). Import handling in MDX content is an SSG concern — see [§ MDX components in content](#mdx-components-in-content). For built-in **templates** vs the **import bundle**, see [built-in-templates.md](built-in-templates.md).
 
 ---
 
@@ -87,11 +87,67 @@ _editables:
 
 ---
 
+## MDX components in content
+
+Rules for any site whose content files use MDX component tags. The SSG's `overview.md` gives the route for each rule on that SSG.
+
+### No imports in content, one shared components map
+
+**MUST:** keep `import` lines out of content files, and resolve every component from one shared place that every MDX render uses.
+**Why:** the Content Editor shows the raw file, so editors see import statements as text.
+
+The shared place is the SSG's auto-import mechanism where it has one. Otherwise it is one components map in a single file, passed at every render site.
+
+**MUST:** when components come from a map passed at render time, pass the same map at every render site — pages, listings, feeds, search indexes, anywhere an entry renders. List the render sites with a grep and check each one.
+**Why:** a missed site fails with `Expected component X to be defined`, often on only one page type, and a build that never renders that page type passes.
+
+### Every component must be accounted for
+
+Every component used in MDX content must either have a `_snippets` entry or the file must be restricted to source/data editor only (`_enabled_editors: [source, data]`). There is no middle ground — an unconfigured component shows as a broken/unrecognizable element in the content editor. "Demo content", "only used once", or "not worth configuring" are not valid reasons to skip.
+
+**Preference order:** Define `_snippets` first so the content editor can parse, offer toolbar inserts, and round-trip the markup. Well-configured snippets are the right default for MDX body content; `_enabled_editors: [source, data]` is a **last resort** after you are confident no reasonable snippet plus component refactor can represent the pattern. Document what you tried and why snippets are not viable in the migration notes.
+
+**Try first:**
+
+- Self-closing components with string/number/boolean props (Button, Youtube, Video)
+- Paired components with simple inner content and a few props (Notice, Accordion)
+- Nested tag trees that map to parsers: `repeating` for patterns like `<Tabs><Tab>…</Tab></Tabs>`, `content` for rich inner regions, raw `snippet` strings for literal SSG directives
+- Components editors should insert from the toolbar — including components with no author-editable props (still add a minimal snippet so the content editor recognizes them)
+- Refactor before giving up: move JS expressions and derived values inside the component; expose only props you can describe with `_inputs`. Wrap or thin-wrap third-party components when possible so MDX only passes simple values
+
+**Nesting:** Depth alone does not disqualify a pattern. What matters is whether the tree is **regular and mappable** to snippet parsers (often one parent snippet with `repeating` children). Deep but repetitive structure may still be one snippet. Hard cases are **arbitrary or unbounded** child trees that do not match a repeating or fixed-slot model.
+
+**Source/data only when (high bar):**
+
+- Shapes that still cannot be captured with template, raw, `repeating`, and `content` parsers after a genuine snippet attempt
+- Prop payloads that remain unmappable after simplifying the component API and `_inputs` — not "looks complex at a glance"
+- Vendor components you cannot wrap, where MDX usage cannot be narrowed to a representable subset
+- Verified round-trip or parsing failures with a prototype snippet — not a default when MDX contains expressions (refactor those into the component first)
+
+For files restricted to source/data editor, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
+
+### Component inventory grep
+
+**MUST:** before declaring snippets done, list every component tag used in content and check each has a `_snippets` entry:
+
+```bash
+rg -oN '<[A-Z][A-Za-z.]*' -g '*.mdx' -g '!node_modules' . | sed 's/.*://' | sort -u
+```
+
+Add `-g '*.md'` when the SSG compiles `.md` files as MDX. Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [source, data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
+
+---
+
 ## Raw snippets for inline HTML in `.md` files
 
 Snippets aren't just for MDX components. Plain `.md` content files often contain HTML blocks that have no markdown equivalent -- `<figure>` with `<figcaption>`, `<video>`, `<details>`/`<summary>`, `<iframe>`, etc. Without a snippet config, editors see raw HTML in the content editor. With a snippet, they get a structured panel with named fields.
 
 No MDX integration or auto-import setup is needed. Raw snippets match the HTML pattern directly in the source text. For `key_values` format requirements, see [raw.md § key_values](raw.md#key_values--keyvalue-pairs).
+
+### The renderer must pass HTML through
+
+**MUST:** check the site's markdown renderer outputs raw HTML before adding HTML snippets.
+**Why:** markdown-it escapes HTML unless created with `html: true`, and react-markdown drops it without `rehype-raw`. The markup a snippet inserts then prints as text or disappears from the page.
 
 ### When to create an HTML snippet
 
@@ -280,3 +336,4 @@ If a rich text field contains structured HTML with a fixed layout and only a few
 - Astro: [astro/overview.md](astro/overview.md)
 - Hugo: [hugo/overview.md](hugo/overview.md)
 - Eleventy: [eleventy/overview.md](eleventy/overview.md)
+- Next.js: [nextjs/overview.md](nextjs/overview.md)

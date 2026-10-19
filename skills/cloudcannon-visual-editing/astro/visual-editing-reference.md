@@ -491,28 +491,7 @@ Import only the renderers for frameworks the site uses — each pulls its framew
 
 #### React, Vue and Svelte components
 
-Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses:
-
-```typescript
-import { registerReactComponent } from "@cloudcannon/editable-regions/react";
-import { registerVueComponent } from "@cloudcannon/editable-regions/vue";
-import { registerSvelteComponent } from "@cloudcannon/editable-regions/svelte";
-import Announcement from "@/components/Announcement";
-import Testimonial from "@/components/Testimonial.vue";
-import Pricing from "@/components/Pricing.svelte";
-
-registerReactComponent("announcement", Announcement);
-registerVueComponent("testimonial", Testimonial);
-registerSvelteComponent("pricing", Pricing);
-```
-
-Each function mounts the component into a detached `<div>` and copies that `<div>`'s children into the region host, so the host is always outside the component → [base § Where does the registration go](../visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
-
-**State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
-
-To make nested content editable within a framework component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
-
-**Hydration gotcha.** Content inside a hydrated island (`client:*`) can be overwritten when its framework hydrates. If an editable region modifies static server-rendered HTML but the framework then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by component state may not be a good candidate for inline editable regions.
+Register a top-level React, Vue or Svelte component in `registerComponents.ts` with its framework's function — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) for the functions, the root-wrapper rule, state resets, the hydration gotcha and editor-mode gating. In Astro, the hydration gotcha applies to content inside an island with a `client:*` directive.
 
 #### Editing fallbacks (Solid, or complex components)
 
@@ -554,14 +533,13 @@ registerAstroComponent("announcement", AnnouncementDisplay);
 - **Solid components** — these throw runtime errors in editable regions, even nested inside supported wrappers.
 - **Components with complex DOM management** (Swiper carousels and similar) — their JS conflicts with editable region DOM manipulation.
 - **Server-only APIs** — `getImage` from `astro:assets`, or `fetch` to external APIs at render time. Guard with `ENV_CLIENT` for a simplified client-side path that skips optimization.
-- **React, Vue and Svelte islands** that fetch, submit forms, or load third-party scripts — gate with `window.inEditorMode`, rendering the same markup but skipping API calls and script loads.
+- **React, Vue and Svelte islands** that fetch, submit forms, or load third-party scripts — gate with `window.inEditorMode` → [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components).
 
 ### Astro-specific caveats on component regions
 
 - Astro components importing `astro:content` or `astro:assets` need the integration's Vite plugin, which shims those modules for client-side rendering.
 - React, Vue or Svelte components inside registered Astro components (e.g. `react-icons`) need that framework's renderer import (see [Non-Astro framework components](#non-astro-framework-components)). Without it, the re-render fails with "NoMatchingRenderer". Each renderer's `check` only claims components of its own framework, so import order doesn't matter. `NoMatchingRenderer` has a second cause no renderer fixes: SVG files imported as components. See [SVG component imports](#module-compatibility-in-the-editable-regions-client-bundle).
 - There is no Solid renderer; Solid components always error and must be converted or given fallbacks.
-- **Runtime `fetch()` in islands** isn't blocked by editable-regions, but preview iframes often differ from production (CORS, auth cookies, relative URLs). Test in the visual editor if the UI depends on it.
 
 ## How the Astro integration works
 
