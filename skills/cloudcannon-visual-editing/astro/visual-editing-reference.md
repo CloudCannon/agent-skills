@@ -487,24 +487,32 @@ import "@cloudcannon/editable-regions/astro-svelte-renderer";
 
 Import only the renderers for frameworks the site uses — each pulls its framework into the editor bundle. A component with a `client:*` directive is mounted in the browser after the re-render rather than rendered to a string, so it shows its client-side state, not the server output.
 
-To register a React, Vue or Svelte component as a top-level editable component, use that framework's integration (`registerReactComponent`, `registerVueComponent`, `registerSvelteComponent` from `@cloudcannon/editable-regions/react`, `/vue`, `/svelte`).
-
 **Solid has no renderer.** Convert Solid components — to `.astro` unless the component needs complex client-side state, otherwise to another supported framework — or keep the original and use `ENV_CLIENT` to render an [editing fallback](#editing-fallbacks-solid-or-complex-components).
 
-#### React components
+#### React, Vue and Svelte components
 
-React components should generally stay as React. Use `registerReactComponent`:
+Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses:
 
 ```typescript
 import { registerReactComponent } from "@cloudcannon/editable-regions/react";
+import { registerVueComponent } from "@cloudcannon/editable-regions/vue";
+import { registerSvelteComponent } from "@cloudcannon/editable-regions/svelte";
 import Announcement from "@/components/Announcement";
+import Testimonial from "@/components/Testimonial.vue";
+import Pricing from "@/components/Pricing.svelte";
 
 registerReactComponent("announcement", Announcement);
+registerVueComponent("testimonial", Testimonial);
+registerSvelteComponent("pricing", Pricing);
 ```
 
-To make nested content editable within a React component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
+Each function mounts the component into a detached `<div>` and copies that `<div>`'s children into the region host, so the host is always outside the component → [base § Where does the registration go](../visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
 
-**Hydration gotcha.** Content inside a React island's hydrated DOM can be overwritten when React rehydrates. If an editable region modifies static server-rendered HTML but React then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by React state may not be a good candidate for inline editable regions.
+**State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
+
+To make nested content editable within a framework component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
+
+**Hydration gotcha.** Content inside a hydrated island (`client:*`) can be overwritten when its framework hydrates. If an editable region modifies static server-rendered HTML but the framework then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by component state may not be a good candidate for inline editable regions.
 
 #### Editing fallbacks (Solid, or complex components)
 
@@ -546,7 +554,7 @@ registerAstroComponent("announcement", AnnouncementDisplay);
 - **Solid components** — these throw runtime errors in editable regions, even nested inside supported wrappers.
 - **Components with complex DOM management** (Swiper carousels and similar) — their JS conflicts with editable region DOM manipulation.
 - **Server-only APIs** — `getImage` from `astro:assets`, or `fetch` to external APIs at render time. Guard with `ENV_CLIENT` for a simplified client-side path that skips optimization.
-- **React islands** that fetch, submit forms, or load third-party scripts — gate with `window.inEditorMode`, rendering the same markup but skipping API calls and script loads.
+- **React, Vue and Svelte islands** that fetch, submit forms, or load third-party scripts — gate with `window.inEditorMode`, rendering the same markup but skipping API calls and script loads.
 
 ### Astro-specific caveats on component regions
 
@@ -572,7 +580,7 @@ Without this, Astro components importing from `astro:content` or `astro:assets` 
 1. Constructs a fake Astro `SSRResult` (renderers, metadata, crypto key for server islands, slot handling).
 2. Calls Astro's `renderToString()` in the browser with the new props.
 3. Parses the resulting HTML into a document fragment.
-4. Triggers any queued client-side renders (React islands use `data-editable-region-csr-id`).
+4. Triggers any queued client-side renders (React, Vue and Svelte islands use `data-editable-region-csr-id`).
 5. Strips Astro scaffolding (`<astro-island>`, `<link>`, server island metadata).
 6. Returns the clean HTML element.
 

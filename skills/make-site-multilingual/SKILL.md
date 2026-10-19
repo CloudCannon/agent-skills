@@ -37,10 +37,10 @@ Step-by-step workflow for making a single-language site translatable with **Rose
 | [migrating-from-i18n.md](migrating-from-i18n.md)           | Replacing an existing i18n system, before the main workflow                 |
 | [rcc-v1-to-v2-upgrade.md](rcc-v1-to-v2-upgrade.md)         | Moving a site from RCC v1 to v2 — an alternative to the main workflow       |
 | [astro/overview.md](astro/overview.md)                     | Astro implementations, plus the Astro i18n migration supplement             |
-| [eleventy/overview.md](eleventy/overview.md)               | Eleventy implementations, incl. taxonomy scoping and link localization      |
 | [hugo/overview.md](hugo/overview.md)                       | Hugo: choosing one of three setups, root derivation, setup C (Rosey only)   |
 | [hugo/native-multilingual.md](hugo/native-multilingual.md) | Hugo setup A: Hugo languages and `i18n` tables, no Rosey                    |
 | [hugo/hybrid.md](hugo/hybrid.md)                           | Hugo setup B: Hugo languages for content, Rosey for UI strings              |
+| [eleventy/overview.md](eleventy/overview.md)               | Eleventy implementations, incl. taxonomy scoping and link localization      |
 | [scripts/fix-rosey-pages.mjs](scripts/fix-rosey-pages.mjs) | Postbuild fix for canonical and `og:url` on Rosey-generated pages           |
 
 ## The two layers
@@ -65,11 +65,11 @@ The bulk of this skill (tagging, the pipeline, locale files) is the required Ros
 
 After auditing the site (Phase 1), identify the SSG and read the matching `<ssg>/overview.md` for framework-specific implementation details:
 
-| SSG             | File to read           |
-| --------------- | ---------------------- |
-| Astro           | `astro/overview.md`    |
-| Eleventy (11ty) | `eleventy/overview.md` |
-| Hugo            | `hugo/overview.md`     |
+| SSG             | File to read                                 |
+| --------------- | -------------------------------------------- |
+| Astro           | [astro/overview.md](astro/overview.md)       |
+| Hugo            | [hugo/overview.md](hugo/overview.md)         |
+| Eleventy (11ty) | [eleventy/overview.md](eleventy/overview.md) |
 
 **Hugo: read `hugo/overview.md` before Phase 2.** It asks which of three setups the site needs, and one of them (Hugo's own multilingual system) replaces the Rosey workflow entirely.
 

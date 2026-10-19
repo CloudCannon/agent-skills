@@ -1,4 +1,4 @@
-# Hugo Migration Guide
+# Migration (Hugo) — entry point
 
 Guidance for migrating a Hugo site to CloudCannon. Follow the phases in order. Before starting, run [../scripts/audit-hugo.sh](../scripts/audit-hugo.sh) to gather site information automatically.
 

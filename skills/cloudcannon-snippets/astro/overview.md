@@ -1,4 +1,4 @@
-# Snippets (Astro)
+# Snippets (Astro) — entry point
 
 Guidance for configuring CloudCannon snippets for MDX components in an Astro site. Read the cross-SSG [snippets overview](../snippets.md) first for CC snippet concepts and reference. This page complements that overview’s template-based vs raw discussion by focusing on the **Astro + MDX** stack (content shape, auto-import, and Astro-specific raw patterns such as `client:load`).
 

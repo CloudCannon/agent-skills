@@ -108,7 +108,7 @@ Nav and footer sit **outside** `<main>` and so have no `data-rosey-root` ancesto
 
 Strip leading/trailing slashes and fall back to `"index"` for the home page. Provide an explicit override for routes where the derivation can't be right (taxonomy terms, split-by-directory locale pages — see Phase 8 step 5).
 
-**Read the SSG-specific file** (`astro/overview.md`, `eleventy/overview.md`, `hugo/overview.md`) for the exact expression.
+**Read your SSG's `overview.md`** ([SKILL.md § SSG detection](SKILL.md#ssg-detection-and-framework-specific-guidance)) for the exact expression.
 
 ## 3f. Component integration: auto-derive `data-rosey` (optional)
 

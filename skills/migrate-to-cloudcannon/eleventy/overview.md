@@ -1,4 +1,4 @@
-# Eleventy Migration Guide
+# Migration (Eleventy) — entry point
 
 Guidance for migrating an Eleventy site to CloudCannon. Follow the phases in order. Before starting, run the [quick checks](#quick-checks) below to gather site information.
 

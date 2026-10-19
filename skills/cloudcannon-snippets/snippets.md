@@ -7,7 +7,7 @@ Snippets let editors insert and edit complex markup (components, shortcodes, emb
 - **SSG layer**: The component implementation, how it's imported/registered, build directives (`client:load` in Astro, etc.). This is what makes the component work at build time.
 - **CloudCannon layer**: The `_snippets` config that teaches the Content Editor the component's syntax — its name, attributes, whether it wraps content, and what editor inputs to show. This is purely for the editing experience.
 
-Agents must handle both layers during a migration, but keep them conceptually separate. SSG-specific snippet guidance lives in each SSG's `overview.md` — [Astro](astro/overview.md), [Hugo](hugo/overview.md), [Eleventy](eleventy/overview.md).
+Agents must handle both layers during a migration, but keep them conceptually separate. SSG-specific snippet guidance lives in each SSG's `overview.md`, listed in [SKILL.md § Contents](SKILL.md#contents).
 
 ---
 
