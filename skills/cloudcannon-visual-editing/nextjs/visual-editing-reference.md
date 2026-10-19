@@ -23,10 +23,7 @@ The JSX types for `editable-*` elements come with the `/react` entry point and n
 **MUST:** keep every registered component, and everything it imports, client-safe: no `async` component, no `node:fs`, no `server-only`, no `next/headers`, no `useRouter`. Its data comes only through props.
 **Why:** the gated import in `CloudCannonEditor` puts the component map in the client bundle. A registered component doesn't need `"use client"`, because being imported from there already makes it client code.
 
-The editor re-renders each registered component in its own React root, outside Next's app router:
-
-- `useRouter` throws `invariant expected app router to be mounted` there (`next/dist/client/components/navigation.js`, line 149).
-- `<Link>` skips client navigation and prefetching, so a click is a plain `<a>` page load (`next/dist/client/app-dir/link.js`, line 316).
+The editor re-renders each registered component in its own React root, outside Next's app router, where `useRouter` throws `invariant expected app router to be mounted` (`next/dist/client/components/navigation.js`, line 149).
 
 | Component                                                                | Treatment                                                                                                                                   |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -109,13 +106,4 @@ Render blocks from the same `blockMap` that `componentMap` spreads in, so a bloc
 
 ## Source editables in Next.js
 
-**MUST:** limit source regions in a `.tsx` route file to `data-type="span"` around plain text, with no JSX expressions, child components or tags inside.
-**Why:** an edit writes the region's new contents into the file as markup. A rich text edit writes HTML such as `<br>`, which isn't valid JSX, and the first edit replaces any expression or component.
-
-```tsx
-<h1 data-editable="source" data-path="app/about/page.tsx" data-key="about-title" data-type="span">
-  About us
-</h1>
-```
-
-The collection that lets editors open a route file is in [configuration.md § Route files](../../cloudcannon-configuration/nextjs/configuration.md#route-files-tsx).
+Route files take no source regions — see [configuration.md § Route files](../../cloudcannon-configuration/nextjs/configuration.md#route-files).

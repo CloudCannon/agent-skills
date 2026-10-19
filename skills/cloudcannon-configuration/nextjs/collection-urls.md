@@ -24,6 +24,15 @@ The URL must match the built path exactly. Check `trailingSlash` in `next.config
 | unset or `false` | `out/blog/my-post.html`       | `/blog/[slug].html` |
 | `true`           | `out/blog/my-post/index.html` | `/blog/[slug]/`     |
 
+## Internal links
+
+With `trailingSlash` unset or `false`, CloudCannon hosting serves `/about` from `out/about.html` and returns 404 for `/about/`.
+
+- **`<Link>`** strips a trailing slash from its `href`, so `<Link href="/about/">` works (`normalizePathTrailingSlash` in `next/dist/client/normalize-trailing-slash.js`).
+- **A plain `<a>`** keeps the slash and returns 404. This covers links in markdown bodies, and data-file hrefs rendered without `<Link>`.
+
+Write those links without the trailing slash, or set `trailingSlash: true` so the build writes `out/about/index.html`.
+
 ## The home page
 
 The home page builds at `out/index.html` with either `trailingSlash` setting. Name its content file `index.md`; how `[slug]` treats `index` is in [../collection-urls.md § Fixed placeholders](../collection-urls.md#fixed-placeholders).

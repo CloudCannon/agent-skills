@@ -5,7 +5,7 @@ Read [../build.md](../build.md) first, and work through its checklist. This file
 ## Export settings
 
 - **Set** `output: "export"`, and `images` when the site uses `next/image` — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export). `next build` then writes the whole site to `out/`, or to `distDir` when set.
-- **Keep** the site's `trailingSlash`. It decides the built path of every page and the collection `url` patterns — see [cloudcannon-configuration/nextjs/collection-urls.md § Trailing slash rule](../../cloudcannon-configuration/nextjs/collection-urls.md#trailing-slash-rule). Changing the setting changes every public URL, so **ask the user** first.
+- **Keep** the site's `trailingSlash`. It decides the built path of every page and the collection `url` patterns — see [cloudcannon-configuration/nextjs/collection-urls.md § Trailing slash rule](../../cloudcannon-configuration/nextjs/collection-urls.md#trailing-slash-rule). Changing the setting changes every public URL, so **ask the user** first. With it off, internal links outside `<Link>` go without a trailing slash — see [§ Internal links](../../cloudcannon-configuration/nextjs/collection-urls.md#internal-links).
 - **Remove** `rewrites`, `redirects` and `headers` once the audit has a replacement for each. Export ignores them.
 
 ## Build verification checklist

@@ -13,13 +13,13 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg nex
 
 ## Review the generated config
 
-| Key or area                | What the CLI produces                                                  | Fix                                                                                             |
-| -------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `collections_config.*.url` | **Nothing.** No collection gets a `url`                                | Add one to every collection that builds pages — see [collection-urls.md](collection-urls.md)    |
-| `app` collection           | A collection over the route directory                                  | Remove it. Route files open only through source regions — see [§ Route files](#route-files-tsx) |
-| `paths`                    | `static: ''`, `uploads: uploads`                                       | `static: public`, and `uploads` a folder under `public/` — see [§ Images](#images)              |
-| `build.build_command`      | `npm run build`, or `npx next build && npx next export` with no script | `npx next build` when there is no `build` script. `next export` exits with an error             |
-| `build.node_version`       | Omitted, even when `.nvmrc` exists                                     | Apply the rule in [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson)      |
+| Key or area                | What the CLI produces                                                  | Fix                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `collections_config.*.url` | **Nothing.** No collection gets a `url`                                | Add one to every collection that builds pages — see [collection-urls.md](collection-urls.md) |
+| `app` collection           | A collection over the route directory                                  | Remove it — see [§ Route files](#route-files)                                                |
+| `paths`                    | `static: ''`, `uploads: uploads`                                       | `static: public`, and `uploads` a folder under `public/` — see [§ Images](#images)           |
+| `build.build_command`      | `npm run build`, or `npx next build && npx next export` with no script | `npx next build` when there is no `build` script. `next export` exits with an error          |
+| `build.node_version`       | Omitted, even when `.nvmrc` exists                                     | Apply the rule in [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson)   |
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
@@ -58,26 +58,10 @@ Content usually sits in a folder at the repository root (`content/pages`, `conte
 **MUST NOT:** let editors create a file that no route builds. Set `disable_add: true` on a collection when each of its files has its own hard-coded route (`app/about/page.tsx` calling `getPage("about")`).
 **Why:** a static export builds only the paths the routes list. A new file builds only when a dynamic route's `generateStaticParams` reads the folder; with one route per file it never builds, and the Visual Editor has no page to open.
 
-## Route files (`.tsx`)
+## Route files
 
-`page.tsx` and other route files aren't content. Editors reach their text only through source regions (`data-editable="source"`) — see [visual-editing-reference.md § When to use source editables](../../cloudcannon-visual-editing/visual-editing-reference.md#when-to-use-source-editables). Give the route files that have source regions their own collection, with a glob naming only those files:
-
-```yaml
-collections_config:
-  source_pages:
-    path: app/contact
-    glob:
-      - page.tsx
-    url: /contact.html
-    include_developer_files: true
-    disable_add: true
-    disable_add_folder: true
-    disable_file_actions: true
-    _enabled_editors:
-      - visual
-```
-
-For several route files, set `path: app` and list each (`contact/page.tsx`), with `url: "/[relative_base_path].html"`. The URL follows the `trailingSlash` setting like any other — see [collection-urls.md](collection-urls.md). `app/page.tsx` sits at the collection root, so `[relative_base_path]` is empty and the pattern computes `/.html`, which isn't the home page's path. Give it its own collection with `url: /`, as in the single-file example above.
+**MUST NOT:** give route files (`page.tsx`, `layout.tsx`) a collection or source regions.
+**Why:** the Visual Editor doesn't open `.tsx` files. Move text editors change into a content or data file — see [migrate-to-cloudcannon/nextjs/content.md § Content in route files](../../migrate-to-cloudcannon/nextjs/content.md#content-in-route-files).
 
 ## Data files
 
@@ -108,7 +92,7 @@ Use the folder the site already keeps images in under `public/`. An image import
 - [ ] `build.build_command` contains no `next export`
 - [ ] `next.config` sets `output: "export"`
 - [ ] `next.config` sets `images.unoptimized` (or a custom loader) if any file imports `next/image`
-- [ ] No collection over `app/` except one naming route files with source regions
+- [ ] No collection over `app/`
 - [ ] Collections whose files each have a hard-coded route have `disable_add: true`
 - [ ] Every collection that builds pages has a `url` matching `out/` for every file — see [collection-urls.md](collection-urls.md)
 - [ ] `paths.static` is `public`, and `paths.uploads` sits under it

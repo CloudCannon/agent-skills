@@ -90,6 +90,8 @@ Text written into JSX and arrays declared in `page.tsx` move into the page's con
 
 Strip JSX artifacts from the extracted text: `{" "}`, `{"'"}`, `&apos;` and similar escapes are meaningless in YAML.
 
+A link moved into a markdown body renders as a plain `<a>`, so its trailing slash follows [cloudcannon-configuration/nextjs/collection-urls.md § Internal links](../../cloudcannon-configuration/nextjs/collection-urls.md#internal-links).
+
 ## MDX
 
 - **MDX route files** (`app/blog/hello/page.mdx`) move into a content folder (`content/blog/hello.mdx`) and render through a `[slug]` route, so editors find posts in one collection.

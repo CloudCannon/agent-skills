@@ -30,7 +30,7 @@ Also record:
 - **Next version** in `package.json`, and Node from `.nvmrc` or `engines` — the Node requirement is in [cloudcannon-configuration/nextjs/configuration.md § Build settings](../../cloudcannon-configuration/nextjs/configuration.md#build-settings-cloudcannoninitial-site-settingsjson).
 - **`output`** — already `"export"`, or unset. Unset with none of the blockers above means Phase 5 adds it.
 - **`distDir`** — names the output directory; see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
-- **`trailingSlash`** — decides the built path of every page, and so every collection `url`; see [cloudcannon-configuration/nextjs/collection-urls.md](../../cloudcannon-configuration/nextjs/collection-urls.md#trailing-slash-rule).
+- **`trailingSlash`** — decides the built path of every page, and so every collection `url`; see [cloudcannon-configuration/nextjs/collection-urls.md](../../cloudcannon-configuration/nextjs/collection-urls.md#trailing-slash-rule). When it's off, list internal links ending in `/` outside `<Link>`; they return 404 — see [§ Internal links](../../cloudcannon-configuration/nextjs/collection-urls.md#internal-links).
 - **`basePath`** — the site is served from a sub-path; see [cloudcannon-configuration/nextjs/collection-urls.md § `basePath`](../../cloudcannon-configuration/nextjs/collection-urls.md#basepath).
 - **`src/` directory** — whether the app lives at `app/` or `src/app/`. Paths below use `app/`.
 
@@ -100,13 +100,14 @@ That section's two follow-on censuses in Next.js form:
 
 In Next.js the usual outcome is:
 
-| Page                                                        | Pattern                                                                                                    |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Home page and marketing pages built from section components | Page builder — `content_blocks` in a file under `content/pages/`; see [page-building.md](page-building.md) |
-| Blog posts, docs, case studies                              | Fixed-schema collection, rendered by a `[slug]` route                                                      |
-| Listing pages with an editable intro                        | A file in the `pages` collection with its own schema                                                       |
-| Legal and policy pages                                      | Markdown body in the `pages` collection                                                                    |
-| `not-found.tsx`, `sitemap.ts`, feeds                        | Leave as code                                                                                              |
+| Page                                                        | Pattern                                                                                                                                                                                                           |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home page and marketing pages built from section components | Page builder — `content_blocks` in a file under `content/pages/`; see [page-building.md](page-building.md)                                                                                                        |
+| Blog posts, docs, case studies                              | Fixed-schema collection, rendered by a `[slug]` route                                                                                                                                                             |
+| Listing pages with an editable intro                        | A file in the `pages` collection with its own schema                                                                                                                                                              |
+| Legal and policy pages                                      | Markdown body in the `pages` collection                                                                                                                                                                           |
+| One-off page with hard-coded text                           | A file in the `pages` collection; route files take no source regions — see [cloudcannon-configuration/nextjs/configuration.md § Route files](../../cloudcannon-configuration/nextjs/configuration.md#route-files) |
+| `not-found.tsx`, `sitemap.ts`, feeds                        | Leave as code                                                                                                                                                                                                     |
 
 ## 5. Build pipeline
 
