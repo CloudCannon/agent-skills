@@ -30,7 +30,7 @@ Use a relative path for the `import()` — `@cloudcannon/...` looks like an npm 
 
 **Astro 4 compatibility:** The integration requires Astro 5+. For Astro 4, skip the integration — `data-editable` HTML attributes still work but component re-rendering is not available. See [visual-editing-reference.md § How the Astro integration works](visual-editing-reference.md#how-the-astro-integration-works).
 
-When the site uses a page builder with a `BlockRenderer`, create a shared `src/cloudcannon/componentMap.ts` — see [visual-editing-reference.md § Component re-rendering](visual-editing-reference.md#component-re-rendering).
+When the site uses a page builder with a `BlockRenderer`, create a shared `src/cloudcannon/componentMap.ts` — see [visual-editing-reference.md § BlockRenderer architecture](visual-editing-reference.md#blockrenderer-architecture).
 
 ### Package exports reference
 
@@ -58,6 +58,7 @@ Run through these after setup, before starting on editable regions:
 - [ ] The `editableRegions()` integration is in the `integrations` array in `astro.config.mjs` (inside the array, not after it)
 - [ ] `src/cloudcannon/registerComponents.ts` exists with commented-out examples
 - [ ] Base layout conditionally imports `registerComponents` inside `if (window.inEditorMode)`
+- [ ] `registerComponents.ts` imports `@cloudcannon/editable-regions/astro-<framework>-renderer` for each framework the site uses → [Non-Astro framework components](visual-editing-reference.md#non-astro-framework-components)
 - [ ] If `astro-icon` is installed, the `src/icons/` directory exists (it fails the build without it, even if empty)
 - [ ] Every registered component, and everything it renders, has been grepped for `Astro.` reads other than `props`, `slots` and `request` — nothing else exists in a re-render, and the failure is invisible at build time → [Runtime shims](visual-editing-reference.md#how-the-astro-integration-works)
 - [ ] Every registered component, and everything it renders, has been grepped for `.svg` imports — SVG component imports throw `NoMatchingRenderer` in a re-render; use `?raw` + `set:html` → [SVG component imports](visual-editing-reference.md#module-compatibility-in-the-editable-regions-client-bundle)
