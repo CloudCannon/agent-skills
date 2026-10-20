@@ -29,7 +29,7 @@ Preventative one-line rules for Rosey/RCC sites. Symptom-driven diagnosis lives 
 - **Rosey rewrites root-relative `<a href>` on every locale page**, generated or pre-existing — but not absolute URLs, relative URLs, extensioned paths or `data-rosey-ignore` links. Emit root-relative internal links and let Rosey prefix them (Phase 8 step 7).
 - **Rosey 2.3.10 decodes one level of HTML entities in values containing markup.** A keyed body with code samples (`&lt;head&gt;`) breaks on every locale page. Don't key elements that contain escaped markup ([troubleshooting](troubleshooting.md#code-samples-break-on-locale-pages)).
 - **Rosey copies the head verbatim onto generated pages and writes no sitemap.** Canonical, `og:url` and alias redirects keep the default-language URL until the Phase 4 fix script runs.
-- **Import the RCC from `/_rcc/client.mjs`** unless the framework bundles the layout's scripts. A bare package import never resolves in the browser on Eleventy, Hugo or Jekyll (Phase 5a).
+- **Import the RCC from `/_rcc/client.mjs`** unless the framework bundles the layout's scripts. A bare package import never resolves in the browser on Hugo, Eleventy or Jekyll (Phase 5a).
 - **Suppress `data-rosey` on frontmatter-driven fields in shared split-by-directory templates**, or Rosey overwrites the natively-translated content.
 - **Split-by-directory slugs come from the filename, never the translated title** — one URL path per post across every locale (Phase 8 step 3).
 - **Scope every content query to one locale once per-locale directories exist** — ambient queries build fine and quietly mix languages (Phase 8 step 6).
@@ -48,4 +48,4 @@ Preventative one-line rules for Rosey/RCC sites. Symptom-driven diagnosis lives 
 
 ## SSG-specific gotchas
 
-Framework-specific gotchas live in `astro/overview.md`, `eleventy/overview.md`, `hugo/overview.md`. Read the one matching your project.
+Framework-specific gotchas live in your SSG's `overview.md` — see [SKILL.md § SSG detection](SKILL.md#ssg-detection-and-framework-specific-guidance).

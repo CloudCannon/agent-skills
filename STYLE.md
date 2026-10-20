@@ -25,7 +25,7 @@ There are exactly two axes, and each is expressed differently:
 
 **MUST:** state the generic rule in the skill-root file. `<ssg>/<same-name>.md` carries only what differs, and links back to the base in its opening line.
 
-**MUST:** give every `<ssg>/` directory an `overview.md` — the entry point an agent reads first. It gives the reading order, including which root files apply unchanged.
+**MUST:** give every `<ssg>/` directory an `overview.md` — the entry point an agent reads first. It gives the reading order, including which root files apply unchanged. Its title reads `<Topic> (<SSG>) — entry point`, for example `Bookshop (Hugo) — entry point`.
 
 **MUST NOT:** restate a base rule inside an SSG file for convenience.
 
@@ -150,9 +150,13 @@ The full list of skills and their tiers is in [ARCHITECTURE.md § Skills by tier
 
 Then:
 
-- Add a row to the SSG detection table in each affected `SKILL.md`
-- Add a row to the coverage matrix in [README.md](README.md)
-- Add the new files to the file map in [ARCHITECTURE.md](ARCHITECTURE.md)
+- Add a row to the SSG table in each affected `SKILL.md`, and `Contents` rows for the new files where the skill lists `<ssg>/` files
+- Add a column to the table in [migrate-to-cloudcannon/SKILL.md § Cross-references for known pitfalls](skills/migrate-to-cloudcannon/SKILL.md#cross-references-for-known-pitfalls)
+- Grep the `SKILL.md` frontmatter `description`s for an existing SSG's name, and add the new SSG to each that names SSGs; those names drive skill matching
+- Grep the skills' root files for an existing SSG's name, and add the new SSG wherever each SSG has its own entry, such as the build commands in `migrate-to-cloudcannon/handoff.md`
+- Add a column to the coverage matrix in [README.md](README.md#ssg-coverage)
+- Add the SSG to `keywords` in `.claude-plugin/plugin.json`
+- Add the new files to the file map in [ARCHITECTURE.md](ARCHITECTURE.md#file-map)
 - Run `npm run check`
 
 ## Writing style
@@ -161,7 +165,7 @@ Then:
 
 - **Front-load the rule, defer the reason.** First sentence states the rule imperatively. Second sentence (or a `**Why:**` line) explains. No multi-paragraph preambles before a rule.
 - **One canonical source per rule.** If a rule appears in 2+ files, one file owns it and the others link. Summary tables in `SKILL.md` entrypoints link to deep-dives; they do not re-explain.
-- **One canonical source per list.** Don't write out a list of skills, files or SSGs that the repo or another doc already holds. Point to that source, or state the rule that produces the list ("every skill with an `<ssg>/` directory"). A copied list goes stale the next time something is added.
+- **One canonical source per list.** Don't write out a list of skills, files or SSGs that the repo or another doc already holds. Point to that source, or state the rule that produces the list ("every skill with an `<ssg>/` directory"). A copied list goes stale the next time something is added. Supported SSGs are listed in the [README coverage matrix](README.md#ssg-coverage), and inside a skill in its `SKILL.md` SSG table; wherever SSGs appear side by side, use the matrix's column order.
 - **Tables for if/then logic.** Any prose shaped like "if X do Y; if Z do W" becomes a table with columns for condition, action, and (if useful) reason or when-to-use.
 - **A table cell holds a sentence at most.** A cell that needs a paragraph is a section disguised as a table — write it as a section, and link to it from the table if needed.
 - **Checklists for procedures.** Imperative bullets starting with a verb — `Run`, `Verify`, `Remove`, `Add`. No narrative intros ("First, let's…", "Now we need to…").

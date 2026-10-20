@@ -2,7 +2,7 @@
 
 Which docs to read, in which phase, and when to skip them. The phases themselves are in [SKILL.md](SKILL.md).
 
-`<ssg>` is the directory for the detected SSG — `astro`, `hugo` or `eleventy` (see [SKILL.md § Supported SSGs](SKILL.md#supported-ssgs)). A file listed under `<ssg>/` that does not exist for your SSG is not needed for it.
+`<ssg>` is the directory for the detected SSG, listed in [SKILL.md § Supported SSGs](SKILL.md#supported-ssgs). A file listed under `<ssg>/` that does not exist for your SSG is not needed for it.
 
 ## Per-phase reading order
 

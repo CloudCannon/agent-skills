@@ -1,4 +1,4 @@
-# Astro Migration Guide
+# Migration (Astro) — entry point
 
 Guidance for migrating an Astro site to CloudCannon. Follow the phases in order. Before starting, run any available audit scripts in [../scripts/](../scripts/) to gather site information automatically.
 

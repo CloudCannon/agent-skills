@@ -1,4 +1,4 @@
-# Hugo-Specific Patterns
+# Multilingual (Hugo) — entry point
 
 Framework-specific implementation details for making a Hugo site multilingual. Read alongside [`setup.md`](../setup.md) and [`tagging.md`](../tagging.md). **Choose a setup (below) before Phase 2**: on Hugo the choice decides whether the rest of `setup.md` applies at all.
 

@@ -30,7 +30,7 @@ Any one signal means the site uses Bookshop.
 
 | Signal                                                                   | Where                                                                      |
 | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `bookshop/bookshop.config.{js,cjs}`                                      | `component-library/` (Hugo, Jekyll, Eleventy) or `src/` (Astro)            |
+| `bookshop/bookshop.config.{js,cjs}`                                      | `src/` (Astro) or `component-library/` (Hugo, Eleventy, Jekyll)            |
 | `*.bookshop.{yml,yaml,toml,json,js,cjs}` beside each component           | `component-library/components/` or `src/components/`                       |
 | `@bookshop/*` packages                                                   | `package.json`, in `dependencies` or `devDependencies`                     |
 | `npx @bookshop/generate`                                                 | `.cloudcannon/postbuild`                                                   |

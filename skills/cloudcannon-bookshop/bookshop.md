@@ -8,7 +8,7 @@ The concepts every Bookshop site shares. Template syntax and file locations diff
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Component library     | A directory of components, each a template plus a `*.bookshop.yml` (and optionally a `.scss`). Its root is the parent of `bookshop/bookshop.config.cjs` |
 | `bookshop.config.cjs` | Names the live-editing engine (`engines: { "@bookshop/hugo-engine": {} }`) and optional `ignoreFilePatterns`                                            |
-| The SSG plugin        | Lets the site's templates render library components — a Hugo module, an Astro integration, a Jekyll gem, an Eleventy plugin                             |
+| The SSG plugin        | Lets the site's templates render library components — an Astro integration, a Hugo module, an Eleventy plugin, a Jekyll gem                             |
 | `@bookshop/generate`  | Runs in `.cloudcannon/postbuild`, after the site builds. Writes `_structures` into the build output and injects the live-editing script                 |
 | The live engine       | A browser build of the SSG's renderer that re-renders components in the Visual Editor as the editor types                                               |
 | `_bookshop_name`      | The key in front matter that names which component a block is                                                                                           |

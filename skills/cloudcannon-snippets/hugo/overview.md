@@ -1,4 +1,4 @@
-# Snippets (Hugo)
+# Snippets (Hugo) — entry point
 
 Hugo-specific snippet guidance: shortcodes in the Content Editor. The cross-SSG model — the SSG layer vs the CloudCannon layer, `_snippets` properties, toolbar setup, raw HTML snippets — is in [../snippets.md](../snippets.md). Read that first.
 

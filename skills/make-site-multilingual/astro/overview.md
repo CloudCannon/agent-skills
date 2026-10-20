@@ -1,4 +1,4 @@
-# Astro-Specific Patterns
+# Multilingual (Astro) — entry point
 
 Framework-specific implementation details for making an Astro site multilingual with Rosey/RCC/CloudCannon. Read alongside [`setup.md`](../setup.md) and [`tagging.md`](../tagging.md). The last section covers **migrating an Astro site off its existing i18n system** — the Astro supplement to [`migrating-from-i18n.md`](../migrating-from-i18n.md).
 

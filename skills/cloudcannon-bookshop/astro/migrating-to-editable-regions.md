@@ -43,7 +43,7 @@ export const reactComponents = byBookshopName(
 export const componentMap = { ...astroComponents, ...reactComponents };
 ```
 
-Glob only the extensions the old dispatcher globbed. Keep the two maps apart for registration — see [§ Registering the components](#registering-the-components).
+Glob only the extensions the old dispatcher globbed. Keep the maps apart for registration — see [§ Registering the components](#registering-the-components).
 
 The eager glob imports every file it matches, and each imported component's CSS then reaches every page that uses the map. Narrow the glob pattern — not the loop — if that weight matters.
 
@@ -109,13 +109,13 @@ const Component = componentMap[Astro.props._type];
 
 ## Registering the components
 
-Loop over the maps in `registerComponents.ts`, each with its own function:
+Loop over the maps in `registerComponents.ts`, each with its own function → [visual editing § BlockRenderer architecture](../../cloudcannon-visual-editing/astro/visual-editing-reference.md#blockrenderer-architecture):
 
-| Component type                               | Register with                                                                                                   |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `.astro`                                     | `registerAstroComponent(name, component)` from `@cloudcannon/editable-regions/astro`                            |
-| `.astro` that renders React (icons, buttons) | The same, plus `import "@cloudcannon/editable-regions/astro-react-renderer"` first                              |
-| `.jsx` / `.tsx`                              | `registerReactComponent(name, component)` from `@cloudcannon/editable-regions/react` — keep the blocks as React |
+| Component type                             | Register with                                                                                                   |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `.astro`                                   | `registerAstroComponent(name, component)` from `@cloudcannon/editable-regions/astro`                            |
+| `.astro` that renders React, Vue or Svelte | The same, plus that framework's `import "@cloudcannon/editable-regions/astro-<framework>-renderer"` first       |
+| `.jsx` / `.tsx`                            | `registerReactComponent(name, component)` from `@cloudcannon/editable-regions/react` — keep the blocks as React |
 
 ```ts
 import { registerAstroComponent } from "@cloudcannon/editable-regions/astro";
@@ -128,8 +128,7 @@ for (const [name, c] of Object.entries(reactComponents)) registerReactComponent(
 
 Register the `block-renderer` dispatcher too, if the site has one. A React block renders from the `.astro` loop with no `client:` directive.
 
-**MUST:** give a React component's region a wrapper around its root — the array-item `<div>` in the loop is one. Never put `data-component` on the React component's own root.
-**Why:** `registerReactComponent` renders into a detached element and copies that element's children into the region host, so the host must be outside the component.
+A React block's region host sits outside the component, as the array-item `<div>` in the loop does → [base § Where does the registration go](../../cloudcannon-visual-editing/visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
 
 ## Props the dispatcher computed
 

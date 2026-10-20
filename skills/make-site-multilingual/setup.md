@@ -14,7 +14,7 @@ Before touching code, understand what needs to be translated.
    - Text in global data files (navigation labels, footer text, company info)
    - Hardcoded strings in template files
 
-2. **Identify the build output directory.** Common values: `dist/`, `_site/`, `public/` (Hugo), `build/`, `out/`. Check the framework config (e.g., `astro.config.mjs`, `eleventy.js`, Hugo's `publishDir`). Paths below say `dist/` — substitute your output directory.
+2. **Identify the build output directory.** Common values: `dist/`, `public/` (Hugo), `_site/`, `build/`, `out/`. Check the framework config (e.g., `astro.config.mjs`, Hugo's `publishDir`, `eleventy.js`). Paths below say `dist/` — substitute your output directory.
 
 3. **Map out the page/content structure.** Understand how pages are generated — dynamic routes, content collections, data-driven pages, page-builder arrays. This determines how you set `data-rosey-root` and `data-rosey-ns` values.
 
@@ -216,7 +216,7 @@ Lazy-load the RCC so it only runs inside the CloudCannon editor. Place it in `<b
 </script>
 ```
 
-**MUST import the URL, not the package name, unless the framework bundles this script.** `install-client` (Phase 4) puts the file at `/_rcc/client.mjs`. A bare `import("rosey-cloudcannon-connector")` only resolves where a bundler processes the layout's scripts; on Eleventy, Hugo and Jekyll the browser can't resolve it, and the RCC never loads. On a bundled framework, the SSG file says whether you can use the bare specifier and skip `install-client`.
+**MUST import the URL, not the package name, unless the framework bundles this script.** `install-client` (Phase 4) puts the file at `/_rcc/client.mjs`. A bare `import("rosey-cloudcannon-connector")` only resolves where a bundler processes the layout's scripts; on Hugo, Eleventy and Jekyll the browser can't resolve it, and the RCC never loads. On a bundled framework, the SSG file says whether you can use the bare specifier and skip `install-client`.
 
 ### 5b. Set the snapshot boundary
 

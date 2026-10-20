@@ -73,16 +73,16 @@ astro/content.md                        Phase 3: Zod schema, .astro extraction, 
 astro/build.md                          Phase 5: cache, bundle and typography checks
 astro/page-building.md                  Phase 2/4: catch-all route, Zod union, BlockRenderer
 astro/cc-friendly-conventions.md        Pre-migration scaffolding conventions
-eleventy/overview.md                    ENTRY POINT for Eleventy — phase links, quick checks
-eleventy/audit.md                       Phase 1: site analysis, parity baseline, sectioning
-eleventy/content.md                     Phase 3: page files, directory data, computed data, data files
-eleventy/build.md                       Phase 5: parity checks, build command
-eleventy/page-building.md               Phase 2/4: block includes, dispatcher, page files
 hugo/overview.md                        ENTRY POINT for Hugo — phase links
 hugo/audit.md                           Phase 1: site analysis
 hugo/content.md                         Phase 3: file conventions, page bundles, data files
 hugo/build.md                           Phase 5: parity checks, build command table
 hugo/page-building.md                   Phase 2/4: pages collection, content_blocks dispatcher
+eleventy/overview.md                    ENTRY POINT for Eleventy — phase links, quick checks
+eleventy/audit.md                       Phase 1: site analysis, parity baseline, sectioning
+eleventy/content.md                     Phase 3: page files, directory data, computed data, data files
+eleventy/build.md                       Phase 5: parity checks, build command
+eleventy/page-building.md               Phase 2/4: block includes, dispatcher, page files
 scripts/*.sh                            Automation (audit-astro, audit-hugo)
 
 ── make-site-multilingual (journey) ──────────────────────────
@@ -94,10 +94,10 @@ troubleshooting.md                      Symptom → cause → fix for builds tha
 migrating-from-i18n.md                  Replacing an existing i18n system, before setup
 rcc-v1-to-v2-upgrade.md                 RCC v1 → v2, an alternative to setup
 astro/overview.md                       Astro: root derivation, head/SEO, taxonomy routes
-eleventy/overview.md                    Eleventy: tagging, taxonomy scoping, link localization
 hugo/overview.md                        Hugo: choosing a setup (A/B/C), shared rules, setup C
 hugo/native-multilingual.md             Hugo setup A: Hugo languages + i18n tables, no Rosey
 hugo/hybrid.md                          Hugo setup B: Hugo languages for content, Rosey for UI
+eleventy/overview.md                    Eleventy: tagging, taxonomy scoping, link localization
 scripts/fix-rosey-pages.mjs             Postbuild: canonical, og:url, alias redirects
 
 ── cloudcannon-configuration (capability) ────────────────────
@@ -116,14 +116,14 @@ astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/configuration.md                  Astro: build values, Zod schema unions, image paths
 astro/collection-urls.md                Astro: glob-loader slug, trailingSlash
 astro/configuration-gotchas.md          Astro: .astro pages, TypeScript config, Zod unions
-eleventy/overview.md                    ENTRY POINT for Eleventy — reading order
-eleventy/configuration.md               Eleventy: CLI baseline fixes, collections, data files, images
-eleventy/collection-urls.md             Eleventy: default paths, permalink front matter and directory data
-eleventy/configuration-gotchas.md       Eleventy: rich text inputs per template engine
 hugo/overview.md                        ENTRY POINT for Hugo — reading order
 hugo/configuration.md                   Hugo: CLI baseline fixes, section collections, site config as data, build
 hugo/collection-urls.md                 Hugo: [full_slug], page bundles, _index.md, permalinks
 hugo/configuration-gotchas.md           Hugo: Goldmark, taxonomies, quoted numbers, front matter
+eleventy/overview.md                    ENTRY POINT for Eleventy — reading order
+eleventy/configuration.md               Eleventy: CLI baseline fixes, collections, data files, images
+eleventy/collection-urls.md             Eleventy: default paths, permalink front matter and directory data
+eleventy/configuration-gotchas.md       Eleventy: rich text inputs per template engine
 
 ── cloudcannon-snippets (capability) ─────────────────────────
 SKILL.md                                ENTRY POINT — when/why/which approach
@@ -134,8 +134,8 @@ built-in-templates.md                   MDX templates vs import bundle, parser i
 gotchas.md                              Preventative rules — pitfalls and workarounds
 troubleshooting.md                      Symptom index, routing to the rule that owns each fix
 astro/overview.md                       ENTRY POINT for Astro — MDX stack, auto-import
-eleventy/overview.md                    ENTRY POINT for Eleventy — shortcodes, includes, raw tags
 hugo/overview.md                        ENTRY POINT for Hugo — shortcodes, built-in imports
+eleventy/overview.md                    ENTRY POINT for Eleventy — shortcodes, includes, raw tags
 
 ── cloudcannon-visual-editing (capability) ───────────────────
 SKILL.md                                ENTRY POINT — region types, workflow, checklist
@@ -147,14 +147,14 @@ astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
 astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not read front to back
 astro/troubleshooting.md                Astro: symptom → fix
-eleventy/overview.md                    ENTRY POINT for Eleventy — Liquid or Nunjucks path, reading order
-eleventy/visual-editing.md              Phase 4: plugin setup per path, infrastructure checklist, local checks
-eleventy/visual-editing-reference.md    ON DEMAND — includes as components, the config in the browser, Nunjucks
-eleventy/troubleshooting.md             Eleventy: symptom → fix
 hugo/overview.md                        ENTRY POINT for Hugo — reading order
 hugo/visual-editing.md                  Phase 4: module setup, infrastructure checklist, Hugo items, local checks
 hugo/visual-editing-reference.md        ON DEMAND — partials-only re-render, ENV_CLIENT, editor's Hugo
 hugo/troubleshooting.md                 Hugo: symptom → fix
+eleventy/overview.md                    ENTRY POINT for Eleventy — Liquid or Nunjucks path, reading order
+eleventy/visual-editing.md              Phase 4: plugin setup per path, infrastructure checklist, local checks
+eleventy/visual-editing-reference.md    ON DEMAND — includes as components, the config in the browser, Nunjucks
+eleventy/troubleshooting.md             Eleventy: symptom → fix
 scripts/setup-editable-regions-astro.sh Astro only — installs package, wires Astro integration
 
 ── cloudcannon-bookshop (capability) ─────────────────────────
@@ -167,14 +167,14 @@ astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/bookshop.md                       Astro: bookshop:live, the integration, the glob dispatcher
 astro/migrating-to-editable-regions.md  Astro: components, dispatcher and integration swaps
 astro/troubleshooting.md                Astro: symptom → fix
-eleventy/overview.md                    ENTRY POINT for Eleventy — reading order
-eleventy/bookshop.md                    Eleventy: where things live, template tags, live editing
-eleventy/migrating-to-editable-regions.md Eleventy: include moves, tag rewrites, structure files, plugin removal
-eleventy/troubleshooting.md             Eleventy: symptom → fix
 hugo/overview.md                        ENTRY POINT for Hugo — reading order
 hugo/bookshop.md                        Hugo: the bookshop partials, the module, env_bookshop_live
 hugo/migrating-to-editable-regions.md   Hugo: partial moves, call rewrites, component SCSS, module swap
 hugo/troubleshooting.md                 Hugo: symptom → fix
+eleventy/overview.md                    ENTRY POINT for Eleventy — reading order
+eleventy/bookshop.md                    Eleventy: where things live, template tags, live editing
+eleventy/migrating-to-editable-regions.md Eleventy: include moves, tag rewrites, structure files, plugin removal
+eleventy/troubleshooting.md             Eleventy: symptom → fix
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

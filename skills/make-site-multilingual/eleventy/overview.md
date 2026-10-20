@@ -1,4 +1,4 @@
-# Eleventy-Specific Patterns
+# Multilingual (Eleventy) — entry point
 
 Framework-specific implementation details for making an Eleventy (11ty) site multilingual with Rosey/RCC/CloudCannon. Read alongside [`setup.md`](../setup.md) and [`tagging.md`](../tagging.md).
 
