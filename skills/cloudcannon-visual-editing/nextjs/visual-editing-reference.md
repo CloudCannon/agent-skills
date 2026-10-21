@@ -1,29 +1,24 @@
 # Visual Editing Reference (Next.js)
 
-Next.js deltas from [../visual-editing-reference.md](../visual-editing-reference.md). Read a section when a checklist item in [visual-editing.md](visual-editing.md) links here.
-
-## Markup in JSX
-
-Server components emit region attributes and `editable-*` custom elements as plain JSX. `data-prop` values are static strings.
-
-```tsx
-<h1 data-editable="text" data-type="span" data-prop="title">
-  {page.data.title}
-</h1>
-
-<editable-component data-component="call-to-action" data-prop="@data[cta]">
-  <CallToAction {...cta} />
-</editable-component>
-```
-
-The JSX types for `editable-*` elements come with the `/react` entry point and need no setup.
+Next.js deltas from [../visual-editing-reference.md](../visual-editing-reference.md). Markup in JSX, rich text hosts and `<template>` blueprints follow [../react/visual-editing-reference.md](../react/visual-editing-reference.md). Read a section when a checklist item in [visual-editing.md](visual-editing.md) links here.
 
 ## Registered components
 
 **MUST:** keep every registered component, and everything it imports, client-safe: no `async` component, no `node:fs`, no `server-only`, no `next/headers`, no `useRouter`. Its data comes only through props.
 **Why:** the gated import in `CloudCannonEditor` puts the component map in the client bundle. A registered component doesn't need `"use client"`, because being imported from there already makes it client code.
 
-The editor re-renders each registered component in its own React root, outside Next's app router, where `useRouter` throws `invariant expected app router to be mounted` (`next/dist/client/components/navigation.js`, line 149).
+In the Pages Router every component is client code, and server-side data loading happens only in a page file's `getStaticProps` and `getStaticPaths`. A component that renders from props there is already client-safe; one that imports `node:fs` or a loader module directly is not.
+
+The editor re-renders each registered component in its own React root, outside Next's router:
+
+| Call inside a registered component    | In the editor                                        |
+| ------------------------------------- | ---------------------------------------------------- |
+| `useRouter` from `next/navigation`    | Throws `invariant expected app router to be mounted` |
+| `useRouter` from `next/router`        | Throws `NextRouter was not mounted`                  |
+| `useRouter` from `next/compat/router` | Returns `null`                                       |
+| `<Link>` from `next/link`             | Renders its `<a>` without the router                 |
+
+Pass the current path or query in as props instead of reading the router.
 
 | Component                                                                | Treatment                                                                                                                                   |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -33,7 +28,7 @@ The editor re-renders each registered component in its own React root, outside N
 
 A header that imports `data/nav.json` and renders `@data[nav]` regions is the typical unregistered case.
 
-Keep the map in `app/cloudcannon/componentMap.ts`, keyed by the `data-component` value:
+Keep the map in `app/cloudcannon/componentMap.ts` (Pages Router: `cloudcannon/componentMap.js` beside `pages/`), keyed by the `data-component` value:
 
 ```ts
 import type { ComponentType } from "react";
@@ -59,46 +54,39 @@ export const componentMap: Record<string, ComponentType<any>> = {
 
 Next.js has no `ENV_CLIENT`. Registered components render in the site's own client bundle, so there is no separate editor build to branch on. Use `window.inEditorMode` in client code and `.cms-editor-active` in CSS — see [../editable-regions-internals.md § Detecting the Visual Editor](../editable-regions-internals.md#detecting-the-visual-editor).
 
-## Text editing in Next.js
+## MDX bodies
 
-Pass rendered HTML to a rich text region through `dangerouslySetInnerHTML` on the region host itself:
+Render the MDX component as the children of the `@content` region, in either router. Editing the body text, editing a snippet's props and adding a snippet all save into the `.mdx` file, and components in the body show as snippets.
 
-```tsx
-<div
-  data-editable="text"
-  data-type="block"
-  data-prop="@content"
-  dangerouslySetInnerHTML={{ __html: page.html }}
-/>
-```
+App Router with `@next/mdx`:
 
-Use a `<p>` host with `data-type="text"` for inline markdown, and a `<div>` for `data-type="block"` and `@content`.
-
-## Array blueprints in Next.js
-
-**MUST:** render `<template>` blueprints with `dangerouslySetInnerHTML`, never as JSX children.
-**Why:** the editor reads a blueprint from `template.content`. React children never reach it, so the blueprint stays empty and its row stays in the live DOM, which floods the editor with "array item has no parent" errors.
-
-```tsx
-export default function RawTemplate({ html }: { html: string }) {
-  return <template dangerouslySetInnerHTML={{ __html: html }} />;
+```jsx
+// app/blog/[slug]/page.jsx
+export default async function Post({ params }) {
+  const { slug } = await params;
+  const { default: Body } = await import(`../../../content/blog/${slug}.mdx`);
+  return (
+    <div data-editable="text" data-type="block" data-prop="@content">
+      <Body />
+    </div>
+  );
 }
 ```
 
-Write each blueprint as an HTML string next to the rows it mirrors:
+Pages Router with `next-mdx-remote`:
 
-```tsx
-const TAG_BLUEPRINT = `<li data-editable="array-item"><editable-text data-prop=""></editable-text></li>`;
-
-<ul data-editable="array" data-prop="tags">
-  {page.data.tags.map((tag: string) => (
-    <li key={tag} data-editable="array-item">
-      <editable-text data-prop="">{tag}</editable-text>
-    </li>
-  ))}
-  <RawTemplate html={TAG_BLUEPRINT} />
-</ul>;
+```jsx
+// pages/blog/[slug].jsx
+export default function Post({ source }) {
+  return (
+    <div data-editable="text" data-type="block" data-prop="@content">
+      <MDXRemote {...source} components={mdxComponents} />
+    </div>
+  );
+}
 ```
+
+`getStaticProps` and the shared components map are in [cloudcannon-snippets/nextjs/overview.md § `next-mdx-remote`](../../cloudcannon-snippets/nextjs/overview.md#next-mdx-remote), along with the snippet configuration.
 
 ## Page builder blocks in Next.js
 
@@ -106,4 +94,4 @@ Render blocks from the same `blockMap` that `componentMap` spreads in, so a bloc
 
 ## Source editables in Next.js
 
-Route files take no source regions — see [configuration.md § Route files](../../cloudcannon-configuration/nextjs/configuration.md#route-files).
+**MUST NOT:** put source regions in route files. The Visual Editor doesn't open them — see [configuration.md § Route files](../../cloudcannon-configuration/nextjs/configuration.md#route-files).

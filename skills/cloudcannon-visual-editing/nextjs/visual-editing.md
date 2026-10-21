@@ -1,10 +1,21 @@
 # Visual Editing (Next.js)
 
-Workflow for adding CloudCannon Visual Editor support to a statically exported Next.js App Router site using `@cloudcannon/editable-regions`. The generic patterns behind these checks live in [../visual-editing-reference.md](../visual-editing-reference.md), and Next.js's deltas from them in [visual-editing-reference.md](visual-editing-reference.md) — read sections on demand as checklist items link to them. For the region types and attribute reference, see [../editable-regions.md](../editable-regions.md).
+Workflow for adding CloudCannon Visual Editor support to a statically exported Next.js site, on the App Router or the Pages Router, using `@cloudcannon/editable-regions`. The generic patterns behind these checks live in [../visual-editing-reference.md](../visual-editing-reference.md), React's rules in [../react/visual-editing-reference.md](../react/visual-editing-reference.md), and Next.js's deltas in [visual-editing-reference.md](visual-editing-reference.md) — read sections on demand as checklist items link to them. For the region types and attribute reference, see [../editable-regions.md](../editable-regions.md).
+
+If `package.json` lists `@cloudcannon/react-connector`, work through [§ Sites using the React connector](#sites-using-the-react-connector) as part of setup.
 
 ## Setup steps
 
-The paths below assume `app/` at the site root. Keep the same layout relative to wherever the site's `app/` lives.
+The steps use App Router paths, with `app/` at the site root. Keep the same layout relative to wherever the site's `app/` lives. A Pages Router site puts the same files here:
+
+| File                                      | App Router                             | Pages Router                                                 |
+| ----------------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
+| `EditableRegions` and `CloudCannonEditor` | `app/layout.tsx`                       | `pages/_app.(js\|jsx\|tsx)` — create it if the site has none |
+| `CloudCannonEditor`                       | `app/components/CloudCannonEditor.tsx` | `components/CloudCannonEditor.jsx`                           |
+| `componentMap`, `registerComponents`      | `app/cloudcannon/`                     | `cloudcannon/` beside `pages/`                               |
+
+**MUST NOT:** put the registration files, or any other non-route module, under `pages/`.
+**Why:** every file under `pages/` with an extension in `pageExtensions` becomes a route, so `next build` tries to export it as a page.
 
 1. **Install** the package:
 
@@ -36,6 +47,24 @@ The paths below assume `app/` at the site root. Keep the same layout relative to
    }
    ```
 
+   In the Pages Router, wrap the page component in `pages/_app.jsx`. The page's own layout component, with its header and footer, renders inside `<Component>`, so it sits inside the root too:
+
+   ```jsx
+   import { EditableRegions } from "@cloudcannon/editable-regions/react";
+   import CloudCannonEditor from "../components/CloudCannonEditor";
+
+   export default function App({ Component, pageProps }) {
+     return (
+       <>
+         <EditableRegions tag="div">
+           <Component {...pageProps} />
+         </EditableRegions>
+         <CloudCannonEditor />
+       </>
+     );
+   }
+   ```
+
 3. **Create** `app/components/CloudCannonEditor.tsx`. It renders nothing and imports the registration file only inside the Visual Editor:
 
    ```tsx
@@ -54,6 +83,8 @@ The paths below assume `app/` at the site root. Keep the same layout relative to
      return null;
    }
    ```
+
+   In the Pages Router, the directive has no effect, since every component there is client code. In a `.jsx` file, drop the type cast: `if (!window.inEditorMode) return;`.
 
    The dynamic `import()` puts the registration code, and every component it imports, in a chunk that production page loads never request. Use a relative path: `@cloudcannon/...` looks like an npm scope and resolves to the package, not your local file.
 
@@ -80,13 +111,13 @@ Register components from the gated import, not from top-level imports in a clien
 | ------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `@cloudcannon/editable-regions/react` | `EditableRegions` root for the layout, and `registerReactComponent()` for component re-rendering |
 
-Importing it anywhere, as the layout does, brings in the JSX types for the `editable-*` custom elements.
+It also brings in the JSX types for `editable-*` elements → [../react/visual-editing-reference.md § Markup in JSX](../react/visual-editing-reference.md#markup-in-jsx).
 
 ## Section census
 
 > **Hard gate.** Do not write a `data-editable` attribute in a page template until a section census exists at `.cloudcannon/migration/visual-editing.md` and covers every key page. The one exception, new page-builder blocks written in Phase 3, is in [../visual-editing.md § Section census](../visual-editing.md#section-census).
 
-The census format — columns, treatments, binding plans and the `sidebar-only` rules — is in [../visual-editing.md § Section census](../visual-editing.md#section-census). In Next.js, a registered component is one in `app/cloudcannon/componentMap.ts`, and a loop is a `.map()`. A section rendered by a component that loads its own data can't be a `component` treatment as it stands — see [visual-editing-reference.md § Registered components](visual-editing-reference.md#registered-components).
+The census format — columns, treatments, binding plans and the `sidebar-only` rules — is in [../visual-editing.md § Section census](../visual-editing.md#section-census). In Next.js, a registered component is one in `componentMap`, and a loop is a `.map()`. A section rendered by a component that loads its own data can't be a `component` treatment as it stands — see [visual-editing-reference.md § Registered components](visual-editing-reference.md#registered-components).
 
 ## Infrastructure checklist
 
@@ -94,9 +125,13 @@ Run through these after setup, before starting on editable regions:
 
 - [ ] `@cloudcannon/editable-regions` is in `package.json` dependencies
 - [ ] `next.config.*` has `output: "export"`
-- [ ] `app/layout.tsx` has exactly one `<EditableRegions>`, and it wraps the header, the page `children` and the footer
-- [ ] `<CloudCannonEditor />` is rendered in `app/layout.tsx`
-- [ ] `CloudCannonEditor.tsx` starts with `"use client"` and imports `registerComponents` with a relative path inside the `inEditorMode` check
+- [ ] In the App Router, `app/layout.tsx` has exactly one `<EditableRegions>`, and it wraps the header, the page `children` and the footer
+- [ ] In the Pages Router, `pages/_app.*` has exactly one `<EditableRegions>`, and it wraps `<Component {...pageProps} />`
+- [ ] `<CloudCannonEditor />` is rendered in `app/layout.tsx` or `pages/_app.*`
+- [ ] `CloudCannonEditor` imports `registerComponents` with a relative path inside the `inEditorMode` check
+- [ ] In the App Router, `CloudCannonEditor.tsx` starts with `"use client"`
+- [ ] No component, map or helper module sits under `pages/`
+- [ ] No `@cloudcannon/react-connector` in `package.json`, and no `CloudCannonConnect` in the code
 - [ ] No client component imports `registerReactComponent` or the component map at the top level
 - [ ] `next build` passes cleanly after setup
 
@@ -111,12 +146,12 @@ Run through these after setup, before starting on editable regions:
       → [Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root)
 - [ ] **Registration wiring**: Every key in `componentMap.ts` is referenced via `data-component` somewhere
       → [Registered components](visual-editing-reference.md#registered-components)
-- [ ] **Client-safe registered components**: No registered component, or anything it imports, is async, reads files, or imports `server-only` or `next/headers`
+- [ ] **Client-safe registered components**: No registered component, or anything it imports, is async, reads files, calls `useRouter`, or imports `server-only` or `next/headers`
       → [Registered components](visual-editing-reference.md#registered-components)
-- [ ] **Rich text hosts**: Every `data-type="text"` or `"block"` region receives its HTML through `dangerouslySetInnerHTML` on the region host
-      → [Text editing](visual-editing-reference.md#text-editing-in-nextjs)
+- [ ] **Rich text hosts**: Every `data-type="text"` or `"block"` region receives an HTML string through `dangerouslySetInnerHTML` on the region host. An MDX body renders its component (`<Body />` or `<MDXRemote>`) inside the host instead
+      → [Text editing](../react/visual-editing-reference.md#text-editing), [MDX bodies](visual-editing-reference.md#mdx-bodies)
 - [ ] **`<template>` blueprints**: Every blueprint renders through `RawTemplate`, never as JSX children of `<template>`
-      → [Array blueprints](visual-editing-reference.md#array-blueprints-in-nextjs)
+      → [Array blueprints](../react/visual-editing-reference.md#array-blueprints)
 - [ ] **Spread props**: Registered components are rendered as `<Component {...value} />`, where `value` is what their `data-prop` points at
       → [Component prop contract](../visual-editing-reference.md#component-prop-contract)
 
@@ -131,4 +166,26 @@ Run through these after setup, before starting on editable regions:
 
 ## Pre-handoff sweep
 
-Run [../visual-editing.md § Pre-handoff sweep](../visual-editing.md#pre-handoff-sweep) against `out/` (`grep -rE "data-editable|data-prop" out/`).
+Run [../visual-editing.md § Pre-handoff sweep](../visual-editing.md#pre-handoff-sweep) against `out/` (`grep -rE "data-editable|data-prop" out/ --include='*.html'`). The `.txt` files beside each page repeat the markup as the React payload.
+
+## Sites using the React connector
+
+`@cloudcannon/react-connector` gives live editing by re-rendering the whole page. `CloudCannonConnect(Component)`, usually in `pages/_app.*`, wraps the page component; on every `cloudcannon:update` event it fetches the file's front matter with `CloudCannon.value()` and passes it to the page as `page.data`, after the optional `processProps`. `data-cms-bind="#path"` attributes make an element open that field in the sidebar on click.
+
+**MUST:** remove the connector before adding regions.
+**Why:** editable regions take over live updates, region by region. The connector would keep re-rendering the whole page from new props on every edit on top of them.
+
+- [ ] Remove `@cloudcannon/react-connector` from `package.json`
+- [ ] Remove the `CloudCannonConnect` import and wrapper; `_app` renders `<Component {...pageProps} />` inside `<EditableRegions>`, as in [§ Setup steps](#setup-steps)
+- [ ] Delete the `processProps` and `valueOptions` options with the wrapper; they configure only the connector's live updates
+- [ ] Add a census row for every element that has `data-cms-bind`. Whether to convert each one is a census decision — see [cloudcannon-bookshop/migrating-to-editable-regions.md § Regions on a former Bookshop site](../../cloudcannon-bookshop/migrating-to-editable-regions.md#regions-on-a-former-bookshop-site). Convert per the mapping below
+- [ ] Remove each converted `data-cms-bind`. Keep a prop that builds its value (such as a `dataBinding` string passed to each block) only while a binding it feeds stays
+- [ ] Run `grep -rn "react-connector\|CloudCannonConnect" --exclude-dir=node_modules .` and expect no matches
+- [ ] On a site already on CloudCannon, update its build command when the migration changes it — see [cloudcannon-configuration/configuration.md § Build settings](../../cloudcannon-configuration/configuration.md#build-settings)
+
+| Connector setup                                                      | Editable regions                                                                                                                                                                                      |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Whole page re-renders from `page.data` on every edit                 | Each region updates itself; anything outside a region shows the change after the next build                                                                                                           |
+| `data-cms-bind="#content_blocks.0"` on a block's root element        | The blocks loop as `data-editable="array"` with `data-prop="content_blocks"`, each block an `array-item` with `data-component` — see [§ Page builder only](#page-builder-only-skip-if-not-applicable) |
+| `data-cms-bind="#title"` on an element showing a string              | A `text` region with `data-prop="title"`                                                                                                                                                              |
+| `data-cms-bind` on an element whose markup is computed from the data | A registered component in `<editable-component data-prop="…">`                                                                                                                                        |

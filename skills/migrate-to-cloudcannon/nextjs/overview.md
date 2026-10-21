@@ -1,27 +1,44 @@
 # Migration (Next.js) — entry point
 
-> **Coverage: Partial.** This guide covers static export (`output: "export"`) with the App Router only.
-
 Guidance for migrating a Next.js site to CloudCannon. Follow the phases in order. Before starting, run the [quick checks](#quick-checks) below to gather site information.
 
 ## Next.js scope
 
 This guide covers Next.js sites that:
 
-- Use the App Router (`app/` or `src/app/`)
+- Use the App Router (`app/` or `src/app/`), the Pages Router (`pages/` or `src/pages/`), or both
 - Build with `output: "export"`, or can switch to it — every page prerenders at build time, and `next build` writes plain HTML to `out/`
-- Read their content at build time, from files in the repo or from fetches in server components
+- Read their content at build time — in server components (App Router) or `getStaticProps` and `getStaticPaths` (Pages Router), from files in the repo or from fetches
 
-Sites that need a server (middleware or proxy, ISR, server actions, request-time data) and Pages Router sites are not covered — CloudCannon serves static output. [audit.md § 1](audit.md#1-router-and-export-readiness) lists what blocks static export.
+Sites that need a server (middleware or proxy, ISR, server actions, `getServerSideProps`, request-time data) are not covered — CloudCannon serves static output. [audit.md § 1](audit.md#1-router-and-export-readiness) lists what blocks static export.
+
+A site with an earlier CloudCannon setup — the React connector, `@cloudcannon/filer` or Bookshop — keeps it until the phase that replaces it; [audit.md § Earlier CloudCannon setup](audit.md#earlier-cloudcannon-setup) routes each one.
 
 ## Quick checks
 
 Run these from the site root before the audit, and record the output in `.cloudcannon/migration/audit.md`. [audit.md](audit.md) says what each answer decides.
 
-- **Router** — `app/` is the App Router, `pages/` the Pages Router; a site can have both:
+- **Router** — `app/` is the App Router, `pages/` the Pages Router. A site can have both; each route follows its own router's rules, and the audit maps each directory separately:
 
   ```sh
   ls -d app src/app pages src/pages 2>/dev/null
+  ```
+
+  The checks below search both locations of a router, so each runs on its own. A router the site doesn't have prints nothing.
+
+- **Pages Router export blockers and data functions:**
+
+  ```sh
+  grep -rnE 'getServerSideProps|getInitialProps|getStaticPaths|fallback:|useRouter|next/router' pages src/pages 2>/dev/null
+  ls -d pages/api src/pages/api 2>/dev/null
+  ```
+
+- **An earlier CloudCannon setup** — the React connector, hand-written bindings, Filer and Bookshop:
+
+  ```sh
+  grep -nE '"@cloudcannon/(react-connector|filer)"|"@bookshop/' package.json
+  grep -rln --exclude-dir=node_modules -E 'CloudCannonConnect|data-cms-bind|_bookshop_name' . | head
+  ls .cloudcannon/prebuild .cloudcannon/postbuild component-library 2>/dev/null
   ```
 
 - **Next config** — the export settings and the settings static export can't serve:
@@ -37,29 +54,35 @@ Run these from the site root before the audit, and record the output in `.cloudc
   ls middleware.* proxy.* src/middleware.* src/proxy.* 2>/dev/null
   ```
 
-- **Server-only features in the app** — set `APP` to `app` or `src/app`:
+- **Server-only features in the App Router:**
 
   ```sh
-  grep -rnE 'revalidate|"use server"|cookies\(|headers\(|draftMode|dynamicParams|force-dynamic' "$APP"
+  grep -rnE 'revalidate|"use server"|cookies\(|headers\(|draftMode|dynamicParams|force-dynamic' app src/app 2>/dev/null
   ```
 
 - **Route handlers:**
 
   ```sh
-  find "$APP" -name 'route.*'
+  find app src/app -name 'route.*' 2>/dev/null
   ```
 
 - **Dynamic routes**, then each one's page without `generateStaticParams`:
 
   ```sh
-  find "$APP" -type d -name '[[]*'
+  find app src/app -type d -name '[[]*' 2>/dev/null
   grep -L generateStaticParams <each dynamic route dir>/page.*
+  ```
+
+  In the Pages Router, dynamic routes are files, and each needs `getStaticPaths`:
+
+  ```sh
+  find pages src/pages -name '[[]*' 2>/dev/null
   ```
 
 - **`next/image`:**
 
   ```sh
-  grep -rln 'next/image' "$APP" src components 2>/dev/null
+  grep -rln 'next/image' app pages src components 2>/dev/null
   ```
 
 - **Content and data files** outside the app code:
@@ -74,10 +97,10 @@ Run these from the site root before the audit, and record the output in `.cloudc
   grep -nE '"(@next/mdx|@mdx-js/[a-z-]+|next-mdx-remote|contentlayer2?|next-contentlayer2?|velite|gray-matter|js-yaml|front-matter|remark|unified|markdown-it|marked)"' package.json
   ```
 
-- **Fetches** in server components:
+- **Fetches** in server components and data functions:
 
   ```sh
-  grep -rn 'fetch(' "$APP"
+  grep -rn 'fetch(' app src/app pages src/pages 2>/dev/null
   ```
 
 ## Phases
@@ -92,6 +115,8 @@ See [audit.md](audit.md). It sends you to [../audit.md](../audit.md) for classif
 
 Generate a baseline `cloudcannon.config.yml`, then customize it from the audit. If content uses MDX components or inline HTML, configure snippets in this phase too.
 
+**Set** `output: "export"`, and `images` when the site uses `next/image`, before the first build in this phase — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export). Checking collection `url`s against the build, and every later phase, reads `out/`.
+
 **Read the `cloudcannon-configuration` skill** — its Next.js entry point is [cloudcannon-configuration/nextjs/overview.md](../../cloudcannon-configuration/nextjs/overview.md). For MDX components, **read the `cloudcannon-snippets` skill** — [cloudcannon-snippets/nextjs/overview.md](../../cloudcannon-snippets/nextjs/overview.md).
 
 If the audit's census sends pages to a `pages` collection or page builder, read [../page-building.md](../page-building.md), then [page-building.md](page-building.md).
@@ -100,7 +125,7 @@ If the audit's census sends pages to a `pages` collection or page builder, read 
 
 Move content into files editors can change, read by pages at build time.
 
-Read [../content.md](../content.md), then [content.md](content.md) for the content loader, `[slug]` routes and data files.
+Read [../content.md](../content.md), then [content.md](content.md) for the content loader, `[slug]` routes, `getStaticProps` and data files.
 
 ### Phase 4: Visual editing
 

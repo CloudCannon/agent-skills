@@ -64,7 +64,7 @@ markdown:
 
 ### Import statements in content
 
-Rich text editors show everything in the file, so editors see import statements (`import X from 'y'`) as text. Resolve components from one shared place instead — see [snippets.md § No imports in content](snippets.md#no-imports-in-content-one-shared-components-map). The route per SSG: Astro uses `astro-auto-import`; Next.js uses `mdx-components.tsx` for `@next/mdx`, and a shared components map for `next-mdx-remote`.
+Rich text editors show everything in the file, so editors see import statements (`import X from 'y'`) as text. Resolve components from one shared place instead — see [snippets.md § No imports in content](snippets.md#no-imports-in-content-one-shared-components-map). Each SSG's shared place is in its `<ssg>/overview.md`.
 
 ---
 

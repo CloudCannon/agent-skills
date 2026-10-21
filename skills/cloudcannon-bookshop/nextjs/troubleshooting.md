@@ -1,0 +1,9 @@
+# Troubleshooting (Next.js)
+
+Next.js rows only. Check [../troubleshooting.md](../troubleshooting.md) first.
+
+| Symptom                                                                                         | Cause                                                                                          | Fix                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build log: "No live editing connected as no pages contained Bookshop components"                | Expected on Next.js — Bookshop renders nothing, and live editing comes from the connector      | None                                                                                                                                                           |
+| A block throws in the editor reading a field of `undefined`, while the build renders it         | The component reads a wrapped `block` prop; the editor passes the fields as props              | [migrating-to-editable-regions.md § Components take the block as props](migrating-to-editable-regions.md#components-take-the-block-as-props)                   |
+| Build error: "This build is using Turbopack, with a `webpack` config and no `turbopack` config" | Next 16 builds with Turbopack, and the glob loader for the blocks renderer is a `webpack` rule | Replace the glob with the component map and remove the rule — [§ Replace the lookup](migrating-to-editable-regions.md#replace-the-lookup-with-a-component-map) |

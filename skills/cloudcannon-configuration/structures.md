@@ -215,6 +215,12 @@ _structures:
             type: email
 ```
 
+## Nested item structures
+
+Give every array or object inside a structure value its own named entry under `_structures`, even when only one block uses it, and link it by full path (`options.structures: _structures.counter_numbers`). Don't define the item structure inline on the input (`options.structures: { values: [...] }`).
+
+**Why:** a named structure has one place for its preview and inputs, and a second block can reuse it without a copy.
+
 ## Shared sub-structures
 
 Structures used by multiple block types — like `actions` (button arrays), `items` (feature/step lists), `stats`, `prices`, `testimonials` — stay in the main `cloudcannon.config.yml` under `_structures`. They're referenced by name from within the structure-value files and from the config.

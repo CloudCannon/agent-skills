@@ -2,7 +2,7 @@
 
 Pattern reference for editable region types, data paths, component re-rendering, and edge cases. Read this doc on demand when a checklist item links here — don't read it front to back.
 
-Everything here is SSG-agnostic. For the region types, the full attribute table, and the custom-element equivalents, see [editable-regions.md](editable-regions.md). For the JavaScript API, see [editable-regions-internals.md](editable-regions-internals.md). For what differs in one stack, see that SSG's `visual-editing-reference.md` — [Astro](astro/visual-editing-reference.md), [Hugo](hugo/visual-editing-reference.md), [Eleventy](eleventy/visual-editing-reference.md), [Next.js](nextjs/visual-editing-reference.md).
+Everything here is SSG-agnostic. For the region types, the full attribute table, and the custom-element equivalents, see [editable-regions.md](editable-regions.md). For the JavaScript API, see [editable-regions-internals.md](editable-regions-internals.md). For what differs in one stack, see that SSG's `visual-editing-reference.md` — [Astro](astro/visual-editing-reference.md), [Hugo](hugo/visual-editing-reference.md), [Eleventy](eleventy/visual-editing-reference.md), [Next.js](nextjs/visual-editing-reference.md). For React, Vue and Svelte components, see [§ React, Vue and Svelte components](#react-vue-and-svelte-components).
 
 ## Quick rules — read before adding regions
 
@@ -296,19 +296,19 @@ Each block needs **three layers**: (1) the array wrapper, (2) array items with c
 
 Page builder blocks need **both** on the same element. Without `data-component`, the block's contents won't live-update when the editor changes data via the sidebar. Without `data-editable="array-item"`, there are no CRUD controls.
 
-When a suitable element exists, add both attributes directly. When none does, use the `<editable-array-item>` web component:
+**The array-item host sits outside the component; the component root stays plain.** Put both attributes on an element the loop over the blocks renders around each component, such as an `<li>` or `<section>` it already emits. When the loop renders the component with no element of its own, wrap each one in the `<editable-array-item>` web component — and check the stylesheet first, see [§ Wrapper elements](#wrapper-elements-change-the-formatting-context):
 
 ```html
 <editable-array-item data-component="hero" data-id="hero">…</editable-array-item>
 ```
+
+**Why:** if the component's output _also_ starts with a `data-editable="array-item"` element, you get double nesting — `array > array-item > array-item` — and the inner array-item can't find an `array` parent, throwing "Array item editable regions must be nested inside an array editable region."
 
 `<editable-component>` is for **standalone** component regions that are not inside an array.
 
 **`data-component-key` / `data-id-key` on the array wrapper** tell CloudCannon which data field identifies the component type and the stable identity of each item. They are needed because when the array is empty there are no child elements to read, and CloudCannon still needs to know which field to consult. `data-component` / `data-id` on each child are the resolved runtime values. The key name is arbitrary. Since December 2025 `data-id-key` and `data-id` **default** to the `data-component-key` and `data-component` values, so when the identity field and the component field are the same — the common case — both can be omitted. Full attribute semantics are in [editable-regions.md § Complex array attributes](editable-regions.md#complex-array-attributes-wrapper-vs-item).
 
 **Nested editables** inside widget components go on the elements that render editable fields. Paths are relative to the component's data scope (the array item), so `data-prop="title"` resolves to `content_blocks[n].title`.
-
-**The array-item host carries `data-component`; the component root stays plain.** One element per block holds both `data-editable="array-item"` and `data-component`, and it sits outside the component, in whatever template loops over the blocks. The component's own output starts with ordinary markup. If the component's output _also_ starts with a `data-editable="array-item"` element, you get double nesting — `array > array-item > array-item` — and the inner array-item can't find an `array` parent, throwing "Array item editable regions must be nested inside an array editable region."
 
 **Each block type should have its own component file**, owning its section markup and its editable attributes. A dispatcher should be a thin lookup that renders the matching component, never a markup container.
 
@@ -325,12 +325,13 @@ Prefer option 1 when the shared component serves three or more widgets with diff
 ### Wrapper elements change the formatting context
 
 **MUST:** check the stylesheet before adding an element between a container and its children — an array-item host around a component, or a new wrapper around a rendered body for a `@content` region.
-**Why:** the wrapper becomes the flex or grid item in place of the child, and child-combinator and position rules stop matching what they used to.
+**Why:** the wrapper becomes the flex or grid item in place of the child, and child-combinator, sibling and position rules match the wrapper or nothing.
 
 Before adding the wrapper:
 
 - **Grep** for child combinators on the container (`.row > *`, `.content > p`) and `align-items`/`justify-*` rules — they now match the wrapper, or nothing.
 - **Grep** for `:first-child`, `:last-child` and `:nth-child` rules on the children — the wrapper shifts which element they match.
+- **Grep** for adjacent- and general-sibling rules between the children (`.hero + .features`, `.section ~ .section`) — with one wrapper per block, the children are no longer siblings. Add a `:has()` copy of each rule that matches through the wrappers, and keep the original for pages without them: `.hero + .features, :has(> .hero) + :has(> .features) > .features { … }`.
 - **Check** each child for a `display` it only had because its parent was flex or grid (a flex container blockifies its children). Give the child its own `display` rather than styling the wrapper.
 - **Give** a body wrapper the parent's class when the theme styles the body through it, and cancel any rule that mustn't now apply twice (margins on both the old parent and the wrapper). Check the class for box rules first (`max-width`, `width`, padding): nested, they apply twice and shrink the body. When it has them, give the wrapper its own class instead, and copy the parent's child-combinator rules (`.content > p`) to it.
 
@@ -583,26 +584,11 @@ The access syntax differs per integration — a build-time environment value in 
 
 ### React, Vue and Svelte components
 
-Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses. The calls go in the file the SSG's setup loads in editor mode — in Astro, `src/cloudcannon/registerComponents.ts`.
+Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses. The calls go in the file the SSG's setup loads in editor mode — see that SSG's `visual-editing.md`. Each framework's function and import path:
 
-| Import path                            | Function                                  |
-| -------------------------------------- | ----------------------------------------- |
-| `@cloudcannon/editable-regions/react`  | `registerReactComponent(key, component)`  |
-| `@cloudcannon/editable-regions/vue`    | `registerVueComponent(key, component)`    |
-| `@cloudcannon/editable-regions/svelte` | `registerSvelteComponent(key, component)` |
-
-```typescript
-import { registerReactComponent } from "@cloudcannon/editable-regions/react";
-import { registerVueComponent } from "@cloudcannon/editable-regions/vue";
-import { registerSvelteComponent } from "@cloudcannon/editable-regions/svelte";
-import Announcement from "@/components/Announcement";
-import Testimonial from "@/components/Testimonial.vue";
-import Pricing from "@/components/Pricing.svelte";
-
-registerReactComponent("announcement", Announcement);
-registerVueComponent("testimonial", Testimonial);
-registerSvelteComponent("pricing", Pricing);
-```
+- React → [react/visual-editing-reference.md](react/visual-editing-reference.md), which also holds React's rules for JSX markup, rich text hosts and `<template>` blueprints
+- Vue → [vue/visual-editing-reference.md](vue/visual-editing-reference.md)
+- Svelte → [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md)
 
 Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [§ Where does the registration go](#where-does-the-registration-go--component-root-or-call-site).
 
@@ -621,13 +607,7 @@ Applies when React, Vue or Svelte renders and hydrates the whole page, from the 
 **MUST:** wrap every editable region on the page in one `EditableRegions` root, placed in the root layout.
 **Why:** the runtime connects regions as soon as it loads. A region with no editable ancestor connects as an orphan and writes its value into the DOM straight away, which can be before the framework hydrates that markup. Regions inside the root don't mount until the root connects, and the root connects only once its component has mounted, after hydration.
 
-Each framework entry point exports the root:
-
-| Import path                            | Export            | Connects in |
-| -------------------------------------- | ----------------- | ----------- |
-| `@cloudcannon/editable-regions/react`  | `EditableRegions` | `useEffect` |
-| `@cloudcannon/editable-regions/vue`    | `EditableRegions` | `onMounted` |
-| `@cloudcannon/editable-regions/svelte` | `EditableRegions` | `onMount`   |
+Each framework entry point exports the root; each framework's file names its import path and mount hook — [React](react/visual-editing-reference.md#the-react-editableregions-root), [Vue](vue/visual-editing-reference.md#the-vue-editableregions-root), [Svelte](svelte/visual-editing-reference.md#the-svelte-editableregions-root).
 
 How it behaves:
 

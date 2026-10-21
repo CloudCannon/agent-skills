@@ -42,7 +42,7 @@ When the site uses a page builder with a `BlockRenderer`, create a shared `src/c
 | `@cloudcannon/editable-regions/astro-vue-renderer`    | Side-effect import: registers the Vue renderer (needed when Vue components are used inside registered Astro components)       |
 | `@cloudcannon/editable-regions/astro-svelte-renderer` | Side-effect import: registers the Svelte renderer (needed when Svelte components are used inside registered Astro components) |
 
-The `/react`, `/vue` and `/svelte` entry points register standalone framework components — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components).
+The `/react`, `/vue` and `/svelte` entry points register standalone framework components — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) and each framework's file — [React](../react/visual-editing-reference.md), [Vue](../vue/visual-editing-reference.md), [Svelte](../svelte/visual-editing-reference.md).
 
 ## Section census
 

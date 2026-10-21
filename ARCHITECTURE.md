@@ -6,7 +6,7 @@ The rules this layout implements live in [STYLE.md § Repo architecture](STYLE.m
 
 ## The shape in one paragraph
 
-Skills are organised by **concern**, never by SSG. A skill owns one concern for every SSG; SSG-specific content lives in a `<ssg>/` directory inside it, holding only what differs. That keeps N SSGs × M concerns from becoming N×M copies of the same rule. Every skill belongs to one of three tiers, and the tier fixes its name, its shape, and whether it keeps state.
+Skills are organised by **concern**, never by SSG. A skill owns one concern for every SSG; SSG-specific content lives in a `<ssg>/` directory inside it, holding only what differs. In `cloudcannon-visual-editing`, `react/`, `vue/` and `svelte/` are a framework layer beside the SSG directories, holding rules shared by every SSG that renders that framework. That keeps N SSGs × M concerns from becoming N×M copies of the same rule. Every skill belongs to one of three tiers, and the tier fixes its name, its shape, and whether it keeps state.
 
 ## Skills by tier
 
@@ -153,6 +153,9 @@ editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, q
 troubleshooting.md                      Symptom → fix, when regions misbehave
 visual-editing.md                       Phase 4: section census, completeness checklist, pre-handoff sweep
 visual-editing-reference.md             ON DEMAND — pattern reference, do not read front to back
+react/visual-editing-reference.md       ON DEMAND — React in any SSG: registration, EditableRegions, JSX, blueprints
+vue/visual-editing-reference.md         ON DEMAND — Vue in any SSG: registration, EditableRegions
+svelte/visual-editing-reference.md      ON DEMAND — Svelte in any SSG: registration, EditableRegions
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
 astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not read front to back
@@ -167,7 +170,7 @@ eleventy/visual-editing-reference.md    ON DEMAND — includes as components, th
 eleventy/troubleshooting.md             Eleventy: symptom → fix
 nextjs/overview.md                      ENTRY POINT for Next.js — EditableRegions root, reading order
 nextjs/visual-editing.md                Phase 4: layout root, gated editor loader, component map
-nextjs/visual-editing-reference.md      ON DEMAND — markup in JSX, client-safe components, blueprints
+nextjs/visual-editing-reference.md      ON DEMAND — client-safe components, router hooks, MDX bodies
 nextjs/troubleshooting.md               Next.js: symptom → fix
 scripts/setup-editable-regions-astro.sh Astro only — installs package, wires Astro integration
 
@@ -189,6 +192,10 @@ eleventy/overview.md                    ENTRY POINT for Eleventy — reading ord
 eleventy/bookshop.md                    Eleventy: where things live, template tags, live editing
 eleventy/migrating-to-editable-regions.md Eleventy: include moves, tag rewrites, structure files, plugin removal
 eleventy/troubleshooting.md             Eleventy: symptom → fix
+nextjs/overview.md                      ENTRY POINT for Next.js — structures only, reading order
+nextjs/bookshop.md                      Next.js: where things live, the React connector, what doesn't apply
+nextjs/migrating-to-editable-regions.md Next.js: component map, block props, removing the connector
+nextjs/troubleshooting.md               Next.js: symptom → fix
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

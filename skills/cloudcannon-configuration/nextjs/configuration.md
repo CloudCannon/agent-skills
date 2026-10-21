@@ -13,24 +13,24 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg nex
 
 ## Review the generated config
 
-| Key or area                | What the CLI produces                                                  | Fix                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `collections_config.*.url` | **Nothing.** No collection gets a `url`                                | Add one to every collection that builds pages — see [collection-urls.md](collection-urls.md) |
-| `app` collection           | A collection over the route directory                                  | Remove it — see [§ Route files](#route-files)                                                |
-| `paths`                    | `static: ''`, `uploads: uploads`                                       | `static: public`, and `uploads` a folder under `public/` — see [§ Images](#images)           |
-| `build.build_command`      | `npm run build`, or `npx next build && npx next export` with no script | `npx next build` when there is no `build` script. `next export` exits with an error          |
-| `build.node_version`       | Omitted, even when `.nvmrc` exists                                     | Apply the rule in [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson)   |
+| Key or area                 | What the CLI produces                                                  | Fix                                                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `collections_config.*.url`  | **Nothing.** No collection gets a `url`                                | Add one to every collection that builds pages — see [collection-urls.md](collection-urls.md)                                      |
+| `app` or `pages` collection | A collection over the route directory                                  | Remove it — see [§ Route files](#route-files)                                                                                     |
+| `paths`                     | `static: ''`, `uploads: uploads`                                       | `static: public`, and `uploads` a folder under `public/` — see [§ Images](#images)                                                |
+| `build.build_command`       | `npm run build`, or `npx next build && npx next export` with no script | `npm run build` — see [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson). `next export` exits with an error |
+| `build.node_version`        | Omitted, even when `.nvmrc` exists                                     | Apply the rule in [§ Build settings](#build-settings-cloudcannoninitial-site-settingsjson)                                        |
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
-| Key                     | Value                                                                                                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ssg`                   | `"nextjs"`                                                                                                                                          |
-| `build.install_command` | From the detected package manager (`npm i`)                                                                                                         |
-| `build.build_command`   | `npm run build`, where `build` runs `next build` plus every pre- and post-build step — see [../build-commands.md](../build-commands.md)             |
-| `build.output_path`     | `"out"`, or the `distDir` value when `next.config` sets one                                                                                         |
-| `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists; otherwise the major version from `package.json` `engines.node`. Next.js 16 needs Node 20.9 or later |
-| `build.preserved_paths` | Keep the CLI's `node_modules/,.next/` — `.next/` holds the build cache                                                                              |
+| Key                     | Value                                                                                                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ssg`                   | `"nextjs"`                                                                                                                                                                                          |
+| `build.install_command` | From the detected package manager (`npm i`)                                                                                                                                                         |
+| `build.build_command`   | `npm run build`, where `build` runs `next build` plus every pre- and post-build step — see [../build-commands.md](../build-commands.md). A site with no `build` script gets `"build": "next build"` |
+| `build.output_path`     | `"out"`, or the `distDir` value when `next.config` sets one                                                                                                                                         |
+| `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists; otherwise the major version from `package.json` `engines.node`. Next.js 16 needs Node 20.9 or later                                                 |
+| `build.preserved_paths` | Keep the CLI's `node_modules/,.next/` — `.next/` holds the build cache                                                                                                                              |
 
 ## `next.config` for static export
 
@@ -55,13 +55,25 @@ With `output: "export"`, a `distDir` setting names the export folder, not the ca
 
 Content usually sits in a folder at the repository root (`content/pages`, `content/blog`), read with `node:fs` or a content library at build time. Each collection's `path` is the folder the loader reads.
 
-**MUST NOT:** let editors create a file that no route builds. Set `disable_add: true` on a collection when each of its files has its own hard-coded route (`app/about/page.tsx` calling `getPage("about")`).
-**Why:** a static export builds only the paths the routes list. A new file builds only when a dynamic route's `generateStaticParams` reads the folder; with one route per file it never builds, and the Visual Editor has no page to open.
+**MUST NOT:** let editors create a file that no route builds. Set `disable_add: true` on a collection when each of its files has its own hard-coded route (`app/about/page.tsx` or `pages/about.jsx` calling `getPage("about")`).
+**Why:** a static export builds only the paths the routes list. A new file builds only when a dynamic route's `generateStaticParams` or `getStaticPaths` reads the folder; with one route per file it never builds, and the Visual Editor has no page to open.
+
+## String inputs
+
+The rule is in [../configuration-gotchas.md § Choose text, markdown or html inputs](../configuration-gotchas.md#choose-text-markdown-or-html-inputs-from-how-the-template-renders-the-field). In JSX:
+
+| Component renders the field                                               | Input                |
+| ------------------------------------------------------------------------- | -------------------- |
+| `{description}` — React escapes it                                        | `text` or `textarea` |
+| Through the site's markdown renderer, then `dangerouslySetInnerHTML`      | `markdown`           |
+| `dangerouslySetInnerHTML={{ __html: description }}` with no markdown step | `html`               |
 
 ## Route files
 
-**MUST NOT:** give route files (`page.tsx`, `layout.tsx`) a collection or source regions.
-**Why:** the Visual Editor doesn't open `.tsx` files. Move text editors change into a content or data file — see [migrate-to-cloudcannon/nextjs/content.md § Content in route files](../../migrate-to-cloudcannon/nextjs/content.md#content-in-route-files).
+Route files are the `.js`, `.jsx`, `.ts` and `.tsx` files under `app/` and `pages/`: `page.tsx` and `layout.tsx`, `_app`, `_document`, `api/` handlers and every page component.
+
+**MUST NOT:** give route files a collection.
+**Why:** the Visual Editor doesn't open route files, so editors can't edit a file the collection lists. Keep everything editors change — text, images, links, lists and page-builder blocks — in a content or data file that the route reads → [migrate-to-cloudcannon/nextjs/content.md § Content in route files](../../migrate-to-cloudcannon/nextjs/content.md#content-in-route-files).
 
 ## Data files
 
@@ -92,8 +104,8 @@ Use the folder the site already keeps images in under `public/`. An image import
 - [ ] `build.build_command` contains no `next export`
 - [ ] `next.config` sets `output: "export"`
 - [ ] `next.config` sets `images.unoptimized` (or a custom loader) if any file imports `next/image`
-- [ ] No collection over `app/`
+- [ ] No collection over `app/` or `pages/`
 - [ ] Collections whose files each have a hard-coded route have `disable_add: true`
-- [ ] Every collection that builds pages has a `url` matching `out/` for every file — see [collection-urls.md](collection-urls.md)
+- [ ] Every collection that builds pages has a `url` that resolves every file to its page in `out/`, with no `.html` — see [collection-urls.md](collection-urls.md)
 - [ ] `paths.static` is `public`, and `paths.uploads` sits under it
 - [ ] Every data file a region or template reads is JSON, or YAML parsed by a reader in the site's code

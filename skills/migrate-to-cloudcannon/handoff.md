@@ -30,6 +30,7 @@ Skip empty phrases ("let me know if you need anything"). Thanking them once for 
 
 - **Local build** — the project's real build entrypoint, not a partial command. If it fails, paste the full error output (command, exit code, last ~30 lines of stderr).
 - **Checks you already ran** — state them in one line so the user doesn't duplicate work.
+- **Build settings on a site already on CloudCannon** — when the migration changed the build command, install command or output path, give the user the new values to set before the next build — see [configuration.md § Build settings](../cloudcannon-configuration/configuration.md#build-settings).
 - **CloudCannon (human)** — confirm in the hosted environment:
   - Inline text regions can be edited in the preview on representative pages
   - Image regions open the image picker

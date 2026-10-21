@@ -10,7 +10,9 @@
  *   3. No file in one SSG's directory links into another SSG's directory
  *      (`hugo/` → `astro/`, in any skill). A link like that means a general
  *      rule is stuck in an SSG file — see STYLE.md § SSG directories never
- *      depend on each other.
+ *      depend on each other. Framework directories (`react/`) link into
+ *      neither SSG directories nor each other — STYLE.md § Framework
+ *      directories are a shared layer.
  *   4. Every SKILL.md has `name` and `description` frontmatter, and `name`
  *      matches its directory (the plugin loader keys off the directory; agents
  *      key off `name`, so a mismatch routes to a skill that appears missing).
@@ -56,7 +58,8 @@ function stripFences(lines) {
   return lines.map((line) => {
     const marker = line.match(/^\s*(```+|~~~+)/);
     if (fence) {
-      if (marker && marker[1].startsWith(fence[0]) && marker[1].length >= fence.length) fence = null;
+      if (marker && marker[1].startsWith(fence[0]) && marker[1].length >= fence.length)
+        fence = null;
       return "";
     }
     if (marker) {
@@ -136,8 +139,7 @@ const files = walk(ROOT);
 let linkCount = 0;
 let anchorCount = 0;
 
-const report = (file, line, message) =>
-  errors.push(`${relative(ROOT, file)}:${line}  ${message}`);
+const report = (file, line, message) => errors.push(`${relative(ROOT, file)}:${line}  ${message}`);
 
 // Skeletons under templates/ describe the directory they will be copied INTO,
 // so their sibling links (troubleshooting.md, astro/overview.md) do not resolve
@@ -161,6 +163,14 @@ function ssgOf(path) {
   const parts = relative(SKILLS, path).split("/");
   if (parts[0] === ".." || parts.length < 3) return null;
   return SSGS.has(parts[1]) ? parts[1] : null;
+}
+
+// A framework directory (`react/`) is any other skill subdirectory except
+// scripts/ — STYLE.md forbids it an overview.md.
+function frameworkOf(path) {
+  const parts = relative(SKILLS, path).split("/");
+  if (parts[0] === ".." || parts.length < 3) return null;
+  return parts[1] === "scripts" || SSGS.has(parts[1]) ? null : parts[1];
 }
 
 for (const file of files) {
@@ -204,6 +214,16 @@ for (const file of files) {
           file,
           lineNo,
           `${fromSsg}/ links into ${toSsg}/ -> ${target} (link to the root file instead)`,
+        );
+      }
+
+      const fromFramework = frameworkOf(file);
+      const toFramework = frameworkOf(resolved);
+      if (fromFramework && (toSsg || (toFramework && toFramework !== fromFramework))) {
+        report(
+          file,
+          lineNo,
+          `${fromFramework}/ links into ${toSsg ?? toFramework}/ -> ${target} (framework files link only to root files)`,
         );
       }
 

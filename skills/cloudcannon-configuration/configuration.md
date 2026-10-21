@@ -4,6 +4,8 @@ Read first when writing or customizing `cloudcannon.config.yml` and `.cloudcanno
 
 Read the [Verification checklist](#verification-checklist) before you start, so you know what to aim for. The phase isn't done until every item in it, and in the SSG's checklist, is checked.
 
+**On a site already on CloudCannon that is only switching to editable regions,** the checklist items that switch touches are required: the blocking gates, the build command check, and the `_structures` and `_inputs` the new regions need. The rest — the editor README, collection groups, index-page schemas — is optional.
+
 ## Generate a baseline
 
 ```bash

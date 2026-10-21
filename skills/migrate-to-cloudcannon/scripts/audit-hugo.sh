@@ -274,7 +274,7 @@ BS_CONTENT=$(grep_files '_bookshop_name' content | wc -l | tr -d ' ')
 BS_CALLS=$(grep_files 'partial "bookshop' layouts | wc -l | tr -d ' ')
 [ "$BS_CALLS" != "0" ] && { echo "- partial \"bookshop…\" calls in $BS_CALLS layout files"; BOOKSHOP=1; }
 CMS_ATTRS=$(grep_files 'data-cms-(bind|edit)' layouts component-library | wc -l | tr -d ' ')
-[ "$CMS_ATTRS" != "0" ] && echo "- data-cms-bind / data-cms-edit in $CMS_ATTRS files (remove when adding regions)"
+[ "$CMS_ATTRS" != "0" ] && echo "- data-cms-bind / data-cms-edit in $CMS_ATTRS files (keep or convert: census decision)"
 if [ "$BOOKSHOP" = "1" ]; then
   echo "BOOKSHOP SITE → read cloudcannon-bookshop/SKILL.md"
   if [ -d "component-library/components" ]; then

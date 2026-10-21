@@ -1,6 +1,6 @@
 # Page Building (Next.js)
 
-Read [../page-building.md](../page-building.md) first. This file covers only the Next.js differences: the page files, the routes that render them, and the block map.
+Read [../page-building.md](../page-building.md) first. This file covers only the Next.js differences: the page files, the routes that render them, and the block map. Paths and code use the App Router; [§ Pages Router](#pages-router) lists what changes there.
 
 ## Pages collection
 
@@ -44,6 +44,18 @@ Read [../page-building.md](../page-building.md) first. This file covers only the
 
 4. **Set** each page's `<title>` and description from front matter with `generateMetadata` in the route.
 
+### Pages Router
+
+The collection, the steps and the `Blocks` renderer are the same. These differ:
+
+| App Router                                           | Pages Router                                                                                                                                                                |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/page.tsx` reads `index`                         | `pages/index.jsx` reads `index` in `getStaticProps`                                                                                                                         |
+| `app/[slug]/page.tsx` with `generateStaticParams`    | `pages/[slug].jsx` with `getStaticPaths`, filtering out `index`, `fallback: false` — see [content.md § Pages Router data functions](content.md#pages-router-data-functions) |
+| Route folders to delete (`app/about/`)               | Route files to delete (`pages/about.jsx`); content file named after the file (`about.md`)                                                                                   |
+| `generateMetadata`                                   | `next/head` in the page component                                                                                                                                           |
+| `app/cloudcannon/componentMap.ts`, `app/components/` | Outside `pages/` — every file there is a route; see [visual-editing.md § Setup steps](../../cloudcannon-visual-editing/nextjs/visual-editing.md#setup-steps)                |
+
 ## Array-based page builder
 
 When to use one, the schema file and the structures are in [../page-building.md § Array-based page builder](../page-building.md#array-based-page-builder). Next.js adds the block map and the `Blocks` renderer, both keyed on `_type`, the structures' discriminator.
@@ -74,7 +86,7 @@ export const componentMap: Record<string, ComponentType<any>> = {
 
 `componentMap` adds the standalone components the page registers outside the blocks array. Registration, and where the map is loaded in the editor, are in [cloudcannon-visual-editing/nextjs/overview.md](../../cloudcannon-visual-editing/nextjs/overview.md).
 
-Block components take all their data as props. They re-render in the browser, so they never read files, call `fetch` or use server-only APIs.
+Block components are registered components, so they follow the client-safe rule in [cloudcannon-visual-editing/nextjs/visual-editing-reference.md § Registered components](../../cloudcannon-visual-editing/nextjs/visual-editing-reference.md#registered-components).
 
 ### Blocks
 
@@ -111,6 +123,5 @@ The three layers every block needs, including the regions inside each block comp
 | Excuse                                                      | Reality                                                                                            |
 | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | "A `switch` on `_type` in the route is simpler"             | It is a second map — see [§ The block map](#the-block-map).                                        |
-| "The block can import the loader for its own data"          | It renders in the build and fails in the editor. Pass the data as props from the route.            |
 | "I'll keep `app/about/` and let `[slug]` build `about` too" | Each URL gets one route. Delete the route folder, or leave its slug out of `generateStaticParams`. |
 | "I'll make a `homepage` collection"                         | Use one `pages` collection — see [../audit.md § Census table](../audit.md#census-table).           |
