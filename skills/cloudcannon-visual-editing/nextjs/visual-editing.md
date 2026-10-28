@@ -6,7 +6,7 @@ If `package.json` lists `@cloudcannon/react-connector`, work through [§ Sites u
 
 ## Setup steps
 
-The steps use App Router paths, with `app/` at the site root. Keep the same layout relative to wherever the site's `app/` lives. A Pages Router site puts the same files here:
+The steps use App Router paths, with `app/` at the site root. Keep the same layout relative to wherever the site's `app/` lives. The paths and commands are illustrative: use the site's package manager and its own components folder, and adjust the relative imports to match. A Pages Router site puts the same files here:
 
 | File                                      | App Router                             | Pages Router                                                 |
 | ----------------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
@@ -23,7 +23,9 @@ The steps use App Router paths, with `app/` at the site root. Keep the same layo
    npm install @cloudcannon/editable-regions
    ```
 
-2. **Wrap** the layout's content in one `EditableRegions` root in `app/layout.tsx`, and render the editor loader after it. Pages stay server components, passed through as `children`. The rules behind the root are in [../visual-editing-reference.md § Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root).
+2. **Check** `tsconfig.json`, if the site has one: `compilerOptions.moduleResolution` is `bundler`, `node16` or `nodenext`. With `node`, the `/react` import and the JSX types for `editable-*` elements don't load, and the type check in `next build` fails.
+
+3. **Wrap** the layout's content in one `EditableRegions` root in `app/layout.tsx`, and render the editor loader after it. If the layout already has a single element around the page, turn that element into the root. Pages stay server components, passed through as `children`. The rules behind the root are in [../visual-editing-reference.md § Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root).
 
    ```tsx
    import { EditableRegions } from "@cloudcannon/editable-regions/react";
@@ -65,7 +67,7 @@ The steps use App Router paths, with `app/` at the site root. Keep the same layo
    }
    ```
 
-3. **Create** `app/components/CloudCannonEditor.tsx`. It renders nothing and imports the registration file only inside the Visual Editor:
+4. **Create** `app/components/CloudCannonEditor.tsx`. It renders nothing and imports the registration file only inside the Visual Editor:
 
    ```tsx
    "use client";
@@ -88,7 +90,7 @@ The steps use App Router paths, with `app/` at the site root. Keep the same layo
 
    The dynamic `import()` puts the registration code, and every component it imports, in a chunk that production page loads never request. Use a relative path: `@cloudcannon/...` looks like an npm scope and resolves to the package, not your local file.
 
-4. **Create** `app/cloudcannon/componentMap.ts` with every component a `data-component` attribute names, and `app/cloudcannon/registerComponents.ts` to register them:
+5. **Create** `app/cloudcannon/componentMap.ts` with every component a `data-component` attribute names, and `app/cloudcannon/registerComponents.ts` to register them:
 
    ```ts
    import { registerReactComponent } from "@cloudcannon/editable-regions/react";
@@ -101,7 +103,7 @@ The steps use App Router paths, with `app/` at the site root. Keep the same layo
 
    What can go in the map, and the page-builder `blockMap`, are in [visual-editing-reference.md § Registered components](visual-editing-reference.md#registered-components).
 
-5. **Build** (`next build`) and confirm the setup — see [§ Infrastructure checklist](#infrastructure-checklist).
+6. **Build** (`next build`) and confirm the setup — see [§ Infrastructure checklist](#infrastructure-checklist).
 
 Register components from the gated import, not from top-level imports in a client component. Top-level imports ship every registered component to every production page.
 
@@ -125,6 +127,7 @@ Run through these after setup, before starting on editable regions:
 
 - [ ] `@cloudcannon/editable-regions` is in `package.json` dependencies
 - [ ] `next.config.*` has `output: "export"`
+- [ ] In a TypeScript site, `tsconfig.json` sets `moduleResolution` to `bundler`, `node16` or `nodenext`
 - [ ] In the App Router, `app/layout.tsx` has exactly one `<EditableRegions>`, and it wraps the header, the page `children` and the footer
 - [ ] In the Pages Router, `pages/_app.*` has exactly one `<EditableRegions>`, and it wraps `<Component {...pageProps} />`
 - [ ] `<CloudCannonEditor />` is rendered in `app/layout.tsx` or `pages/_app.*`

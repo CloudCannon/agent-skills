@@ -10,6 +10,21 @@ Run this phase after configuration (Phase 2). Small content fixes that a configu
 
 Skip content changes when the audit shows content is already well-structured: consistent front matter, clean markdown, no page to convert to a page builder and no data file to reshape. Document the patterns anyway.
 
+## Parity baseline
+
+Before the first edit in this phase, save a build of the working tree to compare each change against. If the SSG's audit saved a parity baseline, use that one.
+
+1. **Build** the working tree with the site's full build.
+2. **Copy** the output's HTML files to a gitignored folder, such as `.parity-baseline/` added to `.gitignore`.
+3. **Compare** each changed page against its baseline copy on these fields, not with a raw HTML diff:
+   - visible text
+   - link `href`s
+   - image file names, with build hashes stripped
+   - image `alt` text
+   - `<title>` and meta description
+
+**Why:** hashed asset names and markup changes fill a raw diff, and hide the content that went missing.
+
 ## Review checklist
 
 Work through these checks for every migration. Document findings even when no changes are needed.
@@ -44,7 +59,7 @@ No content change is needed. In Phase 2, give the field a select input so editor
 Check for:
 
 - **Components and shortcodes in the body.** CloudCannon's editors can't render them, but can parse and re-serialize them once snippets are configured. Record which files use them and each component's props; this inventory feeds the snippet configuration in Phase 2. See the `cloudcannon-snippets` skill.
-- **Body components moved to the layout.** For each component the user agreed to move ([audit.md § Components repeated at a fixed point in the body](audit.md#components-repeated-at-a-fixed-point-in-the-body)), copy its values into the new front matter field and delete it from the body. Rebuild and compare against the parity baseline: the page should render the same.
+- **Body components moved to the layout.** For each component the user agreed to move ([audit.md § Components repeated at a fixed point in the body](audit.md#components-repeated-at-a-fixed-point-in-the-body)), copy its values into the new front matter field and delete it from the body. Rebuild and compare against the [parity baseline](#parity-baseline): the page should render the same.
 - **Inline HTML with no markdown equivalent** (`<figure>`, `<video>`, `<details>`, `<iframe>`). These become snippets, so editors get a structured interface instead of raw HTML. For each pattern from the audit, normalize every instance to one format (same attributes, same whitespace) and record the pattern in the migration notes. The snippet config is created in Phase 2 — see [snippets.md § Raw snippets for inline HTML](../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files). Simple inline HTML editors don't need to change (`<sup>`, `<br>`) can stay.
 - **Empty bodies.** Index files and section data often keep everything in front matter. This is normal.
 - **Markdown plugin output.** If build-time plugins transform markdown (heading IDs, wrapped images), note them but don't change the content.
@@ -161,7 +176,8 @@ Set `disable_url: true` on data collections. They don't produce pages; without i
 
 - JSON/YAML is valid and well-formatted
 - Nesting isn't so deep the editor becomes unwieldy (3+ levels is a flag)
-- A list of like-shaped items is a top-level array, not a map keyed by slug; arrays of objects have consistent shapes or are backed by a structure per shape
+- A dataset used as records or as select values (authors, tags, team) is a top-level array with a `slug` on each item, not a map keyed by slug. Nav and footer link lists stay arrays inside their settings file, without ids.
+- Arrays of objects have consistent shapes or are backed by a structure per shape
 
 ## Review checklist addendum
 
@@ -172,4 +188,5 @@ Run this checklist on every content file before marking the content phase comple
 - [ ] Front matter strings contain no block-level HTML (`<br />`, `<p>`, `<ul>`) unless the matching `_inputs` entry uses a rich-text or markdown input.
 - [ ] Every array inside a structure-value file links to its `_structures` entry via an explicit `_inputs` block — see [structures.md § The four rules](../cloudcannon-configuration/structures.md#the-four-rules-read-first).
 - [ ] Every visible value in a data file's consuming component that an editor would reasonably change (icons, link targets, label text, image paths) lives in the data file.
+- [ ] Collection files and data files this phase created pass the checks Phase 2 ran against the planned files: computed URLs match the build ([collection-urls.md § Check every file against the build](../cloudcannon-configuration/collection-urls.md#check-every-file-against-the-build)), and every `_inputs` key names a field in the files ([configuration-gotchas.md § An `_inputs` key that names no field is ignored](../cloudcannon-configuration/configuration-gotchas.md#an-_inputs-key-that-names-no-field-is-ignored)).
 - [ ] `.cloudcannon/migration/content.md` records every structural change.

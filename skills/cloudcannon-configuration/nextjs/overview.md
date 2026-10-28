@@ -19,6 +19,7 @@ Next.js-specific configuration guidance. The cross-SSG rules live in the root fi
 | 5     | [../structures.md](../structures.md)                       | Any field holds an array or an object                                                                          |
 | 6     | [../collection-urls.md](../collection-urls.md)             | Any collection produces pages                                                                                  |
 | 7     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (route segments, `trailingSlash`, extensionless URLs, the home page, `basePath`) |
-| 8     | [../build-commands.md](../build-commands.md)               | The build has steps besides `next build`                                                                       |
-| 9     | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                                            |
-| 10    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                                            |
+| 8     | [../build-commands.md](../build-commands.md)               | Writing `install_command` or `node_version`, or the build has steps besides `next build`                       |
+| 9     | [../routing.md](../routing.md)                             | The site sets headers, redirects or rewrites                                                                   |
+| 10    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                                            |
+| 11    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                                            |

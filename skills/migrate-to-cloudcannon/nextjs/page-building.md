@@ -40,9 +40,9 @@ Read [../page-building.md](../page-building.md) first. This file covers only the
    }
    ```
 
-   Each creatable schema gets a branch here. `generateStaticParams` must return at least one page — see [content.md § `[slug]` routes](content.md#slug-routes).
+   Each creatable schema gets a branch here. `generateStaticParams` must return at least one page — see [content.md § `[slug]` routes](content.md#slug-routes). With route groups, put `[slug]` in the group whose layout new pages need (`app/(marketing)/[slug]/page.tsx`).
 
-4. **Set** each page's `<title>` and description from front matter with `generateMetadata` in the route.
+4. **Set** each page's `<title>` and description from front matter with `generateMetadata` in the route. When the root layout sets `title.template`, a page whose original title wasn't templated (usually home) returns `title: { absolute: … }`.
 
 ### Pages Router
 
@@ -90,7 +90,7 @@ Block components are registered components, so they follow the client-safe rule 
 
 ### Blocks
 
-A thin renderer with the array wrapper, shared by every route that renders `content_blocks`:
+A thin renderer shared by every route that renders `content_blocks`. Phase 3 writes it without the `data-editable` wrappers, rendering each block straight from the map (`<Block key={index} {...block} />`). Phase 4 adds the wrappers below once the section census covers the page:
 
 ```tsx
 // app/components/Blocks.tsx

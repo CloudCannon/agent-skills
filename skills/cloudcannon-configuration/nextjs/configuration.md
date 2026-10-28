@@ -23,14 +23,15 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg nex
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
-| Key                     | Value                                                                                                                                                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ssg`                   | `"nextjs"`                                                                                                                                                                                          |
-| `build.install_command` | From the detected package manager (`npm i`)                                                                                                                                                         |
-| `build.build_command`   | `npm run build`, where `build` runs `next build` plus every pre- and post-build step — see [../build-commands.md](../build-commands.md). A site with no `build` script gets `"build": "next build"` |
-| `build.output_path`     | `"out"`, or the `distDir` value when `next.config` sets one                                                                                                                                         |
-| `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists; otherwise the major version from `package.json` `engines.node`. Next.js 16 needs Node 20.9 or later                                                 |
-| `build.preserved_paths` | Keep the CLI's `node_modules/,.next/` — `.next/` holds the build cache                                                                                                                              |
+| Key                           | Value                                                                                                                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ssg`                         | `"nextjs"`                                                                                                                                                                                          |
+| `build.install_command`       | See [../build-commands.md § Package manager](../build-commands.md#package-manager)                                                                                                                  |
+| `build.build_command`         | `npm run build`, where `build` runs `next build` plus every pre- and post-build step — see [../build-commands.md](../build-commands.md). A site with no `build` script gets `"build": "next build"` |
+| `build.output_path`           | `"out"`, or the `distDir` value when `next.config` sets one                                                                                                                                         |
+| `build.node_version`          | See [../build-commands.md § Node version](../build-commands.md#node-version). Next.js 16 needs Node 20.9 or later                                                                                   |
+| `build.preserved_paths`       | Keep the CLI's `node_modules/,.next/` — `.next/` holds the build cache                                                                                                                              |
+| `build.environment_variables` | The export variable, when production is hosted elsewhere — see [§ When production is hosted elsewhere](#when-production-is-hosted-elsewhere)                                                        |
 
 ## `next.config` for static export
 
@@ -50,6 +51,39 @@ const nextConfig: NextConfig = {
 With `output: "export"`, a `distDir` setting names the export folder, not the cache: `distDir: "build"` writes the site to `build/`. Set `output_path` to it.
 
 `trailingSlash` decides each page's built path — see [collection-urls.md](collection-urls.md).
+
+### When production is hosted elsewhere
+
+Keep the production build as it is, and gate `output: "export"` and `images.unoptimized` on a variable that only the CloudCannon build sets:
+
+```ts
+const staticExport = process.env.CLOUDCANNON_EXPORT === "true";
+
+const nextConfig: NextConfig = {
+  ...(staticExport && { output: "export", images: { unoptimized: true } }),
+};
+```
+
+Set the variable in `.cloudcannon/initial-site-settings.json`:
+
+```json
+"build": {
+  "environment_variables": [{ "key": "CLOUDCANNON_EXPORT", "value": "true" }]
+}
+```
+
+CloudCannon reads that file only when it creates the site. On an existing CloudCannon site, add the variable by hand in **Site Settings**.
+
+### What changes under export
+
+| The site has                                                                                                    | Under `output: "export"`                                           | Fix                                                                                                |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| A `GET` route handler (`route.ts`)                                                                              | The export fails                                                   | Add `export const dynamic = "force-static"` to the file                                            |
+| A metadata route file (`sitemap`, `robots`, `opengraph-image`, `twitter-image`, a generated `icon`, `manifest`) | The export fails, though a build without export lists it as static | Add `export const dynamic = "force-static"` to the file                                            |
+| A page that reads `searchParams`                                                                                | The export fails                                                   | Filter on the client, or build a static route per value                                            |
+| A `"use server"` module anywhere in the import graph                                                            | The export fails, even when nothing renders it                     | Remove it from the import chain, or ask the user                                                   |
+| A non-`GET` route handler                                                                                       | Left out of the export, with no warning                            | Find its callers, including library components with a default API URL; the UI that calls it breaks |
+| `fetch(…, { next: { revalidate } })`                                                                            | Builds, with the value fixed at build time                         | None                                                                                               |
 
 ## Collections
 
@@ -85,7 +119,7 @@ Next.js has no data directory. Use the folder the site imports its JSON from (of
 
 ## Images
 
-`next build` copies `public/` to the root of `out/`: `public/uploads/one.jpg` is served at `/uploads/one.jpg`.
+`next build` copies `public/` to the root of `out/`: `public/images/one.jpg` is served at `/images/one.jpg`.
 
 ```yaml
 paths:
@@ -102,8 +136,9 @@ Use the folder the site already keeps images in under `public/`. An image import
 - [ ] `.cloudcannon/initial-site-settings.json` has `"ssg": "nextjs"`
 - [ ] `build.output_path` is `out`, or the `distDir` value
 - [ ] `build.build_command` contains no `next export`
-- [ ] `next.config` sets `output: "export"`
-- [ ] `next.config` sets `images.unoptimized` (or a custom loader) if any file imports `next/image`
+- [ ] The CloudCannon build runs with `output: "export"`
+- [ ] The CloudCannon build runs with `images.unoptimized` (or a custom loader) if any file imports `next/image`
+- [ ] Every route in [§ What changes under export](#what-changes-under-export) has its fix
 - [ ] No collection over `app/` or `pages/`
 - [ ] Collections whose files each have a hard-coded route have `disable_add: true`
 - [ ] Every collection that builds pages has a `url` that resolves every file to its page in `out/`, with no `.html` — see [collection-urls.md](collection-urls.md)

@@ -5,7 +5,7 @@ Next.js deltas from [../visual-editing-reference.md](../visual-editing-reference
 ## Registered components
 
 **MUST:** keep every registered component, and everything it imports, client-safe: no `async` component, no `node:fs`, no `server-only`, no `next/headers`, no `useRouter`. Its data comes only through props.
-**Why:** the gated import in `CloudCannonEditor` puts the component map in the client bundle. A registered component doesn't need `"use client"`, because being imported from there already makes it client code.
+**Why:** the gated import in `CloudCannonEditor` puts the component map in the client bundle. A registered component doesn't need `"use client"`, because being imported from there already makes it, and everything it imports, client code.
 
 In the Pages Router every component is client code, and server-side data loading happens only in a page file's `getStaticProps` and `getStaticPaths`. A component that renders from props there is already client-safe; one that imports `node:fs` or a loader module directly is not.
 
@@ -20,13 +20,12 @@ The editor re-renders each registered component in its own React root, outside N
 
 Pass the current path or query in as props instead of reading the router.
 
-| Component                                                                | Treatment                                                                                                                                   |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Renders only from its props                                              | Register it; the page passes the data in                                                                                                    |
-| Reads its own data — a file read, a data-file import, a build-time fetch | Leave it unregistered; give its fields primitive regions, with `@data[<key>]` paths for data files                                          |
-| Has computed output and reads its own data                               | Move the data load to the caller, which wraps the component in `<editable-component data-prop="@data[<key>]">` and passes the data as props |
+Decide each component's treatment in this order, and take the first that fits:
 
-A header that imports `data/nav.json` and renders `@data[nav]` regions is the typical unregistered case.
+1. **It renders only from its props:** register it; the page passes the data in.
+2. **It loads its own data** (a file read, a data-file import, a build-time fetch) **and each field maps straight to an element:** leave it unregistered, and give its fields primitive regions, with `@data[<key>]` paths for data files. A header that imports `data/nav.json` and renders `@data[nav]` regions is the typical case.
+3. **It loads its own data and its output is computed:** move the import to the caller, which passes the data as props and wraps the component in `<editable-component data-prop="@data[<key>]">`. Any other prop the caller passes follows [../visual-editing-reference.md § Component prop contract](../visual-editing-reference.md#component-prop-contract).
+4. **Its client behaviour fights re-rendering** (autoplay, its own DOM management): register a display-only twin as an editing fallback → [../visual-editing-reference.md § Detecting the editor](../visual-editing-reference.md#detecting-the-editor-and-skipping-build-only-logic), and settle its load-time state → [§ Load-time behaviour](../visual-editing-reference.md#load-time-behaviour-in-the-editor).
 
 Keep the map in `app/cloudcannon/componentMap.ts` (Pages Router: `cloudcannon/componentMap.js` beside `pages/`), keyed by the `data-component` value:
 

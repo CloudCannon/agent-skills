@@ -82,6 +82,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 - **MUST NOT:** return an empty list from `generateStaticParams`, or set `dynamicParams = true`.
   **Why:** either fails `next build` under `output: "export"`. Keep at least one file in every folder a `[slug]` route reads.
 - **Replace** one route folder per entry (`app/blog/first-post/page.tsx`) with one `[slug]` route. A new file then builds a page without a developer.
+- **Build** every hard-coded route list (sitemap, feeds, search indexes) from the same list `generateStaticParams` uses, so pages editors create appear in it.
 - **Match** the param to the file name. When the site builds slugs from a front matter field or strips a date prefix, the collection `url` has to compute the same — see [cloudcannon-configuration/nextjs/collection-urls.md](../../cloudcannon-configuration/nextjs/collection-urls.md).
 
 ## Pages Router data functions
@@ -144,10 +145,11 @@ A link moved into a markdown body renders as a plain `<a>`, so its trailing slas
 - **MDX route files** (`app/blog/hello/page.mdx`) move into a content folder (`content/blog/hello.mdx`) and render through a `[slug]` route, so editors find posts in one collection.
 - **Render** each content-folder `.mdx` file by the path in the table below. The loader returns the body as a string, and `@next/mdx` compiles only files the bundler imports, never strings.
 
-| Site has                                               | Render with                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@next/mdx`, and the route is in the App Router        | A dynamic `import()` of the file in the route, as below — it keeps the site's MDX plugins and `mdx-components.tsx`                                                                                                                                                                             |
-| `next-mdx-remote`, or the route is in the Pages Router | The loader's `body` through `next-mdx-remote` — the API per router is in [cloudcannon-snippets/nextjs/overview.md § `next-mdx-remote`](../../cloudcannon-snippets/nextjs/overview.md#next-mdx-remote). Pass any remark and rehype plugins from `createMDX` to `serialize` through `mdxOptions` |
+| Site has                                                                    | Render with                                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@next/mdx`, and the route is in the App Router                             | A dynamic `import()` of the file in the route, as below — it keeps the site's MDX plugins and `mdx-components.tsx`                                                                                                                                                                             |
+| `next-mdx-remote`, or the route is in the Pages Router                      | The loader's `body` through `next-mdx-remote` — the API per router is in [cloudcannon-snippets/nextjs/overview.md § `next-mdx-remote`](../../cloudcannon-snippets/nextjs/overview.md#next-mdx-remote). Pass any remark and rehype plugins from `createMDX` to `serialize` through `mdxOptions` |
+| A content library (Contentlayer, velite, content-collections, Fumadocs MDX) | The library's compiled MDX component, passed the shared component map — see [§ Existing content libraries](#existing-content-libraries) and [cloudcannon-snippets/nextjs/overview.md § Content layers](../../cloudcannon-snippets/nextjs/overview.md#content-layers)                           |
 
 ```tsx
 // app/blog/[slug]/page.tsx, with @next/mdx
@@ -169,6 +171,16 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 - **Remove** `import` lines from MDX content. Components reach every file through one shared map — see [cloudcannon-snippets/nextjs/overview.md](../../cloudcannon-snippets/nextjs/overview.md).
 - **`export const metadata`** in an MDX file becomes front matter, read by the route's `generateMetadata` — in the Pages Router, by the page's `next/head`.
 - **Make** an MDX body editable in the Visual Editor by rendering it inside a `@content` region — see [cloudcannon-visual-editing/nextjs/visual-editing-reference.md § MDX bodies](../../cloudcannon-visual-editing/nextjs/visual-editing-reference.md#mdx-bodies).
+
+## Existing content libraries
+
+A content library (Contentlayer, velite, content-collections, Fumadocs MDX) reads a content root, checks front matter against its own schema, and generates the data the routes import. Keep it, and fit the migration into it:
+
+- **Put** new collections, such as `pages`, inside the library's content root.
+- **Declare** every new front matter key (`_schema`, `content_blocks`) in the library's schema or document type. An undeclared key fails its validation or is dropped from its output.
+- **Keep** data files out of its content root, or exclude them in its config.
+- **Build** `@file[...]` paths from the source path the library exposes for each entry, prefixed with the content root when that path is relative to it.
+- **Clear** its generated folder in the clean build — see [build.md § Build verification checklist](build.md#build-verification-checklist).
 
 ## Data files
 

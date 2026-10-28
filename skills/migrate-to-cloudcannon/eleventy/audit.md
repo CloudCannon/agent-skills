@@ -18,7 +18,7 @@ Start from the output of the [quick checks](overview.md#quick-checks), then fill
   Delete `_site/` first unless `.gitignore` lists it: with the output directory elsewhere, Eleventy reads an input-root `_site/` as templates. Every later phase compares against this build.
 
 - **Bookshop.** If the quick checks found Bookshop, read [cloudcannon-bookshop](../../cloudcannon-bookshop/SKILL.md) now. It changes Phases 2 to 4.
-- **npm tooling** — the `build` script and the scripts it calls. Eleventy sites often run Sass, PostCSS or Tailwind as separate scripts writing into the output directory, chained with `npm-run-all` or `&&`.
+- **npm tooling** — the `build` script and the scripts it calls. Eleventy sites often run Sass, PostCSS or Tailwind as separate scripts writing into the output directory, chained with `npm-run-all` or `&&`. Record the package manager and version — see [build-commands.md § Package manager](../../cloudcannon-configuration/build-commands.md#package-manager).
 
 ## 2. Template languages
 
@@ -46,7 +46,7 @@ Also list every file in the data directory with its format and which templates r
 - **YAML** — editable; Eleventy reads it only through `addDataExtension`, so check the config registers it.
 - **JS** (`.js`, `.cjs`, `.mjs`) — CloudCannon can't edit it. Note each one that holds values editors should change; Phase 3 moves them to JSON or YAML.
 
-> **Data file shape — anti-pattern:** a data file holding like-shaped items (team members, FAQs) must be a **top-level array**, not a map keyed by slug. A map locks editors to the existing keys and breaks the "Add" button.
+> **Data file shape — anti-pattern:** a dataset used as records or select values (authors, tags, team) must be a **top-level array** with a `slug` on each item, not a map keyed by slug. A map locks editors to the existing keys and breaks the "Add" button. Nav and footer link lists stay arrays inside their settings file, without ids.
 
 ## 4. Pages and routing
 
@@ -117,9 +117,9 @@ In Eleventy the usual outcome is:
   **Why:** a text region rejects non-strings — see [Value types per region](../../cloudcannon-visual-editing/editable-regions.md#value-types-per-region).
 - **Raw HTML in Markdown content.** Eleventy's Markdown passes HTML through unless the site sets its own markdown-it options.
   **Why:** decides the `markdown` options and whether snippets are needed for it in Phase 2.
-- **Scroll-reveal and entrance animations** — see [visual-editing-reference.md § Scroll-reveal](../../cloudcannon-visual-editing/visual-editing-reference.md#scroll-reveal-and-entrance-animations).
-- **Existing CMS or deployment config** — `netlify.toml`, an `admin/` folder from another CMS, `.github/workflows`.
+- **Load-time behaviour** — see [../audit.md § Load-time behaviour](../audit.md#load-time-behaviour).
+- **Existing CMS or deployment config** — `netlify.toml`, an `admin/` folder from another CMS, `.github/workflows`; record hosting, headers, redirects and forms as in [../audit.md § Site-wide facts](../audit.md#site-wide-facts).
 
 ## 8. Sectioning recommendation
 
-Record total pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.
+Record total pages as [orchestration.md § Sizing](../orchestration.md#sizing) counts them, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.

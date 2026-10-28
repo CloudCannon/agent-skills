@@ -4,12 +4,12 @@ Next.js-specific snippet guidance: MDX components in the Content Editor. The cro
 
 ## Which path the site is on
 
-| Content is…                                            | Snippet work                                                                                                                                       |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.md` rendered to HTML (markdown-it, remark), no MDX   | Root guidance only — raw HTML snippets per [../snippets.md](../snippets.md#raw-snippets-for-inline-html-in-md-files), including the renderer check |
-| `.mdx` compiled by `@next/mdx`                         | [§ `@next/mdx`](#nextmdx), then [§ Components to snippets](#components-to-snippets)                                                                |
-| `.mdx` strings rendered by `next-mdx-remote`           | [§ `next-mdx-remote`](#next-mdx-remote), then [§ Components to snippets](#components-to-snippets)                                                  |
-| MDX compiled by a content layer (contentlayer, velite) | [§ Content layers](#content-layers), then [§ Components to snippets](#components-to-snippets)                                                      |
+| Content is…                                                                               | Snippet work                                                                                                                                       |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.md` rendered to HTML (markdown-it, remark), no MDX                                      | Root guidance only — raw HTML snippets per [../snippets.md](../snippets.md#raw-snippets-for-inline-html-in-md-files), including the renderer check |
+| `.mdx` compiled by `@next/mdx`                                                            | [§ `@next/mdx`](#nextmdx), then [§ Components to snippets](#components-to-snippets)                                                                |
+| `.mdx` strings rendered by `next-mdx-remote`                                              | [§ `next-mdx-remote`](#next-mdx-remote), then [§ Components to snippets](#components-to-snippets)                                                  |
+| MDX compiled by a content layer (contentlayer, velite, content-collections, Fumadocs MDX) | [§ Content layers](#content-layers), then [§ Components to snippets](#components-to-snippets)                                                      |
 
 Find the path in `package.json` dependencies and `next.config.*` (`createMDX` means `@next/mdx`). Then find the router: an `app/` directory means the App Router, a `pages/` directory the Pages Router. Both can exist in one site.
 
@@ -114,7 +114,7 @@ List every call site with `rg 'MDXRemote|compileMDX\(|serialize\(' app pages src
 
 ## Content layers
 
-contentlayer and velite compile MDX at build time. The compiled MDX renders through a component that takes a `components` prop; pass it the one shared map at every render site, as in [§ `next-mdx-remote`](#next-mdx-remote).
+contentlayer, velite, content-collections and Fumadocs MDX compile MDX at build time. The compiled MDX renders through a component that takes a `components` prop; pass it the one shared map at every render site, as in [§ `next-mdx-remote`](#next-mdx-remote).
 
 ## Components to snippets
 
@@ -122,12 +122,13 @@ Every component tag in content needs a `_snippets` entry or a source-and-data-on
 
 React components need no hydration directive in content: interactive components carry `"use client"` in their own file. So the content syntax is plain JSX, and the built-in templates fit — see [../template-based.md § MDX templates](../template-based.md#mdx-templates).
 
-| Content shape                             | Configure with                                                                                                            |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Self-closing, string props                | `mdx_component`                                                                                                           |
-| Wraps content                             | `mdx_paired_component`                                                                                                    |
-| `{expression}` props, non-standard syntax | Move the expression into the component, or a raw snippet — see [../raw.md](../raw.md)                                     |
-| Nested tree (`<Tabs><Tab>…</Tab></Tabs>`) | One raw snippet with the `repeating` parser — see [../raw.md](../raw.md#repeating--repeat-a-child-pattern-as-array-items) |
+| Content shape                                     | Configure with                                                                                                                              |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Self-closing, string props                        | `mdx_component`                                                                                                                             |
+| Wraps content                                     | `mdx_paired_component`                                                                                                                      |
+| Array-of-objects prop (`images={[{ src: "…" }]}`) | `mdx_component` with a `type: array` arg — see [../template-based.md § Array-of-objects props](../template-based.md#array-of-objects-props) |
+| Other `{expression}` props, non-standard syntax   | Move the expression into the component, or a raw snippet — see [../raw.md](../raw.md)                                                       |
+| Nested tree (`<Tabs><Tab>…</Tab></Tabs>`)         | One raw snippet with the `repeating` parser — see [../raw.md](../raw.md#repeating--repeat-a-child-pattern-as-array-items)                   |
 
 List the component names content uses with [../snippets.md § Component inventory grep](../snippets.md#component-inventory-grep). Include `.md` files when `@next/mdx` compiles them.
 

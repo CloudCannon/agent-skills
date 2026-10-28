@@ -27,6 +27,8 @@ When the CLI is unavailable (sandbox network limits, a version mismatch), write 
 
 **Why `timezone` matters:** CloudCannon reads and writes date fields in this zone.
 
+The CLI's collections aren't always right. Change one that is obviously odd, such as a collection at the repository root, to what the audit says it should be.
+
 ### Build settings
 
 Put `ssg` at the root of `.cloudcannon/initial-site-settings.json`, and nest every other build key (`install_command`, `build_command`, `output_path` and the runtime versions) under `build`. The flat format, with `build_command` at the root, is defunct. The values for each key are in the SSG's `configuration.md`.
@@ -220,7 +222,7 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] `_inputs` configured for common field types (images, dates, dropdowns, hidden fields)
 - [ ] Every input has explicit config, with no reliance on type inference from the field name
 - [ ] Every `select` and `multiselect` has its options configured — see [configuration-gotchas.md § Editor-owned option lists](configuration-gotchas.md#editor-owned-option-lists)
-- [ ] Icon fields are `type: select` with `allow_create: true`, `value_key: id` and named values — see [configuration-gotchas.md § Configure icon fields as select inputs](configuration-gotchas.md#configure-icon-fields-as-select-inputs)
+- [ ] Icon fields are `type: select` with `value_key: id` and named values, and `allow_create: true` only when the icon library resolves any name — see [configuration-gotchas.md § Configure icon fields as select inputs](configuration-gotchas.md#configure-icon-fields-as-select-inputs)
 - [ ] Enum-like keys inside structure `value:` blocks — `icon`, `variant`, `target`, `size`, `align`, `theme`, `columns` — each have an `_inputs` entry on the structure value itself. Sweep `cloudcannon.config.yml` and every `*.cloudcannon.structure-value.yml` for those keys — see [configuration-gotchas.md § Where the input definition goes](configuration-gotchas.md#where-the-input-definition-goes)
 - [ ] Numeric front matter values mapped to `text` inputs are quoted as strings
 - [ ] Developer-only fields (`layout`, `_schema`, routing and rendering keys) have `hidden: true`
@@ -246,7 +248,7 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] `grep -nE '(: |- )[&*][A-Za-z_]|<<:' cloudcannon.config.yml` finds no YAML anchors, aliases or merge keys — see [configuration-gotchas.md § No YAML anchors or aliases](configuration-gotchas.md#no-yaml-anchors-or-aliases)
 - [ ] Every schema-default change is paired with a backfill across existing content files
 - [ ] Every array or multiselect backed by a data file uses `values: data.<name>`, with no hard-coded copy of the values
-- [ ] Every data file that holds a list of like-shaped items is a top-level array with an explicit `slug` or `id` per item, wired to a `_structures` entry so editors get an Add button
+- [ ] Every data file used as records or a select source (authors, tags, team) is a top-level array with an explicit `slug` or `id` per item, wired to a `_structures` entry so editors get an Add button. Nav and footer link lists in a settings file are exempt
 - [ ] No template has a `length === 0 ? showAll : showSelected` toggle on a multiselect-driven field. Empty renders nothing, or the schema seeds defaults
 
 ### Schemas and the Add button

@@ -217,68 +217,72 @@ For nested patterns like `<Tabs><Tab>...</Tab></Tabs>`, use a single snippet wit
 **Astro-specific note:** Tabs components typically need `client:load` on the parent element. Include this in the snippet template string:
 
 ```yaml
-tabs:
-  snippet: "<Tabs client:load>[[repeating_tabs]]</Tabs>"
-  inline: false
-  preview:
-    text: Tabs
-    icon: tab
-  _inputs:
-    tab_items:
-      type: array
-      options:
-        structures:
-          values:
-            - label: Tab
-              icon: tab
-              preview:
-                text: [{ key: name }, Tab]
-                icon: [tab]
-              _inputs:
-                name:
-                  type: text
-                tab_content:
-                  type: markdown
-                  options:
-                    bold: true
-                    italic: true
-                    link: true
-                    bulletedlist: true
-                    numberedlist: true
-              value:
-                name: ""
-                tab_content: ""
-  params:
-    repeating_tabs:
-      parser: repeating
-      options:
-        snippet: "<Tab [[named_args]]>[[tab_content]]</Tab>"
-        editor_key: tab_items
-        default_length: 2
-        style:
-          output: block
-          between: "\n\n"
-          block:
-            leading: "\n\n"
-            trailing: "\n\n"
-    named_args:
-      parser: key_values
-      options:
-        models:
-          - editor_key: name
-            type: string
-        format:
-          root_value_delimiter: "="
-          string_boundary:
-            - '"'
-    tab_content:
-      parser: content
-      options:
-        editor_key: tab_content
-        style:
-          block:
-            leading: "\n\n"
-            trailing: "\n\n"
+_structures:
+  tab_items:
+    values:
+      - label: Tab
+        icon: tab
+        preview:
+          text: [{ key: name }, Tab]
+          icon: [tab]
+        _inputs:
+          name:
+            type: text
+          tab_content:
+            type: markdown
+            options:
+              bold: true
+              italic: true
+              link: true
+              bulletedlist: true
+              numberedlist: true
+        value:
+          name: ""
+          tab_content: ""
+
+_snippets:
+  tabs:
+    snippet: "<Tabs client:load>[[repeating_tabs]]</Tabs>"
+    inline: false
+    preview:
+      text: Tabs
+      icon: tab
+    _inputs:
+      tab_items:
+        type: array
+        options:
+          structures: _structures.tab_items
+    params:
+      repeating_tabs:
+        parser: repeating
+        options:
+          snippet: "<Tab [[named_args]]>[[tab_content]]</Tab>"
+          editor_key: tab_items
+          default_length: 2
+          style:
+            output: block
+            between: "\n\n"
+            block:
+              leading: "\n\n"
+              trailing: "\n\n"
+      named_args:
+        parser: key_values
+        options:
+          models:
+            - editor_key: name
+              type: string
+          format:
+            root_value_delimiter: "="
+            string_boundary:
+              - '"'
+      tab_content:
+        parser: content
+        options:
+          editor_key: tab_content
+          style:
+            block:
+              leading: "\n\n"
+              trailing: "\n\n"
 ```
 
 Configure the repeating parser's `editor_key` (`tab_items`) as an array input with a structure. Put the item preview and the inputs for each item's fields on the structure value, as for any array of objects.

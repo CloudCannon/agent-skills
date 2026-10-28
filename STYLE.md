@@ -186,7 +186,7 @@ Then:
 Then:
 
 - Create `<framework>/visual-editing-reference.md` with the registration function and the `EditableRegions` export, as the existing framework files do. Add other sections only as the placement rule in [§ Framework directories](#framework-directories-are-a-shared-layer) allows
-- Add the framework to the per-framework lists in [cloudcannon-visual-editing/visual-editing-reference.md § React, Vue and Svelte components](skills/cloudcannon-visual-editing/visual-editing-reference.md#react-vue-and-svelte-components) and § Whole-page framework sites, and to the `Contents` table in `SKILL.md`
+- Add the framework to the per-framework lists in [cloudcannon-visual-editing/visual-editing-reference.md § React, Vue and Svelte components](skills/cloudcannon-visual-editing/visual-editing-reference.md#react-vue-and-svelte-components) and [§ Whole-page framework sites](skills/cloudcannon-visual-editing/visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root), and to the `Contents` table in `SKILL.md`
 - Add its renderer and its component map to the Astro files, if Astro renders it
 - Add the framework's own SSG through [§ Adding a new SSG](#adding-a-new-ssg); that is most of the work
 - Add the new files to the file map in [ARCHITECTURE.md](ARCHITECTURE.md#file-map)
@@ -199,6 +199,7 @@ Then:
 - **One canonical source per rule.** If a rule appears in 2+ files, one file owns it and the others link. Summary tables in `SKILL.md` entrypoints link to deep-dives; they do not re-explain.
 - **One canonical source per list.** Don't write out a list of skills, files or SSGs that the repo or another doc already holds. Point to that source, or state the rule that produces the list ("every skill with an `<ssg>/` directory"). A copied list goes stale the next time something is added. Supported SSGs are listed in the [README coverage matrix](README.md#ssg-coverage), and inside a skill in its `SKILL.md` SSG table; wherever SSGs appear side by side, use the matrix's column order.
 - **No source line numbers or internal paths.** State the behaviour, not where it lives in a dependency's source. Line numbers and paths like `next/dist/...` change with every release. When a reader needs the origin, name the package and its public API.
+- **Commands must not rely on a glob matching.** zsh aborts a command whose glob matches nothing (`ls middleware.*`). Use `find -name`, or quote the pattern when the command expands it itself (`grep --include='*.md'`).
 - **Tables for if/then logic.** Any prose shaped like "if X do Y; if Z do W" becomes a table with columns for condition, action, and (if useful) reason or when-to-use.
 - **A table cell holds a sentence at most.** A cell that needs a paragraph is a section disguised as a table — write it as a section, and link to it from the table if needed.
 - **Checklists for procedures.** Imperative bullets starting with a verb — `Run`, `Verify`, `Remove`, `Add`. No narrative intros ("First, let's…", "Now we need to…").

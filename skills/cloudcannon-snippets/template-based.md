@@ -48,6 +48,59 @@ Required definitions:
 - `named_args` (array of snippet models)
 - `content_key` (string) — the editor key for the content between the tags
 
+### Array-of-objects props
+
+An `mdx_component` arg of `type: array` holds a list of objects, such as a gallery's images. Write each array on one line, with unquoted keys and double-quoted values, which is the format CloudCannon writes:
+
+```mdx
+<Gallery
+  images={[
+    { src: "/images/a.jpg", alt: "First" },
+    { src: "/images/b.jpg", alt: "Second" },
+  ]}
+/>
+```
+
+**MUST:** normalise existing content to this format before configuring the snippet.
+**Why:** an object with quoted keys (`{ "src": "/images/a.jpg" }`) doesn't match its structure, so editors can't edit the item.
+
+```yaml
+_structures:
+  gallery_images:
+    values:
+      - label: Image
+        icon: image
+        preview:
+          text: [{ key: alt }, Image]
+          image: [{ key: src }]
+        value:
+          src:
+          alt:
+        _inputs:
+          src:
+            type: image
+          alt:
+            type: text
+
+_snippets:
+  gallery:
+    template: mdx_component
+    inline: false
+    preview:
+      text: Gallery
+      icon: photo_library
+    definitions:
+      component_name: Gallery
+      named_args:
+        - editor_key: images
+          type: array
+    _inputs:
+      images:
+        type: array
+        options:
+          structures: _structures.gallery_images
+```
+
 ---
 
 ## Snippet Model

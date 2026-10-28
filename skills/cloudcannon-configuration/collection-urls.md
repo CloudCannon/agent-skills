@@ -95,6 +95,8 @@ Then check where the excluded file lands. A collection whose `path` is a parent 
 2. Compute each file's URL from its collection's `url`, using its path and front matter.
 3. Every row must match exactly, trailing slash included. When one doesn't, fix the template ([§ The rule](#the-rule)). A file missing from the build is a draft, future-dated, or never builds a page — see [§ The rule](#the-rule) for each.
 
+When Phase 3 creates a collection's files, check each planned file's URL against its planned route in Phase 2. Phase 3 re-runs the check on the real files.
+
 ## Troubleshooting
 
 If a page doesn't load in the visual editor:

@@ -69,11 +69,11 @@ Failures go back to the subagent that did the work — continued if the host all
 
 Evaluate at the end of Phase 1, against `.cloudcannon/migration/audit.md`:
 
-| Signal                                | Threshold | Source                                                                       |
-| ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
-| Total pages                           | > 30      | Audit § Pages and routing                                                    |
-| Hardcoded template → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
-| Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
+| Signal                                                                                                                      | Threshold | Source                                                                       |
+| --------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| Total pages — each backed by a content file or a static route; generated listing, taxonomy and pagination pages don't count | > 30      | Audit § Pages and routing                                                    |
+| Hardcoded template → YAML conversions                                                                                       | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
+| Distinct collections                                                                                                        | > 5       | Audit § Content collections + new collections from census                    |
 
 If any 2 are tripped, the audit subagent writes `.cloudcannon/migration/plan.md` from the template below. The orchestrator shows the user the chunk list in a few lines and waits for a go before Phase 2.
 

@@ -21,14 +21,14 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg ele
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
-| Key                     | Value                                                                                                                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ssg`                   | `"eleventy"`                                                                                                                                                                                           |
-| `build.install_command` | From the detected package manager (`npm i`)                                                                                                                                                            |
-| `build.build_command`   | `npm run build` when `package.json` has a production `build` script (Sass, Tailwind and Pagefind steps live there); `npx @11ty/eleventy` otherwise — see [../build-commands.md](../build-commands.md)  |
-| `build.output_path`     | `"_site"`, or the config's `dir.output` / the build script's `--output`                                                                                                                                |
-| `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists; otherwise the major version from `package.json` `engines.node`. Eleventy 3 needs Node 18 or later, and the editable-regions plugin Node 20.19 or later |
-| `build.preserved_paths` | Keep the CLI's `node_modules/,.cache` — `.cache` holds Eleventy's fetch and image caches                                                                                                               |
+| Key                     | Value                                                                                                                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ssg`                   | `"eleventy"`                                                                                                                                                                                          |
+| `build.install_command` | See [../build-commands.md § Package manager](../build-commands.md#package-manager)                                                                                                                    |
+| `build.build_command`   | `npm run build` when `package.json` has a production `build` script (Sass, Tailwind and Pagefind steps live there); `npx @11ty/eleventy` otherwise — see [../build-commands.md](../build-commands.md) |
+| `build.output_path`     | `"_site"`, or the config's `dir.output` / the build script's `--output`                                                                                                                               |
+| `build.node_version`    | See [../build-commands.md § Node version](../build-commands.md#node-version). Eleventy 3 needs Node 18 or later, and the editable-regions plugin Node 20.19 or later                                  |
+| `build.preserved_paths` | Keep the CLI's `node_modules/,.cache` — `.cache` holds Eleventy's fetch and image caches                                                                                                              |
 
 ## Collections
 

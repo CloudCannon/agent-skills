@@ -174,6 +174,8 @@ Common culprits: `price`, `amount`, `count`, `order`, `rating`. Structure defaul
 find <collection dir> -name '*.md' -exec sed -n '/^---$/,/^---$/p' {} \; | grep -oE '^[A-Za-z_][A-Za-z0-9_]*:' | sort -u
 ```
 
+When Phase 3 creates the files, diff against their planned shapes first. Phase 3 re-runs the diff on the real files.
+
 [§ Data inputs must follow the data file](#data-inputs-must-follow-the-data-file-not-a-template) is the same check for data files.
 
 ### `_inputs` key collision across nesting levels
@@ -206,7 +208,7 @@ A data file's inputs merge from every level of the configuration cascade that co
 **Recipe:** list every leaf key path in the file, then cross-reference it against those levels:
 
 ```bash
-jq -r 'paths(scalars) | join(".")' <data dir>/*.json | sort -u
+find <data dir> -name '*.json' -exec jq -r 'paths(scalars) | join(".")' {} + | sort -u
 # YAML data files: yq -o=json '.' <file> | jq -r 'paths(scalars) | join(".")'
 ```
 
@@ -264,7 +266,7 @@ A dataset needs a `data_config` entry, and editing its file needs a collection �
 
 ### Configure icon fields as select inputs
 
-When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `flat-color-icons:*`), configure the `icon` input as a `select` with `allow_create: true` rather than a plain `text` field. Non-technical editors can't guess icon names, but they can pick from a curated list with friendly display names.
+When a template renders icons by name, configure the `icon` input as a `select` rather than a plain `text` field. Non-technical editors can't guess icon names, but they can pick from a curated list with friendly display names.
 
 #### Setup steps
 
@@ -272,8 +274,8 @@ When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `fla
 2. Add them as object values with `name` (human-readable label) and `id` (the Iconify value).
 3. Set `value_key: id` so the stored value is the Iconify ID, not the whole object.
 4. Set `preview.text` to show the friendly name in the dropdown.
-5. Set `allow_create: true` so developers can still type custom icon names.
-6. Add a `comment` linking to the icon set's browser (e.g. Iconify) so developers know where to find new names.
+5. Set `allow_create: true` only when the icon library resolves any name (for example Iconify), so developers can type a custom one. A fixed icon map in the site's code gets `allow_create: false`, because a name outside the map renders nothing.
+6. With `allow_create: true`, add a `comment` linking to the icon set's browser (e.g. Iconify) so developers know where to find new names.
 
 **Deriving friendly names:** strip the collection prefix (`tabler:`, `flat-color-icons:`), replace hyphens with spaces, title-case. For icons from secondary collections, add a suffix (e.g. "Template (Color)" for `flat-color-icons:template` vs "Template" for `tabler:template`).
 
@@ -501,7 +503,7 @@ _inputs:
           id: 4
 ```
 
-`allow_create: true` is appropriate for icon fields (developers may want a custom Iconify name). For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug.
+For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug. Icon fields follow the same rule unless the icon library resolves any name — see [§ Configure icon fields as select inputs](#configure-icon-fields-as-select-inputs).
 
 Placement follows the same rule as icons: define the input on each structure value that has the key, and share one definition across them with `_inputs_from_glob`. See [§ Where the input definition goes](#where-the-input-definition-goes).
 

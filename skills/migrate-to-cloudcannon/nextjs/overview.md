@@ -44,33 +44,39 @@ Run these from the site root before the audit, and record the output in `.cloudc
 - **Next config** — the export settings and the settings static export can't serve:
 
   ```sh
-  ls next.config.* 2>/dev/null
-  grep -nE 'output|distDir|trailingSlash|basePath|images|unoptimized|loader|rewrites|redirects|headers|i18n' next.config.*
+  find . -maxdepth 1 -name 'next.config.*' -exec grep -HnE 'output|distDir|trailingSlash|basePath|images|unoptimized|loader|rewrites|redirects|headers|i18n|process\.env' {} +
   ```
 
 - **Middleware or proxy:**
 
   ```sh
-  ls middleware.* proxy.* src/middleware.* src/proxy.* 2>/dev/null
+  find . src -maxdepth 1 -type f \( -name 'middleware.*' -o -name 'proxy.*' \) 2>/dev/null
   ```
 
-- **Server-only features in the App Router:**
+- **Server-only features** anywhere in the project, since a server module in the import graph fails the export even when nothing renders it:
 
   ```sh
-  grep -rnE 'revalidate|"use server"|cookies\(|headers\(|draftMode|dynamicParams|force-dynamic' app src/app 2>/dev/null
+  grep -rnE --include='*.[jt]s' --include='*.[jt]sx' --include='*.mjs' --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out 'revalidate|use server|unstable_cache|revalidateTag|revalidatePath|cookies\(|headers\(|draftMode|dynamicParams|force-dynamic|searchParams' .
   ```
 
-- **Route handlers:**
+- **Route handlers and metadata routes**, then each one without `force-static`:
 
   ```sh
-  find app src/app -name 'route.*' 2>/dev/null
+  find app src/app -type f \( -name '*.[jt]s' -o -name '*.[jt]sx' \) 2>/dev/null | grep -E '/(route|sitemap|robots|manifest|icon|apple-icon|opengraph-image|twitter-image)\.'
+  grep -L force-static <each file listed>
+  ```
+
+- **Server-rendered routes** — install dependencies, run the unchanged `build` script with the site's package manager, and list every route the build marks `ƒ` (Dynamic). Each one is an export blocker; [audit.md § 1](audit.md#1-router-and-export-readiness) maps it to its cause:
+
+  ```sh
+  <package manager> run build 2>&1 | grep 'ƒ'
   ```
 
 - **Dynamic routes**, then each one's page without `generateStaticParams`:
 
   ```sh
   find app src/app -type d -name '[[]*' 2>/dev/null
-  grep -L generateStaticParams <each dynamic route dir>/page.*
+  find <each dynamic route dir> -maxdepth 1 -name 'page.*' -exec grep -L generateStaticParams {} +
   ```
 
   In the Pages Router, dynamic routes are files, and each needs `getStaticPaths`:
@@ -88,13 +94,16 @@ Run these from the site root before the audit, and record the output in `.cloudc
 - **Content and data files** outside the app code:
 
   ```sh
-  find . \( -name '*.md' -o -name '*.mdx' -o -name '*.json' -o -name '*.yml' -o -name '*.yaml' \) -not -path './node_modules/*' -not -path './.next/*' -not -path './out/*' -not -name 'package*.json' -not -name 'tsconfig*.json'
+  find . \( -name '*.md' -o -name '*.mdx' -o -name '*.json' -o -name '*.yml' -o -name '*.yaml' \) \
+    -not -path '*/.*' -not -path '*/node_modules/*' -not -path './out/*' \
+    -not -name 'package*.json' -not -name 'tsconfig*.json' -not -name 'pnpm-lock.yaml' \
+    -not -path './README.md' -not -path './CHANGELOG.md'
   ```
 
 - **Content tooling** in `package.json`:
 
   ```sh
-  grep -nE '"(@next/mdx|@mdx-js/[a-z-]+|next-mdx-remote|contentlayer2?|next-contentlayer2?|velite|gray-matter|js-yaml|front-matter|remark|unified|markdown-it|marked)"' package.json
+  grep -nE '"(@next/mdx|@mdx-js/[a-z-]+|next-mdx-remote|contentlayer2?|next-contentlayer2?|velite|@content-collections/[a-z-]+|fumadocs-[a-z-]+|gray-matter|js-yaml|front-matter|remark|unified|markdown-it|marked)"' package.json
   ```
 
 - **Fetches** in server components and data functions:

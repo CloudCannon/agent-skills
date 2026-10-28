@@ -25,7 +25,7 @@ Use its output as a starting point, then fill in the sections below with finding
 - **The theme's own agent docs.** Check each theme and module directory for `.claude/skills/`, `AGENTS.md` or `CLAUDE.md`, and read them before auditing its templates.
   **Why:** they often map the theme's config files, partial names and resource lookups in one page.
 - **Bookshop.** If the script reports Bookshop markers, read [cloudcannon-bookshop](../../cloudcannon-bookshop/SKILL.md) now. It changes Phases 2 to 4.
-- **npm tooling** — `package.json` scripts (Tailwind, PostCSS, Pagefind) and the package manager. If Hugo shells out to npm-installed tools (Dart Sass, PostCSS, Babel), build through `npm run …` so `node_modules/.bin` is first on `PATH`.
+- **npm tooling** — `package.json` scripts (Tailwind, PostCSS, Pagefind), and the package manager and version — see [build-commands.md § Package manager](../../cloudcannon-configuration/build-commands.md#package-manager). If Hugo shells out to npm-installed tools (Dart Sass, PostCSS, Babel), build through `npm run …` so `node_modules/.bin` is first on `PATH`.
 
 ### Calling a pinned Hugo
 
@@ -49,7 +49,7 @@ For each directory under `content/`:
 
 Also list every file under `data/` and which templates read it (`hugo.Data.<name>`, or `site.Data` before Hugo 0.156).
 
-> **Data file shape — anti-pattern:** a data file holding like-shaped items (team members, FAQs) must be a **top-level array**, not a map keyed by slug. A map locks editors to the existing keys and breaks the "Add" button.
+> **Data file shape — anti-pattern:** a dataset used as records or select values (authors, tags, team) must be a **top-level array** with a `slug` on each item, not a map keyed by slug. A map locks editors to the existing keys and breaks the "Add" button. Nav and footer link lists stay arrays inside their settings file, without ids.
 
 ## 3. Pages and routing
 
@@ -125,11 +125,11 @@ In Hugo the usual outcome is:
   **Why:** a text region rejects non-strings — see [configuration-gotchas.md § Quote numbers](../../cloudcannon-configuration/hugo/configuration-gotchas.md#quote-numbers-a-text-region-displays).
 - **Raw HTML in content** and the site's Goldmark `unsafe` setting.
   **Why:** decides the `markdown` options — see [configuration-gotchas.md § Match Goldmark](../../cloudcannon-configuration/hugo/configuration-gotchas.md#match-goldmark-in-the-markdown-options).
-- **Scroll-reveal and entrance animations** — see [visual-editing-reference.md § Scroll-reveal](../../cloudcannon-visual-editing/visual-editing-reference.md#scroll-reveal-and-entrance-animations).
+- **Load-time behaviour** — see [../audit.md § Load-time behaviour](../audit.md#load-time-behaviour).
 - **GitHub-style alerts** in content (`> [!NOTE]`, rendered by Hugo 0.132+ render hooks). The script counts them.
   **Why:** a save through the rich text editor escapes the marker and breaks the alert — see [cloudcannon-snippets/hugo/overview.md § GitHub-style alerts](../../cloudcannon-snippets/hugo/overview.md#github-style-alerts).
-- **Existing CMS or deployment config** — `netlify.toml`, `.forestry/`, `static/admin/`, `.github/workflows`.
+- **Existing CMS or deployment config** — `netlify.toml`, `.forestry/`, `static/admin/`, `.github/workflows`; record hosting, headers, redirects and forms as in [../audit.md § Site-wide facts](../audit.md#site-wide-facts).
 
 ## 7. Sectioning recommendation
 
-Record total pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.
+Record total pages as [orchestration.md § Sizing](../orchestration.md#sizing) counts them, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.

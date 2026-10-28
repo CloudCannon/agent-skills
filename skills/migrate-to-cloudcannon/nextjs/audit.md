@@ -9,6 +9,8 @@ Record which router serves each route: `app/` (App Router), `pages/` (Pages Rout
 **MUST:** stop and **ask the user** before Phase 2 when the site needs anything in the table below. Each one needs a server, and CloudCannon serves the static export.
 **Why:** a site that depends on these either fails `next build` with `output: "export"`, or builds and then behaves differently on a static host. Removing them changes the site, so it is the user's call.
 
+The CloudCannon build exports every route, wherever production is hosted. A site that needs server route folders left out of that build also stops here for the user's call.
+
 | Found                                                                            | Under `output: "export"`                                                                    |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `getServerSideProps` (Pages Router)                                              | Build fails                                                                                 |
@@ -18,23 +20,36 @@ Record which router serves each route: `app/` (App Router), `pages/` (Pages Rout
 | `middleware.*` or `proxy.*`                                                      | Not run                                                                                     |
 | `rewrites`, `redirects` or `headers` in the Next config                          | Build warns, and they don't apply                                                           |
 | `i18n` in the Next config                                                        | Build fails                                                                                 |
-| `revalidate` exports or `fetch(…, { next: { revalidate } })` (ISR)               | Not supported                                                                               |
-| Server actions (`"use server"`)                                                  | Not supported                                                                               |
+| `revalidate` exports, `revalidateTag`, `revalidatePath`, `unstable_cache` (ISR)  | Not supported                                                                               |
+| A `"use server"` module anywhere in the import graph, including a form's action  | Build fails, even when nothing renders it                                                   |
+| A page that reads `searchParams`                                                 | Build fails                                                                                 |
 | `cookies()`, `headers()`, `draftMode()`                                          | Not supported                                                                               |
 | `export const dynamic = "force-dynamic"`                                         | Not supported                                                                               |
-| Route handlers other than `GET`, or a `GET` that reads the request               | Not supported; a `GET` that doesn't read the request builds to a static file                |
+| Route handlers other than `GET`                                                  | Left out of the output with no warning                                                      |
+| A `GET` route handler that reads the request                                     | Not supported                                                                               |
+| A route the unchanged build marks `ƒ`                                            | Server-rendered; trace it to one of the rows above                                          |
 | A dynamic route whose `generateStaticParams` is missing or returns an empty list | Build fails                                                                                 |
 | `dynamicParams = true`                                                           | Build fails                                                                                 |
 | Intercepting routes                                                              | Not supported                                                                               |
 
-Record for each finding: the file, what it does for the site, and whether a static equivalent exists (redirects as `<meta http-equiv="refresh">` pages or host routing, form posts to a third-party endpoint). `next/image` with the default loader never blocks: Phase 2 fixes it, see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
+Record for each finding: the file, what it does for the site, and whether a static equivalent exists (headers, redirects and simple rewrites in `.cloudcannon/routing.json` — see [routing.md](../../cloudcannon-configuration/routing.md); client-side filtering or a static route per value for `searchParams`; forms as in [../audit.md § Forms](../audit.md#forms)). Two findings need more:
+
+- For a `"use server"` module, the import chain from a route to it.
+- For a non-`GET` handler, its callers, including library components with a default API URL, and which UI breaks without it.
+
+These never block, because Phase 2 fixes them — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export):
+
+- `next/image` with the default loader.
+- A `GET` route handler or metadata route file (sitemap, robots, opengraph-image, twitter-image, generated icon, manifest) without `export const dynamic = "force-static"`.
+- `fetch(…, { next: { revalidate } })`. It builds, and the fetched value is fixed at build time; record it with the fetches in § 2.
 
 Also record:
 
-- **Next and React versions** in `package.json`, and Node from `.nvmrc` or `engines` — the Node requirement is in [cloudcannon-configuration/nextjs/configuration.md § Build settings](../../cloudcannon-configuration/nextjs/configuration.md#build-settings-cloudcannoninitial-site-settingsjson).
+- **Next and React versions** in `package.json`, and Node from `.nvmrc`, `.node-version` or `engines` — see [build-commands.md § Node version](../../cloudcannon-configuration/build-commands.md#node-version) and the Next requirement in [cloudcannon-configuration/nextjs/configuration.md § Build settings](../../cloudcannon-configuration/nextjs/configuration.md#build-settings-cloudcannoninitial-site-settingsjson).
   - `@cloudcannon/editable-regions/react` renders with `createRoot` from `react-dom/client`, so it needs React 18 or later.
   - `output: "export"` arrives in Next 13.3. An older site needs a Next upgrade — **ask the user** before Phase 2.
   - From Next 16, `next build` uses Turbopack by default; notes marked Turbopack apply only then.
+- **Package manager and version** — see [build-commands.md § Package manager](../../cloudcannon-configuration/build-commands.md#package-manager).
 - **`output`** — already `"export"`, or unset. Unset with none of the blockers above means Phase 2 adds it.
 - **`distDir`** — names the output directory; see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
 - **`trailingSlash`** — decides the built path of every page, and so every collection `url`; see [cloudcannon-configuration/nextjs/collection-urls.md](../../cloudcannon-configuration/nextjs/collection-urls.md#trailing-slash-rule). When it's off, list internal links ending in `/` outside `<Link>`; they return 404 — see [§ Internal links](../../cloudcannon-configuration/nextjs/collection-urls.md#internal-links).
@@ -78,10 +93,11 @@ For each content folder, record:
 | `@next/mdx` in the Next config              | `.mdx` files are pages or imports, compiled by the bundler          | `mdx-components.tsx`, plus `import` in files |
 | `next-mdx-remote`                           | MDX strings read from files, rendered with `<MDXRemote>`            | The `components` prop at each render site    |
 | `contentlayer`, `contentlayer2` or `velite` | A content layer compiles files into generated data before the build | The component map passed to its MDX renderer |
+| `@content-collections/*` or `fumadocs-mdx`  | The same, as a content layer                                        | The component map passed to its MDX renderer |
 
 Record each component used in MDX bodies, with its props and how many files use it. Classify each with [../audit.md § Content files whose body is layout components](../audit.md#content-files-whose-body-is-layout-components). Inline components are snippet candidates for Phase 2 — see [cloudcannon-snippets/nextjs/overview.md](../../cloudcannon-snippets/nextjs/overview.md).
 
-With a content layer, record its config file, the folders it reads and its output directory (`.contentlayer/`, `.velite/`). Editors change the source files; the output directory is never a collection.
+With a content layer, record its config file, the folders it reads, its schema or document types, and its output directory (`.contentlayer/`, `.velite/`, `.content-collections/`, `.source/`). Editors change the source files; the output directory is never a collection. Phase 3 works within the library — see [content.md § Existing content libraries](content.md#existing-content-libraries).
 
 Check each data file that holds like-shaped items (team members, FAQs) against the shape rule in [../content.md § Data collections](../content.md#data-collections).
 
@@ -106,8 +122,8 @@ In the Pages Router, each file is a route:
 ## 4. Layouts and components
 
 - **Root layout** (`app/layout.tsx`) and nested layouts — what each wraps (header, footer, providers). In the Pages Router: `pages/_app.*`, and the layout component each page renders itself.
-- **Server and client components** — which components have `"use client"`, and which read files, call `fetch` or are `async`. In the Pages Router every component is client code: only `getStaticProps` and `getStaticPaths` read files, and components get their data as props.
-  **Why:** a component the Visual Editor re-renders runs in the browser, with its data only from props — see [cloudcannon-visual-editing/nextjs/overview.md](../../cloudcannon-visual-editing/nextjs/overview.md). A section that reads data itself is reshaped in Phase 4 to take props.
+- **Server and client components** — which components have `"use client"`, and which read files, call `fetch` or are `async`. A component imported from a `"use client"` module is client code too, so trace imports from each one. In the Pages Router every component is client code: only `getStaticProps` and `getStaticPaths` read files, and components get their data as props.
+  **Why:** a component the Visual Editor re-renders runs in the browser, with its data only from props — see [cloudcannon-visual-editing/nextjs/overview.md](../../cloudcannon-visual-editing/nextjs/overview.md). A component that reads data itself is reshaped in Phase 4 only if it needs re-rendering — see the decision order in [visual-editing-reference.md § Registered components](../../cloudcannon-visual-editing/nextjs/visual-editing-reference.md#registered-components).
 - **Section components** rendered by pages (hero, features, CTA, testimonials) and the props each takes.
 - **Context providers** (theme, i18n, UI libraries) that section components depend on.
 - **`next/image`** — which components use it, with local or remote sources.
@@ -116,7 +132,7 @@ Flag components that are good visual-editing candidates (heroes, feature grids, 
 
 ### Classifying static pages
 
-Classify every route whose content isn't already in a collection. The decision table and the mandatory census table are in [../audit.md § Classifying static pages](../audit.md#classifying-static-pages); name each census row by its route file (`app/page.tsx`, `app/about/page.tsx`, `pages/about.jsx`).
+Classify every route whose content isn't already in a collection. The decision table and the mandatory census table are in [../audit.md § Classifying static pages](../audit.md#classifying-static-pages); name each census row by its route file's real path, route groups included (`app/(marketing)/page.tsx`, `app/about/page.tsx`, `pages/about.jsx`).
 
 That section's two follow-on censuses in Next.js form:
 
@@ -140,7 +156,8 @@ In Next.js the usual outcome is:
 
 - The `build` script in `package.json`, and anything it runs before or after `next build` (search indexes, generated data, a content layer build).
 - Environment variables the build reads (`.env*`, `process.env` in server components) — CMS tokens point at fetches Phase 3 removes.
-- Existing hosting config (`vercel.json`, `netlify.toml`, `.github/workflows`) — redirects and headers there need a replacement on CloudCannon.
+- `next.config` values read from `process.env`, and build scripts that branch on the same variables. When production is hosted elsewhere, Phase 2 gates the export settings on a variable — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
+- Existing hosting config (`vercel.json`, `netlify.toml`, `.github/workflows`), and `headers()`, `redirects()` and `rewrites()` in the Next config — see [../audit.md § Site-wide facts](../audit.md#site-wide-facts).
 
 ## 6. Flags and special patterns
 
@@ -151,8 +168,8 @@ In Next.js the usual outcome is:
 - **Numbers displayed as text** — counters, prices and stats stored as numbers.
   **Why:** a text region rejects non-strings — see [Value types per region](../../cloudcannon-visual-editing/editable-regions.md#value-types-per-region).
 - **Styled HTML in strings** — `dangerouslySetInnerHTML` on values holding classes or layout `<br>`. See [../content.md § Styled HTML in front matter](../content.md#styled-html-in-front-matter).
-- **Scroll-reveal and entrance animations** — Framer Motion `initial={{ opacity: 0 }}`, `IntersectionObserver`, AOS. See [visual-editing-reference.md § Scroll-reveal](../../cloudcannon-visual-editing/visual-editing-reference.md#scroll-reveal-and-entrance-animations).
+- **Load-time behaviour** — see [../audit.md § Load-time behaviour](../audit.md#load-time-behaviour).
 
 ## 7. Sectioning recommendation
 
-Record total pages, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.
+Record total pages as [orchestration.md § Sizing](../orchestration.md#sizing) counts them, pages to convert to page-builder or fixed-schema entries, and distinct collections. If any two of {pages > 30, conversions > 15, collections > 5} are tripped, write `.cloudcannon/migration/plan.md` from [orchestration.md § Sizing](../orchestration.md#sizing) and return. Phase 2 waits for the user's go on the plan.

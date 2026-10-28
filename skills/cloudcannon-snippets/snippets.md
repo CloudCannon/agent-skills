@@ -131,10 +131,34 @@ For files restricted to source/data editor, add `_enabled_editors: [source, data
 **MUST:** before declaring snippets done, list every component tag used in content and check each has a `_snippets` entry:
 
 ```bash
-rg -oN '<[A-Z][A-Za-z.]*' -g '*.mdx' -g '!node_modules' . | sed 's/.*://' | sort -u
+rg -oN '<[A-Z][A-Za-z.]*|\{/\*' -g '*.mdx' -g '!node_modules' . | sed 's/.*://' | sort -u
 ```
 
 Add `-g '*.md'` when the SSG compiles `.md` files as MDX. Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [source, data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
+
+A `{/*` in the output means the content has MDX comments, which need the [comment snippet](#mdx-comments).
+
+### MDX comments
+
+Give MDX comments (`{/* … */}`) a raw snippet, so the Content Editor shows each as a card editors can leave alone or edit:
+
+```yaml
+_snippets:
+  mdx_comment:
+    snippet: "{/*[[comment]]*/}"
+    preview:
+      text: Comment
+      icon: comment
+    params:
+      comment:
+        parser: content
+        options:
+          editor_key: comment
+          raw: true
+    _inputs:
+      comment:
+        type: textarea
+```
 
 ---
 

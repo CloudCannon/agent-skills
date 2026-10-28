@@ -520,7 +520,7 @@ Import only the renderers for frameworks the site uses — each pulls its framew
 
 #### React, Vue and Svelte components
 
-Register a top-level React, Vue or Svelte component in `registerComponents.ts` with its framework's function — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) for the root-wrapper rule, state resets, the hydration gotcha and editor-mode gating, and each framework's file for its function — [React](../react/visual-editing-reference.md), [Vue](../vue/visual-editing-reference.md), [Svelte](../svelte/visual-editing-reference.md). The React file also covers React markup, rich text hosts and `<template>` blueprints. In Astro, the hydration gotcha applies to content inside an island with a `client:*` directive. Page builder blocks register from per-framework maps → [§ BlockRenderer architecture](#blockrenderer-architecture).
+Register a top-level React, Vue or Svelte component in `registerComponents.ts` with its framework's function — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) for why the host sits outside the component, state resets, the hydration gotcha and editor-mode gating, and each framework's file for its function — [React](../react/visual-editing-reference.md), [Vue](../vue/visual-editing-reference.md), [Svelte](../svelte/visual-editing-reference.md). The React file also covers React markup, rich text hosts and `<template>` blueprints. In Astro, the hydration gotcha applies to content inside an island with a `client:*` directive. Page builder blocks register from per-framework maps → [§ BlockRenderer architecture](#blockrenderer-architecture).
 
 #### Editing fallbacks (Solid, or complex components)
 
@@ -647,9 +647,9 @@ const debug = { allPropKeys: Object.keys(Astro.props), allProps: Astro.props };
 </pre>
 ```
 
-## Scroll-reveal animations in Astro
+## Load-time behaviour in Astro
 
-[Base § Scroll-reveal and entrance animations](../visual-editing-reference.md#scroll-reveal-and-entrance-animations) covers the cause and the `.cms-editor-active` fix. The Astro-side supplementary guard:
+[Base § Load-time behaviour in the editor](../visual-editing-reference.md#load-time-behaviour-in-the-editor) covers the rule, the check and the `.cms-editor-active` override. In a registered component, `ENV_CLIENT` skips the hidden state at render:
 
 ```astro
 <!-- WidgetWrapper.astro or equivalent -->

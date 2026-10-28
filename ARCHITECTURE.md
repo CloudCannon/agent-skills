@@ -116,6 +116,7 @@ schemas.md                              One collection, many schemas; _schema; r
 inputs.md                               Where _inputs live, how keys match fields, value_key
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
+routing.md                              Headers, redirects and rewrites in .cloudcannon/routing.json
 configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/configuration.md                  Astro: build values, Zod schema unions, image paths

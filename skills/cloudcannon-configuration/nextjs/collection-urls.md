@@ -30,6 +30,9 @@ Check `trailingSlash` in `next.config`; the `url` follows it. Unset or `false` i
 **MUST NOT:** end the `url` in `.html`.
 **Why:** `index.md` then resolves to `/.html`, and the Visual Editor can't open it.
 
+**MUST:** set `trailingSlash: true` when a collection has an `index` file below the site root, such as `content/docs/index.mdx` at `/docs/`. It changes every page's URL, so ask the user first.
+**Why:** CloudCannon resolves that file to `/docs/`. With `trailingSlash` unset or `false` the page is `out/docs.html`, which `/docs/` doesn't reach, so the index won't open in the Visual Editor.
+
 ## Internal links
 
 With `trailingSlash` unset or `false`, clean URLs like `/about` rely on the host serving `out/about.html` without the extension. In CloudCannon Hosting that is **Serve Extensionless URLs** under **Site Settings > Routing**, on by default; elsewhere, turn on the host's clean-URL setting. **Redirect to Extensionless URLs** is optional. `/about/` still returns 404.

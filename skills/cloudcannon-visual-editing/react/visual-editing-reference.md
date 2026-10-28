@@ -13,6 +13,21 @@ import Announcement from "@/components/Announcement";
 registerReactComponent("announcement", Announcement);
 ```
 
+## Registered component values are objects
+
+**MUST:** bind a registered React component's region to an object.
+**Why:** the value becomes the component's props, so a string or an array arrives as index-keyed props (`{ 0: …, 1: … }`).
+
+For a string or array field, bind it with `data-prop-<name>="<field>"` in place of `data-prop`; it arrives as `{ <name>: value }`. In TSX, put it on `<div data-editable="component">`, because the package types require `data-prop` on `<editable-component>`:
+
+```tsx
+<div data-editable="component" data-component="author-card" data-prop-author="author">
+  <AuthorCard author={page.data.author} />
+</div>
+```
+
+The name is lowercased → [../editable-regions.md § Quick Attribute Reference](../editable-regions.md#quick-attribute-reference).
+
 ## The React `EditableRegions` root
 
 `@cloudcannon/editable-regions/react` exports `EditableRegions`, which connects in `useEffect`. When and where to use it is in [../visual-editing-reference.md § Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root).
