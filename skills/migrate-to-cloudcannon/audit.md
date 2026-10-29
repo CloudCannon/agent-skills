@@ -20,6 +20,12 @@ Keep pages with forms, and make their content editable like any other page. What
 | CloudCannon hosts production      | Posts to a CloudCannon Inbox: `method="post"` and a hidden `inbox_key` field — see [Connecting your site to an Inbox](https://cloudcannon.com/documentation/developer-articles/connecting-your-site-to-an-inbox/) |
 | Sign-in, sign-up or account forms | Can't work on static hosting — **ask the user**                                                                                                                                                                   |
 
+## Existing hydration errors
+
+On a site that hydrates in the browser, build and serve the unchanged site. Load the home page and one page per layout with the console open, and record each hydration error with the component that causes it. Fix them, or **ask the user**, before Phase 4. Without a browser, list those pages in the audit for the user to check.
+
+**Why:** in the Visual Editor a hydration error makes React render the page again under the regions, which leaves stray region controls and missing content. An error the site already had then looks like a CloudCannon problem.
+
 ## Load-time behaviour
 
 Record the files behind anything hidden, faded, offset or unclickable until a script runs, and anything that changes on its own (carousels, autoplay, timers, count-ups). Search for `opacity: 0` in CSS, initial-state animation props (such as Framer Motion's `initial={{ opacity: 0 }}`), `IntersectionObserver` and `setInterval` in JS, and class names like `reveal`, `aos`, `animate-on-scroll` and `fade-in`.
@@ -106,4 +112,4 @@ The Content Editor rewrites these forms when it saves. For each form found, pick
 
 - A raw snippet for the form — see [snippets.md § Raw snippets](../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files).
 - Normalise the content to a form the editor keeps, such as `$$` on its own lines.
-- Keep the files out of the rich text editor with `_enabled_editors: [source, data]`, so editors change them in the Source Editor.
+- Keep the files out of the rich text editor with `_enabled_editors: [data]`, so editors change them in the Source Editor.

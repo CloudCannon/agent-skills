@@ -194,7 +194,7 @@ See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-
 
 ### Snippets
 
-- [ ] Every MDX component has a `_snippets` entry OR the file uses `_enabled_editors: [source, data]` with rationale in migration notes — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
+- [ ] Every MDX component has a `_snippets` entry OR the file uses `_enabled_editors: [data]` with rationale in migration notes — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
 - [ ] MDX files with `import` statements have them removed, and components resolve via `astro-auto-import` or a shared `components` map passed at every `<Content />` / `render()` site — see [astro/overview.md § Auto-import](../../cloudcannon-snippets/astro/overview.md#auto-import-keeping-import-statements-out-of-content)
 
 ### Content specifics

@@ -50,7 +50,7 @@ Required definitions:
 
 ### Array-of-objects props
 
-An `mdx_component` arg of `type: array` holds a list of objects, such as a gallery's images. Write each array on one line, with unquoted keys and double-quoted values, which is the format CloudCannon writes:
+An `mdx_component` arg of `type: array` holds a list of objects, such as a gallery's images. Write each object on one line, with unquoted keys and double-quoted values, which is the format CloudCannon writes:
 
 ```mdx
 <Gallery

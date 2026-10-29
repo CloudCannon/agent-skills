@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
 ```
 
 **MUST:** set `images: { unoptimized: true }` (or a custom `images.loader`) when any file imports `next/image`.
-**Why:** the default loader needs a server, so the build stops with "Image Optimization using the default loader is not compatible with export".
+**Why:** the default loader needs a server. `next build` passes, but every image points at `/_next/image?…`, which nothing in `out/` serves. `grep -rl /_next/image out/` finds them.
 
 With `output: "export"`, a `distDir` setting names the export folder, not the cache: `distDir: "build"` writes the site to `build/`. Set `output_path` to it.
 
@@ -76,14 +76,46 @@ CloudCannon reads that file only when it creates the site. On an existing CloudC
 
 ### What changes under export
 
-| The site has                                                                                                    | Under `output: "export"`                                           | Fix                                                                                                |
-| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| A `GET` route handler (`route.ts`)                                                                              | The export fails                                                   | Add `export const dynamic = "force-static"` to the file                                            |
-| A metadata route file (`sitemap`, `robots`, `opengraph-image`, `twitter-image`, a generated `icon`, `manifest`) | The export fails, though a build without export lists it as static | Add `export const dynamic = "force-static"` to the file                                            |
-| A page that reads `searchParams`                                                                                | The export fails                                                   | Filter on the client, or build a static route per value                                            |
-| A `"use server"` module anywhere in the import graph                                                            | The export fails, even when nothing renders it                     | Remove it from the import chain, or ask the user                                                   |
-| A non-`GET` route handler                                                                                       | Left out of the export, with no warning                            | Find its callers, including library components with a default API URL; the UI that calls it breaks |
-| `fetch(…, { next: { revalidate } })`                                                                            | Builds, with the value fixed at build time                         | None                                                                                               |
+The fixes below change the site's code for every build, so they apply when CloudCannon hosts production. When production is hosted elsewhere, follow [§ Server features when production is hosted elsewhere](#server-features-when-production-is-hosted-elsewhere).
+
+| The site has                                                                                                    | Under `output: "export"`                                                 | Fix                                                                                                               |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| A `GET` route handler (`route.ts`)                                                                              | The export fails                                                         | Add `export const dynamic = "force-static"` to the file                                                           |
+| A metadata route file (`sitemap`, `robots`, `opengraph-image`, `twitter-image`, a generated `icon`, `manifest`) | The export fails, though a build without export lists it as static       | Add `export const dynamic = "force-static"` to the file                                                           |
+| A page that reads `searchParams`                                                                                | The export fails                                                         | Filter on the client, or build a static route per value                                                           |
+| A `"use server"` module anywhere in the import graph                                                            | The export fails, even when nothing renders it                           | Remove it from the import chain, or ask the user                                                                  |
+| A non-`GET` route handler                                                                                       | Left out of the export, with no warning, and the UI that calls it breaks | Find its callers, including library components with a default API URL, and ask the user what replaces the handler |
+| `fetch(…, { next: { revalidate } })`                                                                            | Builds, with the value fixed at build time                               | None                                                                                                              |
+
+### Server features when production is hosted elsewhere
+
+Production keeps its server features. Only the CloudCannon build exports, and visual editing needs only the pages editors work on, so a server feature can be left out of that build instead of rewritten.
+
+| The site has                                         | In the CloudCannon build                                                                                                                        |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| A `GET` route handler                                | Leave it out. `force-static` would make the production route static too, and `dynamic` can't be gated on a variable: it must be a static string |
+| A metadata route file                                | Add `export const dynamic = "force-static"`, as above. A build without export already lists it as static                                        |
+| A page that reads `searchParams`                     | Leave it out, unless editors work on that page; then ask the user                                                                               |
+| A `"use server"` module anywhere in the import graph | Stub it with a resolve alias                                                                                                                    |
+| A non-`GET` route handler                            | Nothing. It's left out of the export, and only the editor's copy of the calling UI breaks                                                       |
+| `fetch(…, { next: { revalidate } })`                 | Nothing                                                                                                                                         |
+
+To leave a route out, rename it with a `.server` infix (`route.server.ts`, `page.server.tsx`) and gate `pageExtensions` on the export variable. To stub a `"use server"` module, gate a resolve alias that points it at a stub exporting the same names:
+
+```ts
+const staticExport = process.env.CLOUDCANNON_EXPORT === "true";
+
+const nextConfig: NextConfig = {
+  pageExtensions: staticExport ? ["tsx", "ts"] : ["server.tsx", "server.ts", "tsx", "ts"],
+  ...(staticExport && {
+    output: "export",
+    images: { unoptimized: true },
+    turbopack: { resolveAlias: { "@/lib/actions": "./lib/actions.stub.ts" } },
+  }),
+};
+```
+
+A site that builds with `next build --webpack` puts the alias in the `webpack` function's `resolve.alias` instead. Renaming route files changes production files, so **ask the user** before leaving any route out.
 
 ## Collections
 
@@ -119,7 +151,21 @@ Next.js has no data directory. Use the folder the site imports its JSON from (of
 
 ## Images
 
-`next build` copies `public/` to the root of `out/`: `public/images/one.jpg` is served at `/images/one.jpg`.
+Editable images are strings in content or data: a path (`/images/hero.jpg`) or a full URL.
+
+**MUST NOT:** move images or change their stored paths for CloudCannon. Keep the paths production uses, and make each one show an image in the CloudCannon build.
+
+| The site's images                                  | In the CloudCannon build                                                                                 |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Files under `public/`, optimized by `next/image`   | `images.unoptimized` serves each original at the same path                                               |
+| Files outside `public/`, imported for `next/image` | Content stores the repo path, and code maps it to the import — see [§ Imported images](#imported-images) |
+| Full URLs on an image host or CDN                  | Leave them; they display under export                                                                    |
+| Paths a custom `images.loader` turns into CDN URLs | Keep the loader; it runs at build time under export                                                      |
+| Served or optimized by a server route only         | Ask the user what the CloudCannon build shows instead                                                    |
+
+### Files under `public/`
+
+`next build` copies `public/` to the root of `out/`: `public/images/one.jpg` is served at `/images/one.jpg`. Set `paths.uploads` to the folder the images are already in:
 
 ```yaml
 paths:
@@ -127,7 +173,42 @@ paths:
   uploads: public/images
 ```
 
-Use the folder the site already keeps images in under `public/`. An image imported in code (`import hero from "./hero.jpg"`) isn't a path editors can change; editable images are strings pointing into `public/`.
+### Imported images
+
+Content stores each image's repo path (`/assets/images/hero.jpg`), and a module maps the path to its static import. `require.context` builds the map under both Turbopack and webpack, with no build step:
+
+```ts
+import type { StaticImageData } from "next/image";
+
+type ImageContext = { keys(): string[]; (key: string): { default: StaticImageData } };
+declare const require: { context(dir: string, deep: boolean, filter: RegExp): ImageContext };
+
+const ctx = require.context("../assets/images", false, /\.(jpe?g|png|webp|gif|avif)$/i);
+
+// webpack lists each file twice, as "./x.jpg" and "assets/images/x.jpg".
+const imageMap: Record<string, StaticImageData> = Object.fromEntries(
+  ctx
+    .keys()
+    .filter((key) => key.startsWith("./"))
+    .map((key) => [`/assets/images/${key.slice(2)}`, ctx(key).default]),
+);
+
+export function resolveImage(path: string): StaticImageData | string {
+  return imageMap[path] ?? path;
+}
+```
+
+The local `declare const require` stands in for `@types/webpack-env`, which doesn't type `require.context` against current `@types/node`. A path the map doesn't know, such as an upload since the last build, falls back to the raw string. Give each image input its own upload paths, so uploads land in the mapped folder with the path the map expects:
+
+```yaml
+_inputs:
+  image:
+    type: image
+    options:
+      paths:
+        uploads: /assets/images
+        static: ""
+```
 
 ## Verification checklist
 
@@ -138,9 +219,9 @@ Use the folder the site already keeps images in under `public/`. An image import
 - [ ] `build.build_command` contains no `next export`
 - [ ] The CloudCannon build runs with `output: "export"`
 - [ ] The CloudCannon build runs with `images.unoptimized` (or a custom loader) if any file imports `next/image`
-- [ ] Every route in [§ What changes under export](#what-changes-under-export) has its fix
+- [ ] Every case in [§ What changes under export](#what-changes-under-export) is handled, or in [§ Server features when production is hosted elsewhere](#server-features-when-production-is-hosted-elsewhere) when production is hosted elsewhere
 - [ ] No collection over `app/` or `pages/`
 - [ ] Collections whose files each have a hard-coded route have `disable_add: true`
 - [ ] Every collection that builds pages has a `url` that resolves every file to its page in `out/`, with no `.html` — see [collection-urls.md](collection-urls.md)
-- [ ] `paths.static` is `public`, and `paths.uploads` sits under it
+- [ ] Every stored image path or URL shows an image in the CloudCannon build, with production's paths unchanged — see [§ Images](#images)
 - [ ] Every data file a region or template reads is JSON, or YAML parsed by a reader in the site's code

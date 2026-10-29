@@ -70,6 +70,8 @@ Detect it from the repository, in this order:
 | Yarn Berry   | `yarn install --immutable`       |
 | No lockfile  | `npm i`                          |
 
+Use this table over `cloudcannon configure detect-build-commands`, which suggests a bare install such as `yarn` that doesn't hold the lockfile.
+
 Any `yarn` on the path honours a committed `yarnPath`, so a Yarn Berry site needs `.yarnrc.yml` and the release under `.yarn/releases/` committed, and nothing else.
 
 **MUST:** pin the package manager's version so CloudCannon installs with the version used locally. Set `packageManager` in `package.json` to that exact version. For pnpm, also run that version in `install_command`: `npx pnpm@<version> install --frozen-lockfile`.

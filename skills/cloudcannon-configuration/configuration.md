@@ -248,7 +248,7 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] `grep -nE '(: |- )[&*][A-Za-z_]|<<:' cloudcannon.config.yml` finds no YAML anchors, aliases or merge keys — see [configuration-gotchas.md § No YAML anchors or aliases](configuration-gotchas.md#no-yaml-anchors-or-aliases)
 - [ ] Every schema-default change is paired with a backfill across existing content files
 - [ ] Every array or multiselect backed by a data file uses `values: data.<name>`, with no hard-coded copy of the values
-- [ ] Every data file used as records or a select source (authors, tags, team) is a top-level array with an explicit `slug` or `id` per item, wired to a `_structures` entry so editors get an Add button. Nav and footer link lists in a settings file are exempt
+- [ ] Every data file used as records or a select source is a top-level array, not an object keyed by slug. Items that are objects (authors, team) carry an explicit `slug` or `id` and are wired to a `_structures` entry; a list of strings (tags) stays strings, typed with `$[*]` — see [inputs.md § The file root](inputs.md#the-file-root). Nav and footer link lists in a settings file are exempt
 - [ ] No template has a `length === 0 ? showAll : showSelected` toggle on a multiselect-driven field. Empty renders nothing, or the schema seeds defaults
 
 ### Schemas and the Add button

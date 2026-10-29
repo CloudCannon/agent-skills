@@ -44,6 +44,6 @@ A prop holds a `Date` or `undefined` — see [content.md § Pages Router data fu
 
 From Next 16, `next build` uses Turbopack by default, and exits when the Next config has a `webpack` function. Remove the `webpack` function once nothing needs it, such as a glob-import loader replaced by a component map. Otherwise add `--webpack` to `next build` in the `build` script.
 
-### `Image Optimization using the default loader is not compatible with export`
+### Images in `out/` point at `/_next/image?…` and 404
 
-A `next/image` with the default loader — see [§ Export settings](#export-settings).
+A `next/image` with the default loader. `next build` passes; `next dev` with `output: "export"` throws "Image Optimization using the default loader is not compatible with export" instead. See [§ Export settings](#export-settings).

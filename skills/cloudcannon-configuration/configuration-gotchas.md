@@ -68,6 +68,8 @@ The first entry in `_enabled_editors` is the editor an existing file opens in. P
 | Body-text pages that build (posts, docs) | `[visual, content, data]` |
 | Files that build no page                 | `[data]`                  |
 
+Valid entries are `visual`, `content` and `data`. The Source Editor isn't listed: it's available on every file to users whose permissions allow it, so `[data]` leaves a file's body editable there.
+
 **Common miss:** `data` first on a page collection, so every page opens in the Data Editor instead of the Visual Editor.
 
 New files open in the add option's `editor` instead — see [configuration.md § New files and the Add button](configuration.md#new-files-and-the-add-button).

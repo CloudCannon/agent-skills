@@ -299,7 +299,7 @@ After adding snippet configs:
 - [ ] Component inventory grep returns zero unconfigured names — see [../snippets.md § Component inventory grep](../snippets.md#component-inventory-grep)
 - [ ] No `^import ` lines remain in any `.mdx` content file
 - [ ] `_snippets` entries exist in `cloudcannon.config.yml` (no `_snippets_imports` needed — built-in templates resolve automatically)
-- [ ] Every component used in MDX content has a corresponding `_snippets` entry, or the file uses `_enabled_editors: [source, data]` only as a last resort with rationale in migration notes
+- [ ] Every component used in MDX content has a corresponding `_snippets` entry, or the file uses `_enabled_editors: [data]` only as a last resort with rationale in migration notes
 - [ ] Components with `client:load` use raw snippet syntax, not templates
 - [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)
 - [ ] `astro build` passes cleanly

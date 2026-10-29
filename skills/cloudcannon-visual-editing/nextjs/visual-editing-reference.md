@@ -49,6 +49,20 @@ export const componentMap: Record<string, ComponentType<any>> = {
 };
 ```
 
+### Images in registered components
+
+**MUST:** in a registered component that renders an image from a path content stores, wrap the image in an image region bound to that path:
+
+```tsx
+<editable-image data-prop-src="image">
+  <Image src={image} alt="" width={400} height={200} />
+</editable-image>
+```
+
+When code maps stored paths to imports, the region wraps the mapped image the same way — see [cloudcannon-configuration/nextjs/configuration.md § Imported images](../../cloudcannon-configuration/nextjs/configuration.md#imported-images).
+
+**Why:** the component renders the stored path as-is. An image uploaded or picked since the last build isn't in `out/` (or in the import map — see [cloudcannon-configuration/nextjs/configuration.md § Imported images](../../cloudcannon-configuration/nextjs/configuration.md#imported-images)), so it shows broken until the next build. The image region swaps in CloudCannon's preview URL, which shows it straight away.
+
 ## Detecting the editor in Next.js
 
 Next.js has no `ENV_CLIENT`. Registered components render in the site's own client bundle, so there is no separate editor build to branch on. Use `window.inEditorMode` in client code and `.cms-editor-active` in CSS — see [../editable-regions-internals.md § Detecting the Visual Editor](../editable-regions-internals.md#detecting-the-visual-editor).

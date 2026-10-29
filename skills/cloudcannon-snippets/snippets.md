@@ -103,9 +103,9 @@ The shared place is the SSG's auto-import mechanism where it has one. Otherwise 
 
 ### Every component must be accounted for
 
-Every component used in MDX content must either have a `_snippets` entry or the file must be restricted to source/data editor only (`_enabled_editors: [source, data]`). There is no middle ground — an unconfigured component shows as a broken/unrecognizable element in the content editor. "Demo content", "only used once", or "not worth configuring" are not valid reasons to skip.
+Every component used in MDX content must either have a `_snippets` entry or the file must be kept out of the content editor with `_enabled_editors: [data]`, leaving its body to the Source Editor. There is no middle ground — an unconfigured component shows as a broken/unrecognizable element in the content editor. "Demo content", "only used once", or "not worth configuring" are not valid reasons to skip.
 
-**Preference order:** Define `_snippets` first so the content editor can parse, offer toolbar inserts, and round-trip the markup. Well-configured snippets are the right default for MDX body content; `_enabled_editors: [source, data]` is a **last resort** after you are confident no reasonable snippet plus component refactor can represent the pattern. Document what you tried and why snippets are not viable in the migration notes.
+**Preference order:** Define `_snippets` first so the content editor can parse, offer toolbar inserts, and round-trip the markup. Well-configured snippets are the right default for MDX body content; `_enabled_editors: [data]` is a **last resort** after you are confident no reasonable snippet plus component refactor can represent the pattern. Document what you tried and why snippets are not viable in the migration notes.
 
 **Try first:**
 
@@ -124,7 +124,7 @@ Every component used in MDX content must either have a `_snippets` entry or the 
 - Vendor components you cannot wrap, where MDX usage cannot be narrowed to a representable subset
 - Verified round-trip or parsing failures with a prototype snippet — not a default when MDX contains expressions (refactor those into the component first)
 
-For files restricted to source/data editor, add `_enabled_editors: [source, data]` at the file or collection level, and document the reason in the migration notes.
+For files kept out of the content editor, add `_enabled_editors: [data]` at the file or collection level, and document the reason in the migration notes.
 
 ### Component inventory grep
 
@@ -134,7 +134,7 @@ For files restricted to source/data editor, add `_enabled_editors: [source, data
 rg -oN '<[A-Z][A-Za-z.]*|\{/\*' -g '*.mdx' -g '!node_modules' . | sed 's/.*://' | sort -u
 ```
 
-Add `-g '*.md'` when the SSG compiles `.md` files as MDX. Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [source, data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
+Add `-g '*.md'` when the SSG compiles `.md` files as MDX. Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
 
 A `{/*` in the output means the content has MDX comments, which need the [comment snippet](#mdx-comments).
 

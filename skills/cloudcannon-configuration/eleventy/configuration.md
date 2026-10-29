@@ -73,13 +73,19 @@ Eleventy reads global data from the data directory (`src/_data/` by default) int
 
 Eleventy copies only what `addPassthroughCopy` names into the output. A passthrough path inside the input directory loses that prefix: `addPassthroughCopy("src/assets")` writes `_site/assets/`, and a mapping such as `{ "src/static": "/" }` writes the folder's contents to the site root.
 
-**MUST:** set `paths.uploads` to a folder a passthrough copy covers.
+**MUST:** set `paths.uploads` to a folder a passthrough copy covers. A site with the image transform follows [§ With the image transform](#with-the-image-transform) instead.
 **Why:** an image uploaded anywhere else is saved to the repo but never reaches `_site`, so the page shows a broken image after the build.
 
 | Passthrough in the Eleventy config          | `paths.static` | `paths.uploads` (example) | Path saved in front matter |
 | ------------------------------------------- | -------------- | ------------------------- | -------------------------- |
 | `addPassthroughCopy("src/assets")`          | `src`          | `src/assets/images`       | `/assets/images/photo.jpg` |
 | `addPassthroughCopy({ "src/static": "/" })` | `src/static`   | `src/static/images`       | `/images/photo.jpg`        |
+
+### With the image transform
+
+`eleventyImageTransformPlugin` from `@11ty/eleventy-img` reads every `<img>` whose `src` starts with `/` from the input directory, not from a passthrough folder. An upload under a passthrough folder breaks every `<img>` that shows it.
+
+**MUST:** on a site with the transform, put uploads under the input directory: `paths.static` is the input directory and `paths.uploads` a folder in it, such as `content/img`, saved as `/img/photo.jpg`. An image a page uses outside `<img>` (a CSS background, an `og:image` meta tag) isn't transformed, so that field gets its own `paths` on its input, pointing at a passthrough folder.
 
 ## Verification checklist
 
@@ -92,5 +98,5 @@ Eleventy copies only what `addPassthroughCopy` names into the output. A passthro
 - [ ] Folders whose files set `permalink: false` have `disable_url: true`
 - [ ] Every data file a region or template reads is JSON, or YAML with the extension registered
 - [ ] No input on a value that comes from JavaScript data or `eleventyComputed`
-- [ ] `paths.uploads` sits inside a passthrough-copied folder, and `paths.static` is the folder that copies to the site root
+- [ ] `paths.uploads` sits inside a passthrough-copied folder, and `paths.static` is the folder that copies to the site root. With the image transform, both sit in the input directory — see [§ With the image transform](#with-the-image-transform)
 - [ ] Every string field's input type matches how its template outputs it — see [configuration-gotchas.md](configuration-gotchas.md#choose-rich-text-inputs-from-the-template-engine)

@@ -151,6 +151,8 @@ Run through these after setup, before starting on editable regions:
       → [Registered components](visual-editing-reference.md#registered-components)
 - [ ] **Client-safe registered components**: No registered component, or anything it imports, is async, reads files, calls `useRouter`, or imports `server-only` or `next/headers`
       → [Registered components](visual-editing-reference.md#registered-components)
+- [ ] **Images in registered components**: Every image a registered component renders from a stored path sits in an image region bound to that path
+      → [Images in registered components](visual-editing-reference.md#images-in-registered-components)
 - [ ] **Rich text hosts**: Every `data-type="text"` or `"block"` region receives an HTML string through `dangerouslySetInnerHTML` on the region host. An MDX body renders its component (`<Body />` or `<MDXRemote>`) inside the host instead
       → [Text editing](../react/visual-editing-reference.md#text-editing), [MDX bodies](visual-editing-reference.md#mdx-bodies)
 - [ ] **`<template>` blueprints**: Every blueprint renders through `RawTemplate`, never as JSX children of `<template>`
