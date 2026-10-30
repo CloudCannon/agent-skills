@@ -7,7 +7,7 @@ How to close a migration with the user: who tests what, when to stop, and what t
 | Check                                                                                        | Owner |
 | -------------------------------------------------------------------------------------------- | ----- |
 | Local build (`npm run build`, `hugo`, `npx @11ty/eleventy`, or whatever the project defines) | Agent |
-| Builds, greps, small scripts, build output inspection (`dist/`, `public/`, `_site/`)         | Agent |
+| Builds, greps, small scripts, build output inspection (`dist/`, `public/`, `_site/`, `out/`) | Agent |
 | Fidelity checks in CloudCannon (preview, inline edit, save-to-git)                           | Human |
 
 The agent does not stand up a dev server to verify its own work, or run heavy end-to-end testing in session. Starting one **for the user** is a different act: it gives them the local CloudCannon they need to run the fidelity checks they own. See [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md).
@@ -30,12 +30,16 @@ Skip empty phrases ("let me know if you need anything"). Thanking them once for 
 
 - **Local build** — the project's real build entrypoint, not a partial command. If it fails, paste the full error output (command, exit code, last ~30 lines of stderr).
 - **Checks you already ran** — state them in one line so the user doesn't duplicate work.
+- **Hydration errors**, when you had no browser — list the home page and one page per layout for the user to open from the served build output, and ask them to paste any console errors.
+- **Build settings on a site already on CloudCannon** — when the migration changed the build command, install command or output path, give the user the new values to set before the next build — see [configuration.md § Build settings](../cloudcannon-configuration/configuration.md#build-settings).
+- **Production hosted elsewhere** — tell the user the CloudCannon site is for editing only. Its editor previews the CloudCannon build, so images appear unoptimised when that build turns optimisation off.
 - **CloudCannon (human)** — confirm in the hosted environment:
   - Inline text regions can be edited in the preview on representative pages
   - Image regions open the image picker
   - Array regions show add/remove/reorder controls where arrays were wired
   - Cross-file editables (`@file`, shared partials) update the intended source file
   - Saved changes land in the expected files in git
+  - For each markdown-extension syntax in the content (footnotes, math, alerts), one file saved from the Content Editor after a one-word edit shows only that word changed in the body's git diff
 
 ## What to ask the user to send back
 

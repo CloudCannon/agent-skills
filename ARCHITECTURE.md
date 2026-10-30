@@ -6,7 +6,7 @@ The rules this layout implements live in [STYLE.md § Repo architecture](STYLE.m
 
 ## The shape in one paragraph
 
-Skills are organised by **concern**, never by SSG. A skill owns one concern for every SSG; SSG-specific content lives in a `<ssg>/` directory inside it, holding only what differs. That keeps N SSGs × M concerns from becoming N×M copies of the same rule. Every skill belongs to one of three tiers, and the tier fixes its name, its shape, and whether it keeps state.
+Skills are organised by **concern**, never by SSG. A skill owns one concern for every SSG; SSG-specific content lives in a `<ssg>/` directory inside it, holding only what differs. In `cloudcannon-visual-editing`, `react/`, `vue/` and `svelte/` are a framework layer beside the SSG directories, holding rules shared by every SSG that renders that framework. That keeps N SSGs × M concerns from becoming N×M copies of the same rule. Every skill belongs to one of three tiers, and the tier fixes its name, its shape, and whether it keeps state.
 
 ## Skills by tier
 
@@ -83,6 +83,11 @@ eleventy/audit.md                       Phase 1: site analysis, parity baseline,
 eleventy/content.md                     Phase 3: page files, directory data, computed data, data files
 eleventy/build.md                       Phase 5: parity checks, build command
 eleventy/page-building.md               Phase 2/4: block includes, dispatcher, page files
+nextjs/overview.md                      ENTRY POINT for Next.js — static export scope, quick checks
+nextjs/audit.md                         Phase 1: router and export readiness, content sources
+nextjs/content.md                       Phase 3: content loader, [slug] routes, MDX, data files
+nextjs/build.md                         Phase 5: export settings, build command
+nextjs/page-building.md                 Phase 2/4: pages collection, [slug] route, block map
 scripts/*.sh                            Automation (audit-astro, audit-hugo)
 
 ── make-site-multilingual (journey) ──────────────────────────
@@ -111,6 +116,7 @@ schemas.md                              One collection, many schemas; _schema; r
 inputs.md                               Where _inputs live, how keys match fields, value_key
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
+routing.md                              Headers, redirects and rewrites in .cloudcannon/routing.json
 configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/configuration.md                  Astro: build values, Zod schema unions, image paths
@@ -124,10 +130,13 @@ eleventy/overview.md                    ENTRY POINT for Eleventy — reading ord
 eleventy/configuration.md               Eleventy: CLI baseline fixes, collections, data files, images
 eleventy/collection-urls.md             Eleventy: default paths, permalink front matter and directory data
 eleventy/configuration-gotchas.md       Eleventy: rich text inputs per template engine
+nextjs/overview.md                      ENTRY POINT for Next.js — reading order
+nextjs/configuration.md                 Next.js: CLI baseline fixes, next.config, collections, images
+nextjs/collection-urls.md               Next.js: route segments, trailingSlash, .html paths
 
 ── cloudcannon-snippets (capability) ─────────────────────────
 SKILL.md                                ENTRY POINT — when/why/which approach
-snippets.md                             Concepts — config patterns, raw HTML snippets
+snippets.md                             Concepts — config patterns, MDX component rules, raw HTML snippets
 template-based.md                       Template-based snippet workflow
 raw.md                                  Raw snippet syntax, all parser types
 built-in-templates.md                   MDX templates vs import bundle, parser internals
@@ -136,6 +145,7 @@ troubleshooting.md                      Symptom index, routing to the rule that 
 astro/overview.md                       ENTRY POINT for Astro — MDX stack, auto-import
 hugo/overview.md                        ENTRY POINT for Hugo — shortcodes, built-in imports
 eleventy/overview.md                    ENTRY POINT for Eleventy — shortcodes, includes, raw tags
+nextjs/overview.md                      ENTRY POINT for Next.js — @next/mdx, next-mdx-remote, shared components map
 
 ── cloudcannon-visual-editing (capability) ───────────────────
 SKILL.md                                ENTRY POINT — region types, workflow, checklist
@@ -143,6 +153,10 @@ editable-regions.md                     Region types, attribute reference, decis
 editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, quirks
 troubleshooting.md                      Symptom → fix, when regions misbehave
 visual-editing.md                       Phase 4: section census, completeness checklist, pre-handoff sweep
+visual-editing-reference.md             ON DEMAND — pattern reference, do not read front to back
+react/visual-editing-reference.md       ON DEMAND — React in any SSG: registration, EditableRegions, JSX, blueprints
+vue/visual-editing-reference.md         ON DEMAND — Vue in any SSG: registration, EditableRegions
+svelte/visual-editing-reference.md      ON DEMAND — Svelte in any SSG: registration, EditableRegions
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
 astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not read front to back
@@ -155,6 +169,10 @@ eleventy/overview.md                    ENTRY POINT for Eleventy — Liquid or N
 eleventy/visual-editing.md              Phase 4: plugin setup per path, infrastructure checklist, local checks
 eleventy/visual-editing-reference.md    ON DEMAND — includes as components, the config in the browser, Nunjucks
 eleventy/troubleshooting.md             Eleventy: symptom → fix
+nextjs/overview.md                      ENTRY POINT for Next.js — EditableRegions root, reading order
+nextjs/visual-editing.md                Phase 4: layout root, gated editor loader, component map
+nextjs/visual-editing-reference.md      ON DEMAND — client-safe components, router hooks, MDX bodies
+nextjs/troubleshooting.md               Next.js: symptom → fix
 scripts/setup-editable-regions-astro.sh Astro only — installs package, wires Astro integration
 
 ── cloudcannon-bookshop (capability) ─────────────────────────
@@ -175,6 +193,10 @@ eleventy/overview.md                    ENTRY POINT for Eleventy — reading ord
 eleventy/bookshop.md                    Eleventy: where things live, template tags, live editing
 eleventy/migrating-to-editable-regions.md Eleventy: include moves, tag rewrites, structure files, plugin removal
 eleventy/troubleshooting.md             Eleventy: symptom → fix
+nextjs/overview.md                      ENTRY POINT for Next.js — structures only, reading order
+nextjs/bookshop.md                      Next.js: where things live, the React connector, what doesn't apply
+nextjs/migrating-to-editable-regions.md Next.js: component map, block props, removing the connector
+nextjs/troubleshooting.md               Next.js: symptom → fix
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

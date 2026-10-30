@@ -10,9 +10,9 @@ For how to use templates in migrations, see [template-based.md](template-based.m
 
 ---
 
-## MDX (Astro, generic MDX)
+## MDX (Astro, Next.js, generic MDX)
 
-JSX/MDX component syntax for Astro and generic MDX sites: built-in templates (always available by name) and, separately, optional pre-built snippets from the MDX default import bundle.
+JSX/MDX component syntax for Astro, Next.js and generic MDX sites: built-in templates (always available by name) and, separately, optional pre-built snippets from the MDX default import bundle.
 
 ### Built-in templates
 

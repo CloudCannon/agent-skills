@@ -6,7 +6,7 @@ Framework-specific implementation details for making an Eleventy (11ty) site mul
 
 ## Root Derivation
 
-**MUST derive `data-rosey-root` from `page.filePathStem`, not `page.url`.** `filePathStem` comes from the input file, so it is identical across every pagination page of a template ([`Template.js:841`](https://github.com/11ty/eleventy) copies the parent's onto each paginated entry).
+**MUST derive `data-rosey-root` from `page.filePathStem`, not `page.url`.** `filePathStem` comes from the input file, so it is identical across every pagination page of a template. Eleventy copies the parent's value onto each paginated entry.
 
 **Why:** `page.url` is the computed permalink. `page.url | replace: '/', ''` turns `/blog/1/` into `blog1` — which also collides with a real `/blog1/` page — and the split/join alternative gives `blog-1`. Either way, page 2 of a listing gets its own root and a duplicate, untranslated copy of every key on it. See [tagging.md § 3e](../tagging.md#3e-derive-the-root-from-the-templates-source-identity).
 
@@ -88,7 +88,7 @@ Fallback for Bookshop sites without `instance_value`:
 
 ## Taxonomy and Collection Scoping
 
-**MUST NOT use Eleventy's automatic frontmatter tag collections on a split-by-directory site.** `collections[tag]` is built **project-globally** — `TemplateCollection.js:58-65` filters every template in the project with no directory scoping — so the moment `blog_fr/*.md` carries `tags: [seo]`, a `collections.seo` lookup returns French and English posts together and the French tag page lists English content. This is Phase 8 step 6 in Eleventy terms.
+**MUST NOT use Eleventy's automatic frontmatter tag collections on a split-by-directory site.** `collections[tag]` is built **project-globally**: Eleventy filters every template in the project with no directory scoping, so the moment `blog_fr/*.md` carries `tags: [seo]`, a `collections.seo` lookup returns French and English posts together and the French tag page lists English content. This is Phase 8 step 6 in Eleventy terms.
 
 Precompute one collection entry per `(tag, locale)` from that locale's own posts:
 

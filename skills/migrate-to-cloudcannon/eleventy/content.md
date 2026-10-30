@@ -11,6 +11,15 @@ Make content files CMS-friendly without changing what Eleventy builds. Rebuild a
 - **Keep** each page file's name and extension. Renaming a page file changes its URL unless it sets `permalink`, and changing its extension changes the engine that renders its body.
 - **Keep** `permalink` where the audit found it. Don't add `permalink` to files to steer the collection `url` — see [collection-urls.md](../../cloudcannon-configuration/eleventy/collection-urls.md).
 
+### JavaScript front matter
+
+CloudCannon reads YAML, TOML and JSON front matter, not `---js`. For each `---js` file in a collection:
+
+- **Convert** a block of plain literals (`const title = "…"`, objects, arrays) to YAML with the same keys and values. Eleventy reads both the same way.
+- **Ask the user** about a block that computes values, defines functions or imports modules. The usual answer moves the logic to `eleventyComputed` in a directory data file, so the file keeps only stored values.
+
+Files outside every collection keep their `---js`.
+
 ### Values set outside the file
 
 Eleventy fills page data from directory data files (`*.11tydata.json`, `*.11tydata.js`), layout front matter and `eleventyComputed`. Editors see only what the page's own file holds. For each value the audit listed:

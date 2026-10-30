@@ -69,11 +69,11 @@ Failures go back to the subagent that did the work — continued if the host all
 
 Evaluate at the end of Phase 1, against `.cloudcannon/migration/audit.md`:
 
-| Signal                                | Threshold | Source                                                                       |
-| ------------------------------------- | --------- | ---------------------------------------------------------------------------- |
-| Total pages                           | > 30      | Audit § Pages and routing                                                    |
-| Hardcoded template → YAML conversions | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
-| Distinct collections                  | > 5       | Audit § Content collections + new collections from census                    |
+| Signal                                                                                                                      | Threshold | Source                                                                       |
+| --------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| Total pages — each backed by a content file or a static route; generated listing, taxonomy and pagination pages don't count | > 30      | Audit § Pages and routing                                                    |
+| Hardcoded template → YAML conversions                                                                                       | > 15      | Audit census table rows recommending page-builder or fixed-schema collection |
+| Distinct collections                                                                                                        | > 5       | Audit § Content collections + new collections from census                    |
 
 If any 2 are tripped, the audit subagent writes `.cloudcannon/migration/plan.md` from the template below. The orchestrator shows the user the chunk list in a few lines and waits for a go before Phase 2.
 
@@ -113,7 +113,7 @@ Each row is one subagent dispatch, run in order. Phases 2 and 5 are one row each
 - Collection URL patterns
 - Shared structures (`_structures`)
 - Snippet configs (if MDX components, shortcodes or inline HTML)
-- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial; Eleventy: the plugin and the bundle script tag on the Liquid path, nothing on the Nunjucks path)
+- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial; Eleventy: the plugin and the bundle script tag on the Liquid path, nothing on the Nunjucks path; Next.js: the `EditableRegions` root in `app/layout.tsx` or `pages/_app`, the `CloudCannonEditor` gated dynamic import, `componentMap.ts` and `registerComponents.ts`)
 ```
 
 ## Repetition → script

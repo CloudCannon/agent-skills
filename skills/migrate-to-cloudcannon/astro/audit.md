@@ -18,8 +18,8 @@ Use its output as a starting point, then fill in the sections below with finding
   **Why:** React, Vue and Svelte each need their renderer imported in `registerComponents.ts`; Solid components are unsupported in editable regions (see [overview.md § Astro scope](overview.md)). For each Solid component, decide: convert to a supported framework, or keep it and provide an editing fallback.
 - CSS framework (Tailwind, etc.)
 - Markdown processing: remark/rehype plugins, MDX support (`@astrojs/mdx`)
-- Package manager (npm, pnpm, yarn) and any lockfile present
-- Node version requirements (`.nvmrc`, `engines` in `package.json`)
+- Package manager and version — see [build-commands.md § Package manager](../../cloudcannon-configuration/build-commands.md#package-manager)
+- Node version requirements (`.nvmrc`, `.node-version`, `engines` in `package.json`) — see [build-commands.md § Node version](../../cloudcannon-configuration/build-commands.md#node-version)
 - **Astro 4 upgrade decision**: if the site is on Astro 4 or older, ask the user whether to upgrade to Astro 5+ before proceeding.
   **Why:** Astro 4 limits the migration — no `editableRegions()` integration (component re-rendering unavailable), `slug` is a reserved schema field, and `page.id` includes the file extension. See the [Astro 4→5 migration guide](https://docs.astro.build/en/guides/upgrade-to/v5/). If the user declines, proceed with HTML-attribute-only visual editing (`data-editable` attributes still work for text, image, and array CRUD).
 
@@ -40,7 +40,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
 
 Also check for data files outside collections (JSON, YAML in `src/config/` or similar) that contain editable site configuration.
 
-> **Data file shape — anti-pattern:** If a data file holds like-shaped items (team members, products, FAQs), it must be a **top-level array** with a `slug`/`id` field on each item — not an object keyed by slug (`{ "office-a": {...}, "office-b": {...} }`). Object-of-records locks editors to existing keys and breaks the "Add" button.
+Check each data file that holds like-shaped items (team members, FAQs) against the shape rule in [../content.md § Data collections](../content.md#data-collections).
 
 ## 3. Pages and routing
 
@@ -126,12 +126,11 @@ Note anything that needs special handling in later phases:
 - Content that references other content by string rather than ID (e.g. `author: "John Doe"` matched by slugifying)
 - Computed/derived pages (taxonomies, pagination) that aren't backed by their own content files
 - SSG-specific markdown extensions that CloudCannon can't preview (MDX components, custom remark plugins)
-- Existing CMS or deployment configuration (`.sitepins/`, `netlify.toml`, `vercel.json`)
+- Existing CMS or deployment configuration (`.sitepins/`, `netlify.toml`, `vercel.json`) -- record hosting, headers, redirects and forms as in [../audit.md § Site-wide facts](../audit.md#site-wide-facts)
 - `set:html` directives in templates (these render raw HTML and affect how content editing works)
 - **Styled HTML in content fields** -- flag fields that contain inline HTML with CSS classes (`<span class="text-accent">`), HTML entities (`&nbsp;`), or `<br>` tags with responsive classes (`<br class="block sm:hidden" />`) when migrating hardcoded `.astro` pages to content collection frontmatter.
   **Why:** these render on the live site but are uneditable in CloudCannon's rich text editors (custom HTML shows red outlines). They need resolution during the content phase -- see [../content.md § Styled HTML in front matter](../content.md#styled-html-in-front-matter).
-- **Scroll-reveal / entrance animations** -- search for `opacity: 0` in CSS, `IntersectionObserver` in JS, and class names like `reveal`, `aos`, `animate-on-scroll`, `fade-in`, `scroll-fade`.
-  **Why:** these hide content until scrolled into view and break in the visual editor. Note the files responsible so they can be patched in Phase 4. See [visual-editing-reference.md § Scroll-reveal](../../cloudcannon-visual-editing/visual-editing-reference.md#scroll-reveal-and-entrance-animations).
+- **Load-time behaviour** -- see [../audit.md § Load-time behaviour](../audit.md#load-time-behaviour).
 - Pre-build code generation that must run for the site to build
 - **Inline HTML in markdown content that has no markdown equivalent** -- scan `.md` content files for HTML blocks like `<figure>`, `<video>`, `<details>`, `<iframe>`.
   **Why:** if the pattern can't be expressed in standard markdown, it's a snippet candidate. Document each pattern (tag structure, attributes, which values vary between instances) as input for `_snippets` configuration in Phase 2. This applies to `.md` files only — MDX component usage is covered separately above. See [snippets.md § Raw snippets for inline HTML](../../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files).
@@ -142,7 +141,7 @@ Note anything that needs special handling in later phases:
 
 Once the census table and collection inventory are filled in, record:
 
-- Total pages, including generated taxonomy and pagination pages
+- Total pages, as [orchestration.md § Sizing](../orchestration.md#sizing) counts them
 - Rows in the census table recommending page-builder or fixed-schema collection (the hardcoded `.astro`→YAML conversions)
 - Distinct collections (existing + proposed in census)
 

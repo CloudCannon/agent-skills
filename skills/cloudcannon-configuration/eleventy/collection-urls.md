@@ -6,16 +6,19 @@ Eleventy-specific URL pattern guidance. For the general collection URL reference
 
 ## Default routing: `[full_slug]`
 
-With no `permalink`, Eleventy writes a template to its path under the input directory, minus the extension, as `<path>/index.html`. An `index` file writes to its folder. Eleventy keeps the file name exactly: case, spaces and a leading date stay in the URL. Folders starting with `_` build like any other; only the includes and data directories are skipped.
+With no `permalink`, Eleventy writes a template to its path under the input directory, minus the extension, as `<path>/index.html`: `blog/sub/nested.md` builds to `blog/sub/nested/index.html`. Two kinds of file build to their folder instead, with no extra level: an `index` file, and a file named after its folder. `blog/my-post/index.md` and `blog/my-post/my-post.md` both build to `blog/my-post/index.html`. Eleventy keeps the file name exactly: case, spaces and a leading date stay in the URL. Folders starting with `_` build like any other; only the includes and data directories are skipped.
 
-| File (collection `path`)                     | Eleventy writes                           | `url`                |
-| -------------------------------------------- | ----------------------------------------- | -------------------- |
-| `src/about.md` (`src`)                       | `_site/about/index.html`                  | `/[full_slug]/`      |
-| `src/index.md` (`src`)                       | `_site/index.html`                        | `/[full_slug]/`      |
-| `src/blog/index.md` (`src/blog`)             | `_site/blog/index.html`                   | `/blog/[full_slug]/` |
-| `src/blog/sub/nested.md` (`src/blog`)        | `_site/blog/sub/nested/index.html`        | `/blog/[full_slug]/` |
-| `src/blog/my-post/index.md` (`src/blog`)     | `_site/blog/my-post/index.html`           | `/blog/[full_slug]/` |
-| `src/blog/2024-01-05-launch.md` (`src/blog`) | `_site/blog/2024-01-05-launch/index.html` | `/blog/[full_slug]/` |
+| File (collection `path`)                     | Eleventy writes                           | `url`                         |
+| -------------------------------------------- | ----------------------------------------- | ----------------------------- |
+| `src/about.md` (`src`)                       | `_site/about/index.html`                  | `/[full_slug]/`               |
+| `src/index.md` (`src`)                       | `_site/index.html`                        | `/[full_slug]/`               |
+| `src/blog/index.md` (`src/blog`)             | `_site/blog/index.html`                   | `/blog/[full_slug]/`          |
+| `src/blog/sub/nested.md` (`src/blog`)        | `_site/blog/sub/nested/index.html`        | `/blog/[full_slug]/`          |
+| `src/blog/my-post/index.md` (`src/blog`)     | `_site/blog/my-post/index.html`           | `/blog/[full_slug]/`          |
+| `src/blog/2024-01-05-launch.md` (`src/blog`) | `_site/blog/2024-01-05-launch/index.html` | `/blog/[full_slug]/`          |
+| `src/blog/my-post/my-post.md` (`src/blog`)   | `_site/blog/my-post/index.html`           | `/blog/[relative_base_path]/` |
+
+One `url` can't cover both `my-post/my-post.md` and plain files in the same collection. When a collection mixes them, handle the minority form as in [../collection-urls.md § Files that don't follow the collection's pattern](../collection-urls.md#files-that-dont-follow-the-collections-pattern).
 
 ## `permalink` values
 

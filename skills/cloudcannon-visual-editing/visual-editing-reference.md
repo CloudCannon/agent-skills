@@ -2,7 +2,7 @@
 
 Pattern reference for editable region types, data paths, component re-rendering, and edge cases. Read this doc on demand when a checklist item links here — don't read it front to back.
 
-Everything here is SSG-agnostic. For the region types, the full attribute table, and the custom-element equivalents, see [editable-regions.md](editable-regions.md). For the JavaScript API, see [editable-regions-internals.md](editable-regions-internals.md). For what differs in one stack, see that SSG's `visual-editing-reference.md` — Astro's is [astro/visual-editing-reference.md](astro/visual-editing-reference.md).
+Everything here is SSG-agnostic. For the region types, the full attribute table, and the custom-element equivalents, see [editable-regions.md](editable-regions.md). For the JavaScript API, see [editable-regions-internals.md](editable-regions-internals.md). For what differs in one stack, see that SSG's `visual-editing-reference.md` — [Astro](astro/visual-editing-reference.md), [Hugo](hugo/visual-editing-reference.md), [Eleventy](eleventy/visual-editing-reference.md), [Next.js](nextjs/visual-editing-reference.md). For React, Vue and Svelte components, see [§ React, Vue and Svelte components](#react-vue-and-svelte-components).
 
 ## Quick rules — read before adding regions
 
@@ -55,7 +55,7 @@ Render two complete branches instead, each with its own static `data-prop`.
 | Conditional/computed output, style bindings | Register the component; wrap with `<editable-component>` | [When to use a component editable region](#when-to-use-data-editablecomponent)    |
 | Hardcoded string in a template              | `data-editable="source"` on a one-off page               | [Source editables for hardcoded content](#source-editables-for-hardcoded-content) |
 
-Components that fetch, submit forms, or load third-party scripts need an editor-mode branch rather than a region type — see [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic).
+Components that fetch, submit forms, or load third-party scripts need an editor-mode branch rather than a region type — see [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic) and, for React, Vue and Svelte, [§ React, Vue and Svelte components](#react-vue-and-svelte-components).
 
 ## Data-prop paths — pick one
 
@@ -142,8 +142,22 @@ Also watch for content working around element limitations — `<br>` tags inside
 | --------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A text region on a `<summary>`    | The text is editable, but clicking it no longer toggles the `<details>`, so its contents are sidebar-only | Render `<details open>` in editor mode: in a re-rendered component, add `open` under the editor flag; in a page template, an editor-only script that sets `open` on marked `<details>` elements when `window.inEditorMode` is set |
 | A text region inside a `<button>` | Each click into the text also fires the button's click handler (keystrokes don't)                         | Guard the click action under `window.inEditorMode`, or keep the region off interactive elements                                                                                                                                   |
+| A text region inside an `<a>`     | Clicking the text follows the link, so editors change it through the sidebar or the item's modal          | Keep the region. When the user wants on-page editing there, add the editor-only click guard below                                                                                                                                 |
 
 For the page-template script, check `window.inEditorMode` immediately and again on `DOMContentLoaded` and `load`, and mark the elements with a neutral attribute (`data-open-in-editor`) rather than touching every `<details>`.
+
+The link click guard is a `document` click listener in the capture phase, added only under `window.inEditorMode`, that calls `preventDefault()` when the click lands in a text region inside a link:
+
+```javascript
+document.addEventListener(
+  "click",
+  (event) => {
+    const region = event.target.closest?.('[data-editable="text"], editable-text');
+    if (region?.closest("a")) event.preventDefault();
+  },
+  true,
+);
+```
 
 **Editable text needs a single concrete host.** A text region must sit on one real DOM element so `data-editable` / `data-prop` (or the custom-element equivalent) has somewhere to live. A template construct that produces no DOM node, or a component with multiple roots, leaves nothing to attach the region to — use one wrapper element as the output. See your SSG's reference for the constructs that hit this.
 
@@ -211,9 +225,19 @@ Wrap the container with `data-editable="array"` and each item with `data-editabl
 
 Array items get CRUD controls (reorder, add, delete) automatically. Without a registered component renderer, items won't visually re-render after data changes — the user saves and refreshes. Text and image regions within items still work in real time.
 
+**MUST:** render every entry of an array region, in content order.
+**Why:** the editor pairs the nth `array-item` with the nth entry, so a filtered, sorted or sliced list sends edits, moves and deletes to the wrong entry.
+
+- **Hide** an entry that shouldn't show with CSS (a class or the `hidden` attribute), rather than filtering it out.
+- **Guard** empty content inside each item, never the item itself.
+- **Move** a separator or other element rendered between items into the item, and let the parent place it (`li + li::before`, or hide the first item's copy).
+- **Bind by index** only when filtering is essential: no array region, and each item's fields bound by its original index (`@data[footer].sections.3.title`). This is the last resort, because it loses on-page add, remove and reorder, and live re-render of computed fields.
+
 **Choosing where the component boundary goes.** When conditional elements, style bindings, or computed content need live updates, a registered component is needed **somewhere**. Default for a uniform list: wrap the **parent** that owns the whole array in `<editable-component>`, one registration for the section. Alternative: put `data-component` on **each** `array-item` and register each item type separately — the [page builder](#page-builder-blocks) pattern. Parent and per-item boundaries can be combined when the layout needs it. Start with the parent wrap; reach for per-item when item types differ or each row should own its re-render scope.
 
 **MUST nest text and image editables inside array items.** Without them, array items get CRUD controls only — no inline text editing, no live image picking. This applies universally, not just where component re-rendering is unavailable: text and image regions handle their own DOM updates independently of the component system. Every array item should have nested editables on its title, description and image fields at minimum.
+
+**Image-only items.** When each image is the whole item, wrap each `<img>` in an `array-item` element made `flex`, or make the `<img>` `block`, so the wrapper adds no line-box gap and the layout doesn't change.
 
 **Use `data-prop=""` for plain string array items.** When items are plain strings rather than objects, `data-prop=""` passes the current scope as the editable value. Without it, CloudCannon errors with "Text editable regions require a 'data-prop' HTML attribute but none was provided".
 
@@ -271,7 +295,7 @@ Nested data-file arrays follow the same rule: the inner array uses its relative 
 
 A `data-editable="array"` wrapper treats every direct child as an `array-item` — including children that aren't part of the array. Putting a static element (a logo column, a summary block, a "see all" link) as a sibling of the mapped output inside the same array wrapper breaks the array context: the static child has no matching index, and the runtime errors trying to resolve it.
 
-Split the layout container from the array container. When you can't — the static child is a grid column that must stay a sibling of the items — skip the array region and bind each item's fields by index (`@data[footer].sections.0.title`): inline editing without add/remove/reorder.
+Give the array its own wrapper, with the static element outside it. Where a wrapper would break the layout — a CSS grid needs the static column and the items as siblings — skip the array region and bind each item's fields by index (`@data[footer].sections.0.title`). Editors keep text editing but lose on-page add, remove and reorder; see [§ Array editing](#array-editing).
 
 ```html
 <!-- RIGHT -->
@@ -296,19 +320,19 @@ Each block needs **three layers**: (1) the array wrapper, (2) array items with c
 
 Page builder blocks need **both** on the same element. Without `data-component`, the block's contents won't live-update when the editor changes data via the sidebar. Without `data-editable="array-item"`, there are no CRUD controls.
 
-When a suitable element exists, add both attributes directly. When none does, use the `<editable-array-item>` web component:
+**The array-item host sits outside the component; the component root stays plain.** Put both attributes on an element the loop over the blocks renders around each component, such as an `<li>` or `<section>` it already emits. When the loop renders the component with no element of its own, wrap each one in the `<editable-array-item>` web component — and check the stylesheet first, see [§ Wrapper elements](#wrapper-elements-change-the-formatting-context):
 
 ```html
 <editable-array-item data-component="hero" data-id="hero">…</editable-array-item>
 ```
+
+**Why:** if the component's output _also_ starts with a `data-editable="array-item"` element, you get double nesting — `array > array-item > array-item` — and the inner array-item can't find an `array` parent, throwing "Array item editable regions must be nested inside an array editable region."
 
 `<editable-component>` is for **standalone** component regions that are not inside an array.
 
 **`data-component-key` / `data-id-key` on the array wrapper** tell CloudCannon which data field identifies the component type and the stable identity of each item. They are needed because when the array is empty there are no child elements to read, and CloudCannon still needs to know which field to consult. `data-component` / `data-id` on each child are the resolved runtime values. The key name is arbitrary. Since December 2025 `data-id-key` and `data-id` **default** to the `data-component-key` and `data-component` values, so when the identity field and the component field are the same — the common case — both can be omitted. Full attribute semantics are in [editable-regions.md § Complex array attributes](editable-regions.md#complex-array-attributes-wrapper-vs-item).
 
 **Nested editables** inside widget components go on the elements that render editable fields. Paths are relative to the component's data scope (the array item), so `data-prop="title"` resolves to `content_blocks[n].title`.
-
-**The array-item host carries `data-component`; the component root stays plain.** One element per block holds both `data-editable="array-item"` and `data-component`, and it sits outside the component, in whatever template loops over the blocks. The component's own output starts with ordinary markup. If the component's output _also_ starts with a `data-editable="array-item"` element, you get double nesting — `array > array-item > array-item` — and the inner array-item can't find an `array` parent, throwing "Array item editable regions must be nested inside an array editable region."
 
 **Each block type should have its own component file**, owning its section markup and its editable attributes. A dispatcher should be a thin lookup that renders the matching component, never a markup container.
 
@@ -325,12 +349,13 @@ Prefer option 1 when the shared component serves three or more widgets with diff
 ### Wrapper elements change the formatting context
 
 **MUST:** check the stylesheet before adding an element between a container and its children — an array-item host around a component, or a new wrapper around a rendered body for a `@content` region.
-**Why:** the wrapper becomes the flex or grid item in place of the child, and child-combinator and position rules stop matching what they used to.
+**Why:** the wrapper becomes the flex or grid item in place of the child, and child-combinator, sibling and position rules match the wrapper or nothing.
 
 Before adding the wrapper:
 
 - **Grep** for child combinators on the container (`.row > *`, `.content > p`) and `align-items`/`justify-*` rules — they now match the wrapper, or nothing.
 - **Grep** for `:first-child`, `:last-child` and `:nth-child` rules on the children — the wrapper shifts which element they match.
+- **Grep** for adjacent- and general-sibling rules between the children (`.hero + .features`, `.section ~ .section`) — with one wrapper per block, the children are no longer siblings. Add a `:has()` copy of each rule that matches through the wrappers, and keep the original for pages without them: `.hero + .features, :has(> .hero) + :has(> .features) > .features { … }`.
 - **Check** each child for a `display` it only had because its parent was flex or grid (a flex container blockifies its children). Give the child its own `display` rather than styling the wrapper.
 - **Give** a body wrapper the parent's class when the theme styles the body through it, and cancel any rule that mustn't now apply twice (margins on both the old parent and the wrapper). Check the class for box rules first (`max-width`, `width`, padding): nested, they apply twice and shrink the body. When it has them, give the wrapper its own class instead, and copy the parent's child-combinator rules (`.content > p`) to it.
 
@@ -396,6 +421,14 @@ For the decision triggers, see [Golden rule](#golden-rule--computed-content-need
 ### Component prop contract
 
 When `<editable-component>` re-renders, it passes the value at `data-prop` to the component as its props. An object-bound region passes that object's fields; an array-bound region passes the array's entries. Destructure the field names directly rather than expecting a named wrapper object. The exact idiom for reading them, and for recovering an array from the passed props, is stack-specific — see your SSG's reference.
+
+**MUST:** make every registered component render correctly from its region's value alone.
+**Why:** a re-render passes only the `data-prop` value plus the region host's `data-literal-*` values. Props the caller adds beside the data, and values it computes, are dropped, and an item added in the editor has none of them.
+
+For each prop the call site adds:
+
+- **Pass** it on the region host as `data-literal-<key>`, which arrives as prop `<key>`. Values that parse as JSON arrive as structured values (`data-literal-columns="3"` gives the number `3`). Keys are lowercased, so use lowercase or snake_case prop names.
+- **Or default** the prop in the component to the value the call site passes.
 
 ### Scattered fields feeding a registered component — nest the frontmatter
 
@@ -551,7 +584,7 @@ The select is editable in the sidebar by default, but **the rendered card won't 
 1. **A data file holding a top-level array**, each item with a `slug`.
 2. **`data_config`** exposing that file, so the select's option source resolves, plus a `select` input with `value_key: slug` so the frontmatter stores the bare slug rather than an object.
 3. **A dedicated registered component** that takes the slug as a prop and does the lookup **internally**. The lookup must live inside the registered component — not in the page template — because that is the code that re-runs when CloudCannon re-renders.
-4. **An editable wrapper at the call site** with `data-prop` pointing at the slug field.
+4. **An editable wrapper at the call site** with `data-prop` pointing at the slug field. A React component needs the slug under a named prop → [react/visual-editing-reference.md § Registered component values are objects](react/visual-editing-reference.md#registered-component-values-are-objects).
 
 When the editor changes the select, CloudCannon re-renders the component with the new slug, its lookup re-runs, and the displayed fields update live.
 
@@ -565,7 +598,7 @@ Add an optional prop naming the image path, and only render the image region whe
 
 ## Component re-rendering
 
-For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro, partial lookup in Hugo, include lookup in Eleventy's Liquid; the resolved key is what `data-component` refers to.
+For full live preview — not just text and image updates — components must be resolvable by the integration so the component region can re-render them in the browser when data changes. Each stack does this through its own `@cloudcannon/editable-regions` integration — explicit registration in Astro and Next.js, partial lookup in Hugo, include lookup in Eleventy's Liquid; the resolved key is what `data-component` refers to.
 
 **What re-runs and what doesn't.** Registered components re-render in the browser with the props CloudCannon passes. Parent page-level logic does **not** re-run — top-level data loading in a page template, layout-level fetches, and anything else outside the component. If the component needs data its parent normally loads, pass it via props or load it inside the component.
 
@@ -580,6 +613,47 @@ Text and image regions provide the most value with the least complexity. Compone
 The access syntax differs per integration — a build-time environment value in some stacks, a template global in others. See your SSG's reference, and [editable-regions-internals.md § Detecting the Visual Editor](editable-regions-internals.md#detecting-the-visual-editor) for all three detection mechanisms and when each applies.
 
 **Components whose JS fights the editor** — carousels and animation libraries that manage their own DOM, components with shadow DOM that doesn't serialize cleanly, or anything too complex for the editor to re-render — need an editing fallback: a display-only component that resembles the real one and carries the editable attributes. The live site keeps the real component; only the editor's renderer is swapped. A fallback duplicates markup, so keep the two side by side and mirror structural changes.
+
+### React, Vue and Svelte components
+
+Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses. The calls go in the file the SSG's setup loads in editor mode — see that SSG's `visual-editing.md`. Each framework's function and import path:
+
+- React → [react/visual-editing-reference.md](react/visual-editing-reference.md), which also holds React's rules for JSX markup, rich text hosts and `<template>` blueprints
+- Vue → [vue/visual-editing-reference.md](vue/visual-editing-reference.md)
+- Svelte → [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md)
+
+Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [§ Where does the registration go](#where-does-the-registration-go--component-root-or-call-site).
+
+**State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
+
+To make nested content editable within a framework component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
+
+**Hydration gotcha.** Content inside a hydrated component can be overwritten when its framework hydrates. If an editable region modifies static server-rendered HTML but the framework then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by component state may not be a good candidate for inline editable regions.
+
+**Gate side effects with `window.inEditorMode`.** A component that fetches, submits forms, or loads third-party scripts renders the same markup in the editor but skips the API calls and script loads. Editable regions do not block runtime `fetch()`, but the preview iframe often differs from production (CORS, auth cookies, relative URLs); test in the Visual Editor if the UI depends on it.
+
+### Whole-page framework sites — the `EditableRegions` root
+
+Applies when React, Vue or Svelte renders and hydrates the whole page, from the root layout down. Sites that hydrate only islands inside static HTML don't use it.
+
+**MUST:** wrap every editable region on the page in one `EditableRegions` root, placed in the root layout.
+**Why:** the runtime connects regions as soon as it loads. A region with no editable ancestor connects as an orphan and writes its value into the DOM straight away, which can be before the framework hydrates that markup. Regions inside the root don't mount until the root connects, and the root connects only once its component has mounted, after hydration.
+
+When the layout already has a single element around the whole page, turn that element into the root, with the same `tag` and classes, rather than adding another.
+
+**Portaled UI** — dialogs, menus and command palettes — renders into `<body>`, outside the root. Leave regions out of it, and edit the same data where it renders in place.
+
+Each framework entry point exports the root; each framework's file names its import path and mount hook — [React](react/visual-editing-reference.md#the-react-editableregions-root), [Vue](vue/visual-editing-reference.md#the-vue-editableregions-root), [Svelte](svelte/visual-editing-reference.md#the-svelte-editableregions-root).
+
+How it behaves:
+
+- It renders one element, set by the `tag` prop (default `div`), with `data-editable="_dynamic" data-prop=""`. Other props and attributes are forwarded, except `data-prop*` and `data-literal*`, which it drops.
+- The runtime's page scan skips `_dynamic` elements, so nothing connects the root except the component itself. If the runtime hasn't loaded when the component mounts, the root waits for the `editable-regions:load` event.
+- A region inside the root that connects first queues on the root element and stays unmounted. The root replays the queue when it connects.
+- `data-prop=""` binds the root to the current file, so `data-prop` paths inside it resolve exactly as they would at the top of the page.
+- The root disconnects when its component unmounts.
+
+Layout elements that render no regions, such as a component that only triggers the editor-only registration import, can sit outside the root.
 
 ## SSGs without component support
 
@@ -612,31 +686,40 @@ The component renders correctly in the production build but is missing data insi
 3. Open the relevant schema file under `.cloudcannon/schemas/`. The stripped keys will be absent from its shape, or absent from the relevant nested object.
 4. Add the missing keys with sensible default values. Reload the editor — they appear in props immediately, with no save or rebuild required.
 
-## Scroll-reveal and entrance animations
+## Load-time behaviour in the editor
 
-Many templates start elements hidden (`opacity: 0`, a transform, `visibility: hidden`) and reveal them with JS or CSS animation classes. Common class names: `reveal`, `animate-on-scroll`, `aos-*`, `fade-in`, `scroll-fade`.
+**MUST:** in editor mode, keep every element in its final, static, interactive state, changing only when the editor changes it.
+**Why:** the editor shows elements before any script touches them, and every edit re-renders markup and resets what scripts applied. A reveal never runs, a counter overwrites the field's value, and an autoplaying component fights the editor's DOM updates.
 
-**Why this breaks in the visual editor:** CloudCannon replaces DOM nodes when re-rendering a registered component. New nodes get the hidden CSS but not the JS-applied "active" class that makes them visible, and the reveal JS typically only runs on page-load events, not on editor re-renders. Symptoms:
+View each section without its scripts, and again after an edit re-renders it. Then:
 
-- Blocks fade away on initial visual editor load
-- All content disappears after editing a field that triggers a re-render
-- Multiple blocks vanish when editing one block
+- **Override** anything hidden, faded, offset, unclickable or mid-animation with editor-mode CSS under `.cms-editor-active`. Undo every property the hidden state sets, not a fixed list.
+- **Stop** anything that changes on its own — timers, autoplay, observers, rotators — under `window.inEditorMode`.
 
-**Fix (primary): a CSS override using `.cms-editor-active`.** CloudCannon adds that class to `<body>` when a page loads inside the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)). Override the hidden state in global CSS:
+Common cases:
+
+| Pattern                                                                                          | In the editor                                                                                                               | Fix                                                                                                                             |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Reveal and entrance animations (`reveal`, `aos-*`, `fade-in`, `animate-on-scroll`, motion props) | Re-rendered nodes get the hidden state but not the class a script adds; the hidden state can set `pointer-events: none` too | CSS override, and mark the elements active under `window.inEditorMode`                                                          |
+| Count-ups, typewriters, text rotators                                                            | They rewrite `textContent`, overwriting what the editor just wrote                                                          | Early-return under `window.inEditorMode`, leaving the field's value                                                             |
+| Carousels, sliders, autoplay                                                                     | They move their own DOM, so an edit lands on the wrong slide or throws `removeChild` errors                                 | Stop autoplay and show the slides statically, or use an [editing fallback](#detecting-the-editor-and-skipping-build-only-logic) |
+| Click interceptors (lightboxes, video players)                                                   | They take the click the editor needs to open the region                                                                     | Early-return under `window.inEditorMode`                                                                                        |
+
+CloudCannon adds `.cms-editor-active` to `<body>` when a page loads inside the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)). An override in global CSS works on initial load and after re-renders. Adapt the selector and the properties to what the site's hidden state sets:
 
 ```css
 .cms-editor-active .reveal {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
+  pointer-events: auto;
   transition: none;
+  animation: none;
 }
 ```
 
-This is the most reliable approach — pure CSS, no timing issues, and it works on initial load as well as after re-renders. Adapt the selector to whatever class the template uses.
+In a registered component, the editor check from [§ Detecting the editor](#detecting-the-editor-and-skipping-build-only-logic) can also skip the hidden state at render, so re-rendered output never carries it. The CSS override still covers the initial HTML.
 
-**Fix (supplementary): an `ENV_CLIENT` guard in component code.** Skip the hidden class at render time in the editable-regions client bundle, so re-rendered output never carries it. This does not affect the initial production HTML — the CSS override above is what handles initial render. See [Detecting the editor and skipping build-only logic](#detecting-the-editor-and-skipping-build-only-logic).
-
-**Inline `<script>` runtime checks.** `window.inEditorMode` is already `true` when the page's first inline `<head>` script runs, so it is set before deferred scripts, `DOMContentLoaded` and `load`. An early return under it works for any load-time script. For animation JS, branch on it and mark the elements active immediately:
+`window.inEditorMode` is already `true` when the page's first inline `<head>` script runs, so it is set before deferred scripts, `DOMContentLoaded` and `load`. An early return under it works for any load-time script. For reveal JS, mark the elements active first:
 
 ```javascript
 if (window.inEditorMode) {
@@ -654,9 +737,7 @@ Scripts don't re-run on markup the editor re-renders:
 - **Prefer** CSS state selectors (`:checked`, `:target`, `[open]`, `details`) over JS-toggled classes for anything an editor should see, so re-rendered markup behaves without a script.
 - **Scope** per-instance `<style>` and scripts to the instance (an id or data attribute), so a component used twice doesn't collide.
 
-**Scripts that fight editing.** The same rule applies beyond reveal animations. Any script that mutates editable DOM (count-up numbers that rewrite `textContent`, text rotators, typewriter effects) or intercepts clicks on editable elements (lightboxes, video players) **MUST** early-return under `window.inEditorMode`. **Why:** a mutating script overwrites what the editor just wrote, or leaves the region showing a value that isn't the field's, and a click handler steals the click the editor needs to open the region.
-
-**Audit flag:** flag any scroll-reveal or entrance animation pattern, and any script from the paragraph above, early. Search for `opacity: 0` in CSS, `IntersectionObserver`, `textContent =`, `setInterval` and click listeners in JS, and the common class names above, and note the files responsible so they can be patched when regions are wired up.
+**Audit flag:** flag any pattern from the table above early. Search CSS for `opacity: 0` and `pointer-events: none`, JS for `IntersectionObserver`, `textContent =`, `setInterval`, `autoplay` and click listeners, and markup for the class names above. Note the files responsible so they can be patched when regions are wired up.
 
 ## Troubleshooting
 

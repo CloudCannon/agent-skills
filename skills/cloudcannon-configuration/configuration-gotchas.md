@@ -68,6 +68,8 @@ The first entry in `_enabled_editors` is the editor an existing file opens in. P
 | Body-text pages that build (posts, docs) | `[visual, content, data]` |
 | Files that build no page                 | `[data]`                  |
 
+Valid entries are `visual`, `content` and `data`. The Source Editor isn't listed: it's available on every file to users whose permissions allow it, so `[data]` leaves a file's body editable there.
+
 **Common miss:** `data` first on a page collection, so every page opens in the Data Editor instead of the Visual Editor.
 
 New files open in the add option's `editor` instead — see [configuration.md § New files and the Add button](configuration.md#new-files-and-the-add-button).
@@ -148,7 +150,7 @@ Split into per-file collections only when:
 | Through a markdown renderer, then as HTML | `markdown`                                   |
 | As raw HTML, with no markdown step        | `html`                                       |
 
-The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter), [Eleventy](eleventy/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-engine).
+The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter), [Eleventy](eleventy/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-engine), [Next.js](nextjs/configuration.md#string-inputs).
 
 - **Expect** template and content to agree. Markdown or HTML in a field the template escapes already prints literally on the live site — a bug in the original. Record it and ask the user whether to fix the template or the content; don't pick the input from the content alone. Plain text in a field the template renders as markdown is not a mismatch — `markdown` is still right.
 - **Scope** the input per structure when the same key renders differently in different blocks (`hero.description` as `markdown`, `description` as `textarea` elsewhere) — see [§ Where the input definition goes](#where-the-input-definition-goes).
@@ -173,6 +175,8 @@ Common culprits: `price`, `amount`, `count`, `order`, `rating`. Structure defaul
 # Top-level front matter keys in use across a collection (YAML front matter)
 find <collection dir> -name '*.md' -exec sed -n '/^---$/,/^---$/p' {} \; | grep -oE '^[A-Za-z_][A-Za-z0-9_]*:' | sort -u
 ```
+
+When Phase 3 creates the files, diff against their planned shapes first. Phase 3 re-runs the diff on the real files.
 
 [§ Data inputs must follow the data file](#data-inputs-must-follow-the-data-file-not-a-template) is the same check for data files.
 
@@ -206,7 +210,7 @@ A data file's inputs merge from every level of the configuration cascade that co
 **Recipe:** list every leaf key path in the file, then cross-reference it against those levels:
 
 ```bash
-jq -r 'paths(scalars) | join(".")' <data dir>/*.json | sort -u
+find <data dir> -name '*.json' -exec jq -r 'paths(scalars) | join(".")' {} + | sort -u
 # YAML data files: yq -o=json '.' <file> | jq -r 'paths(scalars) | join(".")'
 ```
 
@@ -264,7 +268,7 @@ A dataset needs a `data_config` entry, and editing its file needs a collection �
 
 ### Configure icon fields as select inputs
 
-When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `flat-color-icons:*`), configure the `icon` input as a `select` with `allow_create: true` rather than a plain `text` field. Non-technical editors can't guess icon names, but they can pick from a curated list with friendly display names.
+When a template renders icons by name, configure the `icon` input as a `select` rather than a plain `text` field. Non-technical editors can't guess icon names, but they can pick from a curated list with friendly display names.
 
 #### Setup steps
 
@@ -272,8 +276,8 @@ When a template uses an icon library (e.g. Iconify sets like `tabler:*` and `fla
 2. Add them as object values with `name` (human-readable label) and `id` (the Iconify value).
 3. Set `value_key: id` so the stored value is the Iconify ID, not the whole object.
 4. Set `preview.text` to show the friendly name in the dropdown.
-5. Set `allow_create: true` so developers can still type custom icon names.
-6. Add a `comment` linking to the icon set's browser (e.g. Iconify) so developers know where to find new names.
+5. Set `allow_create: true` only when the icon library resolves any name (for example Iconify), so developers can type a custom one. A fixed icon map in the site's code gets `allow_create: false`, because a name outside the map renders nothing.
+6. With `allow_create: true`, add a `comment` linking to the icon set's browser (e.g. Iconify) so developers know where to find new names.
 
 **Deriving friendly names:** strip the collection prefix (`tabler:`, `flat-color-icons:`), replace hyphens with spaces, title-case. For icons from secondary collections, add a suffix (e.g. "Template (Color)" for `flat-color-icons:template` vs "Template" for `tabler:template`).
 
@@ -501,7 +505,7 @@ _inputs:
           id: 4
 ```
 
-`allow_create: true` is appropriate for icon fields (developers may want a custom Iconify name). For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug.
+For variants and other component-API enums, leave `allow_create: false` (the default) — typing a value the component doesn't recognise is always a bug. Icon fields follow the same rule unless the icon library resolves any name — see [§ Configure icon fields as select inputs](#configure-icon-fields-as-select-inputs).
 
 Placement follows the same rule as icons: define the input on each structure value that has the key, and share one definition across them with `_inputs_from_glob`. See [§ Where the input definition goes](#where-the-input-definition-goes).
 

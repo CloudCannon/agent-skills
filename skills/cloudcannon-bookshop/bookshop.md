@@ -1,6 +1,6 @@
 # How Bookshop works
 
-The concepts every Bookshop site shares. Template syntax and file locations differ per SSG — [Astro](astro/bookshop.md), [Hugo](hugo/bookshop.md), [Eleventy](eleventy/bookshop.md).
+The concepts every Bookshop site shares. Template syntax and file locations differ per SSG — [Astro](astro/bookshop.md), [Hugo](hugo/bookshop.md), [Eleventy](eleventy/bookshop.md), [Next.js](nextjs/bookshop.md).
 
 ## The pieces
 

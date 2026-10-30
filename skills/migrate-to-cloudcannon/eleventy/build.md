@@ -13,12 +13,13 @@ Read [../build.md](../build.md) first, and work through its checklist. This file
 
 ## CloudCannon build command
 
-| Site has                                                               | `build.build_command`                        | `build.install_command` |
-| ---------------------------------------------------------------------- | -------------------------------------------- | ----------------------- |
-| A `build` script that runs Eleventy and every other step (CSS, search) | `npm run build`                              | `npm i`                 |
-| A `build` script that misses a step the `start` script runs            | Fix the `build` script, then `npm run build` | `npm i`                 |
-| No `build` script                                                      | `npx @11ty/eleventy`                         | `npm i`                 |
+| Site has                                                               | `build.build_command`                        |
+| ---------------------------------------------------------------------- | -------------------------------------------- |
+| A `build` script that runs Eleventy and every other step (CSS, search) | `npm run build`                              |
+| A `build` script that misses a step the `start` script runs            | Fix the `build` script, then `npm run build` |
+| No `build` script                                                      | `npx @11ty/eleventy`                         |
 
+- **Set** `build.install_command` per [build-commands.md § Package manager](../../cloudcannon-configuration/build-commands.md#package-manager).
 - **Check** `build.output_path` in `.cloudcannon/initial-site-settings.json` matches the configured output directory (`_site` by default).
 - **Check** `build.node_version` gives Node 20.19 or later on the Liquid path — the plugin needs it.
 

@@ -148,7 +148,7 @@ options:
 
 ## Split co-located approach (5+ block types)
 
-Each component gets its own structure file next to it:
+Each block gets its own structure-value file beside its component, in the folder that holds the site's own block components (Astro's `src/components/` in this example; use the site's own folder):
 
 ```
 src/components/
@@ -158,7 +158,7 @@ src/components/
   features.cloudcannon.structure-value.yml
 ```
 
-The input uses `values_from_glob` to collect them all:
+The input's `values_from_glob` points at that folder:
 
 ```yaml
 _inputs:
@@ -214,6 +214,12 @@ _structures:
           email:
             type: email
 ```
+
+## Nested item structures
+
+Give every array or object inside a structure value its own named entry under `_structures`, even when only one block uses it, and link it by full path (`options.structures: _structures.counter_numbers`). Don't define the item structure inline on the input (`options.structures: { values: [...] }`).
+
+**Why:** a named structure has one place for its preview and inputs, and a second block can reuse it without a copy.
 
 ## Shared sub-structures
 
@@ -371,7 +377,7 @@ _inputs:
 
 ### The `_type` discriminator
 
-Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard, and it's the default `id_key`, so structures need no `id_key` line. The name is arbitrary, but it must be consistent across all values in a given array. An existing site that already uses another key (`_name`, `_component`) keeps it, and sets `id_key` to that key on every structure, nested ones included. The discriminator value must match the component key the SSG resolves — Astro: the key used in `componentMap` and `registerAstroComponent` calls; Hugo: the partial path; Eleventy: the include path relative to the includes directory, such as `components/hero`.
+Every structure value must include a discriminator key so CloudCannon can match array items to the correct structure definition. `_type` is our standard, and it's the default `id_key`, so structures need no `id_key` line. The name is arbitrary, but it must be consistent across all values in a given array. An existing site that already uses another key (`_name`, `_component`) keeps it, and sets `id_key` to that key on every structure, nested ones included. The discriminator value must match the component key the SSG resolves — Astro: the key used in `componentMap` and `registerAstroComponent` calls; Hugo: the partial path; Eleventy: the include path relative to the includes directory, such as `components/hero`; Next.js: the key in `blockMap` and `componentMap`.
 
 ### Scoped `_inputs`
 
@@ -439,7 +445,7 @@ In YAML, `image:\n  src:\n  alt:` creates `{ src: null, alt: null }` — a truth
 - Arrays: check `.length` — `actions?.length > 0 &&` not `actions &&`.
 - Numbers: don't seed `0` as a placeholder for a genuinely-optional numeric field — nothing distinguishes it from a real zero. Where `0` is a legitimate value, guard with an explicit comparison (`rating > 0 &&`), never bare truthiness.
 
-When iterating, filter items that have nothing visible to render: `actions.filter((a) => a?.text || a?.icon).map(...)`.
+When iterating, render every item and guard the empty content inside each one, never the item itself. Filtering out items breaks array regions — see [visual-editing-reference.md § Array editing](../cloudcannon-visual-editing/visual-editing-reference.md#array-editing).
 
 Check and update these guards in the content phase, as the first content file for each block type is created. **Why:** an unguarded null is a build failure, not a cosmetic defect — `<Icon name={null}>` crashes `astro build`. Revisit during the visual-editing phase only to confirm every `data-editable` element is still conditionally rendered. See [visual-editing-reference.md § Content-sourced objects and arrays are never falsy](../cloudcannon-visual-editing/visual-editing-reference.md#content-sourced-objects-and-arrays-are-never-falsy) for the full pattern with code examples. The examples above are JavaScript; Hugo's idioms (`with`, `isset`) are in [hugo/visual-editing-reference.md § Nil safety](../cloudcannon-visual-editing/hugo/visual-editing-reference.md#nil-safety).
 
