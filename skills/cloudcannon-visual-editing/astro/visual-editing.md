@@ -72,7 +72,7 @@ Run through these after setup, before starting on editable regions:
 
 - [ ] **Collection and data file config**: `_enabled_editors` and each data file's `file_config` follow the configuration guide
       → [configuration.md](../../cloudcannon-configuration/configuration.md)
-- [ ] **Registration wiring**: Every component in `registerComponents.ts` is actually referenced via `data-component` in a template.
+- [ ] **Component names resolve**: every `data-component` value, and every `_type` in content and structures, is a key registered in `registerComponents.ts`
       → [Component re-rendering](visual-editing-reference.md#component-re-rendering)
 - [ ] **Cross-collection select wiring**: the lookup component is registered with `registerAstroComponent`
       → [Cross-collection select inputs](visual-editing-reference.md#cross-collection-select-inputs)

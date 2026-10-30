@@ -147,7 +147,7 @@ Run through these after setup, before starting on editable regions:
       → [configuration.md](../../cloudcannon-configuration/configuration.md)
 - [ ] **Regions inside the root**: Every rendered `data-editable` and `editable-*` element sits inside `<EditableRegions>`
       → [Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root)
-- [ ] **Registration wiring**: Every key in `componentMap.ts` is referenced via `data-component` somewhere
+- [ ] **Component names resolve**: every `data-component` value, and every `_type` in content and structures, is a key in `componentMap.ts`
       → [Registered components](visual-editing-reference.md#registered-components)
 - [ ] **Client-safe registered components**: No registered component, or anything it imports, is async, reads files, calls `useRouter`, or imports `server-only` or `next/headers`
       → [Registered components](visual-editing-reference.md#registered-components)

@@ -49,7 +49,7 @@ For each directory under `content/`:
 
 Also list every file under `data/` and which templates read it (`hugo.Data.<name>`, or `site.Data` before Hugo 0.156).
 
-> **Data file shape — anti-pattern:** a dataset used as records or select values (authors, tags, team) must be a **top-level array** with a `slug` on each item, not a map keyed by slug. A map locks editors to the existing keys and breaks the "Add" button. Nav and footer link lists stay arrays inside their settings file, without ids.
+Check each data file that holds like-shaped items (team members, FAQs) against the shape rule in [../content.md § Data collections](../content.md#data-collections).
 
 ## 3. Pages and routing
 

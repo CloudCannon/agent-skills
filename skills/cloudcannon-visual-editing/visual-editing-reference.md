@@ -295,7 +295,7 @@ Nested data-file arrays follow the same rule: the inner array uses its relative 
 
 A `data-editable="array"` wrapper treats every direct child as an `array-item` — including children that aren't part of the array. Putting a static element (a logo column, a summary block, a "see all" link) as a sibling of the mapped output inside the same array wrapper breaks the array context: the static child has no matching index, and the runtime errors trying to resolve it.
 
-Split the layout container from the array container. When you can't — the static child is a grid column that must stay a sibling of the items — skip the array region and bind each item's fields by index (`@data[footer].sections.0.title`), with the losses in [§ Array editing](#array-editing).
+Give the array its own wrapper, with the static element outside it. Where a wrapper would break the layout — a CSS grid needs the static column and the items as siblings — skip the array region and bind each item's fields by index (`@data[footer].sections.0.title`). Editors keep text editing but lose on-page add, remove and reorder; see [§ Array editing](#array-editing).
 
 ```html
 <!-- RIGHT -->

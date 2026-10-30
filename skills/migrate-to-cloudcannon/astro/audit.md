@@ -40,7 +40,7 @@ Read `src/content.config.ts` (Astro 5+) or `src/content/config.ts` (older versio
 
 Also check for data files outside collections (JSON, YAML in `src/config/` or similar) that contain editable site configuration.
 
-> **Data file shape — anti-pattern:** A dataset used as records or select values (authors, tags, team) must be a **top-level array** with a `slug`/`id` field on each item — not an object keyed by slug (`{ "office-a": {...}, "office-b": {...} }`). Object-of-records locks editors to existing keys and breaks the "Add" button. Nav and footer link lists stay arrays inside their settings file, without ids.
+Check each data file that holds like-shaped items (team members, FAQs) against the shape rule in [../content.md § Data collections](../content.md#data-collections).
 
 ## 3. Pages and routing
 

@@ -176,7 +176,7 @@ Set `disable_url: true` on data collections. They don't produce pages; without i
 
 - JSON/YAML is valid and well-formatted
 - Nesting isn't so deep the editor becomes unwieldy (3+ levels is a flag)
-- A dataset used as records or as select values (authors, tags, team) is a top-level array with a `slug` on each item, not a map keyed by slug. Nav and footer link lists stay arrays inside their settings file, without ids.
+- A dataset used as records or as select values is a top-level array, not a map keyed by slug, which locks editors to its existing keys. Items that are objects (authors, team) carry a `slug`; a list of strings (tags, categories) stays strings. Nav and footer link lists stay arrays inside their settings file, without ids.
 - Arrays of objects have consistent shapes or are backed by a structure per shape
 
 ## Review checklist addendum

@@ -136,6 +136,8 @@ Attributes on the region **host** are untouched: the host is the region boundary
 
 So anything needing a stable per-element attribute — an analytics hook, a test id, a translation key — belongs on the region host, or on a component that renders the markup. Not inside the region. Stability points the same way even where an attribute would survive: editors reshape a region's inner DOM freely (splitting paragraphs, adding lists, reordering blocks), so an element you tagged may not exist after the next edit. Treat the region as the smallest addressable unit.
 
+A class editors choose per element — a red `h2`, a lead paragraph — is an editor style. Define it as an `element.class` rule in the stylesheet the region's `styles` option points at, and editors apply it from the Styles dropdown. In Markdown content, check a styled element survives a save and renders on the built page before relying on it.
+
 A snippet can teach the editor to round-trip custom markup, and is the right tool when the markup is genuinely content the editor should manage. It's the wrong tool for developer plumbing: the attribute becomes an editor-facing form field that can be duplicated into a collision, and the prose turns into a snippet card instead of inline WYSIWYG. Prefer hoisting the attribute out of the region.
 
 Astro-specific patterns (slots, links, templates) are in [astro/visual-editing-reference.md](astro/visual-editing-reference.md).

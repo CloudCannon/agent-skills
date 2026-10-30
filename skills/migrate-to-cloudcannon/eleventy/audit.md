@@ -47,7 +47,7 @@ Also list every file in the data directory with its format and which templates r
 - **YAML** — editable; Eleventy reads it only through `addDataExtension`, so check the config registers it.
 - **JS** (`.js`, `.cjs`, `.mjs`) — CloudCannon can't edit it. Note each one that holds values editors should change; Phase 3 moves them to JSON or YAML.
 
-> **Data file shape — anti-pattern:** a dataset used as records or select values (authors, tags, team) must be a **top-level array** with a `slug` on each item, not a map keyed by slug. A map locks editors to the existing keys and breaks the "Add" button. Nav and footer link lists stay arrays inside their settings file, without ids.
+Check each data file that holds like-shaped items (team members, FAQs) against the shape rule in [../content.md § Data collections](../content.md#data-collections).
 
 ## 4. Pages and routing
 
