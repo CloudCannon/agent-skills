@@ -64,7 +64,7 @@ markdown:
 
 ### Import statements in content
 
-Rich text editors show everything in the file. Import statements (`import X from 'y'`) will be visible to non-technical editors. Use your SSG's auto-import mechanism to avoid import statements in content files. See SSG-specific docs for details (e.g. `astro-auto-import` for Astro).
+Rich text editors show everything in the file, so editors see import statements (`import X from 'y'`) as text. Resolve components from one shared place instead — see [snippets.md § No imports in content](snippets.md#no-imports-in-content-one-shared-components-map). Each SSG's shared place is in its `<ssg>/overview.md`.
 
 ---
 

@@ -21,7 +21,7 @@ The rule is in [../configuration-gotchas.md § Choose text, markdown or html inp
 List the fields that need a rich text input — every other printed string field is `text` or `textarea`:
 
 ```sh
-grep -rnE 'markdownify|RenderString|safeHTML' layouts themes/*/layouts
+grep -rnE 'markdownify|RenderString|safeHTML' layouts $(find themes -maxdepth 2 -type d -name layouts 2>/dev/null)
 ```
 
 - **Read** the whole pipeline: `.x | markdownify | safeHTML` is still `markdown`.
@@ -102,7 +102,7 @@ Leave `draft`, `weight` and `date` visible — editors legitimately change them 
 **Why:** the first edit writes every schema key into the file ([../configuration-gotchas.md § The first edit writes every schema key](../configuration-gotchas.md#the-first-edit-writes-every-schema-key)). A comparison such as `where .Pages "Params.hidden" "!=" "true"` or `eq .Params.featured "true"` treats a real boolean — `false` included — differently from an absent key, so a written `false` can drop a page from a list.
 
 ```sh
-grep -rnE '"(true|false)"' layouts themes/*/layouts
+grep -rnE '"(true|false)"' layouts $(find themes -maxdepth 2 -type d -name layouts 2>/dev/null)
 ```
 
 Fix the comparison in a project override if the field must stay in the schema.

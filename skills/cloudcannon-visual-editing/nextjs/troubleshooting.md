@@ -1,0 +1,9 @@
+# Visual editing troubleshooting (Next.js)
+
+Next.js-specific rows only. Generic symptoms are in [../troubleshooting.md](../troubleshooting.md) — check there first.
+
+| Symptom / mistake                                                                                                             | Fix                                                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The editor floods with "array item has no parent" errors on a page with blueprints                                            | A `<template>` has JSX children, which never reach `template.content`. Render it through `RawTemplate`. See [Array blueprints](../react/visual-editing-reference.md#array-blueprints).                           |
+| Every component region shows "Failed to find a registered component with the key"                                             | The registration file never loads. Check that `<CloudCannonEditor />` is in `app/layout.tsx` or `pages/_app.*`, and that its `import()` path is relative, not `@cloudcannon/...`, which resolves to the package. |
+| A registered component fails in the editor with `NextRouter was not mounted` or `invariant expected app router to be mounted` | It calls `useRouter`, which needs Next's router context. Pass the value in as a prop — see [Registered components](visual-editing-reference.md#registered-components).                                           |

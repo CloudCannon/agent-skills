@@ -1,6 +1,36 @@
 # Audit — shared rules
 
-The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md) — and links here for the decisions below.
+The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md), [nextjs/audit.md](nextjs/audit.md) — and links here for the decisions below.
+
+## Site-wide facts
+
+Record for every site:
+
+- **Package manager and version** — see [build-commands.md § Package manager](../cloudcannon-configuration/build-commands.md#package-manager).
+- **Where production is hosted** — CloudCannon, or another host with CloudCannon for editing only. **Ask the user** if nothing in the repo says.
+- **Headers and redirects**, from every source: the SSG's config, `_headers`, `_redirects`, `netlify.toml`, `vercel.json`. When CloudCannon hosts production, they move to `.cloudcannon/routing.json` — see [routing.md](../cloudcannon-configuration/routing.md).
+
+### Forms
+
+Keep pages with forms, and make their content editable like any other page. What the form submits to depends on hosting:
+
+| Form                              | Treatment                                                                                                                                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production hosted elsewhere       | Keeps its backend                                                                                                                                                                                                 |
+| CloudCannon hosts production      | Posts to a CloudCannon Inbox: `method="post"` and a hidden `inbox_key` field — see [Connecting your site to an Inbox](https://cloudcannon.com/documentation/developer-articles/connecting-your-site-to-an-inbox/) |
+| Sign-in, sign-up or account forms | Can't work on static hosting — **ask the user**                                                                                                                                                                   |
+
+## Existing hydration errors
+
+On a site that hydrates in the browser, build and serve the unchanged site. Load the home page and one page per layout with the console open, and record each hydration error with the component that causes it. Fix them, or **ask the user**, before Phase 4. Without a browser, list those pages in the audit for the user to check.
+
+**Why:** in the Visual Editor a hydration error makes React render the page again under the regions, which leaves stray region controls and missing content. An error the site already had then looks like a CloudCannon problem.
+
+## Load-time behaviour
+
+Record the files behind anything hidden, faded, offset or unclickable until a script runs, and anything that changes on its own (carousels, autoplay, timers, count-ups). Search for `opacity: 0` in CSS, initial-state animation props (such as Framer Motion's `initial={{ opacity: 0 }}`), `IntersectionObserver` and `setInterval` in JS, and class names like `reveal`, `aos`, `animate-on-scroll` and `fade-in`.
+
+**Why:** the editor shows elements before scripts run and resets script-applied state on every edit, so Phase 4 patches these files — see [visual-editing-reference.md § Load-time behaviour in the editor](../cloudcannon-visual-editing/visual-editing-reference.md#load-time-behaviour-in-the-editor).
 
 ## Classifying static pages
 
@@ -23,10 +53,11 @@ Use this decision table for every page that isn't already content in a collectio
 
 A content file whose body is mostly layout components (MDX components, Hugo or Eleventy shortcodes) counts as a static page for the census. Classify each component used in content:
 
-| Component kind                                                  | Becomes                                                                       | Why                                                                                                                                                                      |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Layout component on page-like content (hero, feature grid, CTA) | A page-builder block: a component copying its markup, fed by the blocks array | In the Visual Editor a snippet inside the body shows as a card, not its rendered markup. Blocks render as on the site, with in-place editing and add, remove and reorder |
-| Inline or prose component (alert, badge, figure, button)        | A snippet                                                                     | Belongs in the body                                                                                                                                                      |
+| Component kind                                                                                       | Becomes                                                                                | Why                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Layout component on page-like content (hero, feature grid, CTA)                                      | A page-builder block: a component copying its markup, fed by the blocks array          | In the Visual Editor a snippet inside the body shows as a card, not its rendered markup. Blocks render as on the site, with in-place editing and add, remove and reorder |
+| Inline or prose component (alert, badge, figure, button)                                             | A snippet                                                                              | Belongs in the body                                                                                                                                                      |
+| Presentational wrapper derivable from the content's structure (a card around each heading's section) | A build-time transform, so the file stays plain markdown; a snippet is the alternative | A snippet card in the Content Editor hides all the text it wraps                                                                                                         |
 
 ### Components repeated at a fixed point in the body
 
@@ -61,3 +92,24 @@ Two more checks per page template. The SSG's audit guide gives the form each tak
 | ----------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Primitive-vs-computed   | For each value the template outputs: is it a field read as-is, or computed (conditional, lookup, shared data)? | Zero computed values in page templates — each moves into a registered component or a `@data[key]` binding |
 | Frontmatter co-location | For each registered component: are its fields nested under one front matter key (or one data file)?            | Refactor before shipping, rather than working around scattered fields                                     |
+
+## Markdown-extension syntax
+
+List the markdown plugins that add syntax (remark, rehype or markdown-it plugins, and the SSG's own extensions). Then grep the content folders for each form they add, with `grep -rnE '<pattern>' <content dirs>`:
+
+| Form                     | Pattern          |
+| ------------------------ | ---------------- |
+| Footnotes                | `\[\^`           |
+| Display math             | `\$\$`           |
+| Display math on one line | `\$\$.+\$\$`     |
+| Inline math              | `\$[^$ ][^$]*\$` |
+| Escaped dollar signs     | `\\\$`           |
+| Dollar entities          | `&dollar;`       |
+| Citations                | `\[@`            |
+| Alerts                   | `^> \[!`         |
+
+The Content Editor rewrites these forms when it saves. For each form found, pick one:
+
+- A raw snippet for the form — see [snippets.md § Raw snippets](../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files).
+- Normalise the content to a form the editor keeps, such as `$$` on its own lines.
+- Keep the files out of the rich text editor with `_enabled_editors: [data]`, so editors change them in the Source Editor.

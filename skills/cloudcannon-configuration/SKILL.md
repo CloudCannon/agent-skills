@@ -83,7 +83,8 @@ Check this table before writing config. These are keys agents have written that 
 | [inputs.md](inputs.md)                               | Before writing `_inputs`.                                                                                                     |
 | [structures.md](structures.md)                       | Any field holds an array or an object, since editors can't add items without a structure.                                     |
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
-| [build-commands.md](build-commands.md)               | The build has generators or post-build steps.                                                                                 |
+| [build-commands.md](build-commands.md)               | Writing `install_command` or `node_version`, or the build has generators or post-build steps.                                 |
+| [routing.md](routing.md)                             | The site sets response headers, redirects or rewrites (framework config, `_headers`, `netlify.toml`, `vercel.json`).          |
 | [configuration-gotchas.md](configuration-gotchas.md) | Looking up a cross-SSG pitfall while configuring.                                                                             |
 | [troubleshooting.md](troubleshooting.md)             | Configuration is already wrong and you're working from a symptom.                                                             |
 
@@ -94,6 +95,7 @@ Check this table before writing config. These are keys agents have written that 
 | Astro         | [astro/overview.md](astro/overview.md)       |
 | Hugo          | [hugo/overview.md](hugo/overview.md)         |
 | Eleventy      | [eleventy/overview.md](eleventy/overview.md) |
+| Next.js       | [nextjs/overview.md](nextjs/overview.md)     |
 
 **Other skills:**
 

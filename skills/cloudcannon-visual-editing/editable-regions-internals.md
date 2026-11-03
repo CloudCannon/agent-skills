@@ -75,11 +75,11 @@ Editables form a DOM-mirroring tree. Children register as listeners on their nea
 
 CloudCannon provides three mechanisms for detecting the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)):
 
-| Mechanism                        | Context    | Use for                                                                                                                                                                                                                                                                                                                                  |
-| -------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.cms-editor-active` on `<body>` | CSS        | Overriding styles (animations, visibility). Most reliable for initial page load                                                                                                                                                                                                                                                          |
-| `window.inEditorMode`            | Runtime JS | Inline `<script>` logic, conditional imports                                                                                                                                                                                                                                                                                             |
-| `ENV_CLIENT`                     | Build-time | Skipping build-only logic. Defined by each integration in its editable-regions client bundle only, never in the production build. Read as the bare global `ENV_CLIENT` in Astro (not `import.meta.env.ENV_CLIENT`), as `site.Params.ENV_CLIENT` in Hugo, as a template global (`{% if ENV_CLIENT %}`) in the Liquid/Eleventy integration |
+| Mechanism                        | Context    | Use for                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.cms-editor-active` on `<body>` | CSS        | Overriding styles (animations, visibility). Most reliable for initial page load                                                                                                                                                                                                                                                                            |
+| `window.inEditorMode`            | Runtime JS | Inline `<script>` logic, conditional imports                                                                                                                                                                                                                                                                                                               |
+| `ENV_CLIENT`                     | Build-time | Skipping build-only logic. Defined by each integration in its editable-regions client bundle only, never in the production build. Read as the bare global `ENV_CLIENT` in Astro (not `import.meta.env.ENV_CLIENT`), as `site.Params.ENV_CLIENT` in Hugo, as a template global (`{% if ENV_CLIENT %}`) in the Liquid/Eleventy integration. Next.js has none |
 
 ### Connecting
 
@@ -244,6 +244,11 @@ Guidance:
 │  │ • bundles partials, shortcodes, render hooks, config, i18n     │ │
 │  │ • fetches the Hugo WASM renderer for the pinned release        │ │
 │  │ • renders partials in-browser; `data-component` = partial path │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│  ┌─ Next.js ──────────────────────────────────────────────────────┐ │
+│  │ No plugin step; registers from the site's own bundle:          │ │
+│  │ • gated import() loads registerComponents in the editor only   │ │
+│  │ • registerReactComponent per `data-component` key              │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
                               │

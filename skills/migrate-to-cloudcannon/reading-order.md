@@ -25,6 +25,7 @@ Which docs to read, in which phase, and when to skip them. The phases themselves
 1. `migrate-to-cloudcannon/content.md`
 2. `migrate-to-cloudcannon/<ssg>/content.md`
 3. `cloudcannon-configuration/structures.md` → field completeness rule
+4. `migrate-to-cloudcannon/<ssg>/page-building.md` → if the audit chose a page builder (routes, block renderer)
 
 ### Phase 4: Visual Editing
 

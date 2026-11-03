@@ -18,13 +18,13 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg ast
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
-| Key                     | Value                                                                                                                                                                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ssg`                   | `"astro"`                                                                                                                                                                                                                    |
-| `build.install_command` | From the detected package manager. Omit if none.                                                                                                                                                                             |
-| `build.build_command`   | `npm run build` — the site's full build script, including every generator and post-build step. `"astro build"` only when there is no `build` script.                                                                         |
-| `build.output_path`     | `"dist"`                                                                                                                                                                                                                     |
-| `build.node_version`    | `"file"` if `.nvmrc` or `.node-version` exists (CC reads the version from the file automatically). Otherwise the major version from `package.json` `engines.node` (`">=18"` → `"18"`). Otherwise omit — CC uses its default. |
+| Key                     | Value                                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ssg`                   | `"astro"`                                                                                                                                            |
+| `build.install_command` | See [../build-commands.md § Package manager](../build-commands.md#package-manager)                                                                   |
+| `build.build_command`   | `npm run build` — the site's full build script, including every generator and post-build step. `"astro build"` only when there is no `build` script. |
+| `build.output_path`     | `"dist"`                                                                                                                                             |
+| `build.node_version`    | See [../build-commands.md § Node version](../build-commands.md#node-version)                                                                         |
 
 Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in the `package.json` `build` script before `astro build`, and steps that read the built output (Pagefind and similar HTML indexers) after it — see [../build-commands.md](../build-commands.md).
 
@@ -185,7 +185,7 @@ See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-
 ### Files
 
 - [ ] `.cloudcannon/initial-site-settings.json` has `"ssg": "astro"`
-- [ ] `node_version` set: `"file"` when `.nvmrc`/`.node-version` exists; major version from `package.json` `engines.node` otherwise
+- [ ] `node_version` follows [../build-commands.md § Node version](../build-commands.md#node-version)
 - [ ] The `package.json` `build` script passes [build-commands.md § Checks](../build-commands.md#checks)
 
 ### Images
@@ -194,7 +194,7 @@ See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-
 
 ### Snippets
 
-- [ ] Every MDX component has a `_snippets` entry OR the file uses `_enabled_editors: [source, data]` with rationale in migration notes — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
+- [ ] Every MDX component has a `_snippets` entry OR the file uses `_enabled_editors: [data]` with rationale in migration notes — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
 - [ ] MDX files with `import` statements have them removed, and components resolve via `astro-auto-import` or a shared `components` map passed at every `<Content />` / `render()` site — see [astro/overview.md § Auto-import](../../cloudcannon-snippets/astro/overview.md#auto-import-keeping-import-statements-out-of-content)
 
 ### Content specifics

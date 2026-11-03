@@ -12,12 +12,13 @@ Skills are consumed by AI agents with limited context windows. Prose is low sign
 
 **Why:** an SSG-named skill has to re-state every CloudCannon-side rule it touches, and the copies drift apart. One concern, one home, N thin SSG deltas.
 
-There are exactly two axes, and each is expressed differently:
+There are two axes, plus one shared layer between SSGs, and each is expressed differently:
 
-| Axis                                                           | Expressed as                           |
-| -------------------------------------------------------------- | -------------------------------------- |
-| Concern — configuration, snippets, visual editing, translation | The skill                              |
-| SSG — Astro, Hugo, Eleventy, …                                 | A `<ssg>/` directory inside that skill |
+| Axis                                                           | Expressed as                                                                                                                                                 |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Concern — configuration, snippets, visual editing, translation | The skill                                                                                                                                                    |
+| SSG — Astro, Hugo, Eleventy, Next.js, …                        | A `<ssg>/` directory inside that skill                                                                                                                       |
+| Framework — React, Vue, Svelte                                 | A `<framework>/` directory beside the SSG directories, only where the skill needs one → [§ Framework directories](#framework-directories-are-a-shared-layer) |
 
 **Common miss:** a rule that feels SSG-specific usually is not. "A collection that produces pages needs a `url` pattern" is a CloudCannon rule; "Astro's `build.format` decides whether that pattern needs a trailing slash" is the Astro delta. Split them and the base file stays reusable.
 
@@ -52,6 +53,23 @@ Canonical example: `cloudcannon-configuration/collection-urls.md` owns placehold
 **Why:** a link from one SSG to another means a general rule is stuck in an SSG file, and the linked-to SSG has become the base file by default. The test: deleting any one `<ssg>/` directory must not break another SSG's guidance.
 
 **Common miss:** the same problem from the root side — a root file that links into one SSG's file for a general rule. Root files link into `<ssg>/` only to route, such as a table listing each SSG side by side.
+
+### Framework directories are a shared layer
+
+React, Vue and Svelte are not SSGs, but several SSGs render each of them: its own SSG (Next.js for React), and Astro, through components and islands. A `<framework>/` directory holds the rules shared by every SSG that renders that framework. SSG files link to it as they link to root files. The per-SSG coverage rules and the README matrix don't apply to it.
+
+Today only `cloudcannon-visual-editing` has framework directories, because `@cloudcannon/editable-regions` has an entry point per framework. Elsewhere, framework-shaped rules have so far been SSG rules: routing, MDX setup and connectors differ per SSG.
+
+**MUST:** put a rule in `<framework>/` only if it holds in every SSG that renders that framework. A rule for one SSG goes in that SSG's directory; a rule for every framework goes in the root file.
+**Why:** the framework file sits on several SSGs' reading paths. A rule true only in Next.js reads as a React rule, and gets applied to React islands in Astro.
+
+**MUST NOT:** create a `<framework>/` directory in another skill until a rule there holds for two SSGs that render the framework. Until then, the rule is the one SSG's delta.
+
+**MUST NOT:** give a framework directory an `overview.md`. Agents reach it from an SSG's reading order, never as an entry point.
+**Why:** `check-links` treats any directory with one as an SSG directory, and fails the SSG files' links into it.
+
+**MUST NOT:** link from a framework file into an SSG directory or another framework directory. `npm run check` enforces this.
+**Why:** the SSG file knows which framework it renders; the framework file must not need to know which SSGs render it, or every new SSG has to edit it. A link to another framework means a shared rule is stuck in one framework's file.
 
 ### Shared scripts take SSG conventions as arguments
 
@@ -142,11 +160,13 @@ The full list of skills and their tiers is in [ARCHITECTURE.md § Skills by tier
 
 **Why:** copying an existing `<ssg>/` directory reproduces that SSG's file layout and any general rules still stuck inside it. Starting from the root files makes every SSG file a real delta.
 
-**MUST:** cover every skill that already has an `<ssg>/` directory for another SSG. Then check the skills that have none, in case the new SSG's templates, content or build differ where earlier SSGs didn't.
+**MUST:** cover every skill that already has an `<ssg>/` directory for another SSG, or defer it and give it a dash in the README matrix. Then check the skills that have none, in case the new SSG's templates, content or build differ where earlier SSGs didn't.
+
+`cloudcannon-bookshop` gets an `<ssg>/` directory for any SSG whose sites use Bookshop, including one where Bookshop has no engine and only generates structures. That directory is the home for the SSG's migration guide.
 
 **MUST:** test each SSG file against real sites built with that SSG before it ships. A delta written only from the SSG's docs is a guess.
 
-**Partial coverage is allowed, silent partial coverage is not.** If an SSG directory does not yet cover the whole workflow, say so in a coverage note at the top of its `overview.md` and mark it Partial in the README matrix. A coverage note only explains the Partial label: remove it once the SSG is marked Yes, and keep any real limitation in the file that owns that topic.
+**MUST:** when the SSG renders React, Vue or Svelte, list that framework's files in each `overview.md` reading order where the skill has them. Then check the new SSG files for rules the framework file already owns, and for rules that hold in Astro's components of that framework too; the first become links, the second move into the framework file.
 
 Then:
 
@@ -159,6 +179,18 @@ Then:
 - Add the new files to the file map in [ARCHITECTURE.md](ARCHITECTURE.md#file-map)
 - Run `npm run check`
 
+### Adding a new framework
+
+**MUST:** add a framework directory only for a framework that `@cloudcannon/editable-regions` registers, with its own entry point. A framework without one is handled per SSG, as Astro handles Solid.
+
+Then:
+
+- Create `<framework>/visual-editing-reference.md` with the registration function and the `EditableRegions` export, as the existing framework files do. Add other sections only as the placement rule in [§ Framework directories](#framework-directories-are-a-shared-layer) allows
+- Add the framework to the per-framework lists in [cloudcannon-visual-editing/visual-editing-reference.md § React, Vue and Svelte components](skills/cloudcannon-visual-editing/visual-editing-reference.md#react-vue-and-svelte-components) and [§ Whole-page framework sites](skills/cloudcannon-visual-editing/visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root), and to the `Contents` table in `SKILL.md`
+- Add its renderer and its component map to the Astro files, if Astro renders it
+- Add the framework's own SSG through [§ Adding a new SSG](#adding-a-new-ssg); that is most of the work
+- Add the new files to the file map in [ARCHITECTURE.md](ARCHITECTURE.md#file-map)
+
 ## Writing style
 
 ### Core rules
@@ -166,6 +198,8 @@ Then:
 - **Front-load the rule, defer the reason.** First sentence states the rule imperatively. Second sentence (or a `**Why:**` line) explains. No multi-paragraph preambles before a rule.
 - **One canonical source per rule.** If a rule appears in 2+ files, one file owns it and the others link. Summary tables in `SKILL.md` entrypoints link to deep-dives; they do not re-explain.
 - **One canonical source per list.** Don't write out a list of skills, files or SSGs that the repo or another doc already holds. Point to that source, or state the rule that produces the list ("every skill with an `<ssg>/` directory"). A copied list goes stale the next time something is added. Supported SSGs are listed in the [README coverage matrix](README.md#ssg-coverage), and inside a skill in its `SKILL.md` SSG table; wherever SSGs appear side by side, use the matrix's column order.
+- **No source line numbers or internal paths.** State the behaviour, not where it lives in a dependency's source. Line numbers and paths like `next/dist/...` change with every release. When a reader needs the origin, name the package and its public API.
+- **Commands must not rely on a glob matching.** zsh aborts a command whose glob matches nothing (`ls middleware.*`). Use `find -name`, or quote the pattern when the command expands it itself (`grep --include='*.md'`).
 - **Tables for if/then logic.** Any prose shaped like "if X do Y; if Z do W" becomes a table with columns for condition, action, and (if useful) reason or when-to-use.
 - **A table cell holds a sentence at most.** A cell that needs a paragraph is a section disguised as a table — write it as a section, and link to it from the table if needed.
 - **Checklists for procedures.** Imperative bullets starting with a verb — `Run`, `Verify`, `Remove`, `Add`. No narrative intros ("First, let's…", "Now we need to…").

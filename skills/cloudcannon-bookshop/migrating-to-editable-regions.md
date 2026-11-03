@@ -1,6 +1,6 @@
 # Migrating to editable regions
 
-Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Bookshop components. This file owns the step order and the cross-SSG mapping. What differs per SSG lives in that SSG's `migrating-to-editable-regions.md` — [Astro](astro/migrating-to-editable-regions.md), [Hugo](hugo/migrating-to-editable-regions.md), [Eleventy](eleventy/migrating-to-editable-regions.md).
+Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Bookshop components. This file owns the step order and the cross-SSG mapping. What differs per SSG lives in that SSG's `migrating-to-editable-regions.md` — [Astro](astro/migrating-to-editable-regions.md), [Hugo](hugo/migrating-to-editable-regions.md), [Eleventy](eleventy/migrating-to-editable-regions.md), [Next.js](nextjs/migrating-to-editable-regions.md).
 
 **MUST:** check the SSG's row in [SKILL.md § SSG support](SKILL.md#ssg-support) first. If editable regions can't re-render that SSG's components, stop — the site stays on Bookshop; see [maintaining.md](maintaining.md).
 
@@ -8,14 +8,14 @@ Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Booksh
 
 Run these in order. Each ends with a build that matches the baseline.
 
-| #   | Step                                    | Work                                                                                                                                                                                                                                                                                                                                                    |
-| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Baseline                                | Build the unmodified site on the target SSG version — [§ Baseline](#baseline)                                                                                                                                                                                                                                                                           |
-| 2   | Structures                              | Write `_structures` from what Bookshop generated — [§ Writing `_structures`](#writing-_structures-from-bookshopyml)                                                                                                                                                                                                                                     |
-| 3   | Rename, resolve and dispatch — one step | Rename `_bookshop_name` ([§ Renaming](#renaming-_bookshop_name)), make every component resolvable by the SSG under its name, and replace the Bookshop dispatcher with a plain native loop. **Any one alone breaks the build** — Bookshop's dispatcher selects on `_bookshop_name`. No `data-editable` attributes yet — they follow the census in step 5 |
-| 4   | Remove Bookshop                         | [§ Removing Bookshop](#removing-bookshop). Do it now, not at the end: while Bookshop is installed it can still rewrite components and supply dependencies, so later builds prove less                                                                                                                                                                   |
-| 5   | Add regions                             | Install the SSG's editable-regions integration, then run the census and add regions as for any site — [cloudcannon-visual-editing](../cloudcannon-visual-editing/SKILL.md), with [§ Regions on a former Bookshop site](#regions-on-a-former-bookshop-site)                                                                                              |
-| 6   | Verify                                  | Diff against the baseline, then try the editor locally — [cloudcannon-dev-server](../cloudcannon-dev-server/SKILL.md)                                                                                                                                                                                                                                   |
+| #   | Step                                    | Work                                                                                                                                                                                                                                                                                                                                                                                             |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Baseline                                | Build the unmodified site on the target SSG version — [§ Baseline](#baseline)                                                                                                                                                                                                                                                                                                                    |
+| 2   | Structures                              | Download the configuration schemas and read [structures.md](../cloudcannon-configuration/structures.md) first — [cloudcannon-configuration § Do this before writing any configuration](../cloudcannon-configuration/SKILL.md#do-this-before-writing-any-configuration). Then write `_structures` from what Bookshop generated — [§ Writing `_structures`](#writing-_structures-from-bookshopyml) |
+| 3   | Rename, resolve and dispatch — one step | Rename `_bookshop_name` ([§ Renaming](#renaming-_bookshop_name)), make every component resolvable by the SSG under its name, and replace the Bookshop dispatcher with a plain native loop. **Any one alone breaks the build** — Bookshop's dispatcher selects on `_bookshop_name`. No `data-editable` attributes yet — they follow the census in step 5                                          |
+| 4   | Remove Bookshop                         | [§ Removing Bookshop](#removing-bookshop). Do it now, not at the end: while Bookshop is installed it can still rewrite components and supply dependencies, so later builds prove less                                                                                                                                                                                                            |
+| 5   | Add regions                             | Install the SSG's editable-regions integration, then run the census and add regions as for any site — [cloudcannon-visual-editing](../cloudcannon-visual-editing/SKILL.md), with [§ Regions on a former Bookshop site](#regions-on-a-former-bookshop-site)                                                                                                                                       |
+| 6   | Verify                                  | Diff against the baseline, then try the editor locally — [cloudcannon-dev-server](../cloudcannon-dev-server/SKILL.md)                                                                                                                                                                                                                                                                            |
 
 **Inside `migrate-to-cloudcannon`** — the site is joining CloudCannon in the same task — the steps land in its phases: step 1 in Phase 1, step 2 in Phase 2, steps 3 and 4 in Phase 3, step 5 in Phase 4, step 6 in Phase 5.
 
@@ -50,16 +50,18 @@ Run these in order. Each ends with a build that matches the baseline.
 **MUST:** start from `@bookshop/generate`'s real output, not from reading the `*.bookshop.yml` files.
 **Why:** it rewrote blueprints and cascaded `_inputs` into structures it generated for nested arrays. Reading the source files misses both — [bookshop.md § What `@bookshop/generate` does](bookshop.md#what-bookshopgenerate-does).
 
-Run it in a scratch directory, never in the site:
+Run it in a scratch folder at the repo root, outside the site's source folders. Add the folder to `.gitignore` first if nothing ignores it — Tailwind v4 and other tools scan files git doesn't ignore.
 
 ```sh
-G=$(mktemp -d)
+G="$PWD/.bookshop-generate"
 mkdir -p "$G/site/_cloudcannon" && echo '{}' > "$G/site/_cloudcannon/info.json"
 cp -R <library root> "$G/"    # the directory holding bookshop/bookshop.config.cjs — component-library/, or src/ on Astro
-cd "$G" && npx @bookshop/generate@<site's Bookshop version> --skip-live --skip-components
+(cd "$G" && npx @bookshop/generate@<version> --skip-live --skip-components)
 ```
 
-`$G/site/_cloudcannon/info.json` now holds `_structures` exactly as the editor received them.
+Use the site's Bookshop version for `<version>`, as `npm ls` reports it for its `@bookshop/*` packages. When the site has no Bookshop package to read it from, use `latest`.
+
+`$G/site/_cloudcannon/info.json` now holds `_structures` exactly as the editor received them. Delete the folder, and its `.gitignore` entry, once the structure values are written.
 
 ### Map each component onto a structure value
 
@@ -78,13 +80,13 @@ Each `*.bookshop.yml` with a non-empty `spec.structures` became one structure va
 | The YAML `preview:` key                    | Drop it — it only fed Bookshop's component browser                                                                            |
 | `<name>.preview.*` / `<name>.icon.*` image | Move it to a path the site serves and set `picker_preview.gallery.image`, or drop it — Bookshop only copied it into the build |
 
-| Blueprint value                                   | Generated as                                                                                                         |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Array of objects                                  | `[]` in `value`, plus an item structure built from the first item, linked through `_inputs.<key>.options.structures` |
-| `bookshop:structure:<key>`                        | `null` in `value`, `_inputs.<field>: { type: object, options: { structures: _structures.<key> } }`                   |
-| `[bookshop:structure:<key>]`                      | `[]` in `value`, the same input with `type: array`                                                                   |
-| `bookshop:<component>` / `[bookshop:<component>]` | The same, pointing at a generated `_structures._bookshop_single_component_<component>` — write that structure too    |
-| Any of the above with `!`                         | Starts filled in with that component's blueprint instead of empty                                                    |
+| Blueprint value                                   | Generated as                                                                                                                                                                                                                                                     |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Array of objects                                  | `[]` in `value`, plus an item structure built from the first item, inline on `_inputs.<key>.options.structures`. Write it as a named structure — see [structures.md § Nested item structures](../cloudcannon-configuration/structures.md#nested-item-structures) |
+| `bookshop:structure:<key>`                        | `null` in `value`, `_inputs.<field>: { type: object, options: { structures: _structures.<key> } }`                                                                                                                                                               |
+| `[bookshop:structure:<key>]`                      | `[]` in `value`, the same input with `type: array`                                                                                                                                                                                                               |
+| `bookshop:<component>` / `[bookshop:<component>]` | The same, pointing at a generated `_structures._bookshop_single_component_<component>` — write that structure too                                                                                                                                                |
+| Any of the above with `!`                         | Starts filled in with that component's blueprint instead of empty                                                                                                                                                                                                |
 
 ```yaml
 _structures:
@@ -140,6 +142,7 @@ Then, for each structure value:
 Do this straight after step 3.
 
 - [ ] Remove `npx @bookshop/generate` from `.cloudcannon/postbuild`. Move every other hook step — in `postbuild` or `prebuild` — into the build command, see [build-commands.md](../cloudcannon-configuration/build-commands.md). If the build script runs steps in parallel (`run-p build:*`), chain the moved steps after it with `&&`. Delete a hook once it is empty.
+- [ ] On a site already on CloudCannon, update its build command once the hooks are gone — see [configuration.md § Build settings](../cloudcannon-configuration/configuration.md#build-settings).
 - [ ] Remove the SSG's Bookshop plugin, module or integration.
 - [ ] Remove the `@bookshop/*` dependencies.
 - [ ] Build straight away. A package the site uses but never declared (`sass`, often) may have arrived only through Bookshop — install each missing one as a direct dependency, at the version the baseline resolved (`npm ls <package>` in the baseline), so the output doesn't change.

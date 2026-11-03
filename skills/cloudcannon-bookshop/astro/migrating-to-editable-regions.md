@@ -128,7 +128,7 @@ for (const [name, c] of Object.entries(reactComponents)) registerReactComponent(
 
 Register the `block-renderer` dispatcher too, if the site has one. A React block renders from the `.astro` loop with no `client:` directive.
 
-A React block's region host sits outside the component, as the array-item `<div>` in the loop does → [base § Where does the registration go](../../cloudcannon-visual-editing/visual-editing-reference.md#where-does-the-registration-go--component-root-or-call-site).
+A React block's region host sits outside the component, as the array-item `<div>` in the loop does → [cloudcannon-visual-editing § React, Vue and Svelte components](../../cloudcannon-visual-editing/visual-editing-reference.md#react-vue-and-svelte-components).
 
 ## Props the dispatcher computed
 

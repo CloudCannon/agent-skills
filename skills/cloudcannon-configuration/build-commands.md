@@ -54,11 +54,46 @@ A localisation pass that regenerates the build as a per-locale tree is one examp
 dependencies install, for example `npm config set @scope:registry https://… && npm ci`. Where a
 committed `.npmrc` can express the same setting, prefer it and keep the install command plain.
 
+## Package manager
+
+Detect it from the repository, in this order:
+
+1. `package.json` `packageManager` (`"pnpm@10.4.1"`) names the manager and its exact version.
+2. The lockfile: `package-lock.json`, `pnpm-lock.yaml` or `yarn.lock`.
+3. For Yarn, `.yarnrc.yml` marks Yarn Berry (2+); its `yarnPath` points at the committed release the project runs.
+
+| Manager      | `install_command`                |
+| ------------ | -------------------------------- |
+| npm          | `npm ci`                         |
+| pnpm         | `pnpm install --frozen-lockfile` |
+| Yarn classic | `yarn install --frozen-lockfile` |
+| Yarn Berry   | `yarn install --immutable`       |
+| No lockfile  | `npm i`                          |
+
+Use this table over `cloudcannon configure detect-build-commands`, which suggests a bare install such as `yarn` that doesn't hold the lockfile.
+
+Any `yarn` on the path honours a committed `yarnPath`, so a Yarn Berry site needs `.yarnrc.yml` and the release under `.yarn/releases/` committed, and nothing else.
+
+**MUST:** pin the package manager's version so CloudCannon installs with the version used locally. Set `packageManager` in `package.json` to that exact version. For pnpm, also run that version in `install_command`: `npx pnpm@<version> install --frozen-lockfile`.
+**Why:** CloudCannon preinstalls npm, pnpm and Yarn, at versions that may differ from the site's. A different pnpm major can reject the lockfile or block dependency build scripts the local version ran.
+
+## Node version
+
+| The site has                       | `build.node_version`                                  |
+| ---------------------------------- | ----------------------------------------------------- |
+| `.nvmrc` or `.node-version`        | `"file"`; CloudCannon reads the version from it       |
+| `package.json` `engines.node` only | Its major version (`">=20"` → `"20"`)                 |
+| Neither                            | Unset, which builds on CloudCannon's default, Node 22 |
+
+When the framework needs a newer Node than the version this gives, set its minimum major version instead. The SSG's `configuration.md` names the framework's minimum. When the site has neither file, suggest the user adds an `.nvmrc` with the version they build with locally.
+
 ## Checks
 
 - [ ] `npm run build` alone produces the complete output, including every generated file
 - [ ] `build_command` is `npm run build` (or the package manager's equivalent)
 - [ ] Anything that must run before install is in `install_command` or `.npmrc`
+- [ ] `install_command` completes with no `node_modules` and an empty package store, using the pinned version
+- [ ] For pnpm, every dependency build script the install lists is approved or denied (`allowBuilds`)
 
 ## Steps after the build MUST NOT write to source files the editor edits
 

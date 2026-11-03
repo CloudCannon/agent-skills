@@ -41,9 +41,8 @@ When the site uses a page builder with a `BlockRenderer`, create a shared `src/c
 | `@cloudcannon/editable-regions/astro-react-renderer`  | Side-effect import: registers the React renderer (needed when React components are used inside registered Astro components)   |
 | `@cloudcannon/editable-regions/astro-vue-renderer`    | Side-effect import: registers the Vue renderer (needed when Vue components are used inside registered Astro components)       |
 | `@cloudcannon/editable-regions/astro-svelte-renderer` | Side-effect import: registers the Svelte renderer (needed when Svelte components are used inside registered Astro components) |
-| `@cloudcannon/editable-regions/react`                 | `registerReactComponent()` for standalone React component re-rendering                                                        |
-| `@cloudcannon/editable-regions/vue`                   | `registerVueComponent()` for standalone Vue component re-rendering                                                            |
-| `@cloudcannon/editable-regions/svelte`                | `registerSvelteComponent()` for standalone Svelte component re-rendering                                                      |
+
+The `/react`, `/vue` and `/svelte` entry points register standalone framework components — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) and each framework's file — [React](../react/visual-editing-reference.md), [Vue](../vue/visual-editing-reference.md), [Svelte](../svelte/visual-editing-reference.md).
 
 ## Section census
 
@@ -73,7 +72,7 @@ Run through these after setup, before starting on editable regions:
 
 - [ ] **Collection and data file config**: `_enabled_editors` and each data file's `file_config` follow the configuration guide
       → [configuration.md](../../cloudcannon-configuration/configuration.md)
-- [ ] **Registration wiring**: Every component in `registerComponents.ts` is actually referenced via `data-component` in a template.
+- [ ] **Component names resolve**: every `data-component` value, and every `_type` in content and structures, is a key registered in `registerComponents.ts`
       → [Component re-rendering](visual-editing-reference.md#component-re-rendering)
 - [ ] **Cross-collection select wiring**: the lookup component is registered with `registerAstroComponent`
       → [Cross-collection select inputs](visual-editing-reference.md#cross-collection-select-inputs)
