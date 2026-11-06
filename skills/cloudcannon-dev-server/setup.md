@@ -40,7 +40,7 @@ The two sync flags work in opposite directions:
 | `--live-sync` | disk → app | A file edited on disk updates in the open editor; a rebuild reloads the preview | The editor keeps the old values and the preview doesn't reload, until the page is reloaded |
 
 **MUST:** have the user commit or stash before an editing session, and review with `git diff` after.
-**Why:** with app sync on, there's no save or review step — each edit reaches disk as it's made. Writes also normalise whitespace (front matter spacing, the trailing newline), so expect whitespace-only diffs alongside the real ones.
+**Why:** with app sync on, there's no save or review step — each edit reaches disk as it's made, even a value that fails input validation. Writes also normalise whitespace (front matter spacing, the trailing newline), so expect whitespace-only diffs alongside the real ones.
 
 The positional output path must resolve **inside** the current directory, and the source root is
 always the working directory — there is no `--source` flag. Run it from the site root.

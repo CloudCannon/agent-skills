@@ -1,6 +1,6 @@
 # Inputs: where they live and what they match
 
-Read before writing `_inputs`. This covers where an input can be defined, how its key finds a field, and what a select over a collection stores. The pitfalls are in [configuration-gotchas.md § Inputs](configuration-gotchas.md#inputs).
+Read before writing `_inputs`. This covers where an input can be defined, how its key finds a field, and what a select over a collection stores. The pitfalls are in [configuration-gotchas.md § Inputs](configuration-gotchas.md#inputs), and rules that limit what editors can enter are in [validation.md](validation.md).
 
 ## Where `_inputs` live
 

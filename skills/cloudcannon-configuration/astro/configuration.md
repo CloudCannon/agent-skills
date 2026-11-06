@@ -31,6 +31,12 @@ Put the pre-build steps the audit identified (theme generation, JSON generation,
 ## Customize the config
 
 - **Map every Zod field:** cross-reference every field in the Zod schemas from the audit against `_inputs`, and give each user-facing field an input per [../configuration.md § Configure every field explicitly](../configuration.md#configure-every-field-explicitly).
+- **Zod constraints:** give each constrained field the matching validation, so editors can't save a value that fails the build — see [../validation.md](../validation.md):
+  - a field with no `.optional()`, `.nullish()` or `.default()` → `required: true`
+  - `z.string().min(n)` / `.max(n)` → `min_length` / `max_length`
+  - `.regex(re)` → `pattern` with the same source, plus `pattern_message`
+  - `z.number().min(n)` / `.max(n)` → `min` / `max`
+  - `z.array().min(n)` / `.max(n)` / `.nonempty()` → `min_items` / `max_items`
 - **String inputs:** a plain expression such as `<p>{description}</p>` (escaped) → `text` or `textarea`; `set:html={markdownify(description)}` or another markdown parser → `markdown`; `set:html={description}` with no parser → `html`.
 - **`_snippets`:** these are usually MDX components in rich text content. Built-in templates such as `mdx_component` resolve automatically, with no `_snippets_imports` — see the `cloudcannon-snippets` skill.
 - **Selects over a collection:** when the component looks entries up by Astro entry id or slug, use `value_key: filename_without_ext`, or a `slug` front matter key — see [../inputs.md § Select values from a collection](../inputs.md#select-values-from-a-collection).
@@ -204,5 +210,6 @@ See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-
 ### Schemas
 
 - [ ] Every Zod schema field has an `_inputs` entry
+- [ ] Every Zod constraint on a user-facing field has matching validation
 
 For Astro-only pitfalls, see [configuration-gotchas.md](configuration-gotchas.md).

@@ -81,6 +81,7 @@ Check this table before writing config. These are keys agents have written that 
 | [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating; the rest of the CLI is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md). |
 | [schemas.md](schemas.md)                             | Before adding a collection or writing its `schemas` — one collection can hold many schemas.                                   |
 | [inputs.md](inputs.md)                               | Before writing `_inputs`.                                                                                                     |
+| [validation.md](validation.md)                       | Before adding `required`, a `pattern` or a limit to an input.                                                                 |
 | [structures.md](structures.md)                       | Any field holds an array or an object, since editors can't add items without a structure.                                     |
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
 | [build-commands.md](build-commands.md)               | Writing `install_command` or `node_version`, or the build has generators or post-build steps.                                 |

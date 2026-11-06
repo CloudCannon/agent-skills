@@ -160,7 +160,7 @@ The syntax for each row is SSG-specific — [Astro](astro/configuration.md#custo
 
 ### Quote numeric values that map to text inputs
 
-YAML parses bare numbers (`price: 29`) as integers, not strings. If the corresponding CloudCannon input is `type: text` (or defaults to text), CC throws "This text input is misconfigured. This input must have a text value." This affects both structure default values and content file frontmatter.
+YAML parses bare numbers (`price: 29`) as integers, not strings. If the corresponding CloudCannon input is `type: text` (or defaults to text), CC throws "This text input is misconfigured. This input must have a text value." and the field won't accept typing, so editors can't fix it themselves. This affects both structure default values and content file frontmatter.
 
 **Fix:** Either quote the value as a string (`price: "29"`) or configure the input as `type: number`. Quoting as a string is usually better — it's simpler and avoids breaking component code that does string operations on the value.
 

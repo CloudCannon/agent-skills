@@ -114,6 +114,7 @@ cloudcannon-cli-guide.md                Generating and validating config with th
 structures.md                           Inline vs split, previews, field completeness
 schemas.md                              One collection, many schemas; _schema; remove_extra_inputs
 inputs.md                               Where _inputs live, how keys match fields, value_key
+validation.md                           Input validation — when to add it, keys per type, patterns
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
 routing.md                              Headers, redirects and rewrites in .cloudcannon/routing.json
