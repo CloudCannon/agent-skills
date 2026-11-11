@@ -81,6 +81,8 @@ _inputs:
     hidden: true
 ```
 
+CloudCannon hides any key that starts with `_`, such as `_schema`, without an `_inputs` entry. Give it `hidden: true` anyway, so the config states what editors see instead of relying on the default.
+
 Scope `hidden` as narrowly as the fields need: a global `hidden` on a common key such as `url` also hides fields that editors need elsewhere — see [inputs.md § Where `_inputs` live](inputs.md#where-_inputs-live).
 
 ### Upload name clashes
@@ -138,26 +140,73 @@ collections_config:
 
 Each option takes `name` and `icon` (both default to the schema's), `schema`, `editor` (`visual`, `content` or `data`), `base_path`, `collection` and `default_content_file`. `schema` wins over `default_content_file` when both are set. An option with `href` and no `schema` is a link.
 
-To hide the Add button, set `disable_add: true` on the collection. `add_options: []` has no effect.
+### Limit what editors can do to a collection's files
+
+Three keys on the collection, each `false` by default:
+
+| Key                    | `true` stops editors                         | Set it on                                                                                                                                                                                       |
+| ---------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disable_add`          | Adding files from the **+ Add** button       | Collections editors shouldn't add to, such as a fixed set of data or settings files                                                                                                             |
+| `disable_add_folder`   | Adding subfolders from the **+ Add** button  | Collections whose glob or URLs don't expect subfolders — see [configuration-gotchas.md § A flat glob needs `disable_add_folder`](configuration-gotchas.md#a-flat-glob-needs-disable_add_folder) |
+| `disable_file_actions` | Moving, cloning, renaming and deleting files | Collections whose files the build or config reads by path, such as data files                                                                                                                   |
+
+```yaml
+collections_config:
+  data:
+    path: src/data
+    disable_add: true
+    disable_add_folder: true
+    disable_file_actions: true
+```
+
+- **The + Add button** disappears only when `disable_add` and `disable_add_folder` are both `true`. `add_options: []` has no effect.
+- **The File browser** ignores all three, so anyone with access to it can still add, move and delete files there.
 
 ### Give every creatable option somewhere to open
 
 Each option editors can create from needs an editor that works on a file that hasn't been built yet:
 
-| Collection                                                         | Set                                                                     |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Pages edited in the Visual Editor, such as page builders           | `new_preview_url` on the schema: a built page that uses the same layout |
-| Body-text collections (posts, docs, articles), and any with drafts | `editor: content` on the add option                                     |
+| Collection                                         | Set                                                                                                          |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Collections with a `draft` field                   | `editor: content` on the add option                                                                          |
+| Every other collection edited in the Visual Editor | `new_preview_url`, chosen by [§ Choose where `new_preview_url` points](#choose-where-new_preview_url-points) |
 
-**Why:** a new file has no output URL until it's built, so the Visual Editor shows the home page instead. A draft is never built, so it has no page to preview at all; the Content Editor doesn't need one.
+**Why:** a new file has no output URL until it's built, so the Visual Editor shows the home page instead. A draft is never built, so it has no page to preview at all; the Content Editor doesn't need one. `new_preview_url` applies only to new files, not to drafts or other files the build leaves out.
+
+Set `new_preview_url` on the collection as the default, and on a schema whose layout differs. A schema's value wins over its collection's.
 
 ```yaml
-schemas:
-  page_builder:
-    path: .cloudcannon/schemas/page-builder.md
-    name: Page Builder
-    new_preview_url: /services/
+collections_config:
+  pages:
+    new_preview_url: /
+    schemas:
+      page_builder:
+        path: .cloudcannon/schemas/page-builder.md
+        name: Page Builder
+        new_preview_url: /services/
 ```
+
+The Visual Editor loads the preview page and renders the new file's front matter and body into its editable regions. A new file starts with its schema's values, so the regions show those until an editor changes them. Everything outside a region, the `<head>` included, shows the preview page's own content.
+
+#### Choose where `new_preview_url` points
+
+**MUST:** point `new_preview_url` at a page built through the same layout as the collection's files.
+**Why:** the Visual Editor renders the new file into the target's layout. A different layout shows something other than the page the file builds, and its regions may not match the file's front matter.
+
+The target can be in any collection. Use the first option the site allows:
+
+| Option                                                        | When                                                                                                           |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `/`                                                           | A pages collection whose home page uses the same layout; other collections rarely share the home page's layout |
+| The existing page with that layout least likely to be removed | Otherwise                                                                                                      |
+| No `new_preview_url`, and `editor: content` on the add option | No built page uses that layout                                                                                 |
+
+When the target is any page other than `/`, name it in the [Editor README](#editor-readme) and tell the user that deleting or renaming it leaves every new file in the collection without a preview. On a blog that is usually one of its posts. On a template, every post is placeholder content the site owner may delete, so say which post the preview depends on.
+
+**MUST NOT:** add a page to the site only to serve as a preview target.
+**Why:** the Visual Editor loads pages from the same build CloudCannon hosts, so the page is public on the live site.
+
+**Common miss:** pointing at a page that has no content file, such as a hand-built contact page. It usually has a layout of its own.
 
 `editor` on an add option sets the editor for new files only. Existing files open in the first `_enabled_editors` entry, so keep `visual` first in most collections — see [configuration-gotchas.md § `_enabled_editors` order](configuration-gotchas.md#_enabled_editors-order-is-the-default-editor).
 
@@ -170,7 +219,7 @@ Write `.cloudcannon/README.md` for editors. It shows on the Site Dashboard, so i
 - **Collections:** what each holds, how to create, edit and delete items, and which editors it offers
 - **Data files:** what each `data_config` file controls
 - **Site settings:** where site-wide settings live (theme, navigation, social links)
-- **New pages:** if a schema sets `new_preview_url`, that a new page previews an existing page until it's built
+- **New pages:** if a collection or schema sets `new_preview_url`, that a new page previews an existing page until it's built, and which page that is when it isn't the home page
 - **Rich text components:** if the site has `_snippets`, the components editors can insert
 
 Write in plain language. Leave out technical terms such as YAML, front matter, schema and SSG, and the SSG's name and tools.
@@ -257,7 +306,8 @@ Work through these, then the SSG's checklist, before moving to the next phase. O
 - [ ] Every front matter key used in a collection with schemas is in its schema file, or the schema sets `remove_extra_inputs: false`
 - [ ] Every `_schema` value in a collection's files, and every `add_options[].schema`, is a key under that collection's `schemas` — see [schemas.md § `default` and `_schema`](schemas.md#default-and-_schema)
 - [ ] Collections where editors shouldn't create files have `disable_add: true`
-- [ ] Every creatable schema has `new_preview_url`, or its add option has `editor: content`
+- [ ] Every creatable schema has `new_preview_url`, set on it or on its collection, or its add option has `editor: content`
+- [ ] Every `new_preview_url` is the first option the site allows in [§ Choose where `new_preview_url` points](#choose-where-new_preview_url-points)
 - [ ] Collections with a `draft` field use `editor: content` on their add options
 - [ ] Sites with 3+ reusable block components have a page builder schema — see [migrate-to-cloudcannon/page-building.md § Array-based page builder](../migrate-to-cloudcannon/page-building.md#array-based-page-builder)
 
