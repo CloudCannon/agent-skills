@@ -17,6 +17,8 @@ Hugo-specific configuration guidance. The cross-SSG rules live in the root files
 | 7     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (`[full_slug]`, permalinks, `_index.md`, page bundles)              |
 | 8     | [../build-commands.md](../build-commands.md)               | Writing `install_command` or `node_version`, or the build has steps besides `hugo`                |
 | 9     | [../routing.md](../routing.md)                             | The site sets headers, redirects or rewrites                                                      |
-| 10    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                               |
-| 11    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                               |
-| 12    | [configuration-gotchas.md](configuration-gotchas.md)       | Hugo-only pitfalls — markdown rendering, rich text inputs, taxonomies, config files, routing keys |
+| 10    | [../scheduled-builds.md](../scheduled-builds.md)           | Future-dated content should publish on its date                                                   |
+| 11    | [scheduled-builds.md](scheduled-builds.md)                 | Future-dated content should publish on its date (`buildFuture`, `hugo list future`)               |
+| 12    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                               |
+| 13    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                               |
+| 14    | [configuration-gotchas.md](configuration-gotchas.md)       | Hugo-only pitfalls — markdown rendering, rich text inputs, taxonomies, config files, routing keys |

@@ -9,6 +9,7 @@ description: >-
   - Adding or modifying Collections, Inputs, Structures, or Select Data
   - Setting up Structures for Array and Object Inputs
   - Configuring Collection URLs
+  - Scheduling builds to publish future-dated content (_schedule.txt)
   - Troubleshooting missing fields or Input types
 ---
 
@@ -22,6 +23,7 @@ This skill covers creating and customizing `cloudcannon.config.yml`, which tells
 - Adding or changing Collections, Inputs, Structures, or Select Data
 - A field is missing from the editor, or shows the wrong Input type
 - Configuring Collection URLs so pages open in the Visual Editor
+- Publishing future-dated content on its date with scheduled builds (`_schedule.txt`)
 
 ## When not to use
 
@@ -86,6 +88,7 @@ Check this table before writing config. These are keys agents have written that 
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
 | [build-commands.md](build-commands.md)               | Writing `install_command` or `node_version`, or the build has generators or post-build steps.                                 |
 | [routing.md](routing.md)                             | The site sets response headers, redirects or rewrites (framework config, `_headers`, `netlify.toml`, `vercel.json`).          |
+| [scheduled-builds.md](scheduled-builds.md)           | Future-dated content should publish on its date without a manual build.                                                       |
 | [configuration-gotchas.md](configuration-gotchas.md) | Looking up a cross-SSG pitfall while configuring.                                                                             |
 | [troubleshooting.md](troubleshooting.md)             | Configuration is already wrong and you're working from a symptom.                                                             |
 
