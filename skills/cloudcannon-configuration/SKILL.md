@@ -10,6 +10,7 @@ description: >-
   - Setting up Structures for Array and Object Inputs
   - Configuring Collection URLs
   - Scheduling builds to publish future-dated content (_schedule.txt)
+  - Configuring a site in a monorepo, or several sites in one repository
   - Troubleshooting missing fields or Input types
 ---
 
@@ -24,6 +25,7 @@ This skill covers creating and customizing `cloudcannon.config.yml`, which tells
 - A field is missing from the editor, or shows the wrong Input type
 - Configuring Collection URLs so pages open in the Visual Editor
 - Publishing future-dated content on its date with scheduled builds (`_schedule.txt`)
+- A site in a subfolder of a monorepo, or several CloudCannon sites in one repository
 
 ## When not to use
 
@@ -87,6 +89,7 @@ Check this table before writing config. These are keys agents have written that 
 | [structures.md](structures.md)                       | Any field holds an array or an object, since editors can't add items without a structure.                                     |
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
 | [build-commands.md](build-commands.md)               | Writing `install_command` or `node_version`, or the build has generators or post-build steps.                                 |
+| [monorepos.md](monorepos.md)                         | The site is in a subfolder of its repository, or the repository holds more than one CloudCannon site.                         |
 | [routing.md](routing.md)                             | The site sets response headers, redirects or rewrites (framework config, `_headers`, `netlify.toml`, `vercel.json`).          |
 | [scheduled-builds.md](scheduled-builds.md)           | Future-dated content should publish on its date without a manual build.                                                       |
 | [configuration-gotchas.md](configuration-gotchas.md) | Looking up a cross-SSG pitfall while configuring.                                                                             |

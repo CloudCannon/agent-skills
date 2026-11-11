@@ -161,7 +161,8 @@ When working outside an IDE (e.g. as an AI agent), download the schema and query
 
 ## File Placement
 
-- **`cloudcannon.config.yml`** and **`.cloudcannon/initial-site-settings.json`** live at the **repository root**, not under `src/` or another app subdirectory.
+- **`.cloudcannon/initial-site-settings.json`** lives at the **repository root**, not under `src/` or a site folder.
+- **`cloudcannon.config.yml`** lives at the repository root too, unless the repository holds more than one CloudCannon site — see [monorepos.md](monorepos.md).
 
 ## Example Skill File Workflow
 

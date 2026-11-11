@@ -24,14 +24,15 @@ read, or redirect it: `<build> > /tmp/cc-build.log 2>&1`.
 
 ## Serving
 
-| Symptom                                            | Cause                                                                                 | Fix                                                                                       |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `/` shows the CloudCannon app, not my homepage     | It is meant to. The app owns `/` and `/index.html`                                    | The built homepage is at `/__output/index.html`                                           |
-| `/about/` returns 500                              | The dev server has no directory index; EISDIR surfaces as a 500                       | Request `/about/index.html`                                                               |
-| `cloudcannon dev` fails because the port is taken  | Another server holds it. A healthy answer does not prove it is yours                  | Pass `--port` with a free one. Do not stop that server — it may be the user's own         |
-| `detect-build-commands` returns nothing usable     | The CLI could not place the site. `cloudcannon configure detect-ssg` shows its scores | Read the build script out of `package.json` and pass it yourself                          |
-| `cloudcannon: command not found`                   | The CLI is not on `PATH`                                                              | `npm i -g @cloudcannon/cli`, or `PATH="$PWD/node_modules/.bin:$PATH"` for a local install |
-| The output path is rejected as outside the project | `cloudcannon dev` requires the output path to resolve inside the working directory    | Run it from the site root; there is no `--source` flag                                    |
+| Symptom                                            | Cause                                                                                  | Fix                                                                                       |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `/` shows the CloudCannon app, not my homepage     | It is meant to. The app owns `/` and `/index.html`                                     | The built homepage is at `/__output/index.html`                                           |
+| `/about/` returns 500                              | The dev server has no directory index; EISDIR surfaces as a 500                        | Request `/about/index.html`                                                               |
+| `cloudcannon dev` fails because the port is taken  | Another server holds it. A healthy answer does not prove it is yours                   | Pass `--port` with a free one. Do not stop that server — it may be the user's own         |
+| `detect-build-commands` returns nothing usable     | The CLI could not place the site. `cloudcannon configure detect-ssg` shows its scores  | Read the build script out of `package.json` and pass it yourself                          |
+| `cloudcannon: command not found`                   | The CLI is not on `PATH`                                                               | `npm i -g @cloudcannon/cli`, or `PATH="$PWD/node_modules/.bin:$PATH"` for a local install |
+| The output path is rejected as outside the project | `cloudcannon dev` requires the output path to resolve inside the working directory     | Run it from the repository root; there is no `--source` flag                              |
+| No collections, or empty ones, on a monorepo site  | The site's config is in its folder, and `dev` reads it only from its working directory | [setup.md § A site in a monorepo](setup.md#a-site-in-a-monorepo)                          |
 
 ## Writing
 

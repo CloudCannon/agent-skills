@@ -43,7 +43,18 @@ The two sync flags work in opposite directions:
 **Why:** with app sync on, there's no save or review step — each edit reaches disk as it's made, even a value that fails input validation. Writes also normalise whitespace (front matter spacing, the trailing newline), so expect whitespace-only diffs alongside the real ones.
 
 The positional output path must resolve **inside** the current directory, and the source root is
-always the working directory — there is no `--source` flag. Run it from the site root.
+always the working directory — there is no `--source` flag. Run it from the repository root.
+
+### A site in a monorepo
+
+The editor reads `cloudcannon.config.*` only from the root of the directory `dev` starts in, and `dev` has no configuration path option. A site whose config sits in its own folder ([monorepos.md](../cloudcannon-configuration/monorepos.md)) writes its paths from the repository root, so neither directory works on its own: from the root there is no config, and from the site folder no path resolves.
+
+1. **Copy** the site's config to the repository root: `cp sites/marketing/cloudcannon.config.yml cloudcannon.config.yml`.
+2. **Run** `cloudcannon dev sites/marketing/dist` from the repository root.
+3. **Delete** the root copy when the session ends.
+
+**MUST NOT:** commit the root copy.
+**Why:** every site in the repository without a configuration path reads a root config as its own.
 
 There is no build flag. When one lands, it replaces everything below and
 [scripts/](scripts/README.md) with it.

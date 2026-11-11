@@ -13,8 +13,8 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 
 ### Verify the CloudCannon CLI's `source` path
 
-**MUST NOT:** add `source` to `cloudcannon.config.yml`, and remove it if the CloudCannon CLI generates one.
-**Why:** `source` is deployment-specific (monorepos). The CloudCannon root defaults to the repo root, so config can already reference any path in the repo.
+**MUST NOT:** add `source` to `cloudcannon.config.yml`, and remove it if the CloudCannon CLI generates one, prefixing its value to the paths it re-bases.
+**Why:** paths resolve from the repository root, so config can already reference any path in the repo. `source` re-bases collection paths and uploads but not schema paths or the build, so a config with it mixes two bases. A site in a subfolder doesn't need it either — see [monorepos.md](monorepos.md).
 
 ### Overlapping collections: each file lands in one
 

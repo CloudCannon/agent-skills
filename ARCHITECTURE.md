@@ -117,6 +117,7 @@ inputs.md                               Where _inputs live, how keys match field
 validation.md                           Input validation — when to add it, keys per type, patterns
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
+monorepos.md                            Sites in a subfolder, several sites per repo — config path, path bases
 routing.md                              Headers, redirects and rewrites in .cloudcannon/routing.json
 scheduled-builds.md                     Scheduled builds — _schedule.txt, the future-content filter
 configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs

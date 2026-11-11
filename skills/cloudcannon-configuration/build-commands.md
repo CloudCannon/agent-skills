@@ -48,6 +48,10 @@ because the HTML does not exist until then: `astro build && pagefind --site dist
 A pipeline that rewrites or multiplies the whole output is the same shape and runs after the SSG.
 A localisation pass that regenerates the build as a per-locale tree is one example.
 
+## A site in a subfolder
+
+Both commands run from the repository root, and `output_path` is relative to it. For a site in a subfolder, change into the folder in each command and give the output path from the root — see [monorepos.md § Build settings](monorepos.md#build-settings).
+
 ## The install command
 
 `install_command` is the package manager's install (`npm ci`) plus anything that must happen before
