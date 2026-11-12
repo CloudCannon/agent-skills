@@ -114,9 +114,12 @@ cloudcannon-cli-guide.md                Generating and validating config with th
 structures.md                           Inline vs split, previews, field completeness
 schemas.md                              One collection, many schemas; _schema; remove_extra_inputs
 inputs.md                               Where _inputs live, how keys match fields, value_key
+validation.md                           Input validation — when to add it, keys per type, patterns
 collection-urls.md                      URL patterns — placeholders, trailing slash, troubleshooting
 build-commands.md                       build/install commands — where each build step goes
+monorepos.md                            Sites in a subfolder, several sites per repo — config path, path bases
 routing.md                              Headers, redirects and rewrites in .cloudcannon/routing.json
+scheduled-builds.md                     Scheduled builds — _schedule.txt, the future-content filter
 configuration-gotchas.md                Cross-SSG pitfalls — select inputs, _editables, previews, data refs
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/configuration.md                  Astro: build values, Zod schema unions, image paths
@@ -126,6 +129,7 @@ hugo/overview.md                        ENTRY POINT for Hugo — reading order
 hugo/configuration.md                   Hugo: CLI baseline fixes, section collections, site config as data, build
 hugo/collection-urls.md                 Hugo: [full_slug], page bundles, _index.md, permalinks
 hugo/configuration-gotchas.md           Hugo: Goldmark, taxonomies, quoted numbers, front matter
+hugo/scheduled-builds.md                Hugo: buildFuture, the schedule from hugo list future
 eleventy/overview.md                    ENTRY POINT for Eleventy — reading order
 eleventy/configuration.md               Eleventy: CLI baseline fixes, collections, data files, images
 eleventy/collection-urls.md             Eleventy: default paths, permalink front matter and directory data

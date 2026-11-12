@@ -9,6 +9,8 @@ description: >-
   - Adding or modifying Collections, Inputs, Structures, or Select Data
   - Setting up Structures for Array and Object Inputs
   - Configuring Collection URLs
+  - Scheduling builds to publish future-dated content (_schedule.txt)
+  - Configuring a site in a monorepo, or several sites in one repository
   - Troubleshooting missing fields or Input types
 ---
 
@@ -22,6 +24,8 @@ This skill covers creating and customizing `cloudcannon.config.yml`, which tells
 - Adding or changing Collections, Inputs, Structures, or Select Data
 - A field is missing from the editor, or shows the wrong Input type
 - Configuring Collection URLs so pages open in the Visual Editor
+- Publishing future-dated content on its date with scheduled builds (`_schedule.txt`)
+- A site in a subfolder of a monorepo, or several CloudCannon sites in one repository
 
 ## When not to use
 
@@ -81,10 +85,13 @@ Check this table before writing config. These are keys agents have written that 
 | [cloudcannon-cli-guide.md](cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating; the rest of the CLI is [`cloudcannon-cli`](../cloudcannon-cli/SKILL.md). |
 | [schemas.md](schemas.md)                             | Before adding a collection or writing its `schemas` — one collection can hold many schemas.                                   |
 | [inputs.md](inputs.md)                               | Before writing `_inputs`.                                                                                                     |
+| [validation.md](validation.md)                       | Before adding `required`, a `pattern` or a limit to an input.                                                                 |
 | [structures.md](structures.md)                       | Any field holds an array or an object, since editors can't add items without a structure.                                     |
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
 | [build-commands.md](build-commands.md)               | Writing `install_command` or `node_version`, or the build has generators or post-build steps.                                 |
+| [monorepos.md](monorepos.md)                         | The site is in a subfolder of its repository, or the repository holds more than one CloudCannon site.                         |
 | [routing.md](routing.md)                             | The site sets response headers, redirects or rewrites (framework config, `_headers`, `netlify.toml`, `vercel.json`).          |
+| [scheduled-builds.md](scheduled-builds.md)           | Future-dated content should publish on its date without a manual build.                                                       |
 | [configuration-gotchas.md](configuration-gotchas.md) | Looking up a cross-SSG pitfall while configuring.                                                                             |
 | [troubleshooting.md](troubleshooting.md)             | Configuration is already wrong and you're working from a symptom.                                                             |
 

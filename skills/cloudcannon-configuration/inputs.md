@@ -1,6 +1,6 @@
 # Inputs: where they live and what they match
 
-Read before writing `_inputs`. This covers where an input can be defined, how its key finds a field, and what a select over a collection stores. The pitfalls are in [configuration-gotchas.md § Inputs](configuration-gotchas.md#inputs).
+Read before writing `_inputs`. This covers where an input can be defined, how its key finds a field, and what a select over a collection stores. The pitfalls are in [configuration-gotchas.md § Inputs](configuration-gotchas.md#inputs), and rules that limit what editors can enter are in [validation.md](validation.md).
 
 ## Where `_inputs` live
 
@@ -15,14 +15,23 @@ Read before writing `_inputs`. This covers where an input can be defined, how it
 | In file         | `_inputs` in a file's front matter, or at the root of a data file | That file                             |
 | Structure value | `_structures.<name>.values[]._inputs`                             | Items added from that structure value |
 
-`_inputs` from every level that covers a field merge into one input. Where two levels configure the same key, the more specific one wins. Merging is specific to `_inputs`: most other cascading options use the most specific level that sets them.
+`_inputs` from every level that covers a field merge into one input. Where two levels configure the same key, the more specific one wins. Set `cascade: false` on an input to stop the merge: it then ignores entries for that field at broader levels.
 
 **Scope each input as narrowly as its fields need.** A broad input reaches every field with that key name: a global `type: html` on `description`, or `hidden` on `url`, also changes fields in data files, config files and structures that mean something else. Set it at a broader level when one input should cover the same field across several files, and you've checked that every field the key matches should get it. Fields inside a structure are the exception: define their inputs on the structure value even when a broader key already reaches them.
 
 - **Global:** keys that mean the same thing everywhere on the site.
 - **Collection or schema:** keys specific to one kind of content.
 - **File config:** data and config files, and anything that needs the file root (`$`).
-- **Structure value:** the fields of a structure. Inputs from outside a structure value reach into it today, but that could change. Defining them on the structure value keeps it portable, behaving the same wherever it is used, and easier to maintain, usually for little extra config: share a definition with `_inputs_from_glob`.
+- **Structure value:** the fields of a structure, so it behaves the same wherever it is used. Share a definition between values with `_inputs_from_glob`. Where a broader entry for the same key would merge in, such as a root `comment` or `options`, set `cascade: false` on the structure value's input.
+
+### Other cascading keys
+
+`_select_data`, `_structures`, `_editables` and `_enabled_editors` cascade through the same levels, but don't merge like `_inputs`:
+
+- **`_enabled_editors` and `_editables`:** the most specific level that sets them wins.
+- **`_select_data`:** a collection's `_select_data` adds to the root's rather than replacing it. If the root defines `colors` and a collection defines `sizes`, selects in that collection can use both. Where both define the same name, the collection's wins.
+
+Root, collection, schema and `file_config` accept all four. Structure values accept only `_select_data` and `_structures`, so editors and toolbars can't be set per structure.
 
 ## How a key matches a field
 

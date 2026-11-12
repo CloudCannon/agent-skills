@@ -18,3 +18,10 @@ The rule is in [../configuration-gotchas.md § Choose text, markdown or html inp
 - **Check** `htmlTemplateEngine` and `markdownTemplateEngine` in the Eleventy config before reading an `.html` or `.md` file's row: either can switch that file to Nunjucks.
 - **Find** the markdown filter's name in the config (`addFilter("markdown", …)`, often built on `markdown-it`). Eleventy ships none, so every site names its own.
 - **Read** the whole pipeline: `{{ description | markdown | safe }}` is still `markdown`.
+
+## Markdown options for markdown-it
+
+The rule is in [../configuration-gotchas.md § Match `markdown.options`](../configuration-gotchas.md#match-markdownoptions-to-the-sites-renderer-and-the-toolbar-to-markdownoptions). Eleventy renders Markdown with markdown-it, which reads tables and `~~strikethrough~~` but has no subscript or superscript syntax without plugins (`markdown-it-sub`, `markdown-it-sup`). Set `table` and `strikethrough` to `true`; set `subscript` and `superscript` only when the site loads those plugins.
+
+**MUST:** check the `html` option of every markdown-it instance the site creates: the one passed to `setLibrary("md", …)` and the one behind its markdown filter.
+**Why:** Eleventy's own instance sets `html: true`, but a site's own instance starts from markdown-it's default `html: false`, which escapes tags. Toolbar formatting saved as HTML (`<u>`, and any key left off) then shows as literal tags on the page. Either set `html: true` on the instance, or turn those toolbar buttons off.

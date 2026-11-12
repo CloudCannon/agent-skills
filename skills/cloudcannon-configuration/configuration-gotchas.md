@@ -13,8 +13,8 @@ Cross-SSG patterns and pitfalls in `cloudcannon.config.yml`. What differs per SS
 
 ### Verify the CloudCannon CLI's `source` path
 
-**MUST NOT:** add `source` to `cloudcannon.config.yml`, and remove it if the CloudCannon CLI generates one.
-**Why:** `source` is deployment-specific (monorepos). The CloudCannon root defaults to the repo root, so config can already reference any path in the repo.
+**MUST NOT:** add `source` to `cloudcannon.config.yml`, and remove it if the CloudCannon CLI generates one, prefixing its value to the paths it re-bases.
+**Why:** paths resolve from the repository root, so config can already reference any path in the repo. `source` re-bases collection paths and uploads but not schema paths or the build, so a config with it mixes two bases. A site in a subfolder doesn't need it either — see [monorepos.md](monorepos.md).
 
 ### Overlapping collections: each file lands in one
 
@@ -160,7 +160,7 @@ The syntax for each row is SSG-specific — [Astro](astro/configuration.md#custo
 
 ### Quote numeric values that map to text inputs
 
-YAML parses bare numbers (`price: 29`) as integers, not strings. If the corresponding CloudCannon input is `type: text` (or defaults to text), CC throws "This text input is misconfigured. This input must have a text value." This affects both structure default values and content file frontmatter.
+YAML parses bare numbers (`price: 29`) as integers, not strings. If the corresponding CloudCannon input is `type: text` (or defaults to text), CC throws "This text input is misconfigured. This input must have a text value." and the field won't accept typing, so editors can't fix it themselves. This affects both structure default values and content file frontmatter.
 
 **Fix:** Either quote the value as a string (`price: "29"`) or configure the input as `type: number`. Quoting as a string is usually better — it's simpler and avoids breaking component code that does string operations on the value.
 
@@ -570,11 +570,25 @@ _inputs:
 
 For heading-level fields (title, subtitle), intentionally omit block-level options (lists, blockquote, format, image) — only inline formatting is appropriate. For body-level fields, include the full set as you would with `_editables.content`.
 
-### Set `markdown.options.table` when content has Markdown tables
+### Match `markdown.options` to the site's renderer, and the toolbar to `markdown.options`
 
-CloudCannon defaults `markdown.options.table` to `false`, meaning the rich text editor outputs `<table>` HTML. If the site's content files already use Markdown table syntax (`| col | col |`), set this to `true` so tables survive round-tripping through the editor.
+The toolbar decides which formatting editors can apply: `_editables.content` for the Content Editor, an input's `options` for a `type: markdown` input. The root `markdown` block decides how that formatting is written to the file, for the body and every `type: markdown` input alike. It is set once per site; `collections_config` and inputs have no `markdown` key.
 
-Grep content directories for the pipe-delimited pattern:
+**MUST:** turn on a `markdown.options` key only when the site's markdown renderer reads that syntax.
+**Why:** CloudCannon writes the syntax whether or not the build understands it. `~sub~` and `^sup^` are not CommonMark; a renderer without them prints the tildes and carets literally.
+
+**MUST:** turn a toolbar button off when its `markdown.options` key is off and the site's renderer drops raw HTML.
+**Why:** with the key off, CloudCannon saves that formatting as HTML. A renderer that drops HTML removes it from the page without an error. `markdown.options.html: false` doesn't prevent this: the toolbar still saves HTML.
+
+| Toolbar key   | `markdown.options` key | Saved with the key on                   | Saved with the key off                        |
+| ------------- | ---------------------- | --------------------------------------- | --------------------------------------------- |
+| `strike`      | `strikethrough`        | `~~text~~`                              | `<s>text</s>`                                 |
+| `subscript`   | `subscript`            | `~text~`                                | `<sub>text</sub>`                             |
+| `superscript` | `superscript`          | `^text^`                                | `<sup>text</sup>`                             |
+| `table`       | `table`                | Markdown table; empty cells as `&nbsp;` | `<table>` on one line, cells wrapped in `<p>` |
+| `underline`   | none                   | `<u>text</u>`                           | `<u>text</u>`                                 |
+
+**Then:** set `table: true` when content files already hold Markdown tables, so an edited table keeps its syntax. Find them with:
 
 ```bash
 rg '^\|.*\|' <content dir>   # src/content/, content/, …
@@ -587,25 +601,7 @@ markdown:
     table: true
 ```
 
-You also need `table: true` in `_editables.content` so the table button appears in the rich text toolbar. Because CloudCannon treats any omitted `_editables` key as `false` once you define one, you must re-declare all the defaults you want to keep:
-
-```yaml
-_editables:
-  content:
-    blockquote: true
-    bold: true
-    bulletedlist: true
-    format: p h1 h2 h3 h4 h5 h6
-    image: true
-    italic: true
-    link: true
-    numberedlist: true
-    removeformat: true
-    snippet: true
-    table: true
-```
-
-`markdown.options.table` controls serialization (Markdown vs HTML); `_editables.content.table` controls the toolbar button.
+**Common miss:** enabling `markdown.options.table` and expecting a table button. The button comes from `table: true` in the toolbar, which turns every omitted toolbar key off — see [§ Rich text input toolbar options](#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables).
 
 ## Structures and previews
 

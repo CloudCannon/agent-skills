@@ -7,6 +7,7 @@ The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [as
 Record for every site:
 
 - **Package manager and version** — see [build-commands.md § Package manager](../cloudcannon-configuration/build-commands.md#package-manager).
+- **Where the site sits in the repository** — the root, or a subfolder beside other code or other sites. For a subfolder, record the folder and how many CloudCannon sites the repository will hold — see [monorepos.md](../cloudcannon-configuration/monorepos.md).
 - **Where production is hosted** — CloudCannon, or another host with CloudCannon for editing only. **Ask the user** if nothing in the repo says.
 - **Headers and redirects**, from every source: the SSG's config, `_headers`, `_redirects`, `netlify.toml`, `vercel.json`. When CloudCannon hosts production, they move to `.cloudcannon/routing.json` — see [routing.md](../cloudcannon-configuration/routing.md).
 
