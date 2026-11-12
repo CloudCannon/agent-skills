@@ -114,3 +114,20 @@ Base rule: [structures.md § Handling null values from empty YAML fields](../str
 When combining multiple page schemas with `z.union`, schemas with many `.default()` and `.nullish()` fields validate successfully against data intended for a different variant. An earlier schema in the union "wins" because all its fields validate; fields from the correct schema are silently absent at runtime (`data.show_form === undefined`), conditional rendering breaks, and blocks of the page disappear.
 
 **Fix:** Use `z.discriminatedUnion("_schema", [...])` with a literal `_schema` field in each schema. This forces Zod to match on the `_schema` value rather than validating fields. Every content file must declare `_schema` explicitly. See the [decision table in configuration.md § Schemas](configuration.md#zod-zunion-vs-zdiscriminatedunion).
+
+## Markdown options for Astro's renderer
+
+The rule is in [../configuration-gotchas.md § Match `markdown.options`](../configuration-gotchas.md#match-markdownoptions-to-the-sites-renderer-and-the-toolbar-to-markdownoptions). Astro renders Markdown with GitHub-flavored Markdown on and raw HTML kept, unless the Astro config sets `markdown.gfm: false` or overrides `markdown.remarkRehype`:
+
+```yaml
+markdown:
+  engine: commonmark
+  options:
+    table: true
+    strikethrough: true
+```
+
+**MUST NOT:** set `subscript: true`.
+**Why:** `remark-gfm` reads a single tilde as strikethrough, so `~text~` renders struck through. With the key off, subscript saves as `<sub>`, which Astro keeps.
+
+Leave `superscript` off too: Astro has no caret syntax, and `<sup>` renders as written.

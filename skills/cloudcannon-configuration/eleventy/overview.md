@@ -22,4 +22,4 @@ Eleventy-specific configuration guidance. The cross-SSG rules live in the root f
 | 10    | [../scheduled-builds.md](../scheduled-builds.md)           | Future-dated content should publish on its date                                                                 |
 | 11    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                                             |
 | 12    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                                             |
-| 13    | [configuration-gotchas.md](configuration-gotchas.md)       | Choosing `text`, `markdown` or `html` inputs — Liquid and Nunjucks escape output differently                    |
+| 13    | [configuration-gotchas.md](configuration-gotchas.md)       | Choosing `text`, `markdown` or `html` inputs; `markdown` options for markdown-it                                |

@@ -142,11 +142,11 @@ The full list of skills and their tiers is in [ARCHITECTURE.md § Skills by tier
 
 **Why:** a condition lets an agent skip the file when it doesn't apply. A topic label invites reading it just in case.
 
-### Add a rule only for an observed failure
+### Add a rule for verified behaviour an agent would get wrong
 
-**MUST:** trace every new rule to a failure seen in a real run — a regression run, a migration, or a user report — not to a failure that might happen.
+**MUST:** ground every new rule in how the tool actually behaves — a failure seen in a run or a user report, or behaviour confirmed in the tool's source or a test. Add it when an agent would plausibly get it wrong without being told, not for every case that could go wrong.
 
-**MUST:** before adding a rule, check whether an existing rule caused the failure by being wrong, vague or contradicted. If one did, edit it instead of adding a new one.
+**MUST:** before adding a rule, check whether an existing rule already covers it, or is wrong, vague or contradicted on the point. If one is, edit it instead of adding a new one.
 
 **MUST NOT:** carry rules, examples or names from one template into a shared file. Write the rule in terms any site would recognise. No theme, customer or test-site names anywhere in a shipped skill, including example strings, asides and "tested on" notes.
 

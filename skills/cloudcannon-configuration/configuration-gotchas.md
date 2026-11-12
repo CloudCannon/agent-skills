@@ -570,11 +570,25 @@ _inputs:
 
 For heading-level fields (title, subtitle), intentionally omit block-level options (lists, blockquote, format, image) — only inline formatting is appropriate. For body-level fields, include the full set as you would with `_editables.content`.
 
-### Set `markdown.options.table` when content has Markdown tables
+### Match `markdown.options` to the site's renderer, and the toolbar to `markdown.options`
 
-CloudCannon defaults `markdown.options.table` to `false`, meaning the rich text editor outputs `<table>` HTML. If the site's content files already use Markdown table syntax (`| col | col |`), set this to `true` so tables survive round-tripping through the editor.
+The toolbar decides which formatting editors can apply: `_editables.content` for the Content Editor, an input's `options` for a `type: markdown` input. The root `markdown` block decides how that formatting is written to the file, for the body and every `type: markdown` input alike. It is set once per site; `collections_config` and inputs have no `markdown` key.
 
-Grep content directories for the pipe-delimited pattern:
+**MUST:** turn on a `markdown.options` key only when the site's markdown renderer reads that syntax.
+**Why:** CloudCannon writes the syntax whether or not the build understands it. `~sub~` and `^sup^` are not CommonMark; a renderer without them prints the tildes and carets literally.
+
+**MUST:** turn a toolbar button off when its `markdown.options` key is off and the site's renderer drops raw HTML.
+**Why:** with the key off, CloudCannon saves that formatting as HTML. A renderer that drops HTML removes it from the page without an error. `markdown.options.html: false` doesn't prevent this: the toolbar still saves HTML.
+
+| Toolbar key   | `markdown.options` key | Saved with the key on                   | Saved with the key off                        |
+| ------------- | ---------------------- | --------------------------------------- | --------------------------------------------- |
+| `strike`      | `strikethrough`        | `~~text~~`                              | `<s>text</s>`                                 |
+| `subscript`   | `subscript`            | `~text~`                                | `<sub>text</sub>`                             |
+| `superscript` | `superscript`          | `^text^`                                | `<sup>text</sup>`                             |
+| `table`       | `table`                | Markdown table; empty cells as `&nbsp;` | `<table>` on one line, cells wrapped in `<p>` |
+| `underline`   | none                   | `<u>text</u>`                           | `<u>text</u>`                                 |
+
+**Then:** set `table: true` when content files already hold Markdown tables, so an edited table keeps its syntax. Find them with:
 
 ```bash
 rg '^\|.*\|' <content dir>   # src/content/, content/, …
@@ -587,25 +601,7 @@ markdown:
     table: true
 ```
 
-You also need `table: true` in `_editables.content` so the table button appears in the rich text toolbar. Because CloudCannon treats any omitted `_editables` key as `false` once you define one, you must re-declare all the defaults you want to keep:
-
-```yaml
-_editables:
-  content:
-    blockquote: true
-    bold: true
-    bulletedlist: true
-    format: p h1 h2 h3 h4 h5 h6
-    image: true
-    italic: true
-    link: true
-    numberedlist: true
-    removeformat: true
-    snippet: true
-    table: true
-```
-
-`markdown.options.table` controls serialization (Markdown vs HTML); `_editables.content.table` controls the toolbar button.
+**Common miss:** enabling `markdown.options.table` and expecting a table button. The button comes from `table: true` in the toolbar, which turns every omitted toolbar key off — see [§ Rich text input toolbar options](#rich-text-input-toolbar-options-follow-the-same-omitted--false-rule-as-_editables).
 
 ## Structures and previews
 

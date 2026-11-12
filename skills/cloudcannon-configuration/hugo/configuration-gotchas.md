@@ -5,8 +5,8 @@ Hugo-specific pitfalls. The cross-SSG gotchas — select inputs, numeric values,
 ## Match Goldmark in the markdown options
 
 **MUST:** start from the `markdown` block the CloudCannon CLI writes. It reads the site's Goldmark config and handles Hugo-specific details such as attribute list positions.
-**Then:** compare it with the site's effective Goldmark settings (`hugo config | grep -A20 goldmark`) and adjust any key that differs. Where the site's config doesn't set a value, Hugo's default applies. With `renderer.unsafe: false`, also keep `_editables` toolbar options that save HTML turned off.
-**Why:** where CloudCannon and Goldmark disagree, content changes on save — for example, tables saved as raw HTML, which Goldmark's default `unsafe: false` drops as `<!-- raw HTML omitted -->` without an error. The generic rule is in [../configuration-gotchas.md § Markdown tables](../configuration-gotchas.md#set-markdownoptionstable-when-content-has-markdown-tables).
+**Then:** compare it with the site's effective Goldmark settings (`hugo config | grep -A20 goldmark`) and adjust any key that differs. Where the site's config doesn't set a value, Hugo's default applies.
+**Why:** where CloudCannon and Goldmark disagree, content changes on save — for example, tables saved as raw HTML, which Goldmark's default `renderer.unsafe: false` drops as `<!-- raw HTML omitted -->` without an error. Under `unsafe: false`, every toolbar button whose `markdown.options` key is off has to be off too — see [../configuration-gotchas.md § Match `markdown.options`](../configuration-gotchas.md#match-markdownoptions-to-the-sites-renderer-and-the-toolbar-to-markdownoptions).
 
 ## Choose rich text inputs from the template filter
 

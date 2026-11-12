@@ -20,4 +20,4 @@ Astro-specific configuration guidance. The cross-SSG rules live in the root file
 | 10    | [../scheduled-builds.md](../scheduled-builds.md)           | Future-dated content should publish on its date                                           |
 | 11    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                       |
 | 12    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                       |
-| 13    | [configuration-gotchas.md](configuration-gotchas.md)       | Astro-only pitfalls — `.astro` pages, Zod unions, TypeScript config                       |
+| 13    | [configuration-gotchas.md](configuration-gotchas.md)       | Astro-only pitfalls — `.astro` pages, Zod unions, TypeScript config, markdown options     |
