@@ -2,8 +2,9 @@
 name: cloudcannon-visual-editing
 description: >-
   Use when adding Visual Editor support to a CloudCannon site, setting up
-  editable regions, debugging visual editing issues, or making page sections
-  editable in the CloudCannon preview.
+  editable regions, debugging visual editing issues, making page sections
+  editable in the CloudCannon preview, or building custom tools and UI inside
+  the Visual Editor with its JavaScript API.
 ---
 
 # CloudCannon Visual Editing
@@ -17,6 +18,7 @@ description: >-
 - Setting up component re-rendering for live preview
 - Debugging editable regions that aren't appearing or updating
 - Adding editable regions to shared partials backed by data files
+- Building a custom tool inside the Visual Editor, such as a bulk uploader or a button that writes data
 
 ## When not to use
 
@@ -36,6 +38,7 @@ description: >-
 | [vue/visual-editing-reference.md](vue/visual-editing-reference.md)       | Vue components, in any SSG — registration, the `EditableRegions` export                                            |
 | [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md) | Svelte components, in any SSG — registration, the `EditableRegions` export                                         |
 | [editable-regions-internals.md](editable-regions-internals.md)           | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging                                       |
+| [custom-editor-tooling.md](custom-editor-tooling.md)                     | When building editor-only UI that reads or writes page data                                                        |
 | [troubleshooting.md](troubleshooting.md)                                 | Symptom → fix, when regions do not appear, update, or write where expected                                         |
 
 **SSG-specific:**

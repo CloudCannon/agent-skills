@@ -6,7 +6,7 @@ This is not a migration guide — see [overview.md](overview.md) for the full mi
 
 ## Output mode
 
-Use `output: "static"` (Astro's default). CloudCannon requires static output — `server` and `hybrid` modes are not supported.
+Use `output: "static"` (Astro's default), and prerender every page editors work on. A site that needs server features keeps them on its production adapter — see [cloudcannon-configuration/astro/configuration.md § When production runs on an adapter](../../cloudcannon-configuration/astro/configuration.md#when-production-runs-on-an-adapter).
 
 ## Astro version
 

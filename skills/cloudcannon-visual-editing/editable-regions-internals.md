@@ -93,38 +93,59 @@ document.addEventListener("cloudcannon:load", () => {
 
 ### Core Methods
 
-| Method                             | Returns           | Description                                   |
-| ---------------------------------- | ----------------- | --------------------------------------------- |
-| `currentFile()`                    | `File`            | Handle for the page currently being edited    |
-| `file(path)`                       | `File`            | Handle for a specific file by path            |
-| `collection(key)`                  | `Collection`      | Handle for a collection                       |
-| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config` |
-| `getPreviewUrl(url, inputConfig?)` | `string`          | Resolve a preview URL for DAM/asset files     |
-| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file, returns the URL                |
-| `findStructure(structure, value)`  | `any`             | Look up a structure value                     |
+| Method                             | Returns           | Description                                    |
+| ---------------------------------- | ----------------- | ---------------------------------------------- |
+| `currentFile()`                    | `File`            | Handle for the page currently being edited     |
+| `file(path)`                       | `File`            | Handle for a specific file by path             |
+| `collection(key)`                  | `Collection`      | Handle for a collection                        |
+| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config`  |
+| `getPreviewUrl(url, inputConfig?)` | `Promise<string>` | Resolve a preview URL for DAM/asset files      |
+| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file not tied to a field              |
+| `setLoading(message?)`             | `Promise<void>`   | Show the loading overlay; `undefined` hides it |
+| `findStructure(structure, value)`  | `any`             | Look up a structure value                      |
 
 ### File Interface
+
+From `@cloudcannon/visual-editor-api` (0.0.20):
 
 ```typescript
 interface File {
   data: {
     get(opts?: { slug?: string }): Promise<any>;
     set(opts: { slug: string; value: any }): Promise<any>;
-    edit(opts: { slug: string }): void;
-    addArrayItem(opts: { slug: string; item?: any }): Promise<any>;
-    removeArrayItem(opts: { slug: string; index: number }): Promise<any>;
-    moveArrayItem(opts: { slug: string; from: number; to: number }): Promise<any>;
+    edit(opts: {
+      slug: string;
+      style?: string | null;
+      position?: { x: number; y: number; left: number; top: number; width: number; height: number };
+    }): void;
+    upload(file: globalThis.File, opts: { slug: string }): Promise<string | undefined>;
+    // index: null appends. Pass sourceIndex instead of value to clone an item.
+    addArrayItem(opts: {
+      slug: string;
+      index: number | null;
+      value?: any;
+      sourceIndex?: number;
+    }): Promise<void>;
+    removeArrayItem(opts: { slug: string; index: number }): Promise<void>;
+    moveArrayItem(opts: {
+      fromSlug: string;
+      toSlug?: string;
+      fromIndex: number;
+      toIndex: number;
+    }): Promise<void>;
   };
   content: {
-    get(): Promise<string>;
+    get(): Promise<string | undefined>;
     set(value: string): Promise<void>;
   };
-  getInputConfig(opts: { slug: string }): any;
+  getInputConfig(opts: { slug: string }): Promise<Input | undefined>;
   addEventListener(event: "change" | "delete", listener: () => void): void;
 }
 ```
 
 Slug paths use `.` as the separator: `"hero.title"` for `{ hero: { title: "X" } }`.
+
+`getInputConfig` returns a Promise. Await it before passing the config to `uploadFile`: a Promise can't cross the editor's `postMessage` boundary, so the call fails with `DataCloneError`. To upload into a field, `data.upload(file, { slug })` uses that field's input config.
 
 ### Dataset / Collection
 

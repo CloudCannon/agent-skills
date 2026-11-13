@@ -521,6 +521,35 @@ For collections without detail pages — data-like entries rendered only on a li
 
 **Computed server-only values** such as reading time can stay in the template as static text — they aren't editable and need no special handling.
 
+## Mark parts editors can't change
+
+Mark each `external` section from the [census](visual-editing.md#external-sections) with a small editor-only note that says where its value is changed. An editor clicking a price or a product grid otherwise gets no response and no explanation.
+
+Build one note component and reuse it:
+
+- Render it inside the section, as a child of the element it describes.
+- Hide it by default, and show it only under `.cms-editor-active`, so the hosted copy and production never show it.
+- Make the text say where the value is edited ("Prices come from Shopify. Change them in Shopify admin."), or that the shown value is an example.
+- On a site with an editor-only build, also render it only on that build, so production HTML doesn't carry it.
+
+```css
+.editor-note {
+  display: none;
+}
+.cms-editor-active .editor-note {
+  display: block;
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+}
+.cms-editor-active :has(> .editor-note) {
+  position: relative;
+  outline: 1px dashed rgb(124 58 237 / 0.45);
+}
+```
+
+Use a button with `aria-expanded` to toggle the text, so it opens on click as well as hover. Explain the marker in the [editor README](../cloudcannon-configuration/configuration.md#editor-readme).
+
 ## Where does a value belong — frontmatter, structure-value default, or hardcoded?
 
 | Value changes per entry? | Value same across all instances of a type?                                    | Place it in                                                                                                                                                  |
@@ -589,6 +618,24 @@ The select is editable in the sidebar by default, but **the rendered card won't 
 When the editor changes the select, CloudCannon re-renders the component with the new slug, its lookup re-runs, and the displayed fields update live.
 
 **Anti-pattern — silent breakage.** Doing the lookup in the page template and passing the resolved object to a static child: the frontmatter still updates when the editor changes the select, but the displayed object was computed at build time from the _previous_ slug, and nothing re-renders. The sidebar feels broken — the change happens but the page doesn't reflect it. Move the lookup into the registered component.
+
+## Content from an external system
+
+Read when a commerce platform, CMS or API owns some records (products, events, listings) and editors pick them or add content around them.
+
+**MUST:** commit a snapshot of the external records as data files, refreshed by a sync script that runs before the build, and render picked records from that snapshot.
+**Why:** registered components re-render in the browser without the build's API access, and pickers read their options from a file. A fetch at render time has nothing to call in the editor.
+
+- Run the sync from the `prebuild` script, and keep the committed snapshot when the sync fails, so the build still passes.
+- Expose the snapshot through `data_config` and pick from it with `value_key` set to the record's stable key (a handle or ID). Then follow [§ Cross-collection select inputs](#cross-collection-select-inputs): the lookup lives inside the registered component.
+- Values that change between builds (price, stock) show their snapshot value in the editor. Say so in the [editor README](../cloudcannon-configuration/configuration.md#editor-readme).
+- Mark what the snapshot renders as `external` in the census, with an [editor note](#mark-parts-editors-cant-change).
+
+**Editorial content around each record.** Give each record a companion file named by its key (`product-pages/<handle>.md`), in a collection whose route builds one page per record.
+
+- Create missing companion files from the sync script. Never edit or delete existing ones, since they hold editors' content; list orphans for the user to remove.
+- Run the sync locally and commit the new files. CloudCannon lists the repository's files, so a file the build creates never appears in the editor.
+- Turn off adding, renaming and deleting on that collection — see [cloudcannon-configuration/configuration.md § Limit what editors can do to a collection's files](../cloudcannon-configuration/configuration.md#limit-what-editors-can-do-to-a-collections-files).
 
 ## Conditional editable-image on shared components
 

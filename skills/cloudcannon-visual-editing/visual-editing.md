@@ -20,10 +20,10 @@ Before adding regions to existing templates, produce a census of every visible s
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Page**              | Which page the section appears on                                                                                                                                                                                                                                                                                                                  |
 | **Section**           | Descriptive name (e.g. "Hero", "Features grid", "FAQ accordion", "Footer links")                                                                                                                                                                                                                                                                   |
-| **Treatment**         | One of: `text`, `image`, `array`, `component`, `source`, `data-file`, `combined` (multiple types), `sidebar-only`                                                                                                                                                                                                                                  |
+| **Treatment**         | One of: `text`, `image`, `array`, `component`, `source`, `data-file`, `combined` (multiple types), `sidebar-only`, `external`                                                                                                                                                                                                                      |
 | **Binding plan**      | The actual `data-prop` paths and any registered-component name. Required for `data-file`, `array`, `component`, or `select`-into-another-data-file treatments. Hyphen `—` is fine for `text`/`image`/`source` rows where the binding is obvious. See [§ Binding plan by treatment](#binding-plan-by-treatment) for the pattern per treatment type. |
 | **Data completeness** | Are ALL visible/configurable values in the data source? List any hardcoded values in the template that should also be in the data (icons, colors, link targets, label text)                                                                                                                                                                        |
-| **Justification**     | Required when treatment is `sidebar-only`. Must cite a specific technical reason, not just "complex" or "not worth it"                                                                                                                                                                                                                             |
+| **Justification**     | Required when treatment is `sidebar-only`. Must cite a specific technical reason, not just "complex" or "not worth it". For `external`, name the system that owns the value                                                                                                                                                                        |
 
 ### Binding plan by treatment
 
@@ -48,6 +48,10 @@ Before adding regions to existing templates, produce a census of every visible s
 - The image is a CSS `background-image`, with no `<img>` to put an image region on.
 
 Every `sidebar-only` section that renders a list still needs array editables for CRUD.
+
+### `external` sections
+
+Use `external` for a section whose values come from outside the repository: a commerce platform, an API, a server island. Editors can't change it in CloudCannon, so mark it in the editor — see [visual-editing-reference.md § Mark parts editors can't change](visual-editing-reference.md#mark-parts-editors-cant-change). Editor-owned text inside or around it (a heading, a button label) still gets its own row.
 
 ### Example census
 

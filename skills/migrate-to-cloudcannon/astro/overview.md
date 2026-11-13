@@ -11,7 +11,7 @@ This guide covers Astro sites that use:
 - Static output (`output: "static"` -- the default)
 - Islands architecture with optional framework integrations. `.astro`, React, Vue and Svelte components are supported in editable regions (React, Vue and Svelte need their renderer imported). Solid components throw runtime errors in the visual editor even when nested inside supported components. Convert them to a supported framework, or use `ENV_CLIENT` editing fallbacks (see the `cloudcannon-visual-editing` skill)
 
-Server-rendered Astro sites (`output: "server"` or `output: "hybrid"`) are not covered -- CloudCannon requires static output.
+CloudCannon serves static output. A site that runs on an adapter keeps it for production, and CloudCannon builds the prerendered pages for editing — see [cloudcannon-configuration/astro/configuration.md § When production runs on an adapter](../../cloudcannon-configuration/astro/configuration.md#when-production-runs-on-an-adapter).
 
 ## Phases
 
