@@ -38,7 +38,7 @@ description: >-
 | [vue/visual-editing-reference.md](vue/visual-editing-reference.md)       | Vue components, in any SSG — registration, the `EditableRegions` export                                            |
 | [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md) | Svelte components, in any SSG — registration, the `EditableRegions` export                                         |
 | [editable-regions-internals.md](editable-regions-internals.md)           | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging                                       |
-| [custom-editor-tooling.md](custom-editor-tooling.md)                     | When building editor-only UI that reads or writes page data                                                        |
+| [custom-editor-tooling.md](custom-editor-tooling.md)                     | Only when asked for editor UI that inputs and regions can't provide. Not part of a migration                       |
 | [troubleshooting.md](troubleshooting.md)                                 | Symptom → fix, when regions do not appear, update, or write where expected                                         |
 
 **SSG-specific:**

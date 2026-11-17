@@ -91,22 +91,47 @@ document.addEventListener("cloudcannon:load", () => {
 });
 ```
 
+### Reading the API's own types
+
+**MUST:** check a method's signature and doc comment in `@cloudcannon/visual-editor-api` before relying on a detail this file doesn't cover.
+**Why:** the package's `src/index.d.ts` documents every method, with examples, for its version. The tables below cover the common calls only.
+
+Sites don't install this package; the Visual Editor provides the API at runtime. Read the published file from the CDN, at the latest version:
+
+```sh
+npm view @cloudcannon/visual-editor-api version
+# then read https://unpkg.com/@cloudcannon/visual-editor-api@<version>/src/index.d.ts
+```
+
+For how editable regions call the API, read `@cloudcannon/editable-regions` in the site's own `node_modules`.
+
 ### Core Methods
 
-| Method                             | Returns           | Description                                    |
-| ---------------------------------- | ----------------- | ---------------------------------------------- |
-| `currentFile()`                    | `File`            | Handle for the page currently being edited     |
-| `file(path)`                       | `File`            | Handle for a specific file by path             |
-| `collection(key)`                  | `Collection`      | Handle for a collection                        |
-| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config`  |
-| `getPreviewUrl(url, inputConfig?)` | `Promise<string>` | Resolve a preview URL for DAM/asset files      |
-| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file not tied to a field              |
-| `setLoading(message?)`             | `Promise<void>`   | Show the loading overlay; `undefined` hides it |
-| `findStructure(structure, value)`  | `any`             | Look up a structure value                      |
+| Method                             | Returns           | Description                                                    |
+| ---------------------------------- | ----------------- | -------------------------------------------------------------- |
+| `currentFile()`                    | `File`            | Handle for the page currently being edited                     |
+| `file(path)`                       | `File`            | Handle for a specific file by path                             |
+| `collection(key)`                  | `Collection`      | Handle for a collection                                        |
+| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config`                  |
+| `getPreviewUrl(url, inputConfig?)` | `Promise<string>` | Resolve a preview URL for DAM/asset files                      |
+| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file not tied to a field                              |
+| `setLoading(message?)`             | `Promise<void>`   | Show the loading overlay; `undefined` hides it. Don't await it |
+| `findStructure(structure, value)`  | `any`             | Look up a structure value                                      |
+
+`setLoading` shows and hides the overlay, but its Promise never settles in the Visual Editor. Call it without `await`, and call `setLoading(undefined)` in a `finally` so the overlay always clears:
+
+```javascript
+api.setLoading("Uploading images…");
+try {
+  // …uploads…
+} finally {
+  api.setLoading(undefined);
+}
+```
 
 ### File Interface
 
-From `@cloudcannon/visual-editor-api` (0.0.20):
+From `@cloudcannon/visual-editor-api` (0.0.22):
 
 ```typescript
 interface File {
