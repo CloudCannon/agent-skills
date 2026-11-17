@@ -71,9 +71,10 @@ if (!customElements.get("bulk-uploader")) customElements.define("bulk-uploader",
 
 **Common miss:** UI built with `this.innerHTML` works until the first edit, then leaves an empty, sized element behind.
 
-### Tools written in React or another framework
+### Tools written in React
 
-Mount the framework's root inside the custom element's shadow root. The element loads, hides and places like any other tool, in any SSG, and the framework's state survives the component's re-renders.
+**MUST:** mount the tool's React root inside the custom element's shadow root. Don't render the tool as JSX inside a registered component.
+**Why:** the editor renders a registered component in its own React root and copies the output onto the page. JSX inside it stops showing state changes once the editor renders the block, while its click handlers still fire, so it half-works. A root in the shadow root keeps its state through every re-render, and the element loads, hides and places like any other tool, in any SSG.
 
 ```jsx
 import { createRoot } from "react-dom/client";
