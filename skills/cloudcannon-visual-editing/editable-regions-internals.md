@@ -91,40 +91,86 @@ document.addEventListener("cloudcannon:load", () => {
 });
 ```
 
+### Reading the API's own types
+
+**MUST:** check a method's signature and doc comment in `@cloudcannon/visual-editor-api` before relying on a detail this file doesn't cover.
+**Why:** the package's `src/index.d.ts` documents every method, with examples, for its version. The tables below cover the common calls only.
+
+Sites don't install this package; the Visual Editor provides the API at runtime. Read the published file from the CDN, at the latest version:
+
+```sh
+npm view @cloudcannon/visual-editor-api version
+# then read https://unpkg.com/@cloudcannon/visual-editor-api@<version>/src/index.d.ts
+```
+
+For how editable regions call the API, read `@cloudcannon/editable-regions` in the site's own `node_modules`.
+
 ### Core Methods
 
-| Method                             | Returns           | Description                                   |
-| ---------------------------------- | ----------------- | --------------------------------------------- |
-| `currentFile()`                    | `File`            | Handle for the page currently being edited    |
-| `file(path)`                       | `File`            | Handle for a specific file by path            |
-| `collection(key)`                  | `Collection`      | Handle for a collection                       |
-| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config` |
-| `getPreviewUrl(url, inputConfig?)` | `string`          | Resolve a preview URL for DAM/asset files     |
-| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file, returns the URL                |
-| `findStructure(structure, value)`  | `any`             | Look up a structure value                     |
+| Method                             | Returns           | Description                                                    |
+| ---------------------------------- | ----------------- | -------------------------------------------------------------- |
+| `currentFile()`                    | `File`            | Handle for the page currently being edited                     |
+| `file(path)`                       | `File`            | Handle for a specific file by path                             |
+| `collection(key)`                  | `Collection`      | Handle for a collection                                        |
+| `dataset(key)`                     | `Dataset`         | Handle for a dataset defined in `data_config`                  |
+| `getPreviewUrl(url, inputConfig?)` | `Promise<string>` | Resolve a preview URL for DAM/asset files                      |
+| `uploadFile(file, inputConfig?)`   | `Promise<string>` | Upload a file not tied to a field                              |
+| `setLoading(message?)`             | `Promise<void>`   | Show the loading overlay; `undefined` hides it. Don't await it |
+| `findStructure(structure, value)`  | `any`             | Look up a structure value                                      |
+
+`setLoading` shows and hides the overlay, but its Promise never settles in the Visual Editor. Call it without `await`, and call `setLoading(undefined)` in a `finally` so the overlay always clears:
+
+```javascript
+api.setLoading("Uploading images…");
+try {
+  // …uploads…
+} finally {
+  api.setLoading(undefined);
+}
+```
 
 ### File Interface
+
+From `@cloudcannon/visual-editor-api` (0.0.22):
 
 ```typescript
 interface File {
   data: {
     get(opts?: { slug?: string }): Promise<any>;
     set(opts: { slug: string; value: any }): Promise<any>;
-    edit(opts: { slug: string }): void;
-    addArrayItem(opts: { slug: string; item?: any }): Promise<any>;
-    removeArrayItem(opts: { slug: string; index: number }): Promise<any>;
-    moveArrayItem(opts: { slug: string; from: number; to: number }): Promise<any>;
+    edit(opts: {
+      slug: string;
+      style?: string | null;
+      position?: { x: number; y: number; left: number; top: number; width: number; height: number };
+    }): void;
+    upload(file: globalThis.File, opts: { slug: string }): Promise<string | undefined>;
+    // index: null appends. Pass sourceIndex instead of value to clone an item.
+    addArrayItem(opts: {
+      slug: string;
+      index: number | null;
+      value?: any;
+      sourceIndex?: number;
+    }): Promise<void>;
+    removeArrayItem(opts: { slug: string; index: number }): Promise<void>;
+    moveArrayItem(opts: {
+      fromSlug: string;
+      toSlug?: string;
+      fromIndex: number;
+      toIndex: number;
+    }): Promise<void>;
   };
   content: {
-    get(): Promise<string>;
+    get(): Promise<string | undefined>;
     set(value: string): Promise<void>;
   };
-  getInputConfig(opts: { slug: string }): any;
+  getInputConfig(opts: { slug: string }): Promise<Input | undefined>;
   addEventListener(event: "change" | "delete", listener: () => void): void;
 }
 ```
 
 Slug paths use `.` as the separator: `"hero.title"` for `{ hero: { title: "X" } }`.
+
+`getInputConfig` returns a Promise. Await it before passing the config to `uploadFile`: a Promise can't cross the editor's `postMessage` boundary, so the call fails with `DataCloneError`. To upload into a field, `data.upload(file, { slug })` uses that field's input config.
 
 ### Dataset / Collection
 

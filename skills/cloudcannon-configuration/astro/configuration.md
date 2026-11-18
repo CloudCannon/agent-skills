@@ -28,6 +28,52 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg ast
 
 Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in the `package.json` `build` script before `astro build`, and steps that read the built output (Pagefind and similar HTML indexers) after it — see [../build-commands.md](../build-commands.md).
 
+### When production runs on an adapter
+
+Keep the adapter, and let CloudCannon build the same repository for editing. CloudCannon serves only the prerendered pages, from the adapter's static output folder:
+
+| Adapter            | `build.output_path`       |
+| ------------------ | ------------------------- |
+| `@astrojs/netlify` | `"dist"`                  |
+| `@astrojs/vercel`  | `".vercel/output/static"` |
+| `@astrojs/node`    | `"dist/client"`           |
+
+**MUST:** keep every page editors work on prerendered. On a site with `output: "server"`, that means `export const prerender = true` on those routes; that also changes production, so **ask the user** first.
+**Why:** an on-demand page (`prerender = false`) isn't in the static output, so the Visual Editor has no page to open.
+
+Set a flag that only the CloudCannon build has, and read it in one module:
+
+```json
+"build": {
+  "environment_variables": [{ "key": "PUBLIC_EDITOR_BUILD", "value": "true" }]
+}
+```
+
+```ts
+// src/lib/editor-build.ts
+export const editorBuild = import.meta.env.PUBLIC_EDITOR_BUILD === "true";
+```
+
+The `PUBLIC_` prefix lets client scripts read it too. CloudCannon reads `initial-site-settings.json` only when it creates the site; on an existing site, add the variable in **Site Settings**. Server secrets (API keys, webhook URLs) belong on the production host only.
+
+Branch on `editorBuild` for each server feature on an editor-owned page:
+
+| The page has                                | On the editor build                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| A server island (`server:defer`)            | Render the island's markup with example data, through a view component both branches share |
+| An Astro Action or API route the page calls | Render the form or widget, and skip the call under `window.inEditorMode`                   |
+| An on-demand route editors don't open       | Nothing                                                                                    |
+
+```astro
+{editorBuild ? (
+  <SeatsView seats={42} label={label} />
+) : (
+  <Seats server:defer label={label}><p slot="fallback">Checking…</p></Seats>
+)}
+```
+
+**Why:** the Visual Editor answers the island's request with its own "Page not found" page, as a 200 HTML response, so the island swaps that page in where its content should be. A shared view keeps the placeholder's markup and regions identical to the live output. To tell editors the value is an example, see [cloudcannon-visual-editing/visual-editing-reference.md § Mark parts editors can't change](../../cloudcannon-visual-editing/visual-editing-reference.md#mark-parts-editors-cant-change).
+
 ## Customize the config
 
 - **Map every Zod field:** cross-reference every field in the Zod schemas from the audit against `_inputs`, and give each user-facing field an input per [../configuration.md § Configure every field explicitly](../configuration.md#configure-every-field-explicitly).

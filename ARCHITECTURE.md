@@ -155,6 +155,7 @@ nextjs/overview.md                      ENTRY POINT for Next.js — @next/mdx, n
 SKILL.md                                ENTRY POINT — region types, workflow, checklist
 editable-regions.md                     Region types, attribute reference, decision tree
 editable-regions-internals.md           ON DEMAND — lifecycle trace, JS API, quirks
+custom-editor-tooling.md                ON DEMAND — building editor-only tools on the JS API
 troubleshooting.md                      Symptom → fix, when regions misbehave
 visual-editing.md                       Phase 4: section census, completeness checklist, pre-handoff sweep
 visual-editing-reference.md             ON DEMAND — pattern reference, do not read front to back
