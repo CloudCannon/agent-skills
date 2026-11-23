@@ -88,6 +88,11 @@ nextjs/audit.md                         Phase 1: router and export readiness, co
 nextjs/content.md                       Phase 3: content loader, [slug] routes, MDX, data files
 nextjs/build.md                         Phase 5: export settings, build command
 nextjs/page-building.md                 Phase 2/4: pages collection, [slug] route, block map
+nuxt/overview.md                        ENTRY POINT for Nuxt — static generation scope, quick checks
+nuxt/audit.md                           Phase 1: static generation readiness, content sources, MDC
+nuxt/content.md                         Phase 3: Nuxt Content collections, own loaders, content in .vue files
+nuxt/build.md                           Phase 5: clean build, render errors, build command
+nuxt/page-building.md                   Phase 2/4: pages collection, catch-all page, block map
 scripts/*.sh                            Automation (audit-astro, audit-hugo)
 
 ── make-site-multilingual (journey) ──────────────────────────
@@ -137,6 +142,9 @@ eleventy/configuration-gotchas.md       Eleventy: rich text inputs per template 
 nextjs/overview.md                      ENTRY POINT for Next.js — reading order
 nextjs/configuration.md                 Next.js: CLI baseline fixes, next.config, collections, images
 nextjs/collection-urls.md               Next.js: route segments, trailingSlash, .html paths
+nuxt/overview.md                        ENTRY POINT for Nuxt — reading order
+nuxt/configuration.md                   Nuxt: CLI baseline fixes, nuxt generate, reachable pages, collections, images
+nuxt/collection-urls.md                 Nuxt: page files, Nuxt Content paths, numeric ordering prefixes
 
 ── cloudcannon-snippets (capability) ─────────────────────────
 SKILL.md                                ENTRY POINT — when/why/which approach
@@ -150,6 +158,7 @@ astro/overview.md                       ENTRY POINT for Astro — MDX stack, aut
 hugo/overview.md                        ENTRY POINT for Hugo — shortcodes, built-in imports
 eleventy/overview.md                    ENTRY POINT for Eleventy — shortcodes, includes, raw tags
 nextjs/overview.md                      ENTRY POINT for Next.js — @next/mdx, next-mdx-remote, shared components map
+nuxt/overview.md                        ENTRY POINT for Nuxt — markdown settings, MDC components as raw snippets
 
 ── cloudcannon-visual-editing (capability) ───────────────────
 SKILL.md                                ENTRY POINT — region types, workflow, checklist
@@ -160,7 +169,7 @@ troubleshooting.md                      Symptom → fix, when regions misbehave
 visual-editing.md                       Phase 4: section census, completeness checklist, pre-handoff sweep
 visual-editing-reference.md             ON DEMAND — pattern reference, do not read front to back
 react/visual-editing-reference.md       ON DEMAND — React in any SSG: registration, EditableRegions, JSX, blueprints
-vue/visual-editing-reference.md         ON DEMAND — Vue in any SSG: registration, EditableRegions
+vue/visual-editing-reference.md         ON DEMAND — Vue in any SSG: registration, EditableRegions, templates
 svelte/visual-editing-reference.md      ON DEMAND — Svelte in any SSG: registration, EditableRegions
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
@@ -178,6 +187,10 @@ nextjs/overview.md                      ENTRY POINT for Next.js — EditableRegi
 nextjs/visual-editing.md                Phase 4: layout root, gated editor loader, component map
 nextjs/visual-editing-reference.md      ON DEMAND — client-safe components, router hooks, MDX bodies
 nextjs/troubleshooting.md               Next.js: symptom → fix
+nuxt/overview.md                        ENTRY POINT for Nuxt — EditableRegions root, reading order
+nuxt/visual-editing.md                  Phase 4: layout root, isCustomElement, gated client plugin, component map
+nuxt/visual-editing-reference.md        ON DEMAND — registered components take props, array blueprints, Nuxt Content bodies
+nuxt/troubleshooting.md                 Nuxt: symptom → fix
 scripts/setup-editable-regions-astro.sh Astro only — installs package, wires Astro integration
 
 ── cloudcannon-bookshop (capability) ─────────────────────────
@@ -202,6 +215,10 @@ nextjs/overview.md                      ENTRY POINT for Next.js — structures o
 nextjs/bookshop.md                      Next.js: where things live, the React connector, what doesn't apply
 nextjs/migrating-to-editable-regions.md Next.js: component map, block props, removing the connector
 nextjs/troubleshooting.md               Next.js: symptom → fix
+nuxt/overview.md                        ENTRY POINT for Nuxt — structures only, reading order
+nuxt/bookshop.md                        Nuxt: where things live, the visual editor connector, what doesn't apply
+nuxt/migrating-to-editable-regions.md   Nuxt: component map, block props, removing the connector
+nuxt/troubleshooting.md                 Nuxt: symptom → fix
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

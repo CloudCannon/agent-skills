@@ -61,15 +61,15 @@ Components that fetch, submit forms, or load third-party scripts need an editor-
 
 `data-prop` paths resolve against the file being edited, not against the template's local variables. This is the grammar.
 
-| Context                                | Syntax                    | Example                                          | Where it works                                                                                                             |
-| -------------------------------------- | ------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| Same file, frontmatter                 | Relative key              | `data-prop="title"`, `data-prop="banner.title"`  | Default case.                                                                                                              |
-| Same file, markdown body               | `@content`                | `data-prop="@content"`                           | Blog bodies, rich-text body regions. Opens the content editor (`_editables.content`); no `data-type` needed.               |
-| Shared data file (via `data_config`)   | `@data[key].path`         | `data-prop="@data[call-to-action].title"`        | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
-| Another content file by path           | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane].name"` | Cross-collection items on a listing page. Path must start with `/`.                                                        |
-| Inside an `array-item`                 | Relative (scope = item)   | `data-prop="title"` resolves to `items.N.title`  | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
-| A specific array item, no array region | Numeric dot segment       | `data-prop="@data[footer].sections.0.title"`     | Fields of an array whose container can't be an array region. Inline editing, no add/remove/reorder.                        |
-| Pass-through scope                     | Empty string              | `data-prop=""`                                   | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
+| Context                                | Syntax                    | Example                                             | Where it works                                                                                                             |
+| -------------------------------------- | ------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Same file, frontmatter                 | Relative key              | `data-prop="title"`, `data-prop="banner.title"`     | Default case.                                                                                                              |
+| Same file, markdown body               | `@content`                | `data-prop="@content"`                              | Blog bodies, rich-text body regions. Opens the content editor (`_editables.content`); no `data-type` needed.               |
+| Shared data file (via `data_config`)   | `@data[key].path`         | `data-prop="@data[call-to-action].title"`           | Reusable CTAs, testimonials. Key matches `data_config` entry.                                                              |
+| Another content file by path           | `@file[/repo/path].field` | `data-prop="@file[/src/content/team/jane.md].name"` | Cross-collection items on a listing page. The path is from the repository root, with a leading `/` and the file extension. |
+| Inside an `array-item`                 | Relative (scope = item)   | `data-prop="title"` resolves to `items.N.title`     | Array children. Do NOT repeat the array's `@data[...]` prefix — see [Arrays inside data files](#arrays-inside-data-files). |
+| A specific array item, no array region | Numeric dot segment       | `data-prop="@data[footer].sections.0.title"`        | Fields of an array whose container can't be an array region. Inline editing, no add/remove/reorder.                        |
+| Pass-through scope                     | Empty string              | `data-prop=""`                                      | Primitive regions only. Breaks `<editable-component>` (empty string treated as falsy).                                     |
 
 **Paths are dot-separated, and nothing else.** The runtime splits a path on `.` and looks each segment up as a key, so a numeric segment indexes an array (`sections.0.title`). Brackets belong only to the prefix — `@data[key]`, `@collections[key]`, `@file[path]`. **MUST NOT** write `sections[0].title`: it looks up a literal key named `sections[0]`, finds nothing, and the region silently never mounts — no error card, no console warning.
 
@@ -138,26 +138,13 @@ Also watch for content working around element limitations — `<br>` tags inside
 
 **Regions inside interactive elements:**
 
-| Host                              | What happens                                                                                              | Fix                                                                                                                                                                                                                               |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A text region on a `<summary>`    | The text is editable, but clicking it no longer toggles the `<details>`, so its contents are sidebar-only | Render `<details open>` in editor mode: in a re-rendered component, add `open` under the editor flag; in a page template, an editor-only script that sets `open` on marked `<details>` elements when `window.inEditorMode` is set |
-| A text region inside a `<button>` | Each click into the text also fires the button's click handler (keystrokes don't)                         | Guard the click action under `window.inEditorMode`, or keep the region off interactive elements                                                                                                                                   |
-| A text region inside an `<a>`     | Clicking the text follows the link, so editors change it through the sidebar or the item's modal          | Keep the region. When the user wants on-page editing there, add the editor-only click guard below                                                                                                                                 |
+| Host                              | What happens                                                                                                            | Fix                                                                                                                                                                                                                               |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A text region on a `<summary>`    | The text is editable, but clicking it no longer toggles the `<details>`, so its contents are sidebar-only               | Render `<details open>` in editor mode: in a re-rendered component, add `open` under the editor flag; in a page template, an editor-only script that sets `open` on marked `<details>` elements when `window.inEditorMode` is set |
+| A text region inside a `<button>` | Each click into the text also fires the button's click handler (keystrokes don't)                                       | Guard the click action under `window.inEditorMode`, or keep the region off interactive elements                                                                                                                                   |
+| A text region inside an `<a>`     | The text region cancels clicks on itself, so clicking the text edits it and only clicks elsewhere in the link follow it | Keep the region; nothing to add                                                                                                                                                                                                   |
 
 For the page-template script, check `window.inEditorMode` immediately and again on `DOMContentLoaded` and `load`, and mark the elements with a neutral attribute (`data-open-in-editor`) rather than touching every `<details>`.
-
-The link click guard is a `document` click listener in the capture phase, added only under `window.inEditorMode`, that calls `preventDefault()` when the click lands in a text region inside a link:
-
-```javascript
-document.addEventListener(
-  "click",
-  (event) => {
-    const region = event.target.closest?.('[data-editable="text"], editable-text');
-    if (region?.closest("a")) event.preventDefault();
-  },
-  true,
-);
-```
 
 **Editable text needs a single concrete host.** A text region must sit on one real DOM element so `data-editable` / `data-prop` (or the custom-element equivalent) has somewhere to live. A template construct that produces no DOM node, or a component with multiple roots, leaves nothing to attach the region to — use one wrapper element as the output. See your SSG's reference for the constructs that hit this.
 
@@ -396,7 +383,7 @@ When a page template has its own rendering logic but reads its data from a conte
 When a page template fetches items from a different collection — team members on an About page, testimonials on a landing page — add `@file` editables so those items are editable inline:
 
 ```html
-<h3 data-editable="text" data-prop="@file[/src/content/team/jane].name">Jane</h3>
+<h3 data-editable="text" data-prop="@file[/src/content/team/jane.md].name">Jane</h3>
 ```
 
 How the item's identifier maps to a file path depends on the stack's collection loader, and whether the file extension is part of it. Check that before constructing `@file` paths — see your SSG's reference.
@@ -666,7 +653,7 @@ The access syntax differs per integration — a build-time environment value in 
 Keep these in their framework. Register each top-level one with its framework's function, importing only the frameworks the site uses. The calls go in the file the SSG's setup loads in editor mode — see that SSG's `visual-editing.md`. Each framework's function and import path:
 
 - React → [react/visual-editing-reference.md](react/visual-editing-reference.md), which also holds React's rules for JSX markup, rich text hosts and `<template>` blueprints
-- Vue → [vue/visual-editing-reference.md](vue/visual-editing-reference.md)
+- Vue → [vue/visual-editing-reference.md](vue/visual-editing-reference.md), which also holds Vue's rules for template markup and rich text hosts
 - Svelte → [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md)
 
 Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [§ Where does the registration go](#where-does-the-registration-go--component-root-or-call-site).
@@ -675,15 +662,15 @@ Each function mounts the component into a detached `<div>` and diffs that `<div>
 
 To make nested content editable within a framework component you may need to refactor it slightly so there are suitable elements to attach editable attributes or web components to. The component handles overall re-rendering; inner text and images should still be individually editable where possible.
 
-**Hydration gotcha.** Content inside a hydrated component can be overwritten when its framework hydrates. If an editable region modifies static server-rendered HTML but the framework then replaces that DOM with its own output, the editor's changes appear to do nothing. Content controlled by component state may not be a good candidate for inline editable regions.
+**Hydration gotcha.** A region inside a hydrated component needs an `EditableRegions` root inside that component — see [§ Whole-page framework sites](#whole-page-framework-sites--the-editableregions-root). Without one, the region writes into the server-rendered HTML before the framework hydrates and replaces it, so edits appear to do nothing. Content controlled by component state may not be a good candidate for inline editable regions.
 
 **Gate side effects with `window.inEditorMode`.** A component that fetches, submits forms, or loads third-party scripts renders the same markup in the editor but skips the API calls and script loads. Editable regions do not block runtime `fetch()`, but the preview iframe often differs from production (CORS, auth cookies, relative URLs); test in the Visual Editor if the UI depends on it.
 
 ### Whole-page framework sites — the `EditableRegions` root
 
-Applies when React, Vue or Svelte renders and hydrates the whole page, from the root layout down. Sites that hydrate only islands inside static HTML don't use it.
+Applies when React, Vue or Svelte renders and hydrates the whole page, from the root layout down, and to each hydrated island that holds regions. An island gets its own root, inside the island's component around its template; regions in the static HTML around it need none.
 
-**MUST:** wrap every editable region on the page in one `EditableRegions` root, placed in the root layout.
+**MUST:** wrap every editable region the framework renders in an `EditableRegions` root: one in the root layout on a whole-page site, one inside each island on an islands site.
 **Why:** the runtime connects regions as soon as it loads. A region with no editable ancestor connects as an orphan and writes its value into the DOM straight away, which can be before the framework hydrates that markup. Regions inside the root don't mount until the root connects, and the root connects only once its component has mounted, after hydration.
 
 When the layout already has a single element around the whole page, turn that element into the root, with the same `tag` and classes, rather than adding another.

@@ -102,7 +102,7 @@ When Phase 3 creates a collection's files, check each planned file's URL against
 If a page doesn't load in the visual editor:
 
 1. **Check the `url` pattern** -- compare the configured URL against the actual build output (`dist/`, `public/`, `_site/`, `out/`). The most common issues are wrong placeholders (`[slug]` vs `{slug}`) and wrong prefix paths.
-2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`; Eleventy: none, only a `permalink` ending in a file name; Next.js: `trailingSlash`).
+2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`; Eleventy: none, only a `permalink` ending in a file name; Next.js: `trailingSlash`; Nuxt: none, every page builds as a folder).
 3. **Check fixed vs data placeholders** -- `[slug]` is the filename; `{slug}` is the frontmatter `slug` field. If the SSG uses a frontmatter field for routing, you need curly braces.
 4. **Build and inspect** -- when in doubt, build the site and inspect the output directory to see the actual output paths.
 
@@ -112,3 +112,4 @@ If a page doesn't load in the visual editor:
 - **Hugo**: [hugo/collection-urls.md](hugo/collection-urls.md) — `[full_slug]`, `_index.md`, page bundles, overlapping collections.
 - **Eleventy**: [eleventy/collection-urls.md](eleventy/collection-urls.md) — default paths, `permalink` front matter and directory data files, `--to=json`.
 - **Next.js**: [nextjs/collection-urls.md](nextjs/collection-urls.md) — route segments, `trailingSlash`, `.html` paths, the home page.
+- **Nuxt**: [nuxt/collection-urls.md](nuxt/collection-urls.md) — page files, Nuxt Content paths, numeric ordering prefixes, unlinked pages.

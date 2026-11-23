@@ -28,14 +28,14 @@ Bookshop is CloudCannon's earlier component system: a component library, a build
 
 Any one signal means the site uses Bookshop.
 
-| Signal                                                                   | Where                                                                      |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `bookshop/bookshop.config.{js,cjs}`                                      | `src/` (Astro) or `component-library/` (Hugo, Eleventy, Jekyll, Next.js)   |
-| `*.bookshop.{yml,yaml,toml,json,js,cjs}` beside each component           | `component-library/components/` or `src/components/`                       |
-| `@bookshop/*` packages                                                   | `package.json`, in `dependencies` or `devDependencies`                     |
-| `npx @bookshop/generate`                                                 | `.cloudcannon/postbuild`                                                   |
-| `_bookshop_name` keys                                                    | Front matter, usually under `content_blocks`; sometimes component code too |
-| The SSG's Bookshop plugin, module or integration, and its template calls | Site config and layouts — see the SSG's `bookshop.md`                      |
+| Signal                                                                   | Where                                                                          |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `bookshop/bookshop.config.{js,cjs}`                                      | `src/` (Astro) or `component-library/` (Hugo, Eleventy, Jekyll, Next.js, Nuxt) |
+| `*.bookshop.{yml,yaml,toml,json,js,cjs}` beside each component           | `component-library/components/` or `src/components/`                           |
+| `@bookshop/*` packages                                                   | `package.json`, in `dependencies` or `devDependencies`                         |
+| `npx @bookshop/generate`                                                 | `.cloudcannon/postbuild`                                                       |
+| `_bookshop_name` keys                                                    | Front matter, usually under `content_blocks`; sometimes component code too     |
+| The SSG's Bookshop plugin, module or integration, and its template calls | Site config and layouts — see the SSG's `bookshop.md`                          |
 
 ## SSG support
 
@@ -47,6 +47,7 @@ Migrate when editable regions can re-render the SSG's components. Otherwise the 
 | Hugo     | `@bookshop/hugo-engine`                            | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [hugo/overview.md](hugo/overview.md)         |
 | Eleventy | `@bookshop/eleventy-engine`                        | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [eleventy/overview.md](eleventy/overview.md) |
 | Next.js  | None — `@bookshop/generate` writes structures only | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [nextjs/overview.md](nextjs/overview.md)     |
+| Nuxt     | None — `@bookshop/generate` writes structures only | Migrate — [migrating-to-editable-regions.md](migrating-to-editable-regions.md)                                 | [nuxt/overview.md](nuxt/overview.md)         |
 | Jekyll   | `@bookshop/jekyll-engine`                          | **Stay on Bookshop** — [maintaining.md](maintaining.md). Editable regions have no Jekyll component support yet | —                                            |
 
 ## Maintain or migrate?
@@ -79,6 +80,7 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 | Hugo     | [hugo/overview.md](hugo/overview.md)         | **Start here for Hugo**     |
 | Eleventy | [eleventy/overview.md](eleventy/overview.md) | **Start here for Eleventy** |
 | Next.js  | [nextjs/overview.md](nextjs/overview.md)     | **Start here for Next.js**  |
+| Nuxt     | [nuxt/overview.md](nuxt/overview.md)         | **Start here for Nuxt**     |
 
 **Other skills:**
 
