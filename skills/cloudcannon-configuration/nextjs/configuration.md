@@ -147,7 +147,7 @@ Next.js has no data directory. Use the folder the site imports its JSON from (of
 
 - **Write** new data files as JSON. A JSON file imported directly needs no reader. A YAML file needs a reader in the site's code, such as the content loader with `js-yaml`.
 - **Register** each data file a region binds as `@data[<name>]` in `data_config` — see [../configuration-gotchas.md § Data files: editing and datasets are separate](../configuration-gotchas.md#data-files-editing-and-datasets-are-separate).
-- **Leave** values in `.ts` and `.js` modules read-only. CloudCannon edits JSON, YAML and front matter only. When editors need such a value, move it into a JSON file the module imports, after asking the user.
+- **Leave** values in `.ts` and `.js` modules read-only. CloudCannon can't parse them into inputs — see [../configuration-gotchas.md § Data file formats](../configuration-gotchas.md#data-file-formats). When editors need such a value, move it into a JSON file the module imports, after asking the user.
 
 ## Images
 

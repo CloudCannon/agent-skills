@@ -51,7 +51,7 @@ Extract one block at a time and rebuild after each, following [../content.md § 
 ### Data files
 
 - **Move** editor-facing values out of JS data files into JSON or YAML in the data directory, and update every template that reads them. Keep JS data for values computed at build time. A JS data file that fetches an API is the [../content.md § API-driven content → local files](../content.md#api-driven-content--local-files) case.
-  **Why:** CloudCannon edits JSON and YAML files only.
+  **Why:** CloudCannon can't parse a JS data file into inputs.
 - **Prefer** JSON for new data files. A YAML data file needs `addDataExtension("yml,yaml", …)` in the config; without it Eleventy skips the file, and every template reading it prints nothing.
 - **Reshape** a map keyed by slug into a top-level array ([../content.md § Data collections](../content.md#data-collections)), and update every template that loops over it.
 - **Move** hardcoded shared UI out of includes into a data file ([../content.md § Settings in code → data files](../content.md#settings-in-code--data-files)).

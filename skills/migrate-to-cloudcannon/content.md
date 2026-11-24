@@ -144,7 +144,9 @@ Convert build-time API fetches (headless CMS, REST endpoints, placeholder APIs) 
 
 ### Settings in code → data files
 
-Move editor-facing settings (navigation, social links, colours, CTAs, footer copy) out of code and templates into data files. CloudCannon can't edit code, so settings locked in a config module or a template are out of editors' reach.
+Move editor-facing settings (navigation, social links, colours, CTAs, footer copy) out of code and templates into data files. CloudCannon gives editors inputs only for data files and front matter. A value in a config module or hardcoded in a template has no input; editors could reach it only as raw code in the Source Editor, or through a source editable region around template markup.
+
+Write the data files as JSON or YAML. CloudCannon also edits TOML, CSV and TSV, so a site that already keeps data in one of those, and whose SSG reads it, can stay as it is.
 
 | Keep in code                                          | Move to a data file                         |
 | ----------------------------------------------------- | ------------------------------------------- |

@@ -361,3 +361,4 @@ If a rich text field contains structured HTML with a fixed layout and only a few
 - Hugo: [hugo/overview.md](hugo/overview.md)
 - Eleventy: [eleventy/overview.md](eleventy/overview.md)
 - Next.js: [nextjs/overview.md](nextjs/overview.md)
+- Nuxt: [nuxt/overview.md](nuxt/overview.md)

@@ -520,7 +520,19 @@ Import only the renderers for frameworks the site uses — each pulls its framew
 
 #### React, Vue and Svelte components
 
-Register a top-level React, Vue or Svelte component in `registerComponents.ts` with its framework's function — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) for why the host sits outside the component, state resets, the hydration gotcha and editor-mode gating, and each framework's file for its function — [React](../react/visual-editing-reference.md), [Vue](../vue/visual-editing-reference.md), [Svelte](../svelte/visual-editing-reference.md). The React file also covers React markup, rich text hosts and `<template>` blueprints. In Astro, the hydration gotcha applies to content inside an island with a `client:*` directive. Page builder blocks register from per-framework maps → [§ BlockRenderer architecture](#blockrenderer-architecture).
+Register a top-level React, Vue or Svelte component in `registerComponents.ts` with its framework's function — see [../visual-editing-reference.md § React, Vue and Svelte components](../visual-editing-reference.md#react-vue-and-svelte-components) for why the host sits outside the component, state resets, the hydration gotcha and editor-mode gating, and each framework's file for its function — [React](../react/visual-editing-reference.md), [Vue](../vue/visual-editing-reference.md), [Svelte](../svelte/visual-editing-reference.md). The React file also covers JSX markup, rich text hosts and `<template>` blueprints; the Vue file covers template markup and rich text hosts. In Astro, a region inside an island with a `client:*` directive needs an `EditableRegions` root inside the island → [../visual-editing-reference.md § Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root). Page builder blocks register from per-framework maps → [§ BlockRenderer architecture](#blockrenderer-architecture).
+
+#### Vue components in Astro
+
+Set Vue's custom-element option in the Vue integration in `astro.config.mjs` → [../vue/visual-editing-reference.md § Markup in templates](../vue/visual-editing-reference.md#markup-in-templates):
+
+```js
+vue({
+  template: {
+    compilerOptions: { isCustomElement: (tag) => tag.startsWith("editable-") },
+  },
+}),
+```
 
 #### Editing fallbacks (Solid, or complex components)
 

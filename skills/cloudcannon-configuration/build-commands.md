@@ -83,13 +83,19 @@ Any `yarn` on the path honours a committed `yarnPath`, so a Yarn Berry site need
 
 ## Node version
 
-| The site has                       | `build.node_version`                                  |
-| ---------------------------------- | ----------------------------------------------------- |
-| `.nvmrc` or `.node-version`        | `"file"`; CloudCannon reads the version from it       |
-| `package.json` `engines.node` only | Its major version (`">=20"` → `"20"`)                 |
-| Neither                            | Unset, which builds on CloudCannon's default, Node 22 |
+| The site has                       | `build.node_version`                                                                                              |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `.nvmrc` or `.node-version`        | `"file"`; CloudCannon reads the version from it                                                                   |
+| `package.json` `engines.node` only | The major of the local `node -v` when the range allows it, otherwise the range's lowest major (`">=20"` → `"20"`) |
+| Neither                            | Unset, which builds on CloudCannon's default, Node 22                                                             |
 
-When the framework needs a newer Node than the version this gives, set its minimum major version instead. The SSG's `configuration.md` names the framework's minimum. When the site has neither file, suggest the user adds an `.nvmrc` with the version they build with locally.
+The version must also meet each minimum below. When the table gives a lower one, set `build.node_version` to the highest of them; when the site pins a lower one in `.nvmrc` or `.node-version`, tell the user and recommend raising it.
+
+- The framework's minimum, named in the SSG's `configuration.md`
+- The pinned package manager's own `engines.node` (npm 11 needs 20.17)
+- Node 20.19, when the migration adds `@cloudcannon/editable-regions`
+
+When the site has neither file, suggest the user adds an `.nvmrc` with the version they build with locally.
 
 ## Checks
 

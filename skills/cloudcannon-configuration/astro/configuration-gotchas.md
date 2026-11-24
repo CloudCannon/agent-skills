@@ -16,9 +16,9 @@ The problem — `[slug]` resolves to an empty string for `index.md` — is in [.
 
 Use `{slug}` only when the route already reads a `slug` field that every post sets. Don't add `slug` to posts just to steer the URL ([../collection-urls.md § The rule](../collection-urls.md#the-rule)). For legacy Astro collections, `slug` in frontmatter overrides the auto-generated slug without needing to be in the Zod schema.
 
-## TypeScript config files are not CC-editable
+## TypeScript config values have no inputs
 
-Some Astro templates store site configuration in TypeScript files with `as const` objects. CloudCannon reads data from `.json`, `.yml`, `.toml`, and frontmatter — not from `.ts` sources, so these can't be edited in CloudCannon's data editor without conversion.
+Some Astro templates store site configuration in TypeScript files with `as const` objects. CloudCannon can't parse a `.ts` module into inputs, so editors could only change these values as raw code in the Source Editor — see [../configuration-gotchas.md § Data file formats](../configuration-gotchas.md#data-file-formats).
 
 Options, in order of preference:
 

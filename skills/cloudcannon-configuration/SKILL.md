@@ -103,6 +103,7 @@ Check this table before writing config. These are keys agents have written that 
 | Hugo          | [hugo/overview.md](hugo/overview.md)         |
 | Eleventy      | [eleventy/overview.md](eleventy/overview.md) |
 | Next.js       | [nextjs/overview.md](nextjs/overview.md)     |
+| Nuxt          | [nuxt/overview.md](nuxt/overview.md)         |
 
 **Other skills:**
 

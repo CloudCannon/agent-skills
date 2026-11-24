@@ -28,6 +28,8 @@ Skip empty phrases ("let me know if you need anything"). Thanking them once for 
 
 ## What to ask the user to verify
 
+Each check names an element you found in the site's source or built output. Name editor UI only as these skills name it; otherwise describe the action without a UI label.
+
 - **Local build** — the project's real build entrypoint, not a partial command. If it fails, paste the full error output (command, exit code, last ~30 lines of stderr).
 - **Checks you already ran** — state them in one line so the user doesn't duplicate work.
 - **Hydration errors**, when you had no browser — list the home page and one page per layout for the user to open from the served build output, and ask them to paste any console errors.
