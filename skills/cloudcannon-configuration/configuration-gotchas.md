@@ -84,6 +84,12 @@ When `.md` files don't build to a page (team members, testimonials, authors used
 
 A common case: data files handled via `data_config` still need to belong to a collection configured in `collections_config` if you want them to appear as a browsable group in the sidebar. Group related data files into the same collection where it makes sense.
 
+### Data file formats
+
+CloudCannon gives editors inputs for front matter and for JSON, YAML, TOML, CSV and TSV data files. Write new data as JSON or YAML, and page-level values as front matter. Keep TOML, CSV or TSV where the site already stores data that way and the SSG reads it. The SSG's `configuration.md` says which formats it reads without extra setup.
+
+Values in JavaScript or TypeScript modules get no inputs: CloudCannon can't parse them, so editors could only change them as raw code in the Source Editor. Move editor-facing values into a data file instead.
+
 ### Data files: editing and datasets are separate
 
 A data file is one the site reads as data rather than building into a page — navigation, footer, authors, icons. It is usually shared across the site rather than tied to one page. Where these files live is the SSG's convention: some SSGs have a fixed data directory, others keep data in a folder like any other collection. Examples here use `src/data/`; the SSG's `configuration.md` gives the real location.

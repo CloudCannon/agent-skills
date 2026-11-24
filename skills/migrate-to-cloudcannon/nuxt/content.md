@@ -93,18 +93,12 @@ Leave MDC components in place in bodies; Phase 2 gives each one a snippet — se
 
 The rule and the keep/move table are in [../content.md § Settings in code → data files](../content.md#settings-in-code--data-files). In Nuxt:
 
-- **Move** values editors change out of `app.config.ts` into a JSON file the component imports. `app.config.ts` is code; CloudCannon doesn't edit it.
+- **Move** values editors change out of `app.config.ts` into a JSON file the component imports. CloudCannon can't parse a TypeScript module into inputs.
 - **Cast** a JSON import where the code expects literal types (`nav as NavItem[]`). JSON imports widen `"primary" | "secondary"` to `string`.
 
 ## Images
 
-| Image source                                                     | Front matter value                          | Change                                                                          |
-| ---------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
-| File in `public/`                                                | Path from the site root: `/images/hero.jpg` | None                                                                            |
-| Imported from `assets/` (`import hero from "~/assets/hero.jpg"`) | —                                           | Move the file into `public/` and store its path; editors can't change an import |
-| Remote URL                                                       | The URL                                     | None                                                                            |
-
-`<NuxtImg>` takes a `public/` path or an allowed remote URL as `src`, so a moved image needs no other change.
+Keep every image where production has it, and store the path or URL the site already uses. Images under `public/`, imported from `assets/`, and remote URLs each have their own setup in [cloudcannon-configuration/nuxt/configuration.md § Images](../../cloudcannon-configuration/nuxt/configuration.md#images).
 
 ## API-driven content
 

@@ -66,7 +66,7 @@ Eleventy reads global data from the data directory (`src/_data/` by default) int
 **Why:** Eleventy reads only `.json` and `.js` data files by default. A YAML data file without the extension registered builds with no error and its variable stays empty.
 
 - **Register** each data file a region references as `@data[<name>]` in `data_config`, with the key matching the file name, and configure inputs for its keys — see [../configuration-gotchas.md § Data files: editing and datasets are separate](../configuration-gotchas.md#data-files-editing-and-datasets-are-separate).
-- **Leave** JavaScript data read-only: `_data/*.js`, `*.11tydata.js`, `eleventyComputed` and `addGlobalData` values. CloudCannon edits JSON, YAML and front matter only. When editors need a value a JS file holds, move it into a JSON file the JS file imports, after asking the user.
+- **Leave** JavaScript data read-only: `_data/*.js`, `*.11tydata.js`, `eleventyComputed` and `addGlobalData` values. CloudCannon can't parse them into inputs — see [../configuration-gotchas.md § Data file formats](../configuration-gotchas.md#data-file-formats). When editors need a value a JS file holds, move it into a JSON file the JS file imports, after asking the user.
 - **Put** the editable data files in one `data` collection at the data directory (`path: src/_data`), with a glob that leaves out the `.js` files.
 
 ## Images

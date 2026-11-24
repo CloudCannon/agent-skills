@@ -122,7 +122,7 @@ A Nuxt Content markdown body that uses MDC components (`::callout`) needs snippe
 - **Nuxt Content data collections** hold one entry per YAML or JSON file. A JSON file holds one object; a top-level array doesn't parse into entries.
 - **Without Nuxt Content,** use the folder the site imports its JSON from (often `data/`) for every `data_config` path. A YAML file needs a reader in the site's code.
 - **Register** each data file a region binds as `@data[<name>]` in `data_config` — see [../configuration-gotchas.md § Data files: editing and datasets are separate](../configuration-gotchas.md#data-files-editing-and-datasets-are-separate).
-- **Leave** values in `app.config.ts` and other `.ts` modules read-only. CloudCannon edits JSON, YAML and front matter only. When editors need such a value, move it into a data file, after asking the user.
+- **Leave** values in `app.config.ts` and other `.ts` modules read-only. CloudCannon can't parse them into inputs — see [../configuration-gotchas.md § Data file formats](../configuration-gotchas.md#data-file-formats). When editors need such a value, move it into a JSON or YAML data file, after asking the user.
 
 ## Images
 
