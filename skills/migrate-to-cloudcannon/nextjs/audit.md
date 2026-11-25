@@ -6,10 +6,10 @@ Start from the output of the [quick checks](overview.md#quick-checks), then fill
 
 Record which router serves each route: `app/` (App Router), `pages/` (Pages Router), or both. Rows below marked with a router apply only to it.
 
-**MUST:** stop and **ask the user** before Phase 2 when the site needs anything in the table below. Each one needs a server, and CloudCannon serves the static export.
+**MUST:** stop and **ask the user** before Phase 2 when the site needs anything in the table below. Each one needs a server, and the CloudCannon build is a static export.
 **Why:** a site that depends on these either fails `next build` with `output: "export"`, or builds and then behaves differently on a static host. Removing them changes the site, so it is the user's call.
 
-The CloudCannon build exports every route, wherever production is hosted. A site that needs server route folders left out of that build also stops here for the user's call.
+The CloudCannon build exports every route, wherever the live site is hosted. When the site keeps these features, the live site stays on a host that runs them, and the CloudCannon build gets editing fallbacks — see [server-features.md](../../cloudcannon-configuration/server-features.md). A site that needs server route folders left out of that build also stops here for the user's call.
 
 | Found                                                                            | Under `output: "export"`                                                                    |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -156,7 +156,7 @@ In Next.js the usual outcome is:
 
 - The `build` script in `package.json`, and anything it runs before or after `next build` (search indexes, generated data, a content layer build).
 - Environment variables the build reads (`.env*`, `process.env` in server components) — CMS tokens point at fetches Phase 3 removes.
-- `next.config` values read from `process.env`, and build scripts that branch on the same variables. When production is hosted elsewhere, Phase 2 gates the export settings on a variable — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
+- `next.config` values read from `process.env`, and build scripts that branch on the same variables. When the live site needs a server, Phase 2 gates the export settings on a variable — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
 - Existing hosting config (`vercel.json`, `netlify.toml`, `.github/workflows`), and `headers()`, `redirects()` and `rewrites()` in the Next config — see [../audit.md § Site-wide facts](../audit.md#site-wide-facts).
 
 ## 6. Flags and special patterns

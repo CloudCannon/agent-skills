@@ -28,9 +28,9 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg ast
 
 Put the pre-build steps the audit identified (theme generation, JSON generation, search indexing built from source content) in the `package.json` `build` script before `astro build`, and steps that read the built output (Pagefind and similar HTML indexers) after it — see [../build-commands.md](../build-commands.md).
 
-### When production runs on an adapter
+### When the live site runs on an adapter
 
-Keep the adapter, and let CloudCannon build the same repository for editing. CloudCannon serves only the prerendered pages, from the adapter's static output folder:
+The rules are in [../server-features.md](../server-features.md). Keep the adapter, and let CloudCannon build the same repository for editing. CloudCannon serves only the prerendered pages, from the adapter's static output folder:
 
 | Adapter            | `build.output_path`       |
 | ------------------ | ------------------------- |
@@ -38,27 +38,20 @@ Keep the adapter, and let CloudCannon build the same repository for editing. Clo
 | `@astrojs/vercel`  | `".vercel/output/static"` |
 | `@astrojs/node`    | `"dist/client"`           |
 
-**MUST:** keep every page editors work on prerendered. On a site with `output: "server"`, that means `export const prerender = true` on those routes; that also changes production, so **ask the user** first.
-**Why:** an on-demand page (`prerender = false`) isn't in the static output, so the Visual Editor has no page to open.
+On a site with `output: "server"`, keeping editors' pages prerendered means `export const prerender = true` on those routes; that also changes the live site, so **ask the user** first. An on-demand page (`prerender = false`) isn't in the static output, so the Visual Editor has no page to open.
 
-Set a flag that only the CloudCannon build has, and read it in one module:
-
-```json
-"build": {
-  "environment_variables": [{ "key": "PUBLIC_EDITOR_BUILD", "value": "true" }]
-}
-```
+Read the CloudCannon build's variable in one module:
 
 ```ts
 // src/lib/editor-build.ts
-export const editorBuild = import.meta.env.PUBLIC_EDITOR_BUILD === "true";
+export const editorBuild = import.meta.env.PUBLIC_CLOUDCANNON_BUILD === "true";
 ```
 
-The `PUBLIC_` prefix lets client scripts read it too. CloudCannon reads `initial-site-settings.json` only when it creates the site; on an existing site, add the variable in **Site Settings**. Server secrets (API keys, webhook URLs) belong on the production host only.
+The `PUBLIC_` prefix lets client scripts read it too.
 
 Branch on `editorBuild` for each server feature on an editor-owned page:
 
-| The page has                                | On the editor build                                                                        |
+| The page has                                | In the CloudCannon build                                                                   |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | A server island (`server:defer`)            | Render the island's markup with example data, through a view component both branches share |
 | An Astro Action or API route the page calls | Render the form or widget, and skip the call under `window.inEditorMode`                   |
@@ -72,7 +65,7 @@ Branch on `editorBuild` for each server feature on an editor-owned page:
 )}
 ```
 
-**Why:** the Visual Editor answers the island's request with its own "Page not found" page, as a 200 HTML response, so the island swaps that page in where its content should be. A shared view keeps the placeholder's markup and regions identical to the live output. To tell editors the value is an example, see [cloudcannon-visual-editing/visual-editing-reference.md § Mark parts editors can't change](../../cloudcannon-visual-editing/visual-editing-reference.md#mark-parts-editors-cant-change).
+**Why:** the Visual Editor answers the island's request with its own "Page not found" page, as a 200 HTML response, so the island swaps that page in where its content should be.
 
 ## Customize the config
 

@@ -4,7 +4,7 @@ Start from the output of the [quick checks](overview.md#quick-checks), then fill
 
 ## 1. Static generation readiness
 
-**MUST:** stop and **ask the user** before Phase 2 when the site needs anything in the table below. Each one needs a server, and CloudCannon serves the output of `nuxt generate`.
+**MUST:** stop and **ask the user** before Phase 2 when the site needs anything in the table below. Each one needs a server, and the CloudCannon build is the output of `nuxt generate`. When the site keeps these features, the live site stays on a host that runs them, and the CloudCannon build gets editing fallbacks — see [server-features.md](../../cloudcannon-configuration/server-features.md).
 **Why:** a site that depends on these builds and then behaves differently on a static host. Removing them changes the site, so it is the user's call.
 
 | Found                                                                                                                         | Under `nuxt generate`                                                                                           |

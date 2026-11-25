@@ -87,6 +87,12 @@ A script for one SSG only (`audit-astro.sh`) may use that SSG's conventions. Nam
 
 **Why:** every variant adds a flag for the agent to choose and for us to maintain, and the list of variants never ends. The agent can read how this site does it and write a few lines that fit; the requirements keep the result consistent. A list of names or paths a script needs per site goes in a site-owned file, not in the script.
 
+### The CloudCannon build is for editing first
+
+**MUST:** write rules about the CloudCannon build so they apply to every site. Each migration produces that build for editing, whether or not CloudCannon also hosts the live site. When a rule applies only to sites CloudCannon hosts, start it with that condition: "When CloudCannon hosts the site, …".
+
+**Why:** CloudCannon is a CMS first, and its hosting is optional and static only. A rule written as if CloudCannon always hosts the site gets skipped on sites hosted elsewhere, or pushes a server-dependent site onto static hosting.
+
 ### Every skill belongs to one of three tiers
 
 **MUST:** pick the tier before creating a skill. It fixes the name, the entry shape, and whether the skill keeps state.

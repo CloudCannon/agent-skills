@@ -517,7 +517,7 @@ Build one note component and reuse it:
 - Render it inside the section, as a child of the element it describes.
 - Hide it by default, and show it only under `.cms-editor-active`, so the hosted copy and production never show it.
 - Make the text say where the value is edited ("Prices come from Shopify. Change them in Shopify admin."), or that the shown value is an example.
-- On a site with an editor-only build, also render it only on that build, so production HTML doesn't carry it.
+- On a site whose CloudCannon build is gated on a variable, also render it only on that build, so the live site's HTML doesn't carry it — see [server-features.md](../cloudcannon-configuration/server-features.md).
 
 ```css
 .editor-note {
@@ -600,7 +600,7 @@ The select is editable in the sidebar by default, but **the rendered card won't 
 1. **A data file holding a top-level array**, each item with a `slug`.
 2. **`data_config`** exposing that file, so the select's option source resolves, plus a `select` input with `value_key: slug` so the frontmatter stores the bare slug rather than an object.
 3. **A dedicated registered component** that takes the slug as a prop and does the lookup **internally**. The lookup must live inside the registered component — not in the page template — because that is the code that re-runs when CloudCannon re-renders.
-4. **An editable wrapper at the call site** with `data-prop` pointing at the slug field. A React component needs the slug under a named prop → [react/visual-editing-reference.md § Registered component values are objects](react/visual-editing-reference.md#registered-component-values-are-objects).
+4. **An editable wrapper at the call site** with `data-prop` pointing at the slug field. A React, Vue or Svelte component needs the slug under a named prop → [§ Registered component values are objects](#registered-component-values-are-objects).
 
 When the editor changes the select, CloudCannon re-renders the component with the new slug, its lookup re-runs, and the displayed fields update live.
 
@@ -657,6 +657,21 @@ Keep these in their framework. Register each top-level one with its framework's 
 - Svelte → [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md)
 
 Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [§ Where does the registration go](#where-does-the-registration-go--component-root-or-call-site).
+
+#### Registered component values are objects
+
+**MUST:** bind a registered React, Vue or Svelte component's region to an object.
+**Why:** the value becomes the component's props, so a string or an array leaves every declared prop `undefined`.
+
+For a string or array field, bind it with `data-prop-<name>="<field>"` in place of `data-prop`; it arrives as `{ <name>: value }`:
+
+```html
+<editable-component data-component="author-card" data-prop-author="author">
+  <!-- the component, rendered with `author` as a prop -->
+</editable-component>
+```
+
+The name is lowercased → [editable-regions.md § Quick Attribute Reference](editable-regions.md#quick-attribute-reference). React adds a rule for TSX → [react/visual-editing-reference.md § Registered component values in TSX](react/visual-editing-reference.md#registered-component-values-in-tsx).
 
 **State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
 

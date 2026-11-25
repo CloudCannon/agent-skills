@@ -20,7 +20,8 @@ Nuxt-specific configuration guidance. The cross-SSG rules live in the root files
 | 6     | [../collection-urls.md](../collection-urls.md)             | Any collection produces pages                                                                          |
 | 7     | [collection-urls.md](collection-urls.md)                   | Any collection produces pages (file routes, Nuxt Content paths, trailing slashes, the home page)       |
 | 8     | [../build-commands.md](../build-commands.md)               | Writing `install_command` or `node_version`, or the build has steps besides `nuxt generate`            |
-| 9     | [../routing.md](../routing.md)                             | The site sets headers, redirects or rewrites (`routeRules`, `nitro.routeRules`)                        |
-| 10    | [../scheduled-builds.md](../scheduled-builds.md)           | Future-dated content should publish on its date                                                        |
-| 11    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                                    |
-| 12    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                                    |
+| 9     | [../server-features.md](../server-features.md)             | The live site needs a server (`server/api` routes the browser calls, auth), so it keeps `nuxt build`   |
+| 10    | [../routing.md](../routing.md)                             | The site sets headers, redirects or rewrites (`routeRules`, `nitro.routeRules`)                        |
+| 11    | [../scheduled-builds.md](../scheduled-builds.md)           | Future-dated content should publish on its date                                                        |
+| 12    | [../cloudcannon-cli-guide.md](../cloudcannon-cli-guide.md) | Generating the baseline step by step, or validating                                                    |
+| 13    | [../configuration-gotchas.md](../configuration-gotchas.md) | During and after configuration — cross-SSG pitfalls, reference only                                    |

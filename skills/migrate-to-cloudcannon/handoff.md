@@ -34,7 +34,7 @@ Each check names an element you found in the site's source or built output. Name
 - **Checks you already ran** — state them in one line so the user doesn't duplicate work.
 - **Hydration errors**, when you had no browser — list the home page and one page per layout for the user to open from the served build output, and ask them to paste any console errors.
 - **Build settings on a site already on CloudCannon** — when the migration changed the build command, install command or output path, give the user the new values to set before the next build — see [configuration.md § Build settings](../cloudcannon-configuration/configuration.md#build-settings).
-- **Production hosted elsewhere** — tell the user the CloudCannon site is for editing only. Its editor previews the CloudCannon build, so images appear unoptimised when that build turns optimisation off.
+- **The live site is hosted elsewhere** — tell the user the CloudCannon site is for editing. Its editor previews the CloudCannon build, so images appear unoptimised when that build turns optimisation off. When the site needs a server, also tell them the live site stays on a host that runs its server features, and that those features show their editing fallbacks in the editor — see [server-features.md](../cloudcannon-configuration/server-features.md).
 - **CloudCannon (human)** — confirm in the hosted environment:
   - Inline text regions can be edited in the preview on representative pages
   - Image regions open the image picker

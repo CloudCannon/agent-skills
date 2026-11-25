@@ -98,7 +98,7 @@ The rule and the keep/move table are in [../content.md § Settings in code → d
 
 ## Images
 
-Keep every image where production has it, and store the path or URL the site already uses. Images under `public/`, imported from `assets/`, and remote URLs each have their own setup in [cloudcannon-configuration/nuxt/configuration.md § Images](../../cloudcannon-configuration/nuxt/configuration.md#images).
+Keep every image where the live site has it, and store the path or URL the site already uses. Images under `public/`, imported from `assets/`, and remote URLs each have their own setup in [cloudcannon-configuration/nuxt/configuration.md § Images](../../cloudcannon-configuration/nuxt/configuration.md#images).
 
 ## API-driven content
 

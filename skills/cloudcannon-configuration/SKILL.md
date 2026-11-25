@@ -18,6 +18,8 @@ description: >-
 
 This skill covers creating and customizing `cloudcannon.config.yml`, which tells CloudCannon how to understand and present the site's content, and `.cloudcannon/initial-site-settings.json`, which tells CloudCannon how to build the site.
 
+**CloudCannon is a CMS first.** Every site gets a CloudCannon build for editors to work in. CloudCannon can also host the live site, but its hosting is static only, apart from form submissions through Inbox. What that means for a site that needs a server is in [server-features.md](server-features.md).
+
 ## When to use
 
 - Creating or customizing `cloudcannon.config.yml` or `.cloudcannon/initial-site-settings.json`
@@ -89,6 +91,7 @@ Check this table before writing config. These are keys agents have written that 
 | [structures.md](structures.md)                       | Any field holds an array or an object, since editors can't add items without a structure.                                     |
 | [collection-urls.md](collection-urls.md)             | Any collection produces pages, or a page fails to load in the Visual Editor.                                                  |
 | [build-commands.md](build-commands.md)               | Writing `install_command` or `node_version`, or the build has generators or post-build steps.                                 |
+| [server-features.md](server-features.md)             | The live site needs a server: the CloudCannon build stays static for editing, with editing fallbacks.                         |
 | [monorepos.md](monorepos.md)                         | The site is in a subfolder of its repository, or the repository holds more than one CloudCannon site.                         |
 | [routing.md](routing.md)                             | The site sets response headers, redirects or rewrites (framework config, `_headers`, `netlify.toml`, `vercel.json`).          |
 | [scheduled-builds.md](scheduled-builds.md)           | Future-dated content should publish on its date without a manual build.                                                       |

@@ -8,18 +8,20 @@ Record for every site:
 
 - **Package manager and version** — see [build-commands.md § Package manager](../cloudcannon-configuration/build-commands.md#package-manager).
 - **Where the site sits in the repository** — the root, or a subfolder beside other code or other sites. For a subfolder, record the folder and how many CloudCannon sites the repository will hold — see [monorepos.md](../cloudcannon-configuration/monorepos.md).
-- **Where production is hosted** — CloudCannon, or another host with CloudCannon for editing only. **Ask the user** if nothing in the repo says.
-- **Headers and redirects**, from every source: the SSG's config, `_headers`, `_redirects`, `netlify.toml`, `vercel.json`. When CloudCannon hosts production, they move to `.cloudcannon/routing.json` — see [routing.md](../cloudcannon-configuration/routing.md).
+- **Where the live site is hosted.** Advise the user, then record their choice:
+  - **The site needs no server:** recommend CloudCannon hosting. It is static hosting on Cloudflare, and forms post to an Inbox.
+  - **Parts of the site need a server** (auth, accounts, checkout, API routes the browser calls): name those parts, and recommend keeping the live site on a host that runs them, with CloudCannon for editing.
+- **Headers and redirects**, from every source: the SSG's config, `_headers`, `_redirects`, `netlify.toml`, `vercel.json`. When CloudCannon hosts the site, they move to `.cloudcannon/routing.json` — see [routing.md](../cloudcannon-configuration/routing.md).
 
 ### Forms
 
-Keep pages with forms, and make their content editable like any other page. What the form submits to depends on hosting:
+Keep pages with forms, and make their content editable like any other page. CloudCannon handles form submissions, so a form is never a reason to leave a page out.
 
-| Form                              | Treatment                                                                                                                                                                                                         |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production hosted elsewhere       | Keeps its backend                                                                                                                                                                                                 |
-| CloudCannon hosts production      | Posts to a CloudCannon Inbox: `method="post"` and a hidden `inbox_key` field — see [Connecting your site to an Inbox](https://cloudcannon.com/documentation/developer-articles/connecting-your-site-to-an-inbox/) |
-| Sign-in, sign-up or account forms | Can't work on static hosting — **ask the user**                                                                                                                                                                   |
+| Case                              | What the form submits to                                                                                                                                                                                 |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CloudCannon hosts the site        | A CloudCannon Inbox: `method="post"` and a hidden `inbox_key` field — see [Connecting your site to an Inbox](https://cloudcannon.com/documentation/developer-articles/connecting-your-site-to-an-inbox/) |
+| The live site is hosted elsewhere | Its own backend on the live site. In the CloudCannon build, an Inbox as above, switched on a variable only that build sets — see [server-features.md](../cloudcannon-configuration/server-features.md)   |
+| Sign-in, sign-up or account forms | They need a server, so the live site stays on a host that runs them. In the CloudCannon build, render them as editing fallbacks                                                                          |
 
 ## Existing hydration errors
 

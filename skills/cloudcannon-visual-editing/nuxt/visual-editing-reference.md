@@ -13,10 +13,11 @@ Nuxt auto-imports hide data loading: `queryCollection` has no import line to gre
 
 Decide each component's treatment in this order, and take the first that fits:
 
-1. **It renders only from its props:** register it; the page passes the data in.
-2. **It loads its own data** (a data-file import, `useAppConfig`, a query) **and each field maps straight to an element:** leave it unregistered, and give its fields primitive regions, with `@data[<key>]` paths for data files. A header that imports `data/nav.json` and renders `@data[nav]` regions is the typical case.
-3. **It loads its own data and its output is computed:** move the load to the caller, which passes the data as props and wraps the component in `<editable-component data-prop="@data[<key>]">`. Any other prop the caller passes follows [../visual-editing-reference.md § Component prop contract](../visual-editing-reference.md#component-prop-contract).
-4. **Its client behaviour fights re-rendering** (autoplay, its own DOM management): register a display-only twin → [../visual-editing-reference.md § Detecting the editor](../visual-editing-reference.md#detecting-the-editor-and-skipping-build-only-logic), and settle its load-time state → [§ Load-time behaviour](../visual-editing-reference.md#load-time-behaviour-in-the-editor).
+1. **It's a server component** (`.server.vue`, or rendered through `<NuxtIsland>`): don't register it. Nuxt fetches a server component's HTML for each set of props, and the CloudCannon build holds HTML only for the props it built with, so an edited prop gets a 404 and the component disappears. Give it a plain `.vue` twin with the same markup. Register the twin, and render it wherever a registered component rendered the server component.
+2. **It renders only from its props:** register it; the page passes the data in.
+3. **It loads its own data** (a data-file import, `useAppConfig`, a query) **and each field maps straight to an element:** leave it unregistered, and give its fields primitive regions, with `@data[<key>]` paths for data files. A header that imports `data/nav.json` and renders `@data[nav]` regions is the typical case.
+4. **It loads its own data and its output is computed:** move the load to the caller, which passes the data as props and wraps the component in `<editable-component data-prop="@data[<key>]">`. Any other prop the caller passes follows [../visual-editing-reference.md § Component prop contract](../visual-editing-reference.md#component-prop-contract).
+5. **Its client behaviour fights re-rendering** (autoplay, its own DOM management): register a display-only twin → [../visual-editing-reference.md § Detecting the editor](../visual-editing-reference.md#detecting-the-editor-and-skipping-build-only-logic), and settle its load-time state → [§ Load-time behaviour](../visual-editing-reference.md#load-time-behaviour-in-the-editor).
 
 Keep the map in `app/cloudcannon/componentMap.ts`, keyed by the `data-component` value, with each component imported explicitly:
 

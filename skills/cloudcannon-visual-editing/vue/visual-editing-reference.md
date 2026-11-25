@@ -13,21 +13,6 @@ import Testimonial from "@/components/Testimonial.vue";
 registerVueComponent("testimonial", Testimonial);
 ```
 
-## Registered component values are objects
-
-**MUST:** bind a registered Vue component's region to an object.
-**Why:** the value becomes the component's props, so a string or an array arrives as index-keyed props (`{ 0: …, 1: … }`) and every declared prop is `undefined`.
-
-For a string or array field, bind it with `data-prop-<name>="<field>"` in place of `data-prop`; it arrives as `{ <name>: value }`:
-
-```vue
-<editable-component data-component="author-card" data-prop-author="author">
-  <AuthorCard :author="page.author" />
-</editable-component>
-```
-
-The name is lowercased → [../editable-regions.md § Quick Attribute Reference](../editable-regions.md#quick-attribute-reference).
-
 ## The Vue `EditableRegions` root
 
 `@cloudcannon/editable-regions/vue` exports `EditableRegions`, which connects in `onMounted`. When and where to use it is in [../visual-editing-reference.md § Whole-page framework sites](../visual-editing-reference.md#whole-page-framework-sites--the-editableregions-root).

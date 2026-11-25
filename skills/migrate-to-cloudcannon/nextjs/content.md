@@ -191,7 +191,7 @@ The rule and the keep/move table are in [../content.md § Settings in code → d
 
 ## Images
 
-Keep every image where production has it, and store the path or URL the site already uses. Images under `public/`, static imports, and remote URLs each have their own setup in [cloudcannon-configuration/nextjs/configuration.md § Images](../../cloudcannon-configuration/nextjs/configuration.md#images).
+Keep every image where the live site has it, and store the path or URL the site already uses. Images under `public/`, static imports, and remote URLs each have their own setup in [cloudcannon-configuration/nextjs/configuration.md § Images](../../cloudcannon-configuration/nextjs/configuration.md#images).
 
 A `next/image` given a string `src` needs `width` and `height`, or `fill`. That covers a `public/` path, a URL, and an upload the import map doesn't know yet. `next/image` under export also needs the `images` setting from Phase 2 — see [cloudcannon-configuration/nextjs/configuration.md § `next.config`](../../cloudcannon-configuration/nextjs/configuration.md#nextconfig-for-static-export).
 

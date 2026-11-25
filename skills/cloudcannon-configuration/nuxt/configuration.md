@@ -23,33 +23,34 @@ npx @cloudcannon/cli configure generate --auto --initial-site-settings --ssg nux
 
 ### Build settings (`.cloudcannon/initial-site-settings.json`)
 
-| Key                     | Value                                                                                                                                                                                                                                                                                          |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ssg`                   | `"nuxtjs"`                                                                                                                                                                                                                                                                                     |
-| `build.install_command` | See [../build-commands.md § Package manager](../build-commands.md#package-manager)                                                                                                                                                                                                             |
-| `build.build_command`   | The `generate` script with the site's package manager (`npm run generate`, `pnpm generate`), where `generate` runs `nuxt generate` plus every pre- and post-build step — see [../build-commands.md](../build-commands.md). A site with no `generate` script gets `"generate": "nuxt generate"` |
-| `build.output_path`     | `".output/public"`                                                                                                                                                                                                                                                                             |
-| `build.node_version`    | See [../build-commands.md § Node version](../build-commands.md#node-version). Nuxt 4 needs Node 20.19 or later, and Nuxt Content's native SQLite connector Node 22.13                                                                                                                          |
-| `build.preserved_paths` | Keep the CLI's `node_modules/,.nuxt/`                                                                                                                                                                                                                                                          |
+| Key                           | Value                                                                                                                                                                                                                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ssg`                         | `"nuxtjs"`                                                                                                                                                                                                                                                                                     |
+| `build.install_command`       | See [../build-commands.md § Package manager](../build-commands.md#package-manager)                                                                                                                                                                                                             |
+| `build.build_command`         | The `generate` script with the site's package manager (`npm run generate`, `pnpm generate`), where `generate` runs `nuxt generate` plus every pre- and post-build step — see [../build-commands.md](../build-commands.md). A site with no `generate` script gets `"generate": "nuxt generate"` |
+| `build.output_path`           | `".output/public"`                                                                                                                                                                                                                                                                             |
+| `build.node_version`          | See [../build-commands.md § Node version](../build-commands.md#node-version). Nuxt 4 needs Node 20.19 or later, and Nuxt Content's native SQLite connector Node 22.13                                                                                                                          |
+| `build.preserved_paths`       | Keep the CLI's `node_modules/,.nuxt/`                                                                                                                                                                                                                                                          |
+| `build.environment_variables` | `PUBLIC_CLOUDCANNON_BUILD`, when the live site needs a server — see [§ When the live site needs a server](#when-the-live-site-needs-a-server)                                                                                                                                                  |
 
 **MUST:** build with `nuxt generate`, never `nuxt build`.
 **Why:** `nuxt build` is a server build. It writes HTML only for the routes the config marks to prerender (`prerender`, `routeRules`), and every other page exists only in `.output/server/`, which CloudCannon doesn't serve.
 
 **MUST NOT:** set `output_path` to `dist`. `nuxt generate` creates `dist` as a link to `.output/public`; use the real folder.
 
-The `generate` script is the static build in the Nuxt starters, beside a `build` script for server hosting, so the CloudCannon build runs it and production's `build` stays as it is. Every step the build needs goes in `generate`, the same way [../build-commands.md § The build script](../build-commands.md#the-build-script) puts them in `build`.
+The `generate` script is the static build in the Nuxt starters, beside a `build` script for server hosting, so the CloudCannon build runs it and the live site's `build` stays as it is. Every step the build needs goes in `generate`, the same way [../build-commands.md § The build script](../build-commands.md#the-build-script) puts them in `build`.
 
 ## Static generation
 
 `nuxt generate` renders every page it reaches at build time and writes plain HTML, plus a `_payload.json` per page that holds its data for client-side navigation. Nothing on the server side ships.
 
-| The site has                                                                                     | In the static build                                                     | Fix                                                                                                                        |
-| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `useFetch` or `$fetch` to a `server/api` route during render                                     | Runs at build time; the response is baked into the page and its payload | None                                                                                                                       |
-| A fetch to `server/api` from the browser (`lazy`, `server: false`, a click handler, a form post) | Returns 404 — no server ships                                           | Ask the user what replaces it                                                                                              |
-| `runtimeConfig` read at render                                                                   | Fixed at build time; `NUXT_*` overrides set after the build do nothing  | Set the variables in the CloudCannon build                                                                                 |
-| `ssr: false`                                                                                     | Every page is an empty shell rendered in the browser                    | Ask the user before turning SSR on; see [migrate-to-cloudcannon/nuxt/audit.md](../../migrate-to-cloudcannon/nuxt/audit.md) |
-| A page whose render throws                                                                       | `nuxt generate` logs `ERROR [request error]` and leaves the page out    | Fix the page                                                                                                               |
+| The site has                                                                                     | In the static build                                                     | Fix                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useFetch` or `$fetch` to a `server/api` route during render                                     | Runs at build time; the response is baked into the page and its payload | None                                                                                                                                                      |
+| A fetch to `server/api` from the browser (`lazy`, `server: false`, a click handler, a form post) | Returns 404 — no server ships                                           | When the live site needs a server, see [§ When the live site needs a server](#when-the-live-site-needs-a-server); otherwise ask the user what replaces it |
+| `runtimeConfig` read at render                                                                   | Fixed at build time; `NUXT_*` overrides set after the build do nothing  | Set the variables in the CloudCannon build                                                                                                                |
+| `ssr: false`                                                                                     | Every page is an empty shell rendered in the browser                    | Ask the user before turning SSR on; see [migrate-to-cloudcannon/nuxt/audit.md](../../migrate-to-cloudcannon/nuxt/audit.md)                                |
+| A page whose render throws                                                                       | `nuxt generate` logs `ERROR [request error]` and leaves the page out    | Fix the page                                                                                                                                              |
 
 ### Every page must be reachable
 
@@ -75,6 +76,46 @@ export default defineNuxtConfig({
 Add each route as the path the page builds at: strip numeric ordering prefixes, and add an `index` file as its folder's path. A route the page can't render logs an `ERROR [request error]` during `nuxt generate`; check the log for one.
 
 **MUST NOT:** let editors create a file that no page builds. Set `disable_add: true` on a collection when each of its files has its own hard-coded page (`pages/about.vue` loading `about.yml`).
+
+### When the live site needs a server
+
+The rules are in [../server-features.md](../server-features.md). The live site keeps `nuxt build` on a host that runs its server; the CloudCannon build runs `nuxt generate`, as above, so `server/` handlers never ship in it.
+
+Read the CloudCannon build's variable in `nuxt.config.ts`, and pass it to the app as public runtime config:
+
+```ts
+const editorBuild = process.env.PUBLIC_CLOUDCANNON_BUILD === "true";
+
+export default defineNuxtConfig({
+  runtimeConfig: { public: { editorBuild } },
+  nitro: { prerender: { ignore: editorBuild ? ["/account", "/login"] : [] } },
+});
+```
+
+A runtime config value read from a variable with its own name is fixed at build time, which is when both builds read it. Keys under `public` reach the browser too.
+
+Branch on `useRuntimeConfig().public.editorBuild` for each server feature on an editor-owned page:
+
+| The page has                                                                                                               | In the CloudCannon build                                                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Markup filled by a browser fetch to `server/api` (`server: false`)                                                         | Render the markup with example data, through a view component both branches share                                                                                                                                                                                                |
+| A click handler or form post to `server/api`                                                                               | Render it, and skip the call under `window.inEditorMode`, read in client code — see [cloudcannon-visual-editing/nuxt/visual-editing-reference.md § Detecting the editor in Nuxt](../../cloudcannon-visual-editing/nuxt/visual-editing-reference.md#detecting-the-editor-in-nuxt) |
+| A page that fails to prerender, because its server code needs something the CloudCannon build lacks (a database, a secret) | Leave it out of the crawl with `nitro.prerender.ignore`, gated on the variable as above; each entry matches routes by prefix                                                                                                                                                     |
+
+```vue
+<script setup lang="ts">
+const { editorBuild } = useRuntimeConfig().public;
+</script>
+
+<template>
+  <SeatsView v-if="editorBuild" :seats="42" :label="label" />
+  <Seats v-else :label="label" />
+</template>
+```
+
+`Seats` fetches from `/api/seats` in the browser and renders `SeatsView` with the result.
+
+A server-only page that prerenders, such as a sign-in page in its signed-out state, stays in the CloudCannon build. Only a page that fails goes in `ignore`.
 
 ## Collections
 
@@ -128,7 +169,7 @@ A Nuxt Content markdown body that uses MDC components (`::callout`) needs snippe
 
 Editable images are strings in content or data: a path (`/images/hero.jpg`) or a full URL.
 
-**MUST NOT:** move images or change their stored paths for CloudCannon. Keep the paths production uses, and make each one show an image in the CloudCannon build.
+**MUST NOT:** move images or change their stored paths for CloudCannon. Keep the paths the live site uses, and make each one show an image in the CloudCannon build.
 
 | The site's images                                | In the CloudCannon build                                                                                 |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
@@ -184,9 +225,9 @@ _inputs:
 - [ ] `build.build_command` runs `nuxt generate`, not `nuxt build`
 - [ ] `build.output_path` is `.output/public`
 - [ ] Every page a collection file builds is in `.output/public` after `nuxt generate` — see [§ Every page must be reachable](#every-page-must-be-reachable)
-- [ ] No fetch from the browser to a `server/api` route is left without the user's answer
+- [ ] Every fetch from the browser to a `server/api` route has an editing fallback, or the user's answer when CloudCannon hosts the live site
 - [ ] No collection over `.vue` files
 - [ ] Every field editors set is in its Nuxt Content collection's `schema`
 - [ ] Collections whose files each have a hard-coded page have `disable_add: true`
 - [ ] Every collection that builds pages has a `url` that resolves every file to its page in `.output/public` — see [collection-urls.md](collection-urls.md)
-- [ ] Every stored image path or URL shows an image in the CloudCannon build, with production's paths unchanged — see [§ Images](#images)
+- [ ] Every stored image path or URL shows an image in the CloudCannon build, with the live site's paths unchanged — see [§ Images](#images)
