@@ -27,15 +27,11 @@ Check `trailingSlash` in `next.config`; the `url` follows it. Unset or `false` i
 | unset or `false` | `out/blog/my-post.html`       | `/blog/[slug]`  |
 | `true`           | `out/blog/my-post/index.html` | `/blog/[slug]/` |
 
-**MUST NOT:** end the `url` in `.html`.
-**Why:** `index.md` then resolves to `/.html`, and the Visual Editor can't open it.
-
-**MUST:** set `trailingSlash: true` when a collection has an `index` file below the site root, such as `content/docs/index.mdx` at `/docs/`. It changes every page's URL, so ask the user first.
-**Why:** CloudCannon resolves that file to `/docs/`. With `trailingSlash` unset or `false` the page is `out/docs.html`, which `/docs/` doesn't reach, so the index won't open in the Visual Editor.
+**MUST:** set `trailingSlash: true` when a collection has an `index` file below the site root → [../collection-urls.md § Pages built as `.html` files](../collection-urls.md#pages-built-as-html-files), which also has the rule against ending `url` in `.html`.
 
 ## Internal links
 
-With `trailingSlash` unset or `false`, clean URLs like `/about` rely on the host serving `out/about.html` without the extension. In CloudCannon Hosting that is **Serve Extensionless URLs** under **Site Settings > Routing**, on by default; elsewhere, turn on the host's clean-URL setting. **Redirect to Extensionless URLs** is optional. `/about/` still returns 404.
+With `trailingSlash` unset or `false`, clean URLs need the host to serve `out/about.html` as `/about` → [../collection-urls.md § Pages built as `.html` files](../collection-urls.md#pages-built-as-html-files).
 
 - **`<Link>`** from `next/link` strips a trailing slash from its `href` in both routers, so `<Link href="/about/">` works.
 - **A plain `<a>`** keeps the slash and returns 404. This covers links in markdown bodies, and data-file hrefs rendered without `<Link>`.

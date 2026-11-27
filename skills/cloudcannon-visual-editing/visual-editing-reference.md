@@ -125,6 +125,8 @@ For block-level rich text (paragraphs, headings, lists) in a frontmatter field, 
 <div class="content" data-editable="text" data-prop="@content">…</div>
 ```
 
+An `@content` region mounts its editor as the page loads, and the editor's own rendering of the markdown replaces the site's. When the site's renderer adds output the editor doesn't — markdown extensions, highlighted code, generated heading anchors — add `data-defer-mount`: the site's rendering stays until an editor clicks into the body.
+
 **Choosing `data-type` for HTML-rendered fields.** This applies to any field rendered as HTML, whether inserted directly or produced by a markdown parser. Keep the original element and don't add `data-type` unless there's a reason to. Two signals that `data-type="block"` is needed:
 
 1. **The field's input config allows block-level content.** The CloudCannon input configuration (`_inputs` in `cloudcannon.config.yml` or schema files) is the source of truth for what a field accepts. If the input config permits block-level options (lists, headings), the on-page text editable needs `data-type="block"` to match — otherwise a user adds a list via the sidebar and the on-page editable can't handle it.
@@ -218,7 +220,7 @@ Array items get CRUD controls (reorder, add, delete) automatically. Without a re
 - **Hide** an entry that shouldn't show with CSS (a class or the `hidden` attribute), rather than filtering it out.
 - **Guard** empty content inside each item, never the item itself.
 - **Move** a separator or other element rendered between items into the item, and let the parent place it (`li + li::before`, or hide the first item's copy).
-- **Bind by index** only when filtering is essential: no array region, and each item's fields bound by its original index (`@data[footer].sections.3.title`). This is the last resort, because it loses on-page add, remove and reorder, and live re-render of computed fields.
+- **Bind by index** when filtering is essential, as on a list with filters, sorting or pagination that visitors use: no array region, and each item's fields bound by its original index (`@data[footer].sections.3.title`). Editors lose on-page add, remove and reorder, and keep them in the sidebar. Computed fields re-render only when a registered component wraps the whole list, bound to the whole array.
 
 **Choosing where the component boundary goes.** When conditional elements, style bindings, or computed content need live updates, a registered component is needed **somewhere**. Default for a uniform list: wrap the **parent** that owns the whole array in `<editable-component>`, one registration for the section. Alternative: put `data-component` on **each** `array-item` and register each item type separately — the [page builder](#page-builder-blocks) pattern. Parent and per-item boundaries can be combined when the layout needs it. Start with the parent wrap; reach for per-item when item types differ or each row should own its re-render scope.
 
@@ -654,7 +656,7 @@ Keep these in their framework. Register each top-level one with its framework's 
 
 - React → [react/visual-editing-reference.md](react/visual-editing-reference.md), which also holds React's rules for JSX markup, rich text hosts and `<template>` blueprints
 - Vue → [vue/visual-editing-reference.md](vue/visual-editing-reference.md), which also holds Vue's rules for template markup and rich text hosts
-- Svelte → [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md)
+- Svelte → [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md), which also holds Svelte's rules for template markup, rich text hosts, `<template>` blueprints and context in registered components
 
 Each function mounts the component into a detached `<div>` and diffs that `<div>`'s children into the region host, so the host is always outside the component → [§ Where does the registration go](#where-does-the-registration-go--component-root-or-call-site).
 
@@ -672,6 +674,20 @@ For a string or array field, bind it with `data-prop-<name>="<field>"` in place 
 ```
 
 The name is lowercased → [editable-regions.md § Quick Attribute Reference](editable-regions.md#quick-attribute-reference). React adds a rule for TSX → [react/visual-editing-reference.md § Registered component values in TSX](react/visual-editing-reference.md#registered-component-values-in-tsx).
+
+#### Images in registered components
+
+**MUST:** in a registered component that renders an image from a path content stores, wrap the image in an image region bound to that path:
+
+```html
+<editable-image data-prop-src="image" data-prop-alt="image_alt">
+  <img src="/images/hero.jpg" alt="Hero" width="480" height="320" />
+</editable-image>
+```
+
+When code maps stored paths to imports, the region wraps the mapped image the same way.
+
+**Why:** the component renders the stored path as-is. An image uploaded or picked since the last build isn't in the build output, or in an import map, so it shows broken until the next build. The image region swaps in CloudCannon's preview URL, which shows it straight away.
 
 **State resets on every re-render.** Each re-render mounts a new app, so `useState`, `ref()` and `$state` values return to their initial values after every edit — an open tab or accordion closes.
 
@@ -747,12 +763,13 @@ View each section without its scripts, and again after an edit re-renders it. Th
 
 Common cases:
 
-| Pattern                                                                                          | In the editor                                                                                                               | Fix                                                                                                                             |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Reveal and entrance animations (`reveal`, `aos-*`, `fade-in`, `animate-on-scroll`, motion props) | Re-rendered nodes get the hidden state but not the class a script adds; the hidden state can set `pointer-events: none` too | CSS override, and mark the elements active under `window.inEditorMode`                                                          |
-| Count-ups, typewriters, text rotators                                                            | They rewrite `textContent`, overwriting what the editor just wrote                                                          | Early-return under `window.inEditorMode`, leaving the field's value                                                             |
-| Carousels, sliders, autoplay                                                                     | They move their own DOM, so an edit lands on the wrong slide or throws `removeChild` errors                                 | Stop autoplay and show the slides statically, or use an [editing fallback](#detecting-the-editor-and-skipping-build-only-logic) |
-| Click interceptors (lightboxes, video players)                                                   | They take the click the editor needs to open the region                                                                     | Early-return under `window.inEditorMode`                                                                                        |
+| Pattern                                                                                                   | In the editor                                                                                                               | Fix                                                                                                                             |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Reveal and entrance animations (`reveal`, `aos-*`, `fade-in`, `animate-on-scroll`, motion props)          | Re-rendered nodes get the hidden state but not the class a script adds; the hidden state can set `pointer-events: none` too | CSS override, and mark the elements active under `window.inEditorMode`                                                          |
+| Layers with `pointer-events: none` over text, such as a decorative overlay or a copy layer above a banner | The regions under them can't be clicked                                                                                     | Restore `pointer-events: auto` on the regions under `.cms-editor-active`                                                        |
+| Count-ups, typewriters, text rotators                                                                     | They rewrite `textContent`, overwriting what the editor just wrote                                                          | Early-return under `window.inEditorMode`, leaving the field's value                                                             |
+| Carousels, sliders, autoplay                                                                              | They move their own DOM, so an edit lands on the wrong slide or throws `removeChild` errors                                 | Stop autoplay and show the slides statically, or use an [editing fallback](#detecting-the-editor-and-skipping-build-only-logic) |
+| Click interceptors (lightboxes, video players)                                                            | They take the click the editor needs to open the region                                                                     | Early-return under `window.inEditorMode`                                                                                        |
 
 CloudCannon adds `.cms-editor-active` to `<body>` when a page loads inside the Visual Editor ([docs](https://cloudcannon.com/documentation/developer-articles/detecting-your-site-is-loaded-in-the-visual-editor/)). An override in global CSS works on initial load and after re-renders. Adapt the selector and the properties to what the site's hidden state sets:
 

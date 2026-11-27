@@ -11,7 +11,8 @@ Prerequisites, what `cloudcannon dev` does, and how to build a site for it.
 | The site's SSG  | —                           | The version the site pins. For Hugo, check before starting — [Calling a pinned Hugo](../migrate-to-cloudcannon/hugo/audit.md#calling-a-pinned-hugo) |
 
 Where a global install is not possible, `npx @cloudcannon/cli dev` works, as does a local
-install plus `PATH="$PWD/node_modules/.bin:$PATH"`.
+install plus `PATH="$PWD/node_modules/.bin:$PATH"`. Give the `npx` form in a handoff: the user
+needs nothing installed globally.
 
 ## What `cloudcannon dev` does and does not do
 
@@ -77,7 +78,8 @@ cloudcannon configure detect-build-commands
 }
 ```
 
-Take the first suggestion for each. Where the site disagrees, `cloudcannon configure detect-ssg`
+Take the first suggestion for each, after checking its SSG and output folder against the site's
+`package.json`: the CLI can misplace a site (any path containing `/config/` counts towards Hugo). Where the site disagrees, `cloudcannon configure detect-ssg`
 shows the scores behind the guess — but the user's own `package.json` script is the better answer
 whenever there is one. Build with that script, not the bare SSG command: generators and
 post-build steps live in it, so it matches what CloudCannon runs. See
@@ -89,6 +91,18 @@ for moving them into the build script.
 
 There is no `paths.output` key in `cloudcannon.config.yml`; the output directory is not readable
 from there.
+
+## Isolating editor behaviour
+
+To find out how the editor treats one piece of config, markup or CSS, reproduce it on a minimal static site rather than the full build.
+
+- Create a gitignored folder in the project with a `cloudcannon.config.yml`, one content file, and an `_site/` folder of hand-written HTML.
+- Copy in only the config, markup and CSS under test.
+- Run `cloudcannon dev _site --port <free port>` from that folder.
+- Change one thing per variant, and compare the variants.
+- Delete the folder when done.
+
+**Why:** a static page has no client router, rebuilds instantly, and rules out the site's other CSS and scripts as the cause. Hosted-only behaviour still needs the hosted site — see [SKILL.md § When not to use](SKILL.md#when-not-to-use).
 
 ## Rebuilding on change
 

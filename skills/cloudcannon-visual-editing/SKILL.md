@@ -29,44 +29,48 @@ description: >-
 
 ## Contents
 
-| Doc                                                                      | When to read                                                                                                       |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| [editable-regions.md](editable-regions.md)                               | Start here. Region types, the attribute reference, custom-element equivalents                                      |
-| [visual-editing.md](visual-editing.md)                                   | Section census, completeness checklist, pre-handoff sweep — every SSG                                              |
-| [visual-editing-reference.md](visual-editing-reference.md)               | On demand. Data-prop paths, arrays, page builders, components, source editables                                    |
-| [react/visual-editing-reference.md](react/visual-editing-reference.md)   | React components, in any SSG — registration, the `EditableRegions` export, JSX markup, rich text hosts, blueprints |
-| [vue/visual-editing-reference.md](vue/visual-editing-reference.md)       | Vue components, in any SSG — registration, the `EditableRegions` export, template markup, rich text hosts          |
-| [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md) | Svelte components, in any SSG — registration, the `EditableRegions` export                                         |
-| [editable-regions-internals.md](editable-regions-internals.md)           | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging                                       |
-| [custom-editor-tooling.md](custom-editor-tooling.md)                     | Only when asked for editor UI that inputs and regions can't provide. Not part of a migration                       |
-| [troubleshooting.md](troubleshooting.md)                                 | Symptom → fix, when regions do not appear, update, or write where expected                                         |
+| Doc                                                                      | When to read                                                                                                                      |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| [editable-regions.md](editable-regions.md)                               | Start here. Region types, the attribute reference, custom-element equivalents                                                     |
+| [visual-editing.md](visual-editing.md)                                   | Section census, completeness checklist, pre-handoff sweep — every SSG                                                             |
+| [visual-editing-reference.md](visual-editing-reference.md)               | On demand. Data-prop paths, arrays, page builders, components, source editables                                                   |
+| [react/visual-editing-reference.md](react/visual-editing-reference.md)   | React components, in any SSG — registration, the `EditableRegions` export, JSX markup, rich text hosts, blueprints                |
+| [vue/visual-editing-reference.md](vue/visual-editing-reference.md)       | Vue components, in any SSG — registration, the `EditableRegions` export, template markup, rich text hosts                         |
+| [svelte/visual-editing-reference.md](svelte/visual-editing-reference.md) | Svelte components, in any SSG — registration, the `EditableRegions` export, template markup, rich text hosts, blueprints, context |
+| [editable-regions-internals.md](editable-regions-internals.md)           | The Visual Editor JavaScript API; lifecycle traces and quirks when debugging                                                      |
+| [custom-editor-tooling.md](custom-editor-tooling.md)                     | Only when asked for editor UI that inputs and regions can't provide. Not part of a migration                                      |
+| [troubleshooting.md](troubleshooting.md)                                 | Symptom → fix, when regions do not appear, update, or write where expected                                                        |
 
 **SSG-specific:**
 
 Enter through the SSG's `overview.md`; it gives the reading order for that SSG's files. A site that renders React, Vue or Svelte components also reads that framework's `visual-editing-reference.md` above, where the SSG's reading order lists it.
 
-| SSG      | Doc                                                                          | Purpose                                                                                                            |
-| -------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Astro    | [astro/overview.md](astro/overview.md)                                       | **Start here for Astro** — reading order and what each file covers                                                 |
-| Astro    | [astro/visual-editing.md](astro/visual-editing.md)                           | Setup workflow, infrastructure checklist, Astro checklist items                                                    |
-| Astro    | [astro/visual-editing-reference.md](astro/visual-editing-reference.md)       | Astro's deltas from the generic pattern reference (read on demand)                                                 |
-| Astro    | [astro/troubleshooting.md](astro/troubleshooting.md)                         | Astro-specific symptom → fix                                                                                       |
-| Hugo     | [hugo/overview.md](hugo/overview.md)                                         | **Start here for Hugo** — reading order and what each file covers                                                  |
-| Hugo     | [hugo/visual-editing.md](hugo/visual-editing.md)                             | Module setup, infrastructure checklist, Hugo checklist items, local checks                                         |
-| Hugo     | [hugo/visual-editing-reference.md](hugo/visual-editing-reference.md)         | Hugo's deltas: partials-only re-render, `ENV_CLIENT`, what the editor's Hugo has                                   |
-| Hugo     | [hugo/troubleshooting.md](hugo/troubleshooting.md)                           | Hugo-specific symptom → fix                                                                                        |
-| Eleventy | [eleventy/overview.md](eleventy/overview.md)                                 | **Start here for Eleventy** — Liquid or Nunjucks path, reading order                                               |
-| Eleventy | [eleventy/visual-editing.md](eleventy/visual-editing.md)                     | Plugin setup per path, infrastructure checklist, Eleventy checklist items, local checks                            |
-| Eleventy | [eleventy/visual-editing-reference.md](eleventy/visual-editing-reference.md) | Eleventy's deltas: includes as components, the config in the browser, Nunjucks sites                               |
-| Eleventy | [eleventy/troubleshooting.md](eleventy/troubleshooting.md)                   | Eleventy-specific symptom → fix                                                                                    |
-| Next.js  | [nextjs/overview.md](nextjs/overview.md)                                     | **Start here for Next.js** — the `EditableRegions` root, reading order                                             |
-| Next.js  | [nextjs/visual-editing.md](nextjs/visual-editing.md)                         | Layout root, gated editor loader, component map, infrastructure checklist, Next.js checklist items                 |
-| Next.js  | [nextjs/visual-editing-reference.md](nextjs/visual-editing-reference.md)     | Next.js's deltas: client-safe registered components, router hooks, MDX bodies                                      |
-| Next.js  | [nextjs/troubleshooting.md](nextjs/troubleshooting.md)                       | Next.js-specific symptom → fix                                                                                     |
-| Nuxt     | [nuxt/overview.md](nuxt/overview.md)                                         | **Start here for Nuxt** — the `EditableRegions` root, reading order                                                |
-| Nuxt     | [nuxt/visual-editing.md](nuxt/visual-editing.md)                             | Layout root, `isCustomElement`, gated client plugin, component map, infrastructure checklist, Nuxt checklist items |
-| Nuxt     | [nuxt/visual-editing-reference.md](nuxt/visual-editing-reference.md)         | Nuxt's deltas: registered components take data as props, array blueprints, Nuxt Content bodies                     |
-| Nuxt     | [nuxt/troubleshooting.md](nuxt/troubleshooting.md)                           | Nuxt-specific symptom → fix                                                                                        |
+| SSG       | Doc                                                                            | Purpose                                                                                                            |
+| --------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Astro     | [astro/overview.md](astro/overview.md)                                         | **Start here for Astro** — reading order and what each file covers                                                 |
+| Astro     | [astro/visual-editing.md](astro/visual-editing.md)                             | Setup workflow, infrastructure checklist, Astro checklist items                                                    |
+| Astro     | [astro/visual-editing-reference.md](astro/visual-editing-reference.md)         | Astro's deltas from the generic pattern reference (read on demand)                                                 |
+| Astro     | [astro/troubleshooting.md](astro/troubleshooting.md)                           | Astro-specific symptom → fix                                                                                       |
+| Hugo      | [hugo/overview.md](hugo/overview.md)                                           | **Start here for Hugo** — reading order and what each file covers                                                  |
+| Hugo      | [hugo/visual-editing.md](hugo/visual-editing.md)                               | Module setup, infrastructure checklist, Hugo checklist items, local checks                                         |
+| Hugo      | [hugo/visual-editing-reference.md](hugo/visual-editing-reference.md)           | Hugo's deltas: partials-only re-render, `ENV_CLIENT`, what the editor's Hugo has                                   |
+| Hugo      | [hugo/troubleshooting.md](hugo/troubleshooting.md)                             | Hugo-specific symptom → fix                                                                                        |
+| Eleventy  | [eleventy/overview.md](eleventy/overview.md)                                   | **Start here for Eleventy** — Liquid or Nunjucks path, reading order                                               |
+| Eleventy  | [eleventy/visual-editing.md](eleventy/visual-editing.md)                       | Plugin setup per path, infrastructure checklist, Eleventy checklist items, local checks                            |
+| Eleventy  | [eleventy/visual-editing-reference.md](eleventy/visual-editing-reference.md)   | Eleventy's deltas: includes as components, the config in the browser, Nunjucks sites                               |
+| Eleventy  | [eleventy/troubleshooting.md](eleventy/troubleshooting.md)                     | Eleventy-specific symptom → fix                                                                                    |
+| Next.js   | [nextjs/overview.md](nextjs/overview.md)                                       | **Start here for Next.js** — the `EditableRegions` root, reading order                                             |
+| Next.js   | [nextjs/visual-editing.md](nextjs/visual-editing.md)                           | Layout root, gated editor loader, component map, infrastructure checklist, Next.js checklist items                 |
+| Next.js   | [nextjs/visual-editing-reference.md](nextjs/visual-editing-reference.md)       | Next.js's deltas: client-safe registered components, router hooks, MDX bodies                                      |
+| Next.js   | [nextjs/troubleshooting.md](nextjs/troubleshooting.md)                         | Next.js-specific symptom → fix                                                                                     |
+| Nuxt      | [nuxt/overview.md](nuxt/overview.md)                                           | **Start here for Nuxt** — the `EditableRegions` root, reading order                                                |
+| Nuxt      | [nuxt/visual-editing.md](nuxt/visual-editing.md)                               | Layout root, `isCustomElement`, gated client plugin, component map, infrastructure checklist, Nuxt checklist items |
+| Nuxt      | [nuxt/visual-editing-reference.md](nuxt/visual-editing-reference.md)           | Nuxt's deltas: registered components take data as props, array blueprints, Nuxt Content bodies                     |
+| Nuxt      | [nuxt/troubleshooting.md](nuxt/troubleshooting.md)                             | Nuxt-specific symptom → fix                                                                                        |
+| SvelteKit | [sveltekit/overview.md](sveltekit/overview.md)                                 | **Start here for SvelteKit** — the `EditableRegions` root in the root layout, reading order                        |
+| SvelteKit | [sveltekit/visual-editing.md](sveltekit/visual-editing.md)                     | Root layout root, gated `onMount` import, component map, infrastructure checklist, SvelteKit checklist items       |
+| SvelteKit | [sveltekit/visual-editing-reference.md](sveltekit/visual-editing-reference.md) | SvelteKit's deltas: registered components take data as props, `$app` modules, markdown bodies                      |
+| SvelteKit | [sveltekit/troubleshooting.md](sveltekit/troubleshooting.md)                   | SvelteKit-specific symptom → fix                                                                                   |
 
 **Scripts:**
 
@@ -96,7 +100,7 @@ Enter through the SSG's `overview.md`; it gives the reading order for that SSG's
 
 ## Workflow
 
-1. **Setup** — Install and wire the integration per the SSG's `visual-editing.md` (Astro: setup script + conditional `registerComponents` import; Hugo: module import + `editable-regions` partial; Eleventy: plugin + conditional `register-components.js` import on Liquid sites, nothing on Nunjucks sites; Next.js: `EditableRegions` root in `app/layout.tsx` or `pages/_app` + gated `registerComponents` import; Nuxt: `EditableRegions` root in each layout + `isCustomElement` + gated `registerComponents` import in a client plugin)
+1. **Setup** — Install and wire the integration per the SSG's `visual-editing.md` (Astro: setup script + conditional `registerComponents` import; Hugo: module import + `editable-regions` partial; Eleventy: plugin + conditional `register-components.js` import on Liquid sites, nothing on Nunjucks sites; Next.js: `EditableRegions` root in `app/layout.tsx` or `pages/_app` + gated `registerComponents` import; Nuxt: `EditableRegions` root in each layout + `isCustomElement` + gated `registerComponents` import in a client plugin; SvelteKit: `EditableRegions` root + gated `registerComponents` import in the root `+layout.svelte`)
 2. **Census** — Document every visible section on every key page with treatment decisions ([visual-editing.md § Section census](visual-editing.md#section-census))
 3. **Implement** — Work through sections, adding editable attributes per the census
 4. **Verify** — Run the completeness checklist in [visual-editing.md](visual-editing.md), then the SSG's extra items
@@ -118,6 +122,6 @@ The SSG-specific workflow docs contain detailed completeness checklists. These a
 | "This component is too complex for editable regions"        | If it renders data from a content collection, it should be editable. Simplify the component or wrap it in `editable-component` for sidebar re-rendering.                                                                                                                                                                         |
 | "The footer/nav doesn't need editables"                     | Shared partials need data-file-backed editables. Every visible section needs a treatment.                                                                                                                                                                                                                                        |
 | "Array items just need add/remove controls"                 | Without nested text/image editables on items, editors can't edit field values inline.                                                                                                                                                                                                                                            |
-| "I'll register components later"                            | Components the integration can't resolve can't re-render. Wire them as you go (Astro: register; Hugo: make it a partial; Eleventy: make it a Liquid include; Next.js and Nuxt: add it to `componentMap.ts`).                                                                                                                     |
+| "I'll register components later"                            | Components the integration can't resolve can't re-render. Wire them as you go (Astro: register; Hugo: make it a partial; Eleventy: make it a Liquid include; Next.js and Nuxt: add it to `componentMap.ts`; SvelteKit: add it to `componentMap.js`).                                                                             |
 | "Source editables aren't needed — this text rarely changes" | If it's visible, it should be editable -- but the _mechanism_ depends on the page. Data file for shared UI; for page text, see [visual-editing-reference.md § When to use source editables](visual-editing-reference.md#when-to-use-source-editables).                                                                           |
 | "I'll source-editable any hardcoded string on a page"       | Page builder is the default; source editables are the exception, for one-off pages whose structure stays with the developer. If editors need to add, remove or reorder sections, use a page builder. See [visual-editing-reference.md § When to use source editables](visual-editing-reference.md#when-to-use-source-editables). |

@@ -1,0 +1,10 @@
+# Visual editing troubleshooting (SvelteKit)
+
+SvelteKit-specific rows only. Generic symptoms are in [../troubleshooting.md](../troubleshooting.md) — check there first.
+
+| Symptom / mistake                                                                     | Fix                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Every component region shows "Failed to find a registered component with the key"     | The registration file never loads. Check the `onMount` import in the root `+layout.svelte` — see [visual-editing.md § Setup steps](visual-editing.md#setup-steps).                                                     |
+| A registered component throws `Cannot read properties of undefined` when re-rendering | It reads a value from `getContext`. Pass it as a prop — see [../svelte/visual-editing-reference.md § Context in registered components](../svelte/visual-editing-reference.md#context-in-registered-components).        |
+| An edit inside a component doesn't show until the next build                          | The component imports its data, or the field isn't in its props. See [Registered components](visual-editing-reference.md#registered-components).                                                                       |
+| A page is in the collection but the Visual Editor can't open it                       | It isn't in the build output — see [cloudcannon-configuration/sveltekit/configuration.md § Every page must be prerendered](../../cloudcannon-configuration/sveltekit/configuration.md#every-page-must-be-prerendered). |

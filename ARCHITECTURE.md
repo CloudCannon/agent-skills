@@ -93,6 +93,11 @@ nuxt/audit.md                           Phase 1: static generation readiness, co
 nuxt/content.md                         Phase 3: Nuxt Content collections, own loaders, content in .vue files
 nuxt/build.md                           Phase 5: clean build, render errors, build command
 nuxt/page-building.md                   Phase 2/4: pages collection, catch-all page, block map
+sveltekit/overview.md                   ENTRY POINT for SvelteKit — adapter scope, quick checks
+sveltekit/audit.md                      Phase 1: static output readiness, content sources, routes
+sveltekit/content.md                    Phase 3: server loads, mdsvex, content in .svelte and .ts files
+sveltekit/page-building.md              Phase 2/4: pages collection, rest route with entries, block map
+sveltekit/build.md                      Phase 5: clean build, prerender errors, build command
 scripts/*.sh                            Automation (audit-astro, audit-hugo)
 
 ── make-site-multilingual (journey) ──────────────────────────
@@ -146,6 +151,9 @@ nextjs/collection-urls.md               Next.js: route segments, trailingSlash, 
 nuxt/overview.md                        ENTRY POINT for Nuxt — reading order
 nuxt/configuration.md                   Nuxt: CLI baseline fixes, nuxt generate, reachable pages, collections, images
 nuxt/collection-urls.md                 Nuxt: page files, Nuxt Content paths, numeric ordering prefixes
+sveltekit/overview.md                   ENTRY POINT for SvelteKit — reading order
+sveltekit/configuration.md              SvelteKit: CLI baseline fixes, adapter-static, entries, server sites, images
+sveltekit/collection-urls.md            SvelteKit: route folders, groups, trailingSlash
 
 ── cloudcannon-snippets (capability) ─────────────────────────
 SKILL.md                                ENTRY POINT — when/why/which approach
@@ -160,6 +168,7 @@ hugo/overview.md                        ENTRY POINT for Hugo — shortcodes, bui
 eleventy/overview.md                    ENTRY POINT for Eleventy — shortcodes, includes, raw tags
 nextjs/overview.md                      ENTRY POINT for Next.js — @next/mdx, next-mdx-remote, shared components map
 nuxt/overview.md                        ENTRY POINT for Nuxt — markdown settings, MDC components as raw snippets
+sveltekit/overview.md                   ENTRY POINT for SvelteKit — mdsvex auto-import plugin, braces in body text
 
 ── cloudcannon-visual-editing (capability) ───────────────────
 SKILL.md                                ENTRY POINT — region types, workflow, checklist
@@ -171,7 +180,7 @@ visual-editing.md                       Phase 4: section census, completeness ch
 visual-editing-reference.md             ON DEMAND — pattern reference, do not read front to back
 react/visual-editing-reference.md       ON DEMAND — React in any SSG: registration, EditableRegions, JSX, blueprints
 vue/visual-editing-reference.md         ON DEMAND — Vue in any SSG: registration, EditableRegions, templates
-svelte/visual-editing-reference.md      ON DEMAND — Svelte in any SSG: registration, EditableRegions
+svelte/visual-editing-reference.md      ON DEMAND — Svelte in any SSG: registration, EditableRegions, markup, rich text, blueprints, context
 astro/overview.md                       ENTRY POINT for Astro — reading order
 astro/visual-editing.md                 Phase 4: setup, infrastructure checklist, Astro items
 astro/visual-editing-reference.md       ON DEMAND — pattern reference, do not read front to back
@@ -192,6 +201,10 @@ nuxt/overview.md                        ENTRY POINT for Nuxt — EditableRegions
 nuxt/visual-editing.md                  Phase 4: layout root, isCustomElement, gated client plugin, component map
 nuxt/visual-editing-reference.md        ON DEMAND — registered components take props, array blueprints, Nuxt Content bodies
 nuxt/troubleshooting.md                 Nuxt: symptom → fix
+sveltekit/overview.md                   ENTRY POINT for SvelteKit — EditableRegions root, reading order
+sveltekit/visual-editing.md             Phase 4: root layout root, gated onMount import, component map
+sveltekit/visual-editing-reference.md   ON DEMAND — registered components take props, $app modules, markdown bodies
+sveltekit/troubleshooting.md            SvelteKit: symptom → fix
 scripts/setup-editable-regions-astro.sh Astro only — installs package, wires Astro integration
 
 ── cloudcannon-bookshop (capability) ─────────────────────────
@@ -220,6 +233,10 @@ nuxt/overview.md                        ENTRY POINT for Nuxt — structures only
 nuxt/bookshop.md                        Nuxt: where things live, the visual editor connector, what doesn't apply
 nuxt/migrating-to-editable-regions.md   Nuxt: component map, block props, removing the connector
 nuxt/troubleshooting.md                 Nuxt: symptom → fix
+sveltekit/overview.md                   ENTRY POINT for SvelteKit — <Bookshop> dispatcher, connector, reading order
+sveltekit/bookshop.md                   SvelteKit: where things live, the <Bookshop> component, live editing
+sveltekit/migrating-to-editable-regions.md SvelteKit: component map by Bookshop name, replacing <Bookshop> calls
+sveltekit/troubleshooting.md            SvelteKit: symptom → fix
 
 ── cloudcannon-dev-server (capability) ───────────────────────
 SKILL.md                                ENTRY POINT — the loop, the rebuild rule, the build command

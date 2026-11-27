@@ -43,15 +43,13 @@ export const componentMap: Record<string, Component> = {
 
 ### Images in registered components
 
-**MUST:** in a registered component that renders an image from a path content stores, wrap the image in an image region bound to that path:
+The rule is in [../visual-editing-reference.md § Images in registered components](../visual-editing-reference.md#images-in-registered-components). In a Vue template:
 
 ```vue
 <editable-image data-prop-src="image" data-prop-alt="image_alt">
   <img :src="image" :alt="image_alt" width="480" height="320" />
 </editable-image>
 ```
-
-**Why:** the component renders the stored path as-is. An image uploaded or picked since the last build isn't in `.output/public`, so it shows broken until the next build. The image region swaps in CloudCannon's preview URL, which shows it straight away.
 
 ## Array blueprints
 

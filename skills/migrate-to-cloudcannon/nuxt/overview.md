@@ -9,7 +9,7 @@ This guide covers Nuxt 3 and Nuxt 4 sites that:
 - Build with `nuxt generate`, or can switch to it — every page prerenders at build time and the build writes plain HTML to `.output/public`
 - Read their content at build time — from Nuxt Content, from files the site loads itself, or from fetches during render
 
-Sites that need a server at request time (`server/api` routes the browser calls, server middleware, auth, per-request data) are not covered — CloudCannon serves static output. [audit.md § 1](audit.md#1-static-generation-readiness) lists what blocks static generation.
+CloudCannon serves static output. A site that needs a server at request time (`server/api` routes the browser calls, server middleware, auth, per-request data) keeps `nuxt build` on its live host, and CloudCannon builds the prerendered pages with `nuxt generate` for editing — see [server-features.md](../../cloudcannon-configuration/server-features.md) and [cloudcannon-configuration/nuxt/configuration.md § When the live site needs a server](../../cloudcannon-configuration/nuxt/configuration.md#when-the-live-site-needs-a-server). [audit.md § 1](audit.md#1-static-generation-readiness) lists what needs a server.
 
 A site with an earlier CloudCannon setup — the visual editor connector — keeps it until Phase 4 replaces it; [audit.md § Earlier CloudCannon setup](audit.md#earlier-cloudcannon-setup) routes it.
 

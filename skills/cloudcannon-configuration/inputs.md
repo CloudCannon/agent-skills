@@ -14,6 +14,7 @@ Read before writing `_inputs`. This covers where an input can be defined, how it
 | File config     | `file_config[]._inputs`                                           | Files matching the entry's `glob`     |
 | In file         | `_inputs` in a file's front matter, or at the root of a data file | That file                             |
 | Structure value | `_structures.<name>.values[]._inputs`                             | Items added from that structure value |
+| Snippet         | `_snippets.<name>._inputs`                                        | That snippet's fields                 |
 
 `_inputs` from every level that covers a field merge into one input. Where two levels configure the same key, the more specific one wins. Set `cascade: false` on an input to stop the merge: it then ignores entries for that field at broader levels.
 
@@ -23,6 +24,7 @@ Read before writing `_inputs`. This covers where an input can be defined, how it
 - **Collection or schema:** keys specific to one kind of content.
 - **File config:** data and config files, and anything that needs the file root (`$`).
 - **Structure value:** the fields of a structure, so it behaves the same wherever it is used. Share a definition between values with `_inputs_from_glob`. Where a broader entry for the same key would merge in, such as a root `comment` or `options`, set `cascade: false` on the structure value's input.
+- **Snippet:** the snippet's own fields. Broader entries merge in the same way, so a root `icon` input's `comment` and `allow_create` reach a snippet's `icon` select; set `cascade: false` on the snippet's input to stop it.
 
 ### Other cascading keys
 

@@ -64,6 +64,8 @@ draft: false
 content_blocks: []
 ```
 
+Give each page one `<h1>`. Keep it where the site's own pages put it: in the first block when its blocks open with a hero heading, otherwise from `title` above the blocks.
+
 ### Structures
 
 Define a structure for each block type, with the key the SSG's dispatcher reads to pick the block's template as the discriminator. For 5+ block types, use the [split co-located approach](../cloudcannon-configuration/structures.md#split-co-located-approach-5-block-types).

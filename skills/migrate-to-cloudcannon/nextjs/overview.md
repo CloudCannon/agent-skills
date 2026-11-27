@@ -10,7 +10,7 @@ This guide covers Next.js sites that:
 - Build with `output: "export"`, or can switch to it — every page prerenders at build time, and `next build` writes plain HTML to `out/`
 - Read their content at build time — in server components (App Router) or `getStaticProps` and `getStaticPaths` (Pages Router), from files in the repo or from fetches
 
-Sites that need a server (middleware or proxy, ISR, server actions, `getServerSideProps`, request-time data) are not covered — CloudCannon serves static output. [audit.md § 1](audit.md#1-router-and-export-readiness) lists what blocks static export.
+CloudCannon serves static output. A site that needs a server (middleware or proxy, ISR, server actions, `getServerSideProps`, request-time data) keeps its server build on its live host, and CloudCannon builds a static export for editing, with `output: "export"` gated on a variable — see [server-features.md](../../cloudcannon-configuration/server-features.md) and [cloudcannon-configuration/nextjs/configuration.md § When the live site needs a server](../../cloudcannon-configuration/nextjs/configuration.md#when-the-live-site-needs-a-server). [audit.md § 1](audit.md#1-router-and-export-readiness) lists what needs a server.
 
 A site with an earlier CloudCannon setup — the React connector, `@cloudcannon/filer` or Bookshop — keeps it until the phase that replaces it; [audit.md § Earlier CloudCannon setup](audit.md#earlier-cloudcannon-setup) routes each one.
 

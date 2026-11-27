@@ -178,6 +178,11 @@ For visual editing, use `@data[key].path` syntax in editable regions:
 
 `data_config` makes a file a dataset; it doesn't put it in the sidebar or configure its inputs. For the collection that makes data files editable, see [../configuration-gotchas.md § Data files: editing and datasets are separate](../configuration-gotchas.md#data-files-editing-and-datasets-are-separate) and [§ Single `data` collection or split?](../configuration-gotchas.md#single-data-collection-or-split).
 
+### Data files under `public/`
+
+**MUST:** set `include_developer_files: true` on a collection whose files are under `public/`.
+**Why:** hosted CloudCannon treats data files under `public/` as developer files and hides them from collections, even when the glob names them. The local dev server doesn't, so the collection looks right locally and is empty once hosted.
+
 ## Image path configuration
 
 | Image type | Location      | How served                                              | Frontmatter path                                                                       | Config                                |
@@ -239,7 +244,7 @@ See [migrate-to-cloudcannon/page-building.md](../../migrate-to-cloudcannon/page-
 
 ### Snippets
 
-- [ ] Every MDX component has a `_snippets` entry OR the file uses `_enabled_editors: [data]` with rationale in migration notes — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
+- [ ] Every MDX component has a `_snippets` entry — see [cloudcannon-snippets/astro/overview.md § Every MDX component must be accounted for](../../cloudcannon-snippets/astro/overview.md#every-mdx-component-must-be-accounted-for)
 - [ ] MDX files with `import` statements have them removed, and components resolve via `astro-auto-import` or a shared `components` map passed at every `<Content />` / `render()` site — see [astro/overview.md § Auto-import](../../cloudcannon-snippets/astro/overview.md#auto-import-keeping-import-statements-out-of-content)
 
 ### Content specifics

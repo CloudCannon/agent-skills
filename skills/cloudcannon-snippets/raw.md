@@ -329,44 +329,6 @@ format:
 
 ---
 
-## Custom templates for repeated patterns
+## Repeated patterns
 
-If multiple components share the same structure (e.g. several self-closing components that all need `client:load`), define a `_snippets_templates` entry to avoid repeating the raw snippet/params pattern:
-
-```yaml
-_snippets_templates:
-  astro_client_component:
-    snippet: "<[[component_name]] client:load [[named_args]] />"
-    params:
-      component_name:
-        parser: literal
-        options:
-          literal:
-            ref: component_name
-      named_args:
-        parser: key_values
-        options:
-          models:
-            ref: named_args
-          format:
-            root_value_delimiter: "="
-            string_boundary:
-              - '"'
-```
-
-Then use it in `_snippets`:
-
-```yaml
-_snippets:
-  youtube:
-    template: astro_client_component
-    definitions:
-      component_name: Youtube
-      named_args:
-        - editor_key: id
-          type: string
-        - editor_key: title
-          type: string
-```
-
-The `ref:` syntax pulls values from `definitions`, so each snippet only needs to specify what varies.
+When several components share a pattern (self-closing components that all need `client:load`), write each one's raw snippet in full. Don't share the pattern through a `_snippets_templates` entry whose `literal` or `models` come from `definitions` with `{ ref: … }`: `cloudcannon validate` rejects it, and accepts `ref` only for a parser's `format`.

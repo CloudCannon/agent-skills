@@ -126,13 +126,12 @@ echo ""
 # --- Pages and routing ---
 echo "## Pages (src/pages/)"
 if [ -d "src/pages" ]; then
-  find src/pages -name '*.astro' -o -name '*.md' -o -name '*.mdx' | sort | while read -r f; do
+  find src/pages -name '*.astro' -o -name '*.md' -o -name '*.mdx' -o -name '*.ts' -o -name '*.js' | sort | while read -r f; do
     rel="${f#src/pages/}"
-    if echo "$rel" | grep -qE '\['; then
-      echo "- $rel (dynamic)"
-    else
-      echo "- $rel"
-    fi
+    tags=""
+    if echo "$rel" | grep -qE '\['; then tags="dynamic"; fi
+    if echo "$rel" | grep -qE '\.(ts|js)$'; then tags="${tags:+$tags, }endpoint"; fi
+    echo "- $rel${tags:+ ($tags)}"
   done
 else
   echo "No src/pages/ directory found"
@@ -146,6 +145,10 @@ for dir in src/config src/data data; do
     echo "### $dir/"
     find "$dir" -maxdepth 2 -name '*.json' -o -name '*.yaml' -o -name '*.yml' | sort | while read -r f; do
       echo "- $f"
+    done
+    # Content held in modules counts as hardcoded copy in the census.
+    find "$dir" -maxdepth 2 \( -name '*.ts' -o -name '*.js' -o -name '*.mjs' \) -not -name '*.d.ts' | sort | while read -r f; do
+      echo "- $f (module)"
     done
   fi
 done

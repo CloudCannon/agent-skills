@@ -1,6 +1,6 @@
 # Migrating to editable regions
 
-Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Bookshop components. This file owns the step order and the cross-SSG mapping. What differs per SSG lives in that SSG's `migrating-to-editable-regions.md` — [Astro](astro/migrating-to-editable-regions.md), [Hugo](hugo/migrating-to-editable-regions.md), [Eleventy](eleventy/migrating-to-editable-regions.md), [Next.js](nextjs/migrating-to-editable-regions.md), [Nuxt](nuxt/migrating-to-editable-regions.md).
+Replace Bookshop with `@cloudcannon/editable-regions` on a site that uses Bookshop components. This file owns the step order and the cross-SSG mapping. What differs per SSG lives in that SSG's `migrating-to-editable-regions.md` — [Astro](astro/migrating-to-editable-regions.md), [Hugo](hugo/migrating-to-editable-regions.md), [Eleventy](eleventy/migrating-to-editable-regions.md), [Next.js](nextjs/migrating-to-editable-regions.md), [Nuxt](nuxt/migrating-to-editable-regions.md), [SvelteKit](sveltekit/migrating-to-editable-regions.md).
 
 **MUST:** check the SSG's row in [SKILL.md § SSG support](SKILL.md#ssg-support) first. If editable regions can't re-render that SSG's components, stop — the site stays on Bookshop; see [maintaining.md](maintaining.md).
 

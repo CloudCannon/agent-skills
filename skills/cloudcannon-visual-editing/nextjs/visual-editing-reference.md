@@ -51,7 +51,7 @@ export const componentMap: Record<string, ComponentType<any>> = {
 
 ### Images in registered components
 
-**MUST:** in a registered component that renders an image from a path content stores, wrap the image in an image region bound to that path:
+The rule is in [../visual-editing-reference.md § Images in registered components](../visual-editing-reference.md#images-in-registered-components). In TSX:
 
 ```tsx
 <editable-image data-prop-src="image">
@@ -59,9 +59,7 @@ export const componentMap: Record<string, ComponentType<any>> = {
 </editable-image>
 ```
 
-When code maps stored paths to imports, the region wraps the mapped image the same way — see [cloudcannon-configuration/nextjs/configuration.md § Imported images](../../cloudcannon-configuration/nextjs/configuration.md#imported-images).
-
-**Why:** the component renders the stored path as-is. An image uploaded or picked since the last build isn't in `out/` (or in the import map — see [cloudcannon-configuration/nextjs/configuration.md § Imported images](../../cloudcannon-configuration/nextjs/configuration.md#imported-images)), so it shows broken until the next build. The image region swaps in CloudCannon's preview URL, which shows it straight away.
+When code maps stored paths to imports, the region wraps the mapped image — see [cloudcannon-configuration/nextjs/configuration.md § Imported images](../../cloudcannon-configuration/nextjs/configuration.md#imported-images).
 
 ## Detecting the editor in Next.js
 

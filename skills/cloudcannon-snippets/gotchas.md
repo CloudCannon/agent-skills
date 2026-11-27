@@ -62,6 +62,20 @@ markdown:
 
 ---
 
+### Code blocks
+
+A save rewrites every code block in the body, whether or not the editor touched it.
+
+| Content has                                                               | A save                                                                                                                   | Fix                                                                                                                                               |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A four-backtick fence around an example that holds a three-backtick fence | Writes the outer fence with three backticks, so the inner fence closes it and the example leaks into the page as content | Set `markdown.options.code_block_fences: "~~~"` and write the outer fences as `~~~`. Each save then rewrites that file's backtick fences to `~~~` |
+| Options after the language (`title="app.js"`, `{1,4}`, `showLineNumbers`) | Keeps the language and drops the options                                                                                 | A raw snippet that matches the whole fence, options and code, with `strict_whitespace: true` on the code                                          |
+| Indented code blocks                                                      | Joins the lines into one paragraph                                                                                       | Set `markdown.options.treat_indentation_as_code: true`. A save then writes each block as a fenced block, which renders the same                   |
+
+Set `code_block_fences` only on a site with nested fences: elsewhere it rewrites fences for nothing.
+
+---
+
 ### Import statements in content
 
 Rich text editors show everything in the file, so editors see import statements (`import X from 'y'`) as text. Resolve components from one shared place instead — see [snippets.md § No imports in content](snippets.md#no-imports-in-content-one-shared-components-map). Each SSG's shared place is in its `<ssg>/overview.md`.
@@ -130,6 +144,13 @@ params:
         editor_key: src
         type: string
 ```
+
+---
+
+### List a longer pattern before a shorter one it starts with
+
+**MUST:** when one snippet's pattern starts with another's, list the longer snippet first in `_snippets`.
+**Why:** matching follows the order of `_snippets`. A definition line `[^1]: The note.` listed after an inline `[^1]` snippet parses as the inline snippet followed by plain text, so editors get the wrong fields and the definition snippet never matches.
 
 ---
 

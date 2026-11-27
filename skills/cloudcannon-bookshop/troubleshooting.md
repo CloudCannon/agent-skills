@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Symptom → cause → fix. SSG-specific rows live in the SSG's `troubleshooting.md` — [Astro](astro/troubleshooting.md), [Hugo](hugo/troubleshooting.md), [Eleventy](eleventy/troubleshooting.md), [Next.js](nextjs/troubleshooting.md), [Nuxt](nuxt/troubleshooting.md).
+Symptom → cause → fix. SSG-specific rows live in the SSG's `troubleshooting.md` — [Astro](astro/troubleshooting.md), [Hugo](hugo/troubleshooting.md), [Eleventy](eleventy/troubleshooting.md), [Next.js](nextjs/troubleshooting.md), [Nuxt](nuxt/troubleshooting.md), [SvelteKit](sveltekit/troubleshooting.md).
 
 ## On a Bookshop site
 

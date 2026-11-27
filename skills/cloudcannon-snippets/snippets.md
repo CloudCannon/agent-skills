@@ -103,28 +103,23 @@ The shared place is the SSG's auto-import mechanism where it has one. Otherwise 
 
 ### Every component must be accounted for
 
-Every component used in MDX content must either have a `_snippets` entry or the file must be kept out of the content editor with `_enabled_editors: [data]`, leaving its body to the Source Editor. There is no middle ground — an unconfigured component shows as a broken/unrecognizable element in the content editor. "Demo content", "only used once", or "not worth configuring" are not valid reasons to skip.
+**MUST:** give every component used in MDX content a `_snippets` entry. An unconfigured component shows as a broken element in the Content Editor, and "demo content", "only used once" or "not worth configuring" don't change that.
 
-**Preference order:** Define `_snippets` first so the content editor can parse, offer toolbar inserts, and round-trip the markup. Well-configured snippets are the right default for MDX body content; `_enabled_editors: [data]` is a **last resort** after you are confident no reasonable snippet plus component refactor can represent the pattern. Document what you tried and why snippets are not viable in the migration notes.
+**MUST NOT:** keep an MDX file out of the Content Editor with `_enabled_editors: [data]` to avoid configuring its components. If a component still can't round-trip after the attempts below, stop and report the component, the files that use it and what was tried — see [migrate-to-cloudcannon/audit.md § Markdown-extension syntax](../migrate-to-cloudcannon/audit.md#markdown-extension-syntax).
+**Why:** editors migrate to edit their content; a body they can't edit defeats the migration.
 
-**Try first:**
+**Try, in order:**
 
-- Self-closing components with string/number/boolean props (Button, Youtube, Video)
+- Self-closing components with string, number or boolean props (Button, Youtube, Video)
 - Paired components with simple inner content and a few props (Notice, Accordion)
 - Nested tag trees that map to parsers: `repeating` for patterns like `<Tabs><Tab>…</Tab></Tabs>`, `content` for rich inner regions, raw `snippet` strings for literal SSG directives
-- Components editors should insert from the toolbar — including components with no author-editable props (still add a minimal snippet so the content editor recognizes them)
-- Refactor before giving up: move JS expressions and derived values inside the component; expose only props you can describe with `_inputs`. Wrap or thin-wrap third-party components when possible so MDX only passes simple values
+- Components editors should insert from the toolbar — including components with no author-editable props (still add a minimal snippet so the Content Editor recognizes them)
+- `export` lines, `{expressions}` and raw HTML blocks, as raw snippets of their own. Anchor each on text only that form has, not on a common word, so it doesn't match inside code examples
+- Refactor: move JS expressions and derived values inside the component, and expose only props you can describe with `_inputs`. Wrap third-party components so MDX passes only simple values
 
-**Nesting:** Depth alone does not disqualify a pattern. What matters is whether the tree is **regular and mappable** to snippet parsers (often one parent snippet with `repeating` children). Deep but repetitive structure may still be one snippet. Hard cases are **arbitrary or unbounded** child trees that do not match a repeating or fixed-slot model.
+**Nesting:** depth alone doesn't disqualify a pattern. What matters is whether the tree is **regular and mappable** to snippet parsers (often one parent snippet with `repeating` children). Hard cases are **arbitrary or unbounded** child trees that don't match a repeating or fixed-slot model.
 
-**Source/data only when (high bar):**
-
-- Shapes that still cannot be captured with template, raw, `repeating`, and `content` parsers after a genuine snippet attempt
-- Prop payloads that remain unmappable after simplifying the component API and `_inputs` — not "looks complex at a glance"
-- Vendor components you cannot wrap, where MDX usage cannot be narrowed to a representable subset
-- Verified round-trip or parsing failures with a prototype snippet — not a default when MDX contains expressions (refactor those into the component first)
-
-For files kept out of the content editor, add `_enabled_editors: [data]` at the file or collection level, and document the reason in the migration notes.
+**Prove it with a save.** Save each MDX file once in the Content Editor on `cloudcannon dev` and diff the body — see [migrate-to-cloudcannon/content.md § Round-trip check](../migrate-to-cloudcannon/content.md#round-trip-check).
 
 ### Component inventory grep
 
@@ -134,7 +129,7 @@ For files kept out of the content editor, add `_enabled_editors: [data]` at the 
 rg -oN '<[A-Z][A-Za-z.]*|\{/\*' -g '*.mdx' -g '!node_modules' . | sed 's/.*://' | sort -u
 ```
 
-Add `-g '*.md'` when the SSG compiles `.md` files as MDX. Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`, or the containing file must be restricted with `_enabled_editors: [data]` and the exclusion documented in migration notes. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
+Add `-g '*.md'` when the SSG compiles `.md` files as MDX. Every component name in the output must have a `_snippets` entry in `cloudcannon.config.yml`. This includes layout components like `<Image>` used in grid patterns — "only used for layout" is not a valid reason to skip.
 
 A `{/*` in the output means the content has MDX comments, which need the [comment snippet](#mdx-comments).
 
@@ -207,7 +202,7 @@ Full option reference: [Configure your Markdown engine](https://cloudcannon.com/
 
 Separate **editor concerns** from **developer concerns**. Attributes like `src`, `alt`, caption text, and `href` are editor concerns -- expose them as snippet fields. Presentation attributes like `autoplay`, `muted`, `class`, `loop` are developer concerns -- hardcode them in the literal portion of the snippet pattern.
 
-When a pattern has multiple variants (e.g. video with controls vs video with loop), create separate snippets rather than trying to make attributes optional. Each snippet has a fixed structure with only content values as placeholders.
+When a pattern has multiple variants (e.g. video with controls vs video with loop), create separate snippets rather than trying to make attributes optional. Each snippet has a fixed structure with only content values as placeholders. This holds when the variant is part of the syntax (`:::note`, `:::warning`): no parser matches one of a fixed list of names, so one snippet with a type dropdown can't parse them.
 
 ### Example: `<figure>` with image and caption
 
@@ -362,3 +357,4 @@ If a rich text field contains structured HTML with a fixed layout and only a few
 - Eleventy: [eleventy/overview.md](eleventy/overview.md)
 - Next.js: [nextjs/overview.md](nextjs/overview.md)
 - Nuxt: [nuxt/overview.md](nuxt/overview.md)
+- SvelteKit: [sveltekit/overview.md](sveltekit/overview.md)

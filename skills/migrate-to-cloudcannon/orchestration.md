@@ -21,6 +21,8 @@ How the main agent runs a migration: it orchestrates, and each phase runs in a s
 
 **Host without a subagent tool:** the orchestrator runs each phase itself, in order, with the same notes, gates and checklists.
 
+**User rules about agents:** when the user's instructions ask for approval before launching agents, ask once before Phase 1: name the phases and say each runs in its own subagent. Once approved, dispatch without asking again.
+
 ## Dispatch brief
 
 Give each subagent:
@@ -53,6 +55,10 @@ At most 10 lines:
 - One subagent per phase, in order. The next phase starts only once the current phase's readiness row is verified.
 - Phases 3 and 4 split into chunks only when `plan.md` lists them. Chunks run one at a time, in the listed order; the first chunk sets the patterns the rest follow (`plan.md` § Global decisions).
 - Nothing runs in parallel. Phases and chunks share `cloudcannon.config.yml`, layouts, component registration and the build output.
+
+## Working files
+
+Keep files that phases share but the site doesn't need — the parity baseline, build logs, downloaded schemas — in one gitignored folder, and record each file's path in the note of the phase that wrote it. A later phase writes its own files under new names, never over an earlier phase's. Delete the folder at handoff, once Phase 5 no longer needs it.
 
 ## Verification
 
@@ -113,7 +119,7 @@ Each row is one subagent dispatch, run in order. Phases 2 and 5 are one row each
 - Collection URL patterns
 - Shared structures (`_structures`)
 - Snippet configs (if MDX components, shortcodes or inline HTML)
-- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial; Eleventy: the plugin and the bundle script tag on the Liquid path, nothing on the Nunjucks path; Next.js: the `EditableRegions` root in `app/layout.tsx` or `pages/_app`, the `CloudCannonEditor` gated dynamic import, `componentMap.ts` and `registerComponents.ts`; Nuxt: the `EditableRegions` root in each layout, `isCustomElement`, the `cloudcannon.client.ts` plugin, `componentMap.ts` and `registerComponents.ts`)
+- Editable-regions setup (Astro: `registerComponents.ts`; Hugo: module import and the `editable-regions` partial; Eleventy: the plugin and the bundle script tag on the Liquid path, nothing on the Nunjucks path; Next.js: the `EditableRegions` root in `app/layout.tsx` or `pages/_app`, the `CloudCannonEditor` gated dynamic import, `componentMap.ts` and `registerComponents.ts`; Nuxt: the `EditableRegions` root in each layout, `isCustomElement`, the `cloudcannon.client.ts` plugin, `componentMap.ts` and `registerComponents.ts`; SvelteKit: the `EditableRegions` root and the gated `onMount` import in the root `+layout.svelte`, `componentMap.js` and `registerComponents.js`)
 ```
 
 ## Repetition → script

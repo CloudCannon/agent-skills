@@ -46,6 +46,7 @@ Before adding regions to existing templates, produce a census of every visible s
 - The component genuinely can't be wrapped (shadow DOM, framework incompatibility after attempting conversion) AND the section is still wrapped in `<editable-component>` for re-rendering.
 - Wiring the field would mean overriding a large template the site doesn't own (a theme's) for little editing gain.
 - The image is a CSS `background-image`, with no `<img>` to put an image region on.
+- The value is an attribute, not element text: a submit button's `value`, a `placeholder`, an `aria-label`. A text region edits only the content of its element. Give the field an input, and wrap the component in `<editable-component>` so it re-renders.
 
 Every `sidebar-only` section that renders a list still needs array editables for CRUD.
 
@@ -142,10 +143,12 @@ Work through every item after implementing editable regions, then the extra item
 
 ## Pre-handoff sweep
 
-Before declaring the migration complete, run these three verifications. This is the net that catches shared sections that slipped through the section census and completeness checklist.
+Before declaring the migration complete, run these verifications. They are the net that catches shared sections that slipped through the section census and completeness checklist.
 
 - [ ] **Census walk-through.** Re-open `.cloudcannon/migration/visual-editing.md` and walk every census row. Each row's treatment is implemented in the repo — not just proposed. Rows with `sidebar-only` justification are written out with a technical reason.
 - [ ] **Shared-UI table walk-through.** Open [../migrate-to-cloudcannon/cc-friendly-conventions.md § Shared-UI treatment table](../migrate-to-cloudcannon/cc-friendly-conventions.md#shared-ui-treatment-table) and verify every row against the repo: the named data file exists, is wired in `data_config` with a `file_config` entry, the component reads from the data file, and editables are in place. If a row doesn't apply (the site has no footer, no CTA, etc.), note it explicitly in `.cloudcannon/migration/visual-editing.md`.
 - [ ] **Build grep.** Grep the build output for `data-editable|data-prop` and confirm matches for every shared section name you expect: footer, cta, share, author, any other shared partials. If a name is missing, the section wasn't wired up.
+
+- [ ] **Load each page type in the editor.** With a browser tool, open one page per layout in the Visual Editor and count error cards in its regions; in a body with snippets, open one snippet's menu. Use `cloudcannon dev`. On a client-routed site, or without a browser tool, list the pages in the handoff for the user to check in the hosted editor.
 
 Use grep counts, not line counts (`grep -oE`, not `grep -c`), when verifying — compressed HTML puts everything on one line, so `grep -c` always returns 1.

@@ -17,12 +17,12 @@ Astro-specific Visual Editor guidance, built on `@cloudcannon/editable-regions`.
 
 ## Cross-SSG deep-dives
 
-| File                                                                           | Covers                                                                 |
-| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [../editable-regions.md](../editable-regions.md)                               | Region types, attribute reference, custom elements                     |
-| [../visual-editing-reference.md](../visual-editing-reference.md)               | The generic pattern reference — paths, arrays, components              |
-| [../react/visual-editing-reference.md](../react/visual-editing-reference.md)   | React's registration function, JSX markup, rich text hosts, blueprints |
-| [../vue/visual-editing-reference.md](../vue/visual-editing-reference.md)       | Vue's registration function                                            |
-| [../svelte/visual-editing-reference.md](../svelte/visual-editing-reference.md) | Svelte's registration function                                         |
-| [../editable-regions-internals.md](../editable-regions-internals.md)           | The Visual Editor JavaScript API; lifecycle traces and quirks          |
-| [../troubleshooting.md](../troubleshooting.md)                                 | Generic symptom → fix                                                  |
+| File                                                                           | Covers                                                                                |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| [../editable-regions.md](../editable-regions.md)                               | Region types, attribute reference, custom elements                                    |
+| [../visual-editing-reference.md](../visual-editing-reference.md)               | The generic pattern reference — paths, arrays, components                             |
+| [../react/visual-editing-reference.md](../react/visual-editing-reference.md)   | React's registration function, JSX markup, rich text hosts, blueprints                |
+| [../vue/visual-editing-reference.md](../vue/visual-editing-reference.md)       | Vue's registration function                                                           |
+| [../svelte/visual-editing-reference.md](../svelte/visual-editing-reference.md) | Svelte's registration function, template markup, rich text hosts, blueprints, context |
+| [../editable-regions-internals.md](../editable-regions-internals.md)           | The Visual Editor JavaScript API; lifecycle traces and quirks                         |
+| [../troubleshooting.md](../troubleshooting.md)                                 | Generic symptom → fix                                                                 |

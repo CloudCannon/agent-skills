@@ -12,7 +12,7 @@ Collections that produce pages need a `url` pattern so CloudCannon can open them
 
 When no template can express the built path, changing the content is fine: renaming or moving files so their location gives the path, for example. Ask the user first, because editors will see the change.
 
-This applies to files that build a page. A collection whose files don't (data, settings, authors with no profile page) sets `disable_url: true` instead. A draft or future-dated file isn't built yet, but the template must still give the path it builds at once published. A file that never builds a page, such as a fragment a layout includes, goes in a collection with `disable_url: true`, or is excluded.
+This applies to files that build a page. A collection whose files don't (data, settings, authors with no profile page) sets `disable_url: true` instead. A data or settings file that is the whole source of one page, with no content file behind it, counts as building that page: give its collection a `url` to the page, so editors can open it in the Visual Editor. A draft or future-dated file isn't built yet, but the template must still give the path it builds at once published. A file that never builds a page, such as a fragment a layout includes, goes in a collection with `disable_url: true`, or is excluded.
 
 Verify with [§ Check every file against the build](#check-every-file-against-the-build).
 
@@ -79,10 +79,10 @@ First try to template the subdirectory: `[relative_base_path]` is the file's fol
 
 Some files in a collection's folder build somewhere the collection's `url` can't express: usually an index or list page (`src/content/blog/index.md`) that builds at the section path while the items follow a dated or prefixed pattern. Don't bend the template around them:
 
-| Choice                                   | When                                                                                                                           |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Exclude it from the collection           | Editors don't need to edit it (a list page with only a title). It's no longer editable                                         |
-| Move it to a collection whose `url` fits | Editors need it. Moving the file is a content change, and the route that reads it may need updating too, so ask the user first |
+| Choice                                   | When                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exclude it from the collection           | Editors don't need to edit it (a list page with only a title). It's no longer editable                                                                                                                                                                                                       |
+| Move it to a collection whose `url` fits | Editors need it. Moving the file is a content change, and the route that reads it may need updating too, so ask the user first. Never create a collection of one for it — see [configuration.md § Consolidate single-file collections](configuration.md#consolidate-single-file-collections) |
 
 Then check where the excluded file lands. A collection whose `path` is a parent folder of this one picks it up, so it isn't hidden — see [configuration-gotchas.md § Overlapping collections](configuration-gotchas.md#overlapping-collections-each-file-lands-in-one). In the usual Astro layout, `pages` (`src/content/pages`) sits beside `blog`, so nothing picks it up. Where `pages` is the parent folder (Hugo's `content`, Eleventy's input directory), the file falls through to it, which can be the fix — for Hugo, see [hugo/configuration.md § Section collections](hugo/configuration.md#section-collections).
 
@@ -97,12 +97,24 @@ Then check where the excluded file lands. A collection whose `path` is a parent 
 
 When Phase 3 creates a collection's files, check each planned file's URL against its planned route in Phase 2. Phase 3 re-runs the check on the real files.
 
+## Pages built as `.html` files
+
+Some SSGs build each page as a file named after its path (`about.html`) instead of a folder with an `index.html`. The SSG's file says which setting chooses.
+
+**MUST NOT:** end the `url` in `.html`. Write the path without the extension: `/blog/[slug]` for `blog/my-post.html`.
+**Why:** `index.md` then resolves to `/.html`, and the Visual Editor can't open it.
+
+**MUST:** build folder output when a collection has an `index` file below the site root, such as `content/docs/index.md` at `/docs/`. It changes every page's URL, so ask the user first.
+**Why:** CloudCannon resolves that file to `/docs/`. As a file, the page is `docs.html`, which `/docs/` doesn't reach, so the index won't open in the Visual Editor.
+
+Clean URLs like `/about` rely on the host serving `about.html` without the extension. In CloudCannon Hosting that is **Serve Extensionless URLs** under **Site Settings > Routing**, on by default; elsewhere, turn on the host's clean-URL setting. **Redirect to Extensionless URLs** is optional. `/about/` still returns 404, so internal links are written without a trailing slash.
+
 ## Troubleshooting
 
 If a page doesn't load in the visual editor:
 
 1. **Check the `url` pattern** -- compare the configured URL against the actual build output (`dist/`, `public/`, `_site/`, `out/`). The most common issues are wrong placeholders (`[slug]` vs `{slug}`) and wrong prefix paths.
-2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`; Eleventy: none, only a `permalink` ending in a file name; Next.js: `trailingSlash`; Nuxt: none, every page builds as a folder).
+2. **Check the trailing slash** -- a missing or extra trailing slash causes a mismatch. Compare against the SSG's trailing-slash setting (Astro: `build.format`; Hugo: `uglyURLs`; Eleventy: none, only a `permalink` ending in a file name; Next.js: `trailingSlash`; Nuxt: none, every page builds as a folder; SvelteKit: the `trailingSlash` page option).
 3. **Check fixed vs data placeholders** -- `[slug]` is the filename; `{slug}` is the frontmatter `slug` field. If the SSG uses a frontmatter field for routing, you need curly braces.
 4. **Build and inspect** -- when in doubt, build the site and inspect the output directory to see the actual output paths.
 
@@ -113,3 +125,4 @@ If a page doesn't load in the visual editor:
 - **Eleventy**: [eleventy/collection-urls.md](eleventy/collection-urls.md) — default paths, `permalink` front matter and directory data files, `--to=json`.
 - **Next.js**: [nextjs/collection-urls.md](nextjs/collection-urls.md) — route segments, `trailingSlash`, `.html` paths, the home page.
 - **Nuxt**: [nuxt/collection-urls.md](nuxt/collection-urls.md) — page files, Nuxt Content paths, numeric ordering prefixes, unlinked pages.
+- **SvelteKit**: [sveltekit/collection-urls.md](sveltekit/collection-urls.md) — route folders, groups, `+page.md` routes, `trailingSlash`, listing the build.

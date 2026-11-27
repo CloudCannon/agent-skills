@@ -1,6 +1,6 @@
 # Audit — shared rules
 
-The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md), [nextjs/audit.md](nextjs/audit.md), [nuxt/audit.md](nuxt/audit.md) — and links here for the decisions below.
+The SSG-agnostic parts of Phase 1. The audit procedure itself is per SSG — [astro/audit.md](astro/audit.md), [hugo/audit.md](hugo/audit.md), [eleventy/audit.md](eleventy/audit.md), [nextjs/audit.md](nextjs/audit.md), [nuxt/audit.md](nuxt/audit.md), [sveltekit/audit.md](sveltekit/audit.md) — and links here for the decisions below.
 
 ## Site-wide facts
 
@@ -25,7 +25,9 @@ Keep pages with forms, and make their content editable like any other page. Clou
 
 ## Existing hydration errors
 
-On a site that hydrates in the browser, build and serve the unchanged site. Load the home page and one page per layout with the console open, and record each hydration error with the component that causes it. Fix them, or **ask the user**, before Phase 4. Without a browser, list those pages in the audit for the user to check.
+On a site that hydrates in the browser, run the unchanged site on the SSG's dev server. Load the home page and one page per layout with the console open, and record each hydration error with the component that causes it. Fix them, or **ask the user**, before Phase 4. The audit subagent runs the check when it has a browser. Without one, it lists those pages in the audit, and the orchestrator asks the user to check them.
+
+**Why the dev server:** some production builds don't log hydration mismatches (Svelte 5), so a clean console on a production build proves nothing.
 
 **Why:** in the Visual Editor a hydration error makes React render the page again under the regions, which leaves stray region controls and missing content. An error the site already had then looks like a CloudCannon problem.
 
@@ -54,7 +56,7 @@ Use this decision table for every page that isn't already content in a collectio
 
 ### Content files whose body is layout components
 
-A content file whose body is mostly layout components (MDX components, Nuxt Content MDC components, Hugo or Eleventy shortcodes) counts as a static page for the census. Classify each component used in content:
+A content file whose body is mostly layout components (MDX components, Nuxt Content MDC components, Svelte components in mdsvex, Hugo or Eleventy shortcodes) counts as a static page for the census. Classify each component used in content:
 
 | Component kind                                                                                       | Becomes                                                                                | Why                                                                                                                                                                      |
 | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -70,7 +72,7 @@ A component at the same point in 3 or more files of a collection (a notice at th
 
 ### Census table
 
-Produce this **mandatory census table** in `.cloudcannon/migration/audit.md` for every page that isn't already in a collection. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
+Produce this **mandatory census table** in `.cloudcannon/migration/audit.md` for every page that isn't already in a collection. Count copy held in code as hardcoded: strings in templates, and the config modules and data arrays (`.js` or `.ts` objects) that templates read. Filling it forces you to count sections and answer the "would the editor want to add another like this?" question explicitly:
 
 | Page file | Distinct content sections         | Layout repeated on other pages? | Editor will add similar pages? | Recommended pattern         | Needs editable region? |
 | --------- | --------------------------------- | ------------------------------- | ------------------------------ | --------------------------- | ---------------------- |
@@ -100,19 +102,27 @@ Two more checks per page template. The SSG's audit guide gives the form each tak
 
 List the markdown plugins that add syntax (remark, rehype or markdown-it plugins, and the SSG's own extensions). Then grep the content folders for each form they add, with `grep -rnE '<pattern>' <content dirs>`:
 
-| Form                     | Pattern          |
-| ------------------------ | ---------------- |
-| Footnotes                | `\[\^`           |
-| Display math             | `\$\$`           |
-| Display math on one line | `\$\$.+\$\$`     |
-| Inline math              | `\$[^$ ][^$]*\$` |
-| Escaped dollar signs     | `\\\$`           |
-| Dollar entities          | `&dollar;`       |
-| Citations                | `\[@`            |
-| Alerts                   | `^> \[!`         |
+| Form                     | Pattern                     |
+| ------------------------ | --------------------------- |
+| Footnotes                | `\[\^`                      |
+| Display math             | `\$\$`                      |
+| Display math on one line | `\$\$.+\$\$`                |
+| Inline math              | `\$[^$ ][^$]*\$`            |
+| Escaped dollar signs     | `\\\$`                      |
+| Dollar entities          | `&dollar;`                  |
+| Citations                | `\[@`                       |
+| Alerts                   | `^> \[!`                    |
+| Directives               | `^:{2,}[a-z]`               |
+| Abbreviations            | `^\*\[`                     |
+| Fence options            | ``^ *[`~]{3}[a-z-]* +[^ ]`` |
+| Nested fences            | ``^ *`{4}``                 |
 
 The Content Editor rewrites these forms when it saves. For each form found, pick one:
 
 - A raw snippet for the form — see [snippets.md § Raw snippets](../cloudcannon-snippets/snippets.md#raw-snippets-for-inline-html-in-md-files).
-- Normalise the content to a form the editor keeps, such as `$$` on its own lines.
-- Keep the files out of the rich text editor with `_enabled_editors: [data]`, so editors change them in the Source Editor.
+- Normalise the content to a form the editor keeps, such as `$$` on its own lines, where the built page stays the same. List the files and changes for the user, and make them only once approved.
+
+For fence options and nested fences, see [gotchas.md § Code blocks](../cloudcannon-snippets/gotchas.md#code-blocks).
+
+**MUST NOT:** keep a file out of the Content Editor (`_enabled_editors: [data]`) to protect its body from save damage. If neither a snippet nor a content change keeps the syntax through a save, stop and report the form, the files and what was tried.
+**Why:** editors migrate to edit their content; a body they can't edit defeats the migration.

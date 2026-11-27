@@ -10,7 +10,7 @@ How to close a migration with the user: who tests what, when to stop, and what t
 | Builds, greps, small scripts, build output inspection (`dist/`, `public/`, `_site/`, `out/`) | Agent |
 | Fidelity checks in CloudCannon (preview, inline edit, save-to-git)                           | Human |
 
-The agent does not stand up a dev server to verify its own work, or run heavy end-to-end testing in session. Starting one **for the user** is a different act: it gives them the local CloudCannon they need to run the fidelity checks they own. See [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md).
+The agent does not run heavy end-to-end testing in session. It uses `cloudcannon dev` itself only for the [round-trip check](content.md#round-trip-check) and to [isolate editor behaviour](../cloudcannon-dev-server/setup.md#isolating-editor-behaviour). Starting one **for the user** is a different act: it gives them the local CloudCannon they need to run the fidelity checks they own. See [`cloudcannon-dev-server`](../cloudcannon-dev-server/SKILL.md).
 
 ## When to close with the user
 
@@ -32,16 +32,16 @@ Each check names an element you found in the site's source or built output. Name
 
 - **Local build** — the project's real build entrypoint, not a partial command. If it fails, paste the full error output (command, exit code, last ~30 lines of stderr).
 - **Checks you already ran** — state them in one line so the user doesn't duplicate work.
-- **Hydration errors**, when you had no browser — list the home page and one page per layout for the user to open from the served build output, and ask them to paste any console errors.
-- **Build settings on a site already on CloudCannon** — when the migration changed the build command, install command or output path, give the user the new values to set before the next build — see [configuration.md § Build settings](../cloudcannon-configuration/configuration.md#build-settings).
+- **Hydration errors**, when you had no browser — list the home page and one page per layout for the user to open on the SSG's dev server, and ask them to paste any console errors.
+- **Build settings on a site already on CloudCannon** — when the migration changed the build command, install command or output path, give the user the new values to set before the next build. This includes values changed after a failed first build: `.cloudcannon/initial-site-settings.json` is read only when the site is created — see [configuration.md § Build settings](../cloudcannon-configuration/configuration.md#build-settings).
 - **The live site is hosted elsewhere** — tell the user the CloudCannon site is for editing. Its editor previews the CloudCannon build, so images appear unoptimised when that build turns optimisation off. When the site needs a server, also tell them the live site stays on a host that runs its server features, and that those features show their editing fallbacks in the editor — see [server-features.md](../cloudcannon-configuration/server-features.md).
-- **CloudCannon (human)** — confirm in the hosted environment:
+- **CloudCannon (human)** — confirm in the hosted environment. On a client-routed site (Nuxt, SvelteKit), send every Visual Editor check there: local `cloudcannon dev` shows the site's own 404 in the preview — see [troubleshooting.md § Serving](../cloudcannon-dev-server/troubleshooting.md#serving).
   - Inline text regions can be edited in the preview on representative pages
   - Image regions open the image picker
   - Array regions show add/remove/reorder controls where arrays were wired
   - Cross-file editables (`@file`, shared partials) update the intended source file
   - Saved changes land in the expected files in git
-  - For each markdown-extension syntax in the content (footnotes, math, alerts), one file saved from the Content Editor after a one-word edit shows only that word changed in the body's git diff
+  - For each file the [round-trip check](content.md#round-trip-check) left for the user, a save from the Content Editor after a one-word edit shows only that word changed in the body's git diff
 
 ## What to ask the user to send back
 

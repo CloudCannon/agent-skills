@@ -10,7 +10,7 @@ Run the setup script to handle steps 1-3 automatically:
 bash <skills-dir>/cloudcannon-visual-editing/scripts/setup-editable-regions-astro.sh .
 ```
 
-Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`).
+Run it from the site root; `<skills-dir>` is wherever the skills are installed (for example `.agents/skills`). When the site adds its integrations somewhere other than `astro.config.*`, such as an integration of its own, don't run the script: install the package with the site's pinned package manager, and add `editableRegions()` where the site adds its other integrations.
 
 This installs the package (falling back to `--legacy-peer-deps` if needed), adds the Astro integration to `astro.config.mjs`, and creates `src/cloudcannon/registerComponents.ts`. Verify the results — especially that `editableRegions()` was placed inside the integrations array, not after it. Then add a conditional import in the base layout so `registerComponents` only loads inside CloudCannon's Visual Editor:
 

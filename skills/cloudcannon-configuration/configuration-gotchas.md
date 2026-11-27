@@ -156,7 +156,7 @@ Split into per-file collections only when:
 | Through a markdown renderer, then as HTML | `markdown`                                   |
 | As raw HTML, with no markdown step        | `html`                                       |
 
-The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter), [Eleventy](eleventy/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-engine), [Next.js](nextjs/configuration.md#string-inputs), [Nuxt](nuxt/configuration.md#string-inputs).
+The syntax for each row is SSG-specific — [Astro](astro/configuration.md#customize-the-config), [Hugo](hugo/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-filter), [Eleventy](eleventy/configuration-gotchas.md#choose-rich-text-inputs-from-the-template-engine), [Next.js](nextjs/configuration.md#string-inputs), [Nuxt](nuxt/configuration.md#string-inputs), [SvelteKit](sveltekit/configuration.md#string-inputs).
 
 - **Expect** template and content to agree. Markdown or HTML in a field the template escapes already prints literally on the live site — a bug in the original. Record it and ask the user whether to fix the template or the content; don't pick the input from the content alone. Plain text in a field the template renders as markdown is not a mismatch — `markdown` is still right.
 - **Scope** the input per structure when the same key renders differently in different blocks (`hero.description` as `markdown`, `description` as `textarea` elsewhere) — see [§ Where the input definition goes](#where-the-input-definition-goes).
@@ -242,6 +242,8 @@ The SSG's gotchas file gives the grep for its template syntax, where it has one 
 Give the date input on a schema for dated content (posts, events, news) `instance_value: NOW`, so a new file starts with the time it was created. Use another default, or none, when the templates expect one — check what they do with a missing date first.
 
 **Why:** a new file otherwise gets an empty date, so it sorts or displays wrongly on most sites.
+
+A `date` input writes a date-only value (`2023-01-05`) back with a time, `2023-01-05T00:00:00Z`, on the first save. Check that each template printing the field shows the same date for both forms.
 
 ```yaml
 _inputs:

@@ -9,6 +9,7 @@ These rules apply to every SSG. Examples use Astro's names; the SSG's `configura
 | Astro         | [astro/configuration.md § When the live site runs on an adapter](astro/configuration.md#when-the-live-site-runs-on-an-adapter) |
 | Next.js       | [nextjs/configuration.md § When the live site needs a server](nextjs/configuration.md#when-the-live-site-needs-a-server)       |
 | Nuxt          | [nuxt/configuration.md § When the live site needs a server](nuxt/configuration.md#when-the-live-site-needs-a-server)           |
+| SvelteKit     | [sveltekit/configuration.md § When the live site needs a server](sveltekit/configuration.md#when-the-live-site-needs-a-server) |
 
 ## Gate the CloudCannon build on a variable
 

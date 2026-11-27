@@ -170,45 +170,9 @@ accordion:
 
 The directive appears literally in the `snippet` string outside any `[[placeholder]]`, so it's preserved as-is during parsing and re-serialization.
 
-### Custom template for multiple `client:load` components
+### Several `client:load` components
 
-If several components all need `client:load`, define a custom template to avoid repetition:
-
-```yaml
-_snippets_templates:
-  astro_client_component:
-    snippet: "<[[component_name]] client:load [[named_args]] />"
-    params:
-      component_name:
-        parser: literal
-        options:
-          literal:
-            ref: component_name
-      named_args:
-        parser: key_values
-        options:
-          models:
-            ref: named_args
-          format:
-            root_value_delimiter: "="
-            string_boundary:
-              - '"'
-```
-
-Then individual snippets inherit from it:
-
-```yaml
-_snippets:
-  youtube:
-    template: astro_client_component
-    definitions:
-      component_name: Youtube
-      named_args:
-        - editor_key: id
-          type: string
-        - editor_key: title
-          type: string
-```
+Write each component's raw snippet in full, as above. Don't share one pattern through a `_snippets_templates` entry whose `literal` or `models` come from `definitions` with `{ ref: … }`: `cloudcannon validate` rejects it, and accepts `ref` only for a parser's `format`.
 
 ## Nested components (repeating parser)
 
@@ -299,7 +263,7 @@ After adding snippet configs:
 - [ ] Component inventory grep returns zero unconfigured names — see [../snippets.md § Component inventory grep](../snippets.md#component-inventory-grep)
 - [ ] No `^import ` lines remain in any `.mdx` content file
 - [ ] `_snippets` entries exist in `cloudcannon.config.yml` (no `_snippets_imports` needed — built-in templates resolve automatically)
-- [ ] Every component used in MDX content has a corresponding `_snippets` entry, or the file uses `_enabled_editors: [data]` only as a last resort with rationale in migration notes
+- [ ] Every component used in MDX content has a corresponding `_snippets` entry
 - [ ] Components with `client:load` use raw snippet syntax, not templates
 - [ ] `_inputs` are configured for constrained values (select dropdowns, url inputs, etc.)
 - [ ] `astro build` passes cleanly

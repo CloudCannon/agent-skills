@@ -22,8 +22,21 @@ Before the first edit in this phase, save a build of the working tree to compare
    - image file names, with build hashes stripped
    - image `alt` text
    - `<title>` and meta description
+4. **Compare** the text of the other files the build writes for readers — feeds, sitemaps, `llms.txt` — the same way.
 
 **Why:** hashed asset names and markup changes fill a raw diff, and hide the content that went missing.
+
+## Round-trip check
+
+Once Phase 2's snippets and this phase's content changes are in, prove that a save in the Content Editor leaves each body as it was. Run it with a browser tool on `cloudcannon dev`; without one, list the files for the orchestrator to hand to the user.
+
+1. **Pick** one file per content shape — each mix of snippets, code fences, MDX and plain markdown — plus every file [audit.md § Markdown-extension syntax](audit.md#markdown-extension-syntax) found.
+2. **Open** each in the Content Editor, type a character in the body, delete it, and save.
+3. **Diff** the file against git. Front matter restyling is expected. A body change beyond whitespace and list-marker style is save damage: handle it per [audit.md § Markdown-extension syntax](audit.md#markdown-extension-syntax), then save again.
+4. **Run** the repo's formatter and linter checks over the saved files. CloudCannon writes JSON with each array item on its own line, which a strict formatter rejects; ask the user whether to exclude content and data files from formatting.
+5. **Restore** the saved files with git once they pass.
+
+**Why:** clicking into a body is enough for a save to rewrite all of it, so an editor's first one-word change can damage content the build never touched.
 
 ## Review checklist
 
@@ -160,6 +173,8 @@ Write the data files as JSON or YAML. CloudCannon also edits TOML, CSV and TSV, 
 3. Update the consuming components to read the data files, and strip the moved values from the code.
 4. Add `data_config` entries, and `file_config` entries with `_inputs` and `_structures`, in the CloudCannon config.
 
+When a module keeps importing the moved JSON, scripts and tests that Node runs directly need `with { type: "json" }` on the import; the SSG's bundler builds without it. Check build steps that scan source files by extension, such as icon collectors and font subsetting, still see the values that moved.
+
 After extraction, audit the consuming component for hardcoded values (icons, colours, link targets, label text, image paths) and move those into the data file too. If an editor can see it and it could reasonably vary, it belongs in the data file. Which treatment each shared section gets is in [cc-friendly-conventions.md § Shared-UI treatment table](cc-friendly-conventions.md#shared-ui-treatment-table).
 
 ### Data collections
@@ -191,4 +206,5 @@ Run this checklist on every content file before marking the content phase comple
 - [ ] Every array inside a structure-value file links to its `_structures` entry via an explicit `_inputs` block — see [structures.md § The four rules](../cloudcannon-configuration/structures.md#the-four-rules-read-first).
 - [ ] Every visible value in a data file's consuming component that an editor would reasonably change (icons, link targets, label text, image paths) lives in the data file.
 - [ ] Collection files and data files this phase created pass the checks Phase 2 ran against the planned files: computed URLs match the build ([collection-urls.md § Check every file against the build](../cloudcannon-configuration/collection-urls.md#check-every-file-against-the-build)), and every `_inputs` key names a field in the files ([configuration-gotchas.md § An `_inputs` key that names no field is ignored](../cloudcannon-configuration/configuration-gotchas.md#an-_inputs-key-that-names-no-field-is-ignored)).
+- [ ] The [round-trip check](#round-trip-check) passes on every file it picked, or the orchestrator has the list for the user.
 - [ ] `.cloudcannon/migration/content.md` records every structural change.

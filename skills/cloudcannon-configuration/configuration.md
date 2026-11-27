@@ -95,6 +95,8 @@ Remove each collection that holds only one file. Move a lone page into the `page
 
 **Why:** a collection of one adds a sidebar entry with nothing to browse.
 
+When the files for one collection live in different folders, ask the user. Suggest moving them into one folder when the built site stays the same, and update the routes that read them. Don't point one collection at a shared parent folder instead: editors then browse that folder's subfolders, not a list of pages.
+
 ### Split nested subdirectories into their own collections
 
 When `pages` holds subdirectories that are distinct groups with their own URL prefix (`pages/services/`, `pages/landing/`), give each its own collection. Each gets a sidebar entry and its own URL pattern.
@@ -221,6 +223,7 @@ Write `.cloudcannon/README.md` for editors. It shows on the Site Dashboard, so i
 - **Site settings:** where site-wide settings live (theme, navigation, social links)
 - **New pages:** if a collection or schema sets `new_preview_url`, that a new page previews an existing page until it's built, and which page that is when it isn't the home page
 - **Rich text components:** if the site has `_snippets`, the components editors can insert
+- **Writing limits:** characters the site can't take in body text, when its SSG file names any
 
 Write in plain language. Leave out technical terms such as YAML, front matter, schema and SSG, and the SSG's name and tools.
 

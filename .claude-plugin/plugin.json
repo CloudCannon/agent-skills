@@ -20,6 +20,8 @@
     "eleventy",
     "nextjs",
     "nuxt",
+    "sveltekit",
+    "svelte",
     "cms",
     "multilingual",
     "i18n",

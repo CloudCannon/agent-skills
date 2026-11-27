@@ -81,6 +81,8 @@ Any `yarn` on the path honours a committed `yarnPath`, so a Yarn Berry site need
 **MUST:** pin the package manager's version so CloudCannon installs with the version used locally. Set `packageManager` in `package.json` to that exact version. For pnpm, also run that version in `install_command`: `npx pnpm@<version> install --frozen-lockfile`.
 **Why:** CloudCannon preinstalls npm, pnpm and Yarn, at versions that may differ from the site's. A different pnpm major can reject the lockfile or block dependency build scripts the local version ran.
 
+Don't rely on Corepack in `install_command` (`corepack enable`, `corepack pnpm`): Node 25 and later don't ship it. The `npx pnpm@<version>` form works on every Node version.
+
 ## Node version
 
 | The site has                       | `build.node_version`                                                                                              |

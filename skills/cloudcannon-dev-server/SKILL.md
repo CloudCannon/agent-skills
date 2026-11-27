@@ -60,9 +60,9 @@ Offer watched when the user wants the preview to follow edits that editable regi
 - **Authoring collections, inputs or structures** — that is [`cloudcannon-configuration`](../cloudcannon-configuration/SKILL.md). This skill serves the result; it does not decide it.
 - **Authoring editable regions** — that is [`cloudcannon-visual-editing`](../cloudcannon-visual-editing/SKILL.md).
 - **Checking that a site's output is correct** — whether URLs match the collection config, whether pages are orphaned. This skill starts a server; it does not grade the site.
-- **Driving the editor in a browser** — clicking regions, dumping inputs, screenshotting. Ask the user to look.
+- **Driving the editor in a browser without a browser tool** — ask the user to look. With one, test on a minimal site — see [setup.md § Isolating editor behaviour](setup.md#isolating-editor-behaviour).
 - **Final sign-off.** Local CloudCannon has no real save-to-git, no build pipeline and no permissions. A human still confirms on the hosted site.
-- **Testing hosted-only behaviour.** The local app isn't told the SSG, so SSG-specific rules don't apply locally — a Hugo site's config files show in a collection locally even without `include_developer_files` ([Site config as data](../cloudcannon-configuration/hugo/configuration.md#site-config-as-data)). Creating new files isn't a faithful test either: an unsaved new entry carries a temporary flat name.
+- **Testing hosted-only behaviour.** The local app isn't told the SSG, so SSG-specific rules don't apply locally — a Hugo site's config files, or data files under an Astro site's `public/`, show in a collection locally even without `include_developer_files` ([Hugo](../cloudcannon-configuration/hugo/configuration.md#site-config-as-data), [Astro](../cloudcannon-configuration/astro/configuration.md#data-files-under-public)). Creating new files isn't a faithful test either: an unsaved new entry carries a temporary flat name.
 
 ## Contents
 
